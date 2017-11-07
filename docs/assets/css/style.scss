@@ -1,0 +1,16 @@
+---
+---
+
+@import 'jekyll-theme-primer';
+
+#header {
+  nav {
+    float: right;
+
+    a:link {
+      display: inline-block;
+      margin-left: 1em;
+    }
+  }
+}
+
