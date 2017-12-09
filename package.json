@@ -4,14 +4,15 @@
   "description": "Object-relational mapping for Node.js",
   "main": "index.js",
   "scripts": {
-    "test": "mysql -uroot < tests/dumpfile.sql && mocha --exit tests/test.*.js"
+    "test": "mysql -uroot < tests/dumpfile.sql && DEBUG=leoric mocha --exit tests/test.*.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/dotnil/leoric.git"
   },
   "keywords": [
-    "orm", "mysql"
+    "orm",
+    "mysql"
   ],
   "author": "dotnil (http://cyj.me)",
   "license": "BSD",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "co": "^4.6.0",
+    "debug": "^3.1.0",
     "deep-equal": "^1.0.1",
     "mysql": "^2.15.0",
     "pluralize": "^7.0.0"

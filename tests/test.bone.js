@@ -15,12 +15,6 @@ const Tag = require('./models/tag')
 before(async function() {
   this.timeout(5000)
   await connect(require('./config'))
-
-  Bone.logger = {
-    debug: function(...args) { console.log(...args) },
-    warn: function(...args) { console.warn(...args) },
-    info: function(...args) { console.log(...args) }
-  }
 })
 
 describe('=> Attributes', function() {

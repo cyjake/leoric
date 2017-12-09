@@ -73,8 +73,6 @@ const connect = async function Leoric_connect(opts) {
 
   Bone.pool = pool
   Collection.pool = pool
-  if (opts.logger) Bone.logger = opts.logger
-
   const [results] = await columnInfo(pool, opts.db, models.map(m => m.table))
   const schema = {}
 
