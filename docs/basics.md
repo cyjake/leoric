@@ -69,7 +69,7 @@ When `Bone.remove({...})` is called on a Model with `deletedAt` present, Leoric 
 It's very easy to create Leoric models. Simply extend from the `Bone` class exported by Leoric:
 
 ```js
-const { Bone } = require('@ali/leoric')
+const { Bone } = require('leoric')
 
 class Shop extends Bone {}
 ```
@@ -116,8 +116,7 @@ You can rename the attribute names too. By default, these names are transformed 
 ```js
 class Shop extends Bone {
   static describe() {
-    this.renameAttribute('gmtCreate', 'createdAt')
-    this.renameAttribute('gmtModified', 'updatedAt')
+    this.renameAttribute('removedAt', 'deletedAt')
   }
 }
 ```
@@ -129,7 +128,7 @@ A lot of schema settings can be done within the `static describe()` method. We'l
 Models need to be connected to database before use. When you `connect()` models to database, Leoric will try to load table schema information and update model metadata accordingly, namely the `Model.schema`, `Model.attributes`, and `Model.columns` properties (the latter two are just getter properties which rely on `Model.schema`).
 
 ```js
-const { connect } = require('@ali/leoric')
+const { connect } = require('leoric')
 
 async function() {
   // connect models to the database
@@ -151,9 +150,9 @@ async function() {
 
 With the models defined and connected, developers can,
 
-- query the model with static methods such as `Model.find({})` and `Model.findOne({})`,
-- writing data with `Model.create({})` and `Model.update({})`,
-- removing data with `Model.remove({})`, and
+- query the model with static methods such as `Model.find()` and `Model.findOne()`,
+- writing data with `Model.create()` and `Model.update()`,
+- removing data with `Model.remove()`, and
 - persisting instance changes with `model.save()` of course.
 
 ```js
@@ -170,3 +169,109 @@ async function() {
   await Shop.remove({ name: 'Horadric Cube' })
 })
 ```
+
+### Create
+
+There are two ways in Leoric to INSERT records into database. We can do this either by calling `Model.create()` with one blow:
+
+```js
+const shop = await Shop.create({ name: 'Barracks', credit: 10000, type: 'taobao' })
+```
+
+or by instantiating a model from scratch, settings the attributes, the `model.save()` it at last:
+
+```js
+const shop = new Shop({ name: 'Barracks' })
+shop.credit = 10000
+shop.type = 'taobao'
+await shop.save()
+```
+
+The SQL equivalent of both is:
+
+```sql
+INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000, 'taobao');
+```
+
+### Read
+
+Although Leoric provides a rich API for starting a query, `Model.find()` and `Model.findOne()` are the most used methods.
+
+```js
+// find all of the shops
+Shop.find()
+// => SELECT * FROM shops;
+
+// find the first one
+Shop.findOne()
+// => SELECT * FROM shops LIMIT 1;
+
+// find the shop of Deckard Cain
+Shop.findOne({ name: 'Deckard Cain' })
+// => SELECT * FROM shops WHERE name = 'Deckard Cain' LIMIT 1;
+
+// find a collection of shops with their credit above 1000
+Shop.where('credit > 1000')
+// => SELECT * FROM shops WHERE credit > 1000;
+```
+
+For detailed introductions about reading data from the database, please read [Query Interface]({{ '/querying' | relative_url }})
+
+### Update
+
+Like the way records are created, records can be updated in two manners too. If the objects are already at hand, we can fiddle their attributes and persist the updates by calling `model.save()`:
+
+```js
+const shop = await Shop.findOne({ name: 'Barracks' })
+// => Shop { id: 1, name: 'Barracks' }
+shop.credit = 10000
+await shop.save()
+```
+
+The SQL equivalent of the above is:
+
+```sql
+UPDATE shops SET credit = 10000 WHERE id = 1;
+```
+
+If the back and forth traffic needs to be skipped, we can also update the records with one blow using `Model.update()`:
+
+```js
+await Shop.update({ name: 'Barracks' }, { credit: 10000 })
+```
+
+The SQL equivalent of the above is:
+
+```sql
+UPDATE shops SET credit = 10000 WHERE name = 'Barracks';
+```
+
+### Delete
+
+Likewise, both `model.remove()` and `Model.remove()` are available to delete records from database. For example:
+
+```js
+const shop = await Shop.find({ name: 'Barracks' })
+// => Shop { id: 1, name: 'Barracks' }
+await shop.remove(true)
+// DELETE FROM shops WHERE id = 1
+
+await Shop.remove({ name: 'Barracks' }, true)
+// DELETE FROM shops WHERE name = 'Barracks'
+```
+
+What's with the parameter `true` you might ask. That is because by default Leoric performs a soft delete instead of truly DELETE FROM the database. To make soft delete possible, the model must have a attribute called `deletedAt` to be used as a mark of deletion.
+
+Therefore, if `deletedAt` were present in `Shop` model:
+
+```js
+const shop = await Shop.find({ name: 'Barracks' })
+// => Shop { id: 1, name: 'Barracks' }
+await shop.remove(true)
+// UPDATE shops SET deleted_at = NOW() WHERE id = 1;
+
+await Shop.remove({ name: 'Barracks' })
+// UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks';
+```
+
+If `deletedAt` were absent in `Shop` model, calling either `model.remove()` or `Model.remove()` without passing `true` will throw an Error.

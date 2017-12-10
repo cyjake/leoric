@@ -70,7 +70,7 @@ Let's say we need to develop an online shopping mall. Here's a drastically simpl
 <img width="720" src="https://img.alicdn.com/tfscom/TB1BcxiXaSmXuNjy1XdXXa3opXa.png">
 
 ```js
-const { Bone } = require('@ali/leoric')
+const { Bone } = require('leoric')
 
 // app/models/shop.js
 class Shop extends Bone {
