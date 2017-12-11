@@ -15,7 +15,7 @@
     "mysql"
   ],
   "author": "dotnil (http://cyj.me)",
-  "license": "BSD",
+  "license": "MIT",
   "engines": {
     "node": ">= 8.0.0"
   },
