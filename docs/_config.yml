@@ -24,5 +24,3 @@ theme: jekyll-theme-primer
 exclude:
   - Gemfile
   - Gemfile.lock
-
-repository: dotnil/leoric

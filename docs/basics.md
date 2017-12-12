@@ -274,4 +274,4 @@ await Shop.remove({ name: 'Barracks' })
 // UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks';
 ```
 
-If `deletedAt` were absent in `Shop` model, calling either `model.remove()` or `Model.remove()` without passing `true` will throw an Error.
+If `deletedAt` were absent in `Shop` model, calling either `model.remove()` or `Model.remove()` without passing `true` throws an Error.

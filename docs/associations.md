@@ -6,32 +6,36 @@ title: Associations
 With associations well defined, developers can pull structured data with a single query such as:
 
 ```js
-const shop = yield Shop.findOne({ id }).with('items', 'owner', 'license')
-assert(shop.items[0] instanceof Item)  // => true
-assert(shop.owner instanceof User)     // => true
+const shop = await Shop.findOne({ id }).with('items', 'owner')
+// => Shop { id: 1,
+//           name: 'Barracks',
+//           items: [ Item { name: "Wirt's Leg" }, ... ],
+//           owner: User { name: 'Tyreal' } }
 ```
 
 This guide covers the association features of Leoric. After reading this guide, you will know:
 
-- How to declare assocations between Leoric models.
-- How to understand the various types of Leoric associations.
+- How to declare assocations between models.
+- How to understand the various types of associations.
 
 ## Types of Associations
 
 Leoric supports four types of associations:
 
-- `static belongsTo()`
-- `static hasMany()`
-- `static hasMany({ through })`
-- `static hasOne()`
+- `belongsTo()`
+- `hasMany()`
+- `hasMany({ through })`
+- `hasOne()`
 
-Associations can be declared in the `static describe()` method. For example, by declaring one model `belongsTo` another, you're telling Leoric that when `Model.find({}).with('anotherModel')`, Leoric should join `another_models`, load the data, and instantiate anotherModel on the found models.
+Associations can be declared within the `Model.describe()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Leoric that when `Shop.find().with('owner')`, Leoric should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
 
-> Associations are far more powerful in Active Record for Ruby's flexibility. For example, assocation fetching can be seamless when accessing `model.anotherModel` no matter it is already included in the first query or not. If `model.anotherModel` isn't ready, Ruby will block at accessing, wait for Active Record to perform another query, then return the result. However, This kind of luxury isn't available in the asynchronous world of Node.js.
+### `belongsTo()`
 
-### `static belongsTo()`
+<figure class="belongs-to-erd">
+  <img src="https://img.alicdn.com/tfscom/TB1qiWyfyqAXuNjy1XdXXaYcVXa.png">
+</figure>
 
-A `static belongsTo()` assocation sets up a one-to-one relationship with another model. For example, a shop can have many items as it finds fit. On the other hand, an item can `belongsTo` to exactly one shop. We can declare the `Item` this way:
+A `belongsTo()` assocation sets up a one-to-one or many-to-one relationship. For example, a shop can have many items as it finds fit. On the other hand, an item can `belongsTo()` to exactly one shop. We can declare the `Item` this way:
 
 ```js
 class Item extends Bone {
@@ -41,84 +45,158 @@ class Item extends Bone {
 }
 ```
 
-Conventionally, Leoric will try to relate `Item` with `Shop` which is found by capitalizing `shop` as the model name. If that's not the case, you can specify the model name explicitly by passing `Model`:
+Leoric locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `Model`:
 
 ```js
 class Item extends Bone {
   static describe() {
-    this.belongsTo('shop', { Model: 'Store' })
+    this.belongsTo('shop', { Model: 'Seller' })
   }
 }
 ```
 
-// TODO: relational diagram
+> Please be noted that the value passed to `Model` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association can be error prone because it causes cyclic dependencies.
 
-// TODO: foreignKey
+As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by converting the target model name into snake case then appending an `_id`. In this case, the foerign key is converted from `Shop` to `shop_id`.
 
-### `static hasMany()`
+> Leoric has two sets of names maintained under the hood. One is the attribute names of the model, which usually are in camel case to be compliant with common JavaScript coding conventions. The other is the columns names of the actual table, which may be in camel case but usually are in snake case.
 
-### `static hasMany({ through })`
-
-### `static hasOne()`
-
-### Choosing Between `static belongsTo()` and `static hasOne()`
-
-## A (not so) Quick Walkthrough
-
-Let's say we need to develop an online shopping mall. Here's a drastically simplified relational diagram.
-
-<img width="720" src="https://img.alicdn.com/tfscom/TB1BcxiXaSmXuNjy1XdXXa3opXa.png">
+To override foreign key, we can specify it explicitly:
 
 ```js
-const { Bone } = require('leoric')
+class Item extends Bone {
+  static describe() {
+    this.belongsTo('shop', { foreignKey: 'seller_id' })
+  }
+}
+```
 
-// app/models/shop.js
+### `hasMany()`
+
+<figure class="has-many-erd">
+  <img src="https://img.alicdn.com/tfscom/TB1qiWyfyqAXuNjy1XdXXaYcVXa.png">
+</figure>
+
+If you look this ER diagram from the shops point of view, you may notice that there is a `hasMany()` association too. The shop `hasMany()` items:
+
+```js
 class Shop extends Bone {
   static describe() {
     this.hasMany('items')
-    this.hasMany('tagMaps', {
-      foreignKey: 'targetId',
-      where: { targetType: 1 }
-    })
-    this.hasMany('tags', { through: 'tagMaps' })
-    this.hasOne('license')
-    this.belongsTo('owner')
-  }
-}
-
-// app/models/item.js
-class Item extends Bone {
-  static describe() {
-    this.belongsTo('shop')
-  }
-}
-
-// app/models/tagMap.js
-class TagMap extends Bone {
-  static describe() {
-    this.belongsTo('tag')
-    this.belongsTo('shop', {
-      foreignKey: 'targetId',
-      where: { targetType: 1 }
-    })
-  }
-}
-
-// app/models/tag.js
-class Tag extends Bone {
-  static describe() {
-    this.hasMany('shopTagMaps', {
-      ClassName: 'TagMap',
-      where: { targetType: 1 }
-    })
-    this.hasMany('shops', { through: 'shopTagMaps' })
-  }
-}
-
-// app/models/license.js
-class License extends Bone {
-  static describe() {
-    this.belongsTo('shop')
   }
 }
 ```
+
+> Please be noted that unlike `belongsTo()`, the name passed to `hasMany()` is usually in plural.
+
+The way Leoric locates the actual model class is quite similar. It starts with singularizing the name, then capitalizing. In this case, `items` get singularized to `item`, and then `Item` is used to look for the actual model class.
+
+To override the model name, we can specify it explicitly:
+
+```js
+class Shop extends Bone {
+  static describe() {
+    this.hasMany('items', { Model: 'Commodity' })
+  }
+}
+```
+
+As you can tell from the ER diagram, the foreign key used to join two tables is located at the target table, `items`. To override the foreign key, just pass it to the option of `hasMany()`:
+
+```js
+class Shop extends Bone {
+  static describe() {
+    this.hasMany('items', { foreignKey: 'seller_id' })
+  }
+}
+```
+
+### `hasMany({ through })`
+
+The world of entity relationships doesn't consist of one-to-one or one-to-many associations only. There are many scenarios that require a many-to-many association to be setup. However, in relational databases many-to-many between two tables isn't possible by nature. To accompish this, we need to introduce an intermediate table to bridge the associations.
+
+Take following tag system for example:
+
+<figure class="has-many-through-erd">
+  <img src="https://img.alicdn.com/tfscom/TB1DWpxh2DH8KJjy1XcXXcpdXXa.png">
+</figure>
+
+A shop can have as many tags as it see fit. And a tag can be related to as many shops as it like. The actual relationships are recorded in the `tag_maps` table. To find associations either from the shop or the tag, the query needs to go through `tag_maps` first.
+
+> As you may have noticed already, the `tag_maps` doesn't necessarily relate to `shops` as their targets in this ER model. It supports generic targets with the `target_type` column. In this way, the `tags` can have many-to-many associations to any other models.
+
+`hasMany({ through })` is just the method that helps us setup that kind of associations. From `Shop`'s point of view:
+
+```js
+class Shop extends Bone {
+  static describe() {
+    // the extra where is needed if you fancy this generic tag system
+    this.hasMany('tagMaps', { foreignKey: 'targetId', where: { targetType: 0 } })
+    this.hasMany('tags', { through: 'tagMaps' })
+  }
+}
+```
+
+On `Tag`'s side:
+
+```js
+class Tag extends Bone {
+  static describe() {
+    this.hasMany('shopTagMaps', { Model: 'TagMap', where: { targetType: 0 } })
+    this.hasMany('shops', { through: 'shopTagMaps' })
+  }
+}
+```
+
+If suddenly our business requires us to apply the tag system to items too, the changes needed on `Tag` model is trivial:
+
+```diff
+class Tag extends Bone {
+  static describe() {
+    this.hasMany('shopTagMaps', { Model: 'TagMap', where: { targetType: 0 } })
+    this.hasMany('shops', { through: 'shopTagMaps' })
++   this.hasMany('itemTagMaps', { Model: 'TagMap', where: { targetType: 1 } })
++   this.hasMany('items', { through: 'itemTagMaps' })
+  }
+}
+```
+
+### `hasOne()`
+
+<figure class="has-one-erd">
+  <img src="https://img.alicdn.com/tfscom/TB1LiHffyqAXuNjy1XdXXaYcVXa.png">
+</figure>
+
+A `hasOne()` association also sets up a one-to-one connection with another model, but with a few sematic differences. At first glance it may look quite similar to `belongsTo()` or event `hasMany()`.
+
+The difference between `hasOne()` and `belongsTo()` is mainly at the position of the foreign key. `hasOne()`, like `hasMany()`, needs the foreign key to be added in the target model, while `belongsTo()` needs the it located in the initiating model.
+
+The difference between `hasOne()` and `hasMany()` is subtle. When a model `hasOne()` of another model, the other model will be mounted as a singleton. When it `hasMany()` of another model, the mounted attribute will be a collection that contains all the target models instead.
+
+In this example, a user has one shop:
+
+```js
+class User extends Bone {
+  static describe() {
+    this.hasOne('shop', { foreignKey: 'ownerId' })
+  }
+}
+```
+
+And the shop belongs to the user:
+
+```js
+class Shop extends Bone {
+  static describe() {
+    this.belongsTo('owner', { Model: 'User' })
+  }
+}
+```
+
+### Choosing Between `belongsTo()` and `hasOne()`
+
+As dicussed in the `hasOne()` section, the difference between `belongsTo()` and `hasOne()` is mostly at where to place the foreign key. The corresponding model of the table that contains the foreign key should be the one that declares the `belongsTo()` association.
+
+For example, it makes perfect sense that a user should `hasOne()` shop, and the shop should `belongsTo()` an owner (which is a special type of user). Then the shops table should declare the foreign column called `owner_id` to make `this.hasOne('shop', { foreignKey: 'ownerId' })` work.
+
+There's a bonus of reasoning this kind of differences between associations. If the business needs to allow a user to have multiple shops someday, we can just change the `hasOne()` to `hasMany()`, wrap existing code into a `for (const shop of user.shops)` loop, and then go get a coffee. There's no need to touch code at the `Shop` model.

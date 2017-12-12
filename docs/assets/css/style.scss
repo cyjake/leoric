@@ -4,13 +4,44 @@
 @import 'jekyll-theme-primer';
 
 #header {
+  background: #f0f0f0;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.5em 0;
+
+  a:link, a:visited {
+    color: #505050;
+  }
+
   nav {
     float: right;
 
-    a:link {
+    a {
       display: inline-block;
       margin-left: 1em;
     }
   }
 }
 
+.markdown-body figure {
+  img {
+    background: transparent;
+  }
+}
+
+@media(min-width: 1000px) {
+  .belongs-to-erd,
+  .has-many-erd,
+  .has-one-erd {
+    float: right;
+    width: 50%;
+    margin: 0 1em;
+  }
+
+  .has-many-through-erd {
+    text-align: center;
+
+    img {
+      width: 80%;
+    }
+  }
+}
