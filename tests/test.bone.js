@@ -273,6 +273,22 @@ describe('=> Query', function() {
     const posts = await Post.find({ title: 'King Leoric' })
     expect(posts.length).to.be(1)
     expect(posts[0]).to.be.a(Post)
+    expect(posts[0].title).to.equal('King Leoric')
+  })
+
+  it('.find({ foo: null })', async function() {
+    const posts = await Post.find({ thumb: null })
+    expect(posts.length).to.be(3)
+    expect(posts[0]).to.be.a(Post)
+    expect(posts[0].thumb).to.eql(null)
+  })
+
+  it('.find({ foo: [] })', async function() {
+    const posts = await Post.find({ title: ['King Leoric', 'Archangel Tyrael'] })
+    expect(posts.length).to.be(2)
+    expect(posts.map(post => post.title)).to.eql([
+      'King Leoric', 'Archangel Tyrael'
+    ])
   })
 
   it('.find { limit }', async function() {
