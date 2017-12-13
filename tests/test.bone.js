@@ -458,10 +458,12 @@ describe('=> Associations', function() {
 
   before(async function() {
     const post = await Post.create({ title: 'Archbishop Lazarus' })
-    await Attachment.create({
-      url: 'https://img.alicdn.com/tfs/TB1mIGsfZLJ8KJjy0FnXXcFDpXa-190-140.png',
-      postId: post.id
-    })
+    await Promise.all([
+      Attachment.create({
+        url: 'https://img.alicdn.com/tfs/TB1mIGsfZLJ8KJjy0FnXXcFDpXa-190-140.png',
+        postId: post.id
+      })
+    ])
     await Promise.all(comments.map(content => {
       return Comment.create({ content, articleId: post.id })
     }))
@@ -522,6 +524,27 @@ describe('=> Associations', function() {
     expect(post.tags[0]).to.be.a(Tag)
     expect(post.tagMaps[0]).to.be.a(TagMap)
     expect(post.attachment).to.be.a(Attachment)
+  })
+
+  it('.with(...names).select()', async function() {
+    const query = Post.findOne().with('attachment').select('attachment.url')
+    const post = await query
+    expect(post.attachment).to.be.a(Attachment)
+  })
+
+  it('.with(...names).where()', async function() {
+    const post = await Post.findOne().with('attachment').where('attachment.url like ?', 'https://%')
+    expect(post.attachment).to.be.a(Attachment)
+  })
+
+  it('.with(...names).order()', async function() {
+    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('comments').order('comments.content desc')
+    expect(post.comments.map(comment => comment.content)).to.eql([
+      'You are too late to save the child!',
+      "Now you'll join him",
+      'All that awaits you is the wrath of my master!',
+      'Abandon your foolish quest!'
+    ])
   })
 })
 
@@ -699,5 +722,29 @@ describe('=> Group / Join / Subqueries', function() {
     expect(posts[0].attachment.id).to.be.ok()
     expect(posts[1].title).to.eql('Archangel Tyrael')
     expect(posts[1].attachment).to.be(null)
+  })
+})
+
+describe('=> Automatic Versioning', function() {
+  before(async function() {
+    await Post.remove({}, true)
+    await Promise.all([
+      Post.create({ title: 'King Leoric' }),
+      Post.create({ title: 'Skeleton King' }),
+      Post.create({ title: 'Leah' })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('Allows multiple stops', async function() {
+    const query = Post.find('title like ?', '%King%')
+    expect((await query.limit(1)).length).to.be(1)
+    expect((await query).length).to.be(2)
+    expect((await query.order('title')).map(post => post.title)).to.eql([
+      'King Leoric', 'Skeleton King'
+    ])
   })
 })
