@@ -1,3 +1,8 @@
+0.1.2 / 2017-12-14
+==================
+
+ * Copy left table's orders into subquery to make order/limit work when combined.
+
 0.1.1 / 2017-12-13
 ==================
 
@@ -7,4 +12,4 @@
 0.1.0 / 2017-12-09
 ==================
 
- * Initial version, covers basic usage such as model authoring, database connection, query interface, and association
+ * Initial version, covers basic usage such as model authoring, database connection, query interface, and association.

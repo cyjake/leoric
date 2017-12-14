@@ -457,7 +457,11 @@ describe('=> Associations', function() {
   ]
 
   before(async function() {
-    const post = await Post.create({ title: 'Archbishop Lazarus' })
+    const posts = await Promise.all([
+      Post.create({ title: 'Archbishop Lazarus' }),
+      Post.create({ title: 'Leah' })
+    ])
+    const post = posts[0]
     await Promise.all([
       Attachment.create({
         url: 'https://img.alicdn.com/tfs/TB1mIGsfZLJ8KJjy0FnXXcFDpXa-190-140.png',
@@ -527,8 +531,7 @@ describe('=> Associations', function() {
   })
 
   it('.with(...names).select()', async function() {
-    const query = Post.findOne().with('attachment').select('attachment.url')
-    const post = await query
+    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('attachment').select('attachment.url')
     expect(post.attachment).to.be.a(Attachment)
   })
 
@@ -539,12 +542,12 @@ describe('=> Associations', function() {
 
   it('.with(...names).order()', async function() {
     const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('comments').order('comments.content desc')
-    expect(post.comments.map(comment => comment.content)).to.eql([
-      'You are too late to save the child!',
-      "Now you'll join him",
-      'All that awaits you is the wrath of my master!',
-      'Abandon your foolish quest!'
-    ])
+    expect(post.comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
+
+    const posts = await Post.find().with('comments').order({ 'posts.title': 'desc', 'comments.content': 'desc' })
+    expect(posts[0].title).to.be('Leah')
+    expect(posts[1].title).to.be('Archbishop Lazarus')
+    expect(posts[1].comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
   })
 })
 
