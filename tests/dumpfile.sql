@@ -33,6 +33,7 @@ CREATE TABLE `books` (
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `name` varchar(1000) NOT NULL,
+  `price` decimal(10, 3) NOT NULL,
   PRIMARY KEY (`isbn`)
 );
 

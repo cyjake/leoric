@@ -263,17 +263,61 @@ describe('=> Query', function() {
     await Post.remove({}, true)
   })
 
-  it('.findOne', async function() {
-    const post = await Post.findOne({})
+  it('.all', async function() {
+    const posts = await Post.all
+    expect(posts.length).to.be(3)
+    expect(posts.map(post => post.title)).to.contain('King Leoric')
+  })
+
+  it('.first', async function() {
+    const post = await Post.first
+    expect(post).to.be.a(Post)
+    expect(post.title).to.be('King Leoric')
+  })
+
+  it('.last', async function() {
+    const post = await Post.last
+    expect(post).to.be.a(Post)
+    expect(post.title).to.be('Archangel Tyrael')
+  })
+
+  it('.findOne()', async function() {
+    const post = await Post.findOne()
     expect(post).to.be.a(Post)
     expect(post.id).to.be.ok()
   })
 
-  it('.find', async function() {
+  it('.findOne(id)', async function() {
+    const post = await Post.first
+    expect(await Post.findOne(post.id)).to.eql(post)
+  })
+
+  // the same as Model.all
+  it('.find()', async function() {
+    const posts = await Post.find()
+    expect(posts.length).to.be(3)
+    expect(posts.map(post => post.title)).to.contain('King Leoric')
+  })
+
+  it('.find(id)', async function() {
+    const post = await Post.first
+    const posts = await Post.find(post.id)
+    expect(posts.length).to.be(1)
+    expect(posts[0]).to.be.a(Post)
+    expect(posts[0].title).to.eql('King Leoric')
+  })
+
+  it('.find([ id ])', async function() {
+    const postIds = (await Post.all).map(post => post.id)
+    const posts = await Post.find(postIds)
+    expect(posts.map(post => post.title)).to.contain('King Leoric')
+  })
+
+  it('.find({ foo })', async function() {
     const posts = await Post.find({ title: 'King Leoric' })
     expect(posts.length).to.be(1)
     expect(posts[0]).to.be.a(Post)
-    expect(posts[0].title).to.equal('King Leoric')
+    expect(posts[0].title).to.be('King Leoric')
   })
 
   it('.find({ foo: null })', async function() {
@@ -314,8 +358,7 @@ describe('=> Query', function() {
   it('.find { select }', async function() {
     const post = await Post.findOne({ title: 'King Leoric' }, { select: 'title' })
     expect(post.title).to.equal('King Leoric')
-    // Currently excluded columns will return undefined, maybe an error should be thrown?
-    expect(post.content).to.be(null)
+    expect(() => post.content).to.throwError()
   })
 
   it('.find aliased attribute', async function() {
@@ -595,8 +638,7 @@ describe('=> Update', function() {
   })
 
   it('Bone.update(where, values)', async function() {
-    const post = await Post.create({ title: 'King Leoric' })
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const post = await Post.create({ title: 'King Leoric', createdAt: new Date(2010, 9, 11) })
     await Post.update({ title: 'King Leoric' }, { title: 'Skeleton King' })
     const foundPost = await Post.findOne({ title: 'Skeleton King' })
     expect(await Post.findOne({ title: 'King Leoric' })).to.be(null)
@@ -614,14 +656,21 @@ describe('=> Update', function() {
   })
 
   it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
-    const post = await Post.create({ id: 1, title: 'King Leoric' })
+    const post = await Post.create({ id: 1, title: 'King Leoric', createdAt: new Date(2010, 9, 11) })
     const updatedAtWas = post.updatedAt
     post.title = 'Skeleton King'
-    await new Promise(resolve => setTimeout(resolve, 500))
     await post.save()
     const foundPost = await Post.findOne({ title: 'Skeleton King' })
     expect(foundPost.id).to.equal(post.id)
     expect(foundPost.updatedAt.getTime()).to.be.above(updatedAtWas.getTime())
+  })
+
+  it('bone.save() should throw if missing primary key', async function() {
+    await Post.create({ title: 'King Leoric' })
+    const post = await Post.findOne().select('title')
+    expect(() => post.id).to.throwError()
+    post.title = 'Skeleton King'
+    expect(() => post.save()).to.throwError()
   })
 })
 
@@ -651,9 +700,47 @@ describe('=> Remove', function() {
   })
 })
 
+describe('=> Calculations', function() {
+  before(async function() {
+    await Promise.all([
+      Book.create({ isbn: 9780596006624, name: 'Hackers and Painters', price: 22.95 }),
+      Book.create({ isbn: 9780881792065, name: 'The Elements of Typographic Style', price: 29.95 }),
+      Book.create({ isbn: 9781575863269, name: 'Things a Computer Scientist Rarely Talks About', price: 21 })
+    ])
+  })
+
+  after(async function() {
+    await Book.remove({}, true)
+  })
+
+  it('Bone.count() should count records', async function() {
+    const [ { count } ] = await Book.count()
+    expect(count).to.equal(3)
+  })
+
+  it('Bone.average() should return the average of existing records', async function() {
+    const [ { average } ] = await Book.average('price')
+    expect(Math.abs((22.95 + 29.95 + 21) / 3 - average)).to.be.within(0, 1)
+  })
+
+  it('Bone.minimum() should return the minimum value of existing records', async function() {
+    const [ { minimum } ] = await Book.minimum('price')
+    expect(minimum).to.equal(21)
+  })
+
+  it('Bone.maximum() should return the maximum value of existing records', async function() {
+    const [ { maximum } ] = await Book.maximum('price')
+    expect(Math.floor(maximum)).to.equal(Math.floor(29.95))
+  })
+
+  it('Bone.sum()', async function() {
+    const [ { sum } ] = await Book.sum('price')
+    expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21))
+  })
+})
+
 describe('=> Count / Group / Having', function() {
   before(async function() {
-    await Post.remove({}, true)
     await Promise.all([
       Post.create({ title: 'King Leoric' }),
       Post.create({ title: 'King Leoric' }),
@@ -668,7 +755,7 @@ describe('=> Count / Group / Having', function() {
 
   it('Bone.count()', async function() {
     expect(await Post.count()).to.eql([ { count: 4 } ])
-    expect(await Post.count('title like "Arch%"')).to.eql([ { count: 2 } ])
+    expect(await Post.where('title like "Arch%"').count()).to.eql([ { count: 2 } ])
   })
 
   it('Bone.group().count()', async function() {
@@ -730,7 +817,6 @@ describe('=> Group / Join / Subqueries', function() {
 
 describe('=> Automatic Versioning', function() {
   before(async function() {
-    await Post.remove({}, true)
     await Promise.all([
       Post.create({ title: 'King Leoric' }),
       Post.create({ title: 'Skeleton King' }),
