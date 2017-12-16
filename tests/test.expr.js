@@ -68,9 +68,16 @@ describe('=> parse comparison operators', function() {
 
 describe('=> parse logical operators', function() {
   it('parse AND', function() {
-    const ast = expr('YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9')
-    expect(ast.type).to.equal('op')
-    expect(ast.name).to.equal('and')
+    const token = expr('YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9')
+    expect(token.type).to.equal('op')
+    expect(token.name).to.equal('and')
+  })
+})
+
+describe('=> parse unary operators', function() {
+  it('parse DISTINCT', function() {
+    const token = expr('DISTINCT a')
+    expect(token).to.eql({ type: 'op', name: 'distinct', args: [ { type: 'id', value: 'a' } ] })
   })
 })
 
@@ -82,6 +89,29 @@ describe('=> parse compound expressions', function() {
       args:[
         { type: 'id', value: 'title' },
         { type: 'string', value: '%Leoric%' }
+      ]
+    })
+  })
+
+  it('parse expressions with priorities', function() {
+    expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql({
+      type: 'op',
+      name: 'or',
+      args: [
+        { type: 'op', name: '>',
+          args: [
+            { type: 'id', value: 'id' },
+            { type: 'number', value: 100 } ] },
+        { type: 'op', name: 'and',
+          args: [
+            { type: 'op', name: '!=',
+              args: [
+                { type: 'id', value: 'id' },
+                { type: 'number', value: 1 } ] },
+            { type: 'op', name: '!=',
+              args: [
+                { type: 'id', value: 'id' },
+                { type: 'number', value: 2 } ] } ] }
       ]
     })
   })

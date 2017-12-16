@@ -41,6 +41,12 @@ describe('=> Select', function() {
     )
   })
 
+  it('where compound string conditions', function() {
+    expect(Post.where('title like "Arch%" or (title = "King Leoric" || title = "Skeleton King")').toString()).to.equal(
+      "SELECT * FROM `articles` WHERE (`title` LIKE 'Arch%' OR (`title` = 'King Leoric' OR `title` = 'Skeleton King')) AND `gmt_deleted` IS NULL"
+    )
+  })
+
   it('where in Spell', function() {
     expect(Post.where({ id: TagMap.select('targetId').where({ tagId: 1 }) }).toString()).to.equal(
       'SELECT * FROM `articles` WHERE `id` IN (SELECT `target_id` FROM `tag_maps` WHERE `tag_id` = 1) AND `gmt_deleted` IS NULL'
