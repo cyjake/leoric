@@ -1,13 +1,20 @@
-0.1.3 / 2017-12-??
+0.1.4 / 2017-12-??
+==================
+
+ * Fix: doesn't depend on co anymore
+
+0.1.3 / 2017-12-17
 ==================
 
  * Fix: `select distict foo from table`;
  * Fix: `where (a = 1 or a = 2) and b = 3`;
+ * Docs: a syntax table to provide a better glance over the querying ability.
 
 0.1.2 / 2017-12-14
 ==================
 
- * Copy left table's orders into subquery to make order/limit work when combined.
+ * Fix: copy left table's orders into subquery to make order/limit work when combined.
+ * Fix: errors should be thrown when accessing attributes that weren't selected at the first place.
 
 0.1.1 / 2017-12-13
 ==================
