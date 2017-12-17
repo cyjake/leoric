@@ -28,6 +28,29 @@
   }
 }
 
+.markdown-body .syntax-table {
+  width: 100%;
+  font-size: 90%;
+
+  th, td {
+    width: 60%;
+  }
+
+  .highlight {
+    margin: 0;
+    background: transparent;
+  }
+
+  .highlight pre {
+    padding: 4px 0;
+    background: transparent;
+  }
+
+  code br {
+    display: block;
+  }
+}
+
 @media(min-width: 1000px) {
   .belongs-to-erd,
   .has-many-erd,

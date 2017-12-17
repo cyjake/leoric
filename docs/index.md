@@ -34,39 +34,155 @@ async function() {
 }
 ```
 
-Leoric can be used as pure query builder too. Take the `Post` model above for another example:
+## Syntax Table
 
-```js
+<table class="syntax-table">
+<thead>
+  <tr>
+    <th>JavaScript</th>
+    <th>SQL</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>
+{% highlight js %}
 Post.find({ id: [1, 2, 3] })
-// SELECT * FROM articles WHERE id IN (1, 2, 3);
-
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts WHERE id IN (1, 2, 3);
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
 Post.select('id, title').where('title like ?', '%Leoric%')
-// SELECT id, title FROM articles WHERE title LIKE '%Leoric%';
-
-Post.select('count(id) as count').group('authorId').having('count > 0').order('count', 'desc')
-// SELECT count(id) AS count FROM articles GROUP BY author_id HAVING count > 0 ORDER BY count DESC;
-
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT id, title FROM posts WHERE title LIKE '%Leoric%';
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.where('title like ? || authorId = ?',  '%Leoric%', 42)
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts WHERE title LIKE '%leoric%' OR author_id = 42;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post
+  .select('count(id) as count')
+  .group('authorId')
+  .having('count > 0')
+  .order('count', 'desc')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+  SELECT count(id) AS count, author_id
+    FROM posts
+GROUP BY author_id
+  HAVING count > 0
+ORDER BY count DESC;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Book.average('price').group('genre').having('average > 50')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+  SELECT AVG('price') AS average, genre
+    FROM books
+GROUP BY genre
+  HAVING average > 50;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+  <td>
+{% highlight js %}
 Post.find({ id: TagMap.select('targetId').where({ tagId: 1 }) })
-// SELECT * FROM articles WHERE id IN (SELECT target_id FROM tag_maps WHERE tag_id = 1);
-```
-
-Both predefined joins and arbitrary joins are supported:
-
-```js
-Post.find({}).with('author', 'comments')
-// SELECT * FROM articles AS posts
-//   LEFT JOIN users ON users.id = posts.author_id LEFT JOIN comments ON comments.post_id = articles.id;
-
-Post.find({}).join(Attachment, 'attachments.postId = posts.id')
-// SELECT * FROM articles AS posts LEFT JOIN attachments ON attachments.post_id = posts.id;
-
-Post.find({})
-  .join(TagMap, 'tagMaps.targetId = posts.id and tagMaps.targetType = ?', 0)
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT *
+  FROM posts
+ WHERE id
+    IN (SELECT target_id FROM tag_maps WHERE tag_id = 1);
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.include('author', 'comments')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+   SELECT *
+     FROM posts AS posts
+LEFT JOIN users ON users.id = posts.author_id
+LEFT JOIN comments ON comments.post_id = posts.id;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.join(Attachment, 'attachments.postId = posts.id')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+   SELECT *
+     FROM posts AS posts
+LEFT JOIN attachments ON attachments.post_id = posts.id;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post
+  .join(TagMap,
+    'tagMaps.targetId = posts.id and tagMaps.targetType = 0')
   .join(Tag, 'targetMaps.tagId = tags.id')
-// SELECT * FROM articles AS posts
-//   LEFT JOIN tag_maps AS tagMaps ON tagMaps.target_id = posts.id AND tag_maps.target_type = 0
-//   LEFT JOIN tags ON tagMaps.tag_id = tags.id;
-```
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+   SELECT *
+     FROM posts AS posts
+LEFT JOIN tag_maps AS tagMaps
+       ON tagMaps.target_id = posts.id AND tag_maps.target_type = 0
+LEFT JOIN tags
+       ON tagMaps.tag_id = tags.id;
+{% endhighlight %}
+    </td>
+  </tr>
+</tbody>
+</table>
+
+## Guides
 
 For detailed informations, please check out following guides accordingly:
 
