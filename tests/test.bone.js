@@ -454,6 +454,39 @@ describe('=> Query $op', function() {
   })
 })
 
+describe('=> Where', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'King Leoric', authorId: 1 }),
+      Post.create({ title: 'Skeleton King', authorId: 1 }),
+      Post.create({ title: 'Archbishop Lazarus', authorId: 2 })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('.where({ foo, bar })', async function() {
+    const posts = await Post.where({ title: ['King Leoric', 'Skeleton King'], authorId: 2 })
+    expect(posts).to.be.empty()
+  })
+
+  it('.where(query, ...values)', async function() {
+    const posts = await Post.where('title = ? and authorId = ?', ['King Leoric', 'Skeleton King'], 2)
+    expect(posts).to.be.empty()
+  })
+
+  it('.where(compoundQuery, ...values)', async function() {
+    const posts = await Post.where('authorId = ? || (title = ? && authorId = ?)', 2, 'King Leoric', 1).order('authorId')
+    expect(posts.length).to.be(2)
+    expect(posts[0].title).to.equal('King Leoric')
+    expect(posts[0].authorId).to.equal(1)
+    expect(posts[1].title).to.equal('Archbishop Lazarus')
+    expect(posts[1].authorId).to.equal(2)
+  })
+})
+
 describe('=> Scopes', function() {
   before(async function() {
     const results = await Promise.all([
@@ -802,7 +835,7 @@ describe('=> Group / Join / Subqueries', function() {
     ])
   })
 
-  it('Bone.group().join()', async function() {
+  it('Bone.group() subquery', async function() {
     const posts = await Post.find({
       id: Comment.select('articleId').from(Comment.group('articleId').count().having('count > 0'))
     }).with('attachment')
@@ -812,6 +845,24 @@ describe('=> Group / Join / Subqueries', function() {
     expect(posts[0].attachment.id).to.be.ok()
     expect(posts[1].title).to.eql('Archangel Tyrael')
     expect(posts[1].attachment).to.be(null)
+  })
+
+  it('Bone.group().join()', async function() {
+    const comments = await Comment.select('count(id) as count').group('articleId').order('count')
+      .join(Post, 'comments.articleId = posts.id')
+    console.log(comments)
+  })
+
+  it('query / query.with() / query.count()', async function() {
+    const query = Post.find({ title: ['Archangel Tyrael', 'King Leoric'], deletedAt: null }).order('title')
+    const [ { count } ] = await query.count()
+    const posts = await query.with('attachment')
+    expect(posts.length).to.equal(count)
+    expect(posts[0]).to.be.a(Post)
+    expect(posts[0].title).to.equal('Archangel Tyrael')
+    expect(posts[0].attachment).to.be(null)
+    expect(posts[1].attachment).to.be.an(Attachment)
+    expect(posts[1].attachment.postId).to.equal(posts[1].id)
   })
 })
 

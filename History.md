@@ -1,6 +1,9 @@
-0.1.4 / 2017-12-??
+0.1.4 / 2017-12-18
 ==================
 
+ * Fix: should format condition arrays by hand instead of hand it over to formatExpr
+ * Fix: whereConditions of subquery should retain the order of the whereConditions in major query
+ * Fix: calculated columns should be kept in the final columns when sorting out the attributes
  * Fix: doesn't depend on co anymore
 
 0.1.3 / 2017-12-17

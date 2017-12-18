@@ -59,6 +59,18 @@ describe('=> Select', function() {
     )
   })
 
+  it('select with arbitrary function call', function() {
+    expect(Post.select('YEAR(createdAt)').toString()).to.equal(
+      'SELECT YEAR(`gmt_create`) FROM `articles` WHERE `gmt_deleted` IS NULL'
+    )
+  })
+
+  it('select as', function() {
+    expect(Post.select('COUNT(id) AS count').toString()).to.equal(
+      'SELECT COUNT(`id`) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL'
+    )
+  })
+
   it('predefined hasOne join', function() {
     expect(Post.select('title', 'createdAt').with('attachment').toString()).to.equal(
       'SELECT `posts`.*, `attachment`.* FROM (SELECT `title`, `gmt_create`, `id` FROM `articles` WHERE `gmt_deleted` IS NULL) AS `posts` LEFT JOIN `attachments` AS `attachment` ON `posts`.`id` = `attachment`.`article_id`'
