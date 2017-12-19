@@ -12,10 +12,10 @@ Currently, Leoric only supports MySQL (and variants such as MariaDB) database.
 
 ## Usage
 
-Assume the tables of posts, users, and comments were setup already. We may declare the models as classes extended from `Bone` which is the base class of Leoric. After the models are connected to the database using `connect`, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
+Assume the tables of posts, users, and comments were setup already. We may declare the models as classes extended from the base class `Bone` of Leoric. After the models are connected to the database using `connect`, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
 
 ```js
-const { Bone } = require('leoric')
+const { Bone, connect } = require('leoric')
 
 // define model
 class Post extends Bone {
