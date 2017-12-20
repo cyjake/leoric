@@ -47,6 +47,114 @@ async function() {
   <tr>
     <td>
 {% highlight js %}
+Post.create({ title: 'King Leoric' })
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+INSERT INTO posts (title) VALUES ('King Leoric');
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.all
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.find({ title: 'King Leoric' })
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts WHERE title = 'King Leoric';
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.find(42)
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts WHERE id = 42;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.order('title')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts ORDER BY title;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.order('title', 'desc')
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts ORDER BY title DESC;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.limit(20)
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+SELECT * FROM posts LIMIT 0, 20;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.update({ id: 42 }, { title: 'Skeleton King' })
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+UPDATE posts SET title = 'Skeleton King' WHERE id = 42;
+{% endhighlight %}
+     </td>
+    </tr>
+  <tr>
+    <td>
+{% highlight js %}
+Post.remove({ id: 42 })
+{% endhighlight %}
+    </td>
+    <td>
+{% highlight sql %}
+DELETE FROM posts WHERE id = 42;
+{% endhighlight %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+{% highlight js %}
 Post.find({ id: [1, 2, 3] })
 {% endhighlight %}
     </td>

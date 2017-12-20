@@ -1,3 +1,11 @@
+0.1.5 / 2017-12-20
+==================
+
+ * Refactor: encapsulate column names. Keep them from the users even if the query results can not be dispatched.
+ * Fix: complicated groups with joins should discard the use of subquery.
+ * Fix: camelCase should replace globally
+ * Fix: avoid missing attribtue exception when toJSON/toObject
+
 0.1.4 / 2017-12-18
 ==================
 

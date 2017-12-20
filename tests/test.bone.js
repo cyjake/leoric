@@ -133,18 +133,18 @@ describe('=> Getter', function() {
   })
 
   it('Bone.columns should contain the names of columns', function() {
-    expect(Post.columns).to.be.a(Set)
-    expect(Post.columns.size).to.be.above(1)
-    expect(Post.columns.has('title')).to.be.ok()
-    expect(Post.columns.has('gmt_create')).to.be.ok()
+    expect(Post.columns).to.be.a(Array)
+    expect(Post.columns.length).to.be.above(1)
+    expect(Post.columns.includes('title')).to.be.ok()
+    expect(Post.columns.includes('gmt_create')).to.be.ok()
   })
 
   it('Bone.attributes should be the names of attributes', function() {
     // Bone.renameAttribute('oldName', 'newName')
-    expect(Post.attributes).to.be.a(Set)
-    expect(Post.attributes.size).to.be.above(1)
-    expect(Post.attributes.has('title')).to.be.ok()
-    expect(Post.attributes.has('createdAt')).to.be.ok()
+    expect(Post.attributes).to.be.a(Array)
+    expect(Post.attributes.length).to.be.above(1)
+    expect(Post.attributes.includes('title')).to.be.ok()
+    expect(Post.attributes.includes('createdAt')).to.be.ok()
   })
 })
 
@@ -183,10 +183,22 @@ describe('=> Integration', function() {
     expect(result.extra).to.eql({ versions: [2, 3] })
   })
 
+  it('bone.toJSON() with missing attributes', async function() {
+    const post = await Post.findOne({ title: 'King Leoric '}).select('title')
+    const result = post.toJSON()
+    expect(result).to.eql({ title: 'King Leoric' })
+  })
+
   it('bone.toJSON() prefers getter properties over bone.attribute(name)', async function() {
     const post = await Post.findOne({ title: 'King Leoric' })
     const result = post.toJSON()
     expect(result.title).to.equal('King Leoric')
+  })
+
+  it('bone.toObject() with missing attributes', async function() {
+    const post = await Post.findOne({ title: 'King Leoric' }).select('title')
+    const result = post.toObject()
+    expect(result).to.eql({ title: 'King Leoric' })
   })
 
   it('bone.toObject() prefers bone.attribute(name) over getter properties', async function() {
@@ -809,9 +821,10 @@ describe('=> Count / Group / Having', function() {
 describe('=> Group / Join / Subqueries', function() {
   before(async function() {
     const posts = await Promise.all([
-      Post.create({ title: 'King Leoric' }),
-      Post.create({ title: 'Archbishop Lazarus' }),
-      Post.create({ title: 'Archangel Tyrael' })
+      Post.create({ id: 1, title: 'King Leoric' }),
+      Post.create({ id: 2, title: 'Archbishop Lazarus' }),
+      Post.create({ id: 3, title: 'Archangel Tyrael' }),
+      Post.create({ id: 4, title: 'King Leoric' })
     ])
 
     await Promise.all([
@@ -821,9 +834,9 @@ describe('=> Group / Join / Subqueries', function() {
     ])
 
     await Promise.all([
-      Comment.create({ articleId: posts[1].id, content: '' }),
-      Comment.create({ articleId: posts[1].id, content: '' }),
-      Comment.create({ articleId: posts[2].id, content: '' })
+      Comment.create({ articleId: posts[1].id, content: 'foo' }),
+      Comment.create({ articleId: posts[1].id, content: 'bar' }),
+      Comment.create({ articleId: posts[2].id, content: 'baz' })
     ])
   })
 
@@ -848,9 +861,12 @@ describe('=> Group / Join / Subqueries', function() {
   })
 
   it('Bone.group().join()', async function() {
-    const comments = await Comment.select('count(id) as count').group('articleId').order('count')
-      .join(Post, 'comments.articleId = posts.id')
-    console.log(comments)
+    const comments = await Comment.join(Post, 'comments.articleId = posts.id')
+      .select('count(comments.id) as count', 'posts.title').group('comments.articleId').order('count')
+    expect(comments).to.eql([
+      { count: 1, articleId: 3, title: 'Archangel Tyrael' },
+      { count: 2, articleId: 2, title: 'Archbishop Lazarus' }
+    ])
   })
 
   it('query / query.with() / query.count()', async function() {
@@ -863,6 +879,18 @@ describe('=> Group / Join / Subqueries', function() {
     expect(posts[0].attachment).to.be(null)
     expect(posts[1].attachment).to.be.an(Attachment)
     expect(posts[1].attachment.postId).to.equal(posts[1].id)
+  })
+
+  it('Bone.join().group()', async function() {
+    const query = Post.include('comments').group('title').count('comments.id').having('count > 0')
+    expect(await query).to.eql([
+      { count: 1, title: 'Archangel Tyrael' },
+      { count: 2, title: 'Archbishop Lazarus' }
+    ])
+    expect(await query.select('posts.title')).to.eql([
+      { count: 1, title: 'Archangel Tyrael' },
+      { count: 2, title: 'Archbishop Lazarus' }
+    ])
   })
 })
 

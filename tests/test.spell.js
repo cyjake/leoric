@@ -23,7 +23,7 @@ describe('=> Insert', function() {
   it('insert ... on duplicate key update', function() {
     const date = new Date(2017, 11, 12)
     expect(new Post({ id: 1, title: 'King Leoric', createdAt: date, updatedAt: date }).upsert().toString()).to.equal(
-      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'King Leoric', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id`=1, `title`='King Leoric', `gmt_create`='2017-12-12 00:00:00.000', `gmt_modified`='2017-12-12 00:00:00.000'"
+      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'King Leoric', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = 1, `title` = 'King Leoric', `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000'"
     )
   })
 })
