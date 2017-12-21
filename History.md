@@ -1,3 +1,11 @@
+0.1.6 / 2017-12-21
+==================
+
+ * New: proper `.first`, `.last`, `.all`, and `.get(index)`
+ * Fix: accept `Date`, `boolean`, and `Set` values
+ * Fix: `Model.unscoped`
+ * Fix: `Model.remove({}, true)` should be unscoped
+
 0.1.5 / 2017-12-20
 ==================
 

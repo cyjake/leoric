@@ -13,6 +13,7 @@ CREATE TABLE `articles` (
   `extra` text,
   `thumb` varchar(1000) DEFAULT NULL,
   `author_id` bigint(20) unsigned DEFAULT NULL,
+  `is_private`tinyint(1) unsigned DEFAULT 0,
   PRIMARY KEY (`id`)
 );
 

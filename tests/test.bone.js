@@ -38,10 +38,21 @@ describe('=> Attributes', function() {
     expect(() => post.attribute('non-existant attribute')).to.throwException()
   })
 
+  it('bone.attribute(missing attribute)', async function() {
+    const post = await Post.first.select('title')
+    expect(() => post.thumb).to.throwException()
+    expect(() => post.attribute('thumb')).to.throwException()
+  })
+
   it('bone.attribute(name, value)', async function() {
     const post = new Post({ title: 'Untitled' })
     post.attribute('title', undefined)
     expect(post.attribute('title')).to.be(null)
+  })
+
+  it('bone.attribute(missing attribute, value)', async function() {
+    const post = await Post.first.select('title')
+    expect(() => post.attribute('thumn', 'foo')).to.throwException()
   })
 
   it('bone.attributeWas(name) should be undefined when initialized', async function() {
@@ -266,9 +277,12 @@ describe('=> Type casting', function() {
 
 describe('=> Query', function() {
   before(async function() {
-    await Post.create({ title: 'King Leoric' })
-    await Post.create({ title: 'Archbishop Lazarus' })
-    await Post.create({ title: 'Archangel Tyrael'})
+    await Promise.all([
+      Post.create({ id: 1, title: 'King Leoric', createdAt: new Date(2017, 10) }),
+      Post.create({ id: 2, title: 'Archbishop Lazarus', createdAt: new Date(2017, 10) }),
+      Post.create({ id: 3, title: 'Archangel Tyrael', isPrivate: true }),
+      Post.create({ id: 4, title: 'Diablo', deletedAt: new Date(2012, 4, 15) })
+    ])
   })
 
   after(async function() {
@@ -291,6 +305,19 @@ describe('=> Query', function() {
     const post = await Post.last
     expect(post).to.be.a(Post)
     expect(post.title).to.be('Archangel Tyrael')
+  })
+
+  it('.unscoped', async function() {
+    const posts = await Post.unscoped.all
+    expect(posts.length).to.be(4)
+    const post = await Post.unscoped.last
+    expect(post).to.eql(posts[3])
+  })
+
+  it('.get()', async function() {
+    expect(await Post.get(0)).to.eql(await Post.first)
+    expect(await Post.get(2)).to.eql(await Post.last)
+    expect(await Post.unscoped.get(2)).to.eql(await Post.unscoped.last)
   })
 
   it('.findOne()', async function() {
@@ -347,6 +374,24 @@ describe('=> Query', function() {
     ])
   })
 
+  it('.find({ foo: Set })', async function() {
+    const posts = await Post.find({ title: new Set(['King Leoric', 'Archangel Tyrael']) })
+    expect(posts.map(post => post.title)).to.eql([
+      'King Leoric', 'Archangel Tyrael'
+    ])
+  })
+
+  it('.find({ foo: Date })', async function() {
+    const posts = await Post.find('createdAt <= ?', new Date(2017, 11))
+    expect(posts.map(post => post.title)).to.eql(['King Leoric', 'Archbishop Lazarus'])
+  })
+
+  it('.find({ foo: boolean })', async function() {
+    const posts = await Post.find({ isPrivate: true })
+    expect(posts.map(post => post.title)).to.eql([ 'Archangel Tyrael' ])
+    expect((await Post.find({ isPrivate: false })).length).to.be(2)
+  })
+
   it('.find { limit }', async function() {
     const posts = await Post.find({}, { limit: 1 })
     expect(posts.length).to.equal(1)
@@ -374,7 +419,6 @@ describe('=> Query', function() {
   })
 
   it('.find aliased attribute', async function() {
-    await Post.create({ title: 'Diablo', deletedAt: new Date(2012, 4, 15) })
     const post = await Post.findOne({ deletedAt: { $ne: null } })
     expect(post.deletedAt).to.be.a(Date)
   })
@@ -401,6 +445,12 @@ describe('=> Query $op', function() {
     const posts = await Post.find({ title: { $eq: 'King Leoric' } })
     expect(posts.length).to.be.above(0)
     expect(posts[0].title).to.equal('King Leoric')
+  })
+
+  it('.find $eq Date', async function() {
+    const posts = await Post.find({ createdAt: { $eq: new Date(2012, 4, 15) } })
+    expect(posts.length).to.be(1)
+    expect(posts[0].title).to.be('King Leoric')
   })
 
   it('.find $gt', async function() {
@@ -527,7 +577,7 @@ describe('=> Scopes', function() {
     expect(post.title).to.be('King Leoric')
   })
 
-  it ('.update().unscoped', async function() {
+  it('.update().unscoped', async function() {
     await Post.update({ title: 'King Leoric' }, { title: 'Skeleton King' })
     expect(await Post.findOne({ title: 'Skeleton King' })).to.be(null)
     await Post.update({ title: 'King Leoric' }, { title: 'Skeleton King' }).unscoped
@@ -741,7 +791,7 @@ describe('=> Remove', function() {
   it('Bone.remove(where, true) should REMOVE rows no matter the presence of deletedAt', async function() {
     await Post.create({ title: 'King Leoric' })
     expect(await Post.remove({ title: 'King Leoric' }, true)).to.be(1)
-    expect(await Post.findOne({ title: 'King Leoric' })).to.be(null)
+    expect(await Post.unscoped.all).to.empty()
   })
 })
 
@@ -781,6 +831,47 @@ describe('=> Calculations', function() {
   it('Bone.sum()', async function() {
     const [ { sum } ] = await Book.sum('price')
     expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21))
+  })
+})
+
+// https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html
+describe('=> Date Functions', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'King Leoric', createdAt: new Date(2012, 4, 15) }),
+      Post.create({ title: 'Archbishop Lazarus', createdAt: new Date(2012, 4, 15) }),
+      Post.create({ title: 'Leah', createdAt: new Date(2017, 10, 11) })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('SELECT YEAR(date)', async function() {
+    expect(await Post.select('YEAR(createdAt) as year').order('year')).to.eql([
+      { year: 2012 }, { year: 2012 }, { year: 2017 }
+    ])
+  })
+
+  it('WHERE YEAR(date)', async function() {
+    const posts = await Post.select('title').where('YEAR(createdAt) = 2017')
+    expect(posts.map(post => post.title)).to.eql(['Leah'])
+  })
+
+  // TODO: .group('MONTH(createdAt) as month')
+  it('GROUP BY MONTH(date)', async function() {
+    expect(await Post.group('MONTH(createdAt)').count()).to.eql([
+      { count: 2, 'MONTH(`gmt_create`)': 5 },
+      { count: 1, 'MONTH(`gmt_create`)': 11 }
+    ])
+  })
+
+  it('ORDER BY DAY(date)', async function() {
+    const posts = await Post.order('DAY(createdAt)').select('title')
+    expect(posts.map(post => post.title)).to.eql([
+      'Leah', 'King Leoric', 'Archbishop Lazarus'
+    ])
   })
 })
 

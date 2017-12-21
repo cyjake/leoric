@@ -58,7 +58,7 @@ async function() {
 | `Post.update({ id: 42 }, { title: 'Skeleton King' })` | `UPDATE posts SET title = 'Skeleton King' WHERE id = 42` |
 | `Post.remove({ id: 42 })`               | `DELETE FROM posts WHERE id = 42`                  |
 
-A more detailed syntax table may be found at the [documentation](http://cyj.me/leoric) site.
+A more detailed syntax table may be found at the [documentation](http://cyj.me/leoric/#syntax-table) site.
 
 ## Migrations
 

@@ -81,8 +81,8 @@ describe('=> parse unary operators', function() {
   })
 })
 
-describe('=> parse compound expressions', function() {
-  it('parse placeholder', function() {
+describe('=> parse placeholder', function() {
+  it('parse placeholder of string', function() {
     expect(expr('title like ?', '%Leoric%')).to.eql({
       type: 'op',
       name: 'like',
@@ -93,6 +93,24 @@ describe('=> parse compound expressions', function() {
     })
   })
 
+  it('parse placeholder of Set', function() {
+    expect(expr('?', new Set(['foo', 'bar']))).to.eql({
+      type: 'array', value: ['foo', 'bar']
+    })
+  })
+
+  it('parse placeholder of Date', function() {
+    const date = new Date(2012, 4, 15)
+    expect(expr('?', date)).to.eql({ type: 'date', value: date })
+  })
+
+  it('parse placeholder of boolean', function() {
+    expect(expr('?', true)).to.eql({ type: 'boolean', value: true })
+    expect(expr('?', false)).to.eql({ type: 'boolean', value: false })
+  })
+})
+
+describe('=> parse compound expressions', function() {
   it('parse expressions with priorities', function() {
     expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql({
       type: 'op',
