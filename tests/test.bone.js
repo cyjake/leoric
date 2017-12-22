@@ -553,7 +553,7 @@ describe('=> Scopes', function() {
   before(async function() {
     const results = await Promise.all([
       Post.create({ title: 'King Leoric', deletedAt: new Date() }),
-      Tag.create({ name: 'NPC' })
+      Tag.create({ name: 'npc', type: 0 })
     ])
     const [postId, tagId] = results.map(result => result.id)
     await TagMap.create({ targetId: postId, targetType: 0, tagId })
@@ -594,6 +594,9 @@ describe('=> Associations', function() {
     "Now you'll join him"
   ]
 
+  const topics = ['nephalem', 'archangel', 'demon']
+  const tags = ['npc', 'boss', 'player']
+
   before(async function() {
     const posts = await Promise.all([
       Post.create({ title: 'Archbishop Lazarus' }),
@@ -609,67 +612,79 @@ describe('=> Associations', function() {
     await Promise.all(comments.map(content => {
       return Comment.create({ content, articleId: post.id })
     }))
-    for (const name of ['nephalem', 'archangel', 'demon']) {
-      const tag = await Tag.create({ name })
-      await TagMap.create({
-        tagId: tag.id,
-        targetId: post.id,
-        targetType: 0
-      })
-    }
+    await Promise.all(tags.map(name => Tag.create({ name, type: 0 })))
+    await Promise.all((await Tag.where({ type: 0 })).map(tag => {
+      return TagMap.create({ tagId: tag.id, targetId: post.id, targetType: 0 })
+    }))
+    await Promise.all(topics.map(name => Tag.create({ name, type: 1 })))
+    await Promise.all((await Tag.where({ type: 1 })).map(tag => {
+      return TagMap.create({ tagId: tag.id, targetId: post.id, targetType: 0 })
+    }))
   })
 
   after(async function() {
     await Promise.all([
       Post.remove({}, true),
       Attachment.remove({}, true),
-      Comment.remove({}, true)
+      Comment.remove({}, true),
+      TagMap.remove({}, true),
+      Tag.remove({}, true)
     ])
   })
 
   it('Bone.hasOne', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('attachment')
+    const post = await Post.first.with('attachment')
     expect(post.attachment).to.be.a(Attachment)
   })
 
   it('Bone.belongsTo', async function() {
-    const attachment = await Attachment.findOne({}).with('post')
+    const attachment = await Attachment.first.with('post')
     expect(attachment.post).to.be.a(Post)
   })
 
   it('Bone.hasMany', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('comments')
-    expect(post.comments.length).to.greaterThan(0)
+    const post = await Post.first.with('comments')
+    expect(post.comments.length).to.be.above(0)
     expect(post.comments[0]).to.be.a(Comment)
     expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort())
   })
 
   it('Bone.hasMany through', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('tags')
+    const post = await Post.first.with('tags')
     expect(post.tags.length).to.greaterThan(0)
     expect(post.tags[0]).to.be.a(Tag)
   })
 
+  it('Bone.hasMany through / finding RefModel', async function() {
+    const post = await Post.first.with('topics')
+    expect(post.topics.map(tag => tag.name).sort()).to.eql(topics.sort())
+  })
+
   it('.with(...names)', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('attachment', 'comments', 'tags')
+    const post = await Post.first.with('attachment', 'comments', 'tags')
     expect(post.tags[0]).to.be.a(Tag)
     expect(post.tagMaps[0]).to.be.a(TagMap)
     expect(post.attachment).to.be.a(Attachment)
   })
 
   it('.with({ ...names })', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with({
+    const post = await Post.first.with({
       attachment: {},
-      comments: { select: 'id' },
+      comments: { select: 'content' },
       tags: {}
     })
     expect(post.tags[0]).to.be.a(Tag)
     expect(post.tagMaps[0]).to.be.a(TagMap)
     expect(post.attachment).to.be.a(Attachment)
+    expect(post.comments.length).to.be.above(0)
+    expect(post.comments[0].id).to.be.ok()
+    // because createdAt is not selected
+    expect(() => post.comments[0].createdAt).to.throwException()
+    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments)
   })
 
   it('.with(...names).select()', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('attachment').select('attachment.url')
+    const post = await Post.first.with('attachment').select('attachment.url')
     expect(post.attachment).to.be.a(Attachment)
   })
 
@@ -679,7 +694,7 @@ describe('=> Associations', function() {
   })
 
   it('.with(...names).order()', async function() {
-    const post = await Post.findOne({ title: 'Archbishop Lazarus' }).with('comments').order('comments.content desc')
+    const post = await Post.first.with('comments').order('comments.content desc')
     expect(post.comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
 
     const posts = await Post.find().with('comments').order({ 'posts.title': 'desc', 'comments.content': 'desc' })
@@ -859,11 +874,21 @@ describe('=> Date Functions', function() {
     expect(posts.map(post => post.title)).to.eql(['Leah'])
   })
 
-  // TODO: .group('MONTH(createdAt) as month')
   it('GROUP BY MONTH(date)', async function() {
     expect(await Post.group('MONTH(createdAt)').count()).to.eql([
       { count: 2, 'MONTH(`gmt_create`)': 5 },
       { count: 1, 'MONTH(`gmt_create`)': 11 }
+    ])
+  })
+
+  it('GROUP BY MONTH(date) AS month', async function() {
+    expect(await Post.select('MONTH(createdAt) as month').group('month').count()).to.eql([
+      { count: 2, month: 5 },
+      { count: 1, month: 11 }
+    ])
+    expect(await Post.group('MONTH(createdAt) as month').count()).to.eql([
+      { count: 2, month: 5 },
+      { count: 1, month: 11 }
     ])
   })
 

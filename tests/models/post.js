@@ -18,7 +18,8 @@ class Post extends Bone {
       foreignKey: 'targetId',
       where: { targetType: 0 }
     })
-    this.hasMany('tags', { through: 'tagMaps' })
+    this.hasMany('topics', { through: 'tagMaps',  where: { type: 1 }, className: 'Tag' })
+    this.hasMany('tags', { through: 'tagMaps', where: { type: 0 } })
 
     this.attribute('extra', { type: JSON })
   }

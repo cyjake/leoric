@@ -1,3 +1,13 @@
+0.1.7 / 2017-12-??
+==================
+
+ * Refactor: `{ type: 'op', name: 'as' }` renamed to `{ type: 'alias' }`
+ * New: `{ type: 'mod' }` for modifier, currently only `DISTINCT` is recognized
+ * New: unary operators like `!` and `NOT`
+ * New: `IS` and `IS NOT`
+ * Fix: logic operator precendences
+ * Fix: polymorphic hasMany({ through }) relations
+
 0.1.6 / 2017-12-21
 ==================
 

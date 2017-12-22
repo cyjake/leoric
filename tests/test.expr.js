@@ -5,9 +5,7 @@ const expr = require('../lib/expr')
 
 describe('=> parse indentifier', function() {
   it('parse identifiers', function() {
-    expect(expr('createdAt')).to.eql({
-      type: 'id', value: 'createdAt'
-    })
+    expect(expr('createdAt')).to.eql({ type: 'id', value: 'createdAt' })
   })
 
   it('parse identifier qualifiers', function() {
@@ -28,12 +26,21 @@ describe('=> parse functions', function() {
 
   it('parse COUNT() AS', function() {
     expect(expr('COUNT(id) as count')).to.eql({
-      type: 'op',
-      name: 'as',
-      args:[
+      type: 'alias',
+      args: [
         { type: 'func', name: 'count', args: [ { type: 'id', value: 'id' } ] },
         { type: 'id', value: 'count' }
       ]
+    })
+  })
+})
+
+describe('=> parse modifier', function() {
+  it('parse DISTINCT', function() {
+    expect(expr('DISTINCT a')).to.eql({
+      type: 'mod',
+      name: 'distinct',
+      args: [ { type: 'id', value: 'a' } ]
     })
   })
 })
@@ -75,9 +82,14 @@ describe('=> parse logical operators', function() {
 })
 
 describe('=> parse unary operators', function() {
-  it('parse DISTINCT', function() {
-    const token = expr('DISTINCT a')
-    expect(token).to.eql({ type: 'op', name: 'distinct', args: [ { type: 'id', value: 'a' } ] })
+  it('parse !', function() {
+    const token = expr('! a')
+    expect(token).to.eql({ type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
+  })
+
+  it('parse NOT', function() {
+    const token = expr('NOT a')
+    expect(token).to.eql({ type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
   })
 })
 
@@ -111,10 +123,31 @@ describe('=> parse placeholder', function() {
 })
 
 describe('=> parse compound expressions', function() {
-  it('parse expressions with priorities', function() {
-    expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql({
-      type: 'op',
-      name: 'or',
+  it('parse expressions with precedences', function() {
+    expect(expr('a = 1 && b = 2 && c = 3')).to.eql({
+      type: 'op', name: 'and',
+      args: [
+        { type: 'op', name: 'and',
+          args: [
+            { type: 'op', name: '=',
+              args: [
+                { type: 'id', value: 'a' },
+                { type: 'number', value: 1 } ] },
+            { type: 'op', name: '=',
+              args: [
+                { type: 'id', value: 'b' },
+                { type: 'number', value: 2 } ] } ] },
+        { type: 'op', name: '=',
+          args: [
+            { type: 'id', value: 'c' },
+            { type: 'number', value: 3 } ] }
+      ]
+    })
+  })
+
+  it('parse expressions with parenthesis', function() {
+    const expected = {
+      type: 'op', name: 'or',
       args: [
         { type: 'op', name: '>',
           args: [
@@ -131,6 +164,9 @@ describe('=> parse compound expressions', function() {
                 { type: 'id', value: 'id' },
                 { type: 'number', value: 2 } ] } ] }
       ]
-    })
+    }
+    expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql(expected)
+    // AND has higher precedence over OR, hence the parenthesis is omissible.
+    expect(expr('id > 100 OR id != 1 AND id != 2')).to.eql(expected)
   })
 })

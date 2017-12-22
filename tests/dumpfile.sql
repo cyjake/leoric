@@ -66,6 +66,7 @@ CREATE TABLE `tags` (
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `name` varchar(255) NOT NULL,
+  `type` smallint(8) unsigned NOT NULL,
   `gmt_deleted` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
