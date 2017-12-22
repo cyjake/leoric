@@ -1,4 +1,4 @@
-0.1.7 / 2017-12-??
+0.1.7 / 2017-12-22
 ==================
 
  * Refactor: `{ type: 'op', name: 'as' }` renamed to `{ type: 'alias' }`
@@ -7,6 +7,7 @@
  * New: `IS` and `IS NOT`
  * Fix: logic operator precendences
  * Fix: polymorphic hasMany({ through }) relations
+ * Fix: dispatching multiple results with joins correctly
 
 0.1.6 / 2017-12-21
 ==================
