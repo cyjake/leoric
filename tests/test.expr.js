@@ -45,6 +45,27 @@ describe('=> parse modifier', function() {
   })
 })
 
+describe('=> parse unary operators', function() {
+  it('parse NOT', function() {
+    expect(expr('NOT 1')).to.eql({
+      type: 'op', name: 'not',
+      args: [ { type: 'number', value: 1 } ]
+    })
+  })
+
+  it('parse !', function() {
+    expect(expr('! (a > 1)')).to.eql({
+      type: 'op', name: 'not',
+      args: [
+        { type: 'op', name: '>',
+          args: [
+            { type: 'id', value: 'a' },
+            { type: 'number', value: 1 } ] }
+      ]
+    })
+  })
+})
+
 describe('=> parse comparison operators', function() {
   it('parse LIKE', function() {
     expect(expr('title LIKE "%Leoric%"')).to.eql({
@@ -68,6 +89,48 @@ describe('=> parse comparison operators', function() {
             { type: 'number', value: 1 },
             { type: 'number', value: 2 },
             { type: 'number', value: 3 } ] }
+      ]
+    })
+
+    it('parse IS', function() {
+      expect(expr('a is null')).to.eql({
+        type: 'op', name: '=',
+        args: [
+          { type: 'id', value: 'a' },
+          { type: 'null' }
+        ]
+      })
+    })
+
+    it('parse IS NOT', function() {
+      expect(expr('a IS NOT null')).to.eql({
+        type: 'op', name: '!=',
+        args: [
+          { type: 'id', value: 'a' },
+          { type: 'null' }
+        ]
+      })
+    })
+  })
+
+  it('parse BETWEEN', function() {
+    expect(expr('a BETWEEN 1 AND 10')).to.eql({
+      type: 'op', name: 'between',
+      args: [
+        { type: 'id', value: 'a' },
+        { type: 'number', value: 1 },
+        { type: 'number', value: 10 }
+      ]
+    })
+  })
+
+  it('parse NOT BETWEEN', function() {
+    expect(expr('a NOT BETWEEN 1 AND 10')).to.eql({
+      type: 'op', name: 'not between',
+      args: [
+        { type: 'id', value: 'a' },
+        { type: 'number', value: 1 },
+        { type: 'number', value: 10 }
       ]
     })
   })
