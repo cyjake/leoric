@@ -1,5 +1,9 @@
 'use strict'
 
+/**
+ * Entry module of Leoric
+ * @module
+ */
 const Bone = require('./lib/bone')
 const Collection = require('./lib/collection')
 
@@ -7,7 +11,18 @@ const fs = require('fs')
 const mysql = require('mysql')
 const path = require('path')
 
-
+/**
+ * Create a connection pool
+ * @param {Object} opts
+ * @param {string} opts.host
+ * @param {string} opts.port
+ * @param {string} opts.user
+ * @param {string} opts.password
+ * @param {string} opts.appName         - In some RDMS, appName is used as the name of the database
+ * @param {string} opts.db
+ * @param {string} opts.connectionLimit
+ * @returns {Pool} the connection pool
+ */
 function createPool({ host, port, user, password, appName, db, connectionLimit }) {
   if (!host) {
     throw new Error('Please config sql server first.')
@@ -19,8 +34,7 @@ function createPool({ host, port, user, password, appName, db, connectionLimit }
     port,
     user,
     password,
-    // TDDL use appName to locate the database instead of the actual db,
-    // although the table_schema stored in infomation_schema.columns is the latter one.
+    // some RDMS use appName to locate the database instead of the actual db, though the table_schema stored in infomation_schema.columns is still the latter one.
     database: appName || db
   })
 
@@ -58,6 +72,14 @@ function columnInfo(pool, db, tables) {
   })
 }
 
+/**
+ * Connect models to database. Need to provide both the settings of the connection and the models, or the path of the models, to connect.
+ * @alias module:index.connect
+ * @param {Object} opts        - connect options
+ * @param {string} opts.path   - path of the models
+ * @param {string} opts.models - an array of models
+ * @returns {Pool} the connection pool in case we need to perform raw query
+ */
 const connect = async function Leoric_connect(opts) {
   if (Bone.pool) return
 

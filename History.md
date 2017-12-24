@@ -4,6 +4,7 @@
  * Fix: implement `query.batch()` as async iterator
  * Fix: `NOT (expr)`
  * Docs: `Model => className` in association options
+ * Docs: use [jsdoc](http://usejsdoc.org) to generate api docs
 
 0.1.7 / 2017-12-22
 ==================

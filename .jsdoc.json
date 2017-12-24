@@ -1,0 +1,25 @@
+{
+  "markdown": {
+    "idInHeadings": true
+  },
+  "plugins": [
+    "plugins/markdown"
+  ],
+  "source": {
+    "include": ["index.js", "lib", "Readme.md"],
+    "includePattern": ".js$",
+    "excludePattern": "^(?:docs|node_modules|tests)"
+  },
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc"]
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": true,
+    "useLongnameInNav": false,
+    "default": {
+      "outputSourceFiles": false
+    }
+  }
+}
