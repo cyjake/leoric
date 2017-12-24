@@ -45,17 +45,17 @@ class Item extends Bone {
 }
 ```
 
-Leoric locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `Model`:
+Leoric locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `className`:
 
 ```js
 class Item extends Bone {
   static describe() {
-    this.belongsTo('shop', { Model: 'Seller' })
+    this.belongsTo('shop', { className: 'Seller' })
   }
 }
 ```
 
-> Please be noted that the value passed to `Model` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association can be error prone because it causes cyclic dependencies.
+> Please be noted that the value passed to `className` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association at `Model.describe()` phase can be error prone because it causes cyclic dependencies.
 
 As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by converting the target model name into snake case then appending an `_id`. In this case, the foerign key is converted from `Shop` to `shop_id`.
 
@@ -96,7 +96,7 @@ To override the model name, we can specify it explicitly:
 ```js
 class Shop extends Bone {
   static describe() {
-    this.hasMany('items', { Model: 'Commodity' })
+    this.hasMany('items', { className: 'Commodity' })
   }
 }
 ```
@@ -142,7 +142,7 @@ On `Tag`'s side:
 ```js
 class Tag extends Bone {
   static describe() {
-    this.hasMany('shopTagMaps', { Model: 'TagMap', where: { targetType: 0 } })
+    this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
   }
 }
@@ -153,9 +153,9 @@ If suddenly our business requires us to apply the tag system to items too, the c
 ```diff
 class Tag extends Bone {
   static describe() {
-    this.hasMany('shopTagMaps', { Model: 'TagMap', where: { targetType: 0 } })
+    this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
-+   this.hasMany('itemTagMaps', { Model: 'TagMap', where: { targetType: 1 } })
++   this.hasMany('itemTagMaps', { className: 'TagMap', where: { targetType: 1 } })
 +   this.hasMany('items', { through: 'itemTagMaps' })
   }
 }
@@ -188,7 +188,7 @@ And the shop belongs to the user:
 ```js
 class Shop extends Bone {
   static describe() {
-    this.belongsTo('owner', { Model: 'User' })
+    this.belongsTo('owner', { className: 'User' })
   }
 }
 ```

@@ -15,10 +15,10 @@ Leoric provides two major ways to start a query, `.find()` and `.findOne()`. `.f
 
 ### Retrieving a Single Object
 
-To retrieve just a single object, `.findOne()` is the method of choice. For example:
+#### `.findOne()`
 
 ```js
-const post = await Post.findOne({ id: 1 })
+const post = await Post.findOne(1)
 // => Post { id: 1, ... }
 ```
 
@@ -28,7 +28,53 @@ The SQL equivalent of the above is:
 SELECT * FROM posts WHERE id = 1 LIMIT 1;
 ```
 
-If no record is found, `.findOne()` will return `null`.
+`.findOne()` is like a stingy twin of `.find()` because it works exactly like `.find()` except that it will always append a `.limit(1)` to it.  Hence complex query is possible with `.findOne()` too:
+
+```js
+const post = await Post.findOne({
+  title: ['King Leoric', 'Archbishop Lazarus'],
+  createdAt: new Date(2012, 4, 15)
+})
+// => Post { id: 1, title: 'King Leoric', ... }
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM posts WHERE title IN ('King Leoric', 'Archbishop Lazarus') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
+```
+
+If no record is found, `.findOne()` will return `null` whereas `.find()` will return an empty collection.
+
+#### `.first`
+
+The `.first` getter finds the first record ordered by primary key. For example:
+
+```js
+const post = await Post.first
+// => Post { id: 1, ... }
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM posts ORDER BY id LIMIT 1;
+```
+
+#### `.last`
+
+The `.last` getter finds the last record ordered by primary key. For example:
+
+```js
+const post = await Post.last
+// => Post { id: 42, ... }
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM posts ORDER BY id DESC LIMIT 1;
+```
 
 ### Retrieving Multiple Objects
 
@@ -58,16 +104,34 @@ for (const post of posts) // code
 But if the posts table is at large size, or if the posts contains large columns, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without querying the full table and so on. Switch to find in batch is the most convenient one:
 
 ```js
-for (const post of Post.batch()) // code
+async function consume() {
+  const batch = Post.find().batch() // no need to await here
+  while (true) {
+    const { done, value } = await batch.next()
+    if (value) handle(value)
+    if (done) break
+  }
+}
 ```
 
-`Post.batch()` takes the same parameters as `Post.findOne()` and `Post.find()`, but with an extra option:
+If you've got aquainted with JavaScript's [`Iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)s, you may see the example above a bit familiar and wonder, can `.batch()` results be consumed with `for...of`? The answer is yes and no. Because the asynchronous charactor of JavaScript, the `.batch()` results can't be regular iterators, which means normal `for...of` can't iterate them over properly. But luckily, the asynchronous version of `Iterator` is [proposed](https://github.com/tc39/proposal-async-iteration) (and [implemented by V8](https://jakearchibald.com/2017/async-iterators-and-generators/) behind a flag) already. With async iterator supported, the example above can be turned into:
 
 ```js
-const batch = Post.batch({}).size(1000)
+for await (const post of Post.find().batch()) {
+  handle(post)
+}
 ```
 
-You can append a `.size()` call to set the batch size. Under the hood, Leoric will query the table with the limit of 1000, until no more records were found.
+Sadly though, this feature isn't available without flag, let alone Node.js LTS.
+
+Anyway, to set the batch size, we can pass a number to `.batch()`
+
+```js
+// This queries database with a LIMIT of 1000
+for await (const post of Post.find().batch(1000)) {
+  handle(post)
+}
+```
 
 ## Conditions
 
@@ -107,7 +171,7 @@ For other type of values, consider object conditions or templated string conditi
 
 ### Object Conditions
 
-Object conditions may sound familiar because it's a common approach of condition mapping in JavaScript, let alone in NoSQL databases like MongoDB. With object conditions, most of the simple conditions can be carried out by listing fields as key and values as, well, values. The values can be extended as objects with `$operator`s as key, hence make comparison conditions possible as well. Here are a few examples of object conditions with primitive values:
+Object conditions may sound familiar because it's a common approach of condition mapping in JavaScript, let alone in NoSQL databases like MongoDB. With object conditions, most of the simple conditions can be carried out by listing fields as keys and values as, well, values. The values can be extended as objects with `$operator`s as key, hence make comparison conditions possible as well. Here are a few examples of object conditions with primitive values:
 
 ```js
 Post.find({ id: 1 })
@@ -198,7 +262,7 @@ For example, to retrieve posts updated most recently, we can order the posts by 
 Post.order('updatedAt', 'desc')
 ```
 
-`.order()` accepts parameters in following types:
+`.order()` also accepts parameters in following types:
 
 ```js
 Post.order('updatedAt desc')
@@ -232,9 +296,9 @@ SELECT * FROM posts ORDER BY updated_at DESC, title ASC;
 By default, `.find()` selects all the fields from the result set using `*`. To select a subset of fields from the result set, you can specify the subset with the `.select()` method:
 
 ```js
-Post.find({}).select('id', 'title', 'createdAt')
+Post.select('id', 'title', 'createdAt')
 // or
-Post.find({}).select('id title createdAt')
+Post.select('id title createdAt')
 ```
 
 The SQL equivalent of the above is:
@@ -308,7 +372,7 @@ SELECT COUNT(*) as count, DATE(created_at) FROM posts GROUP BY DATE(created_at) 
 And the results might be:
 
 ```js
-[ { count: 5, 'DATE(created_at)': '2017-11-11' },
+[ { count: 4, 'DATE(created_at)': '2017-11-11' },
   ... ]
 ```
 
@@ -426,30 +490,36 @@ Leoric supports [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
 Post.find()   // => Spell { Model: Post }
 ```
 
-The spell provides methods such as `.where()`, `.order()`, `.group()`, `.having()`, `limit()`, and `.join()`. Most of them returns this, hence making method chaining possible. When the methods were called, the SQL isn't generated right away. It is postponed to the next iteration of the event loop with `setImmediate`.
-
-The spell also holds a promise. When the event loop ticks, the SQL is generated with `.toSqlString()` and the promise is resolved with the returning SQL.
-
-Anyway, you can always append further query details onto the spell until it's done, as long as there's no asychronous operations in between:
+The spell provides methods such as `.where()`, `.order()`, `.group()`, `.having()`, `limit()`, and `.join()`. Most of them returns an instance of `Spell`, hence making method chaining possible. When the methods were called, the SQL isn't generated right away. We can get the final SQL manually by calling `.toSqlString()`. To get the query results, we can treat spells as promises. For example:
 
 ```js
-// This works.
-const query = Post.where('title LIKE ?', '%King%')
-if (top10) {
-  query.order('updatedAt desc').limit(10)
+// ES5 style
+const spell = Post.find()
+spell
+  .then(posts => { ... })
+  .catch(err => console.error(err.stacak))
+
+// ES6 with co
+co(function* () {
+  const posts = yield Post.find()
+})
+
+// ES2016 style
+async function() {
+  const posts = await Post.find()
 }
-const posts = await query
 ```
 
-Due to the nature of event loop, following example WON'T work:
+Since Leoric is written in ES2016, which is supported by Node.js LTS already, we'd encourage you to start using async/await too.
+
+Anyway, you can always append further query details onto the spell until it's done, even if there's asynchronous jobs in between:
 
 ```js
-// This WON'T work.
 const query = Post.where('title LIKE ?', '%King%')
-if (await promptUserInputTopCount) {
-  query.order('updatedAt desc').limit(userInputTopCount)
+if (await top10) {
+  const top10posts = await query.order('updatedAt desc').limit(10)
 }
-const posts = await query   // query might be resolved without order or limit already
+const posts = await query // unordered and unlimited
 ```
 
 ## Find or Build a New Object
@@ -498,10 +568,16 @@ const results = await Post.where('name like ?', '%King%').count()
 
 ### Count
 
-If you want to count the total numbers of records in your model's table you could call `Model.count()`. If you need to be more specific, say to find how many items were in your cart, you can:
+If you want to count the total numbers of records in your model's table you could call `Model.count()`. If you need to be more specific, say to find how many items does the shop have got, you can:
 
 ```js
-Cart.find({ id: 1 }).with('items').count('items.*')
+Shop.find(1).with('items').count('items.*')
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT COUNT(items.*) AS count FROM (SELECT * FROM shops WHERE id = 1) AS shops LEFT JOIN items ON items.shop_id = shops.id;
 ```
 
 ### Average
@@ -512,12 +588,24 @@ If you want to see the average of certain number in your model's table, you coul
 User.where({ subscribed: true }).average('age')
 ```
 
+The SQL equivalent of the above is:
+
+```sql
+SELECT AVG(age) FROM users WHERE subscribed = 1;
+```
+
 ### Minimum
 
 If you want to see the minimum of certain number in your model's table, you could call `Model.minimum()`. If you need to be more specific, say to find the minimum age of your website's subscribed users, you can:
 
 ```js
 User.minimum('age')
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT MIN(age) AS minimum FROM users;
 ```
 
 ### Maximum
@@ -528,10 +616,22 @@ If you want to see the maximum of certain number in your model's table, you coul
 User.maximum('age')
 ```
 
+The SQL equivalent of the above is:
+
+```sql
+SELECT MAX(age) AS maximum FROM users;
+```
+
 ### Sum
 
-If you want to find the sum of a field for all records in your model's table you could call `Model.sum()`. If you need to be more specific, say to find the total price of the items in your cart, you can:
+If you want to find the sum of a field for all records in your model's table you could call `Model.sum()`. If you need to be more specific, say to find the total price of the items of certain shop, you can:
 
 ```js
-Cart.find({ id }).with('items').sum('items.price')
+Shop.find(42).with('items').sum('items.price')
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT SUM(items.price) FROM (SELECT * FROM shops WHERE id = 42) AS shops LEFT JOIN items ON items.shop_id = shops.id;
 ```

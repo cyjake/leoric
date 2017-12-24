@@ -1,7 +1,9 @@
 0.1.8 / 2017-12-??
 ==================
 
+ * Fix: implement `query.batch()` as async iterator
  * Fix: `NOT (expr)`
+ * Docs: `Model => className` in association options
 
 0.1.7 / 2017-12-22
 ==================

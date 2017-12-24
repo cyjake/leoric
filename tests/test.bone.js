@@ -1041,3 +1041,39 @@ describe('=> Automatic Versioning', function() {
     ])
   })
 })
+
+describe('=> Batch', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'King Leoric' }),
+      Post.create({ title: 'Leah' }),
+      Post.create({ title: 'Deckard Cain' })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('query.batch()', async function() {
+    const batch = Post.order('title').batch()
+    const titles = []
+    while (true) {
+      const { done, value: post } = await batch.next()
+      if (post) titles.push(post.title)
+      if (done) break
+    }
+    expect(titles).to.eql(['Deckard Cain', 'King Leoric', 'Leah'])
+  })
+
+  it('query.batch(limit)', async function() {
+    const batch = Post.order('title').batch(2)
+    const titles = []
+    while (true) {
+      const { done, value: post } = await batch.next()
+      if (post) titles.push(post.title)
+      if (done) break
+    }
+    expect(titles).to.eql(['Deckard Cain', 'King Leoric', 'Leah'])
+  })
+})
