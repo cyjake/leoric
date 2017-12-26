@@ -24,3 +24,5 @@ theme: jekyll-theme-primer
 exclude:
   - Gemfile
   - Gemfile.lock
+include:
+  - docs/api

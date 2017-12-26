@@ -6,7 +6,11 @@
 #header {
   background: #f0f0f0;
   border-bottom: 1px solid #e0e0e0;
-  padding: 0.5em 0;
+
+  .logo {
+    display: inline-block;
+    padding: 0.5em 0;
+  }
 
   a:link, a:visited {
     color: #505050;
@@ -15,9 +19,60 @@
   nav {
     float: right;
 
-    a {
+    .nav-item {
       display: inline-block;
-      margin-left: 1em;
+      position: relative;
+      padding: 0.5em 0 0.5em 1.5em;
+
+      & > a {
+        display: block;
+      }
+    }
+
+    .dropdown-trigger {
+      &:after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: -0.25em;
+        right: -0.25em;
+        z-index: 11;
+        height: 2px;
+        background: #f0f0f0;
+        display: none;
+      }
+
+      &:hover,
+      &:active,
+      &:focus {
+        &:after,
+        .dropdown-list {
+          display: block;
+        }
+      }
+    }
+
+    .dropdown-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: -0.5em;
+      min-width: 120px;
+      text-align: right;
+      background: #f0f0f0;
+      border: 1px solid #e0e0e0;
+      z-index: 10;
+      padding: 0.25em 0;
+
+      li {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      a {
+        display: block;
+        padding: 0.25em 0.5em;
+      }
     }
   }
 }

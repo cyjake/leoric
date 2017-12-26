@@ -29,8 +29,9 @@ async function() {
   await Post.update({ title: 'Skeleton King' }, { title: 'King Leoric' })
 
   // find with associations
-  const postWithComments = await Post.findOne({ title: 'King Leoric' }).with('comments')
-  console.log(post.comments) // => [ Comment { id, content }, ... ]
+  await Post.include('comments').where('posts.title = ?', 'King Leoric')
+  // => Post { id: 1, title: 'King Leoric', ...,
+  //           comments: [ Comment { id, content }, ... ] }
 }
 ```
 

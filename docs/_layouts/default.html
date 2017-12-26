@@ -10,11 +10,27 @@
   <body>
     <div id="header">
       <div class="container-lg px-3">
-        <a href="{{ '/' | relative_url }}">Leoric</a>
+        <a class="logo" href="{{ '/' | relative_url }}">Leoric</a>
         <nav>
-          <a href="{{ '/basics' | relative_url }}">Basics</a>
-          <a href="{{ '/associations' | relative_url }}">Associations</a>
-          <a href="{{ '/querying' | relative_url }}">Query Interface</a>
+          <ul>
+            <li class="nav-item">
+              <a href="{{ '/' | relative_url }}">Home</a>
+            </li>
+            <li class="nav-item dropdown-trigger">
+              <a href="{{ '/basics' | relative_url }}">Guides</a>
+              <ul class="dropdown-list">
+                <li><a href="{{ '/basics' | relative_url }}">Basics</a></li>
+                <li><a href="{{ '/associations' | relative_url }}">Associations</a></li>
+                <li><a href="{{ '/querying' | relative_url }}">Query Interface</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a href="{{ '/api' | relative_url }}">API</a>
+            </li>
+            <li class="nav-item dropdown-trigger">
+              <a href="https://github.com/dotnil/leoric/releases">Releases</a>
+            </li>
+          </ul>
         </nav>
       </div>
     </div>

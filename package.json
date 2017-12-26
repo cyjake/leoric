@@ -4,7 +4,7 @@
   "description": "Object-relational mapping for Node.js",
   "main": "index.js",
   "scripts": {
-    "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/minami",
+    "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "test": "mysql -uroot < tests/dumpfile.sql && DEBUG=leoric mocha --exit tests/test.*.js"
   },
   "repository": {
@@ -27,9 +27,9 @@
     "pluralize": "^7.0.0"
   },
   "devDependencies": {
+    "@cara/minami": "^1.2.3",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.5.5",
-    "minami": "^1.2.3",
     "mocha": "^4.0.1"
   }
 }
