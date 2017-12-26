@@ -59,9 +59,15 @@ describe('=> Select', function() {
     )
   })
 
-  it('select with arbitrary function call', function() {
+  it('select with function call', function() {
     expect(Post.select('YEAR(createdAt)').toString()).to.equal(
       'SELECT YEAR(`gmt_create`) FROM `articles` WHERE `gmt_deleted` IS NULL'
+    )
+  })
+
+  it('select with function call that takes more than one arguments', function() {
+    expect(Post.select('IFNULL(title, "Untitled")').toString()).to.equal(
+      "SELECT IFNULL(`title`, 'Untitled') FROM `articles` WHERE `gmt_deleted` IS NULL"
     )
   })
 

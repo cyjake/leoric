@@ -25,11 +25,21 @@ describe('=> parse functions', function() {
   })
 
   it('parse COUNT() AS', function() {
-    expect(expr('COUNT(id) as count')).to.eql({
+    expect(expr('COUNT(id) AS count')).to.eql({
       type: 'alias',
       args: [
         { type: 'func', name: 'count', args: [ { type: 'id', value: 'id' } ] },
         { type: 'id', value: 'count' }
+      ]
+    })
+  })
+
+  it('parse IFNULL()', function() {
+    expect(expr('IFNULL(foo, UUID())')).to.eql({
+      type: 'func', name: 'ifnull',
+      args: [
+        { type: 'id', value: 'foo' },
+        { type: 'func', name: 'uuid', args: [] }
       ]
     })
   })
@@ -231,5 +241,28 @@ describe('=> parse compound expressions', function() {
     expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql(expected)
     // AND has higher precedence over OR, hence the parenthesis is omissible.
     expect(expr('id > 100 OR id != 1 AND id != 2')).to.eql(expected)
+  })
+
+  it('parse expressions begin with parenthesis', function() {
+    const expected = {
+      type: 'op', name: 'and',
+      args: [
+        { type: 'op', name: 'or',
+          args: [
+            { type: 'op', name: '=',
+              args: [
+                { type: 'id', value: 'foo' },
+                { type: 'number', value: 1 } ] },
+            { type: 'op', name: '>',
+              args: [
+                { type: 'id', value: 'foo' },
+                { type: 'number', value: 3 } ] } ] },
+        { type: 'op', name: '=',
+          args: [
+            { type: 'id', value: 'bar' },
+            { type: 'null' } ] }
+      ]
+    }
+    expect(expr('(foo = 1 || foo > 3) && bar = null')).to.eql(expected)
   })
 })
