@@ -3,8 +3,11 @@
 
  * Fix: implement `query.batch()` as async iterator
  * Fix: `NOT (expr)`
+ * Fix: `IFNULL(foo, default)`
+ * Fix: support `.select(name[])` and `.select(name => {})`
  * Docs: `Model => className` in association options
- * Docs: use [jsdoc](http://usejsdoc.org) to generate api docs
+ * Docs: use [jsdoc](http://usejsdoc.org) to generate docs/api
+ * Docs: `.include()`
 
 0.1.7 / 2017-12-22
 ==================

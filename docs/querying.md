@@ -396,9 +396,11 @@ class Post extends Bone {
 }
 ```
 
-To find with predefined joins, we call `.with(name)`:
+To find with predefined joins, we call `.include(name)`:
 
 ```js
+Post.include('comments')
+// or
 Post.find().with('comments')
 ```
 
@@ -410,10 +412,10 @@ SELECT * FROM posts LEFT JOIN comments ON posts.id = comments.post_id;
 
 A LEFT JOIN is performed to preserve posts that have got no comments. The ON conditional expression is generated according to the type and the settings of the association. See [Associations]({{ '/associations' | relative_url }}) for detailed informations.
 
-To find multiple predefined joins, we can either pass multiple association names or chain multiple `.with()`:
+To find multiple predefined joins, we can either pass multiple association names to `.include()` or chain them one by one using `.with()`:
 
 ```js
-Post.find().with('comments', 'author')
+Post.include('comments', 'author')
 // or
 Post.find().with('comments').with('author')
 ```

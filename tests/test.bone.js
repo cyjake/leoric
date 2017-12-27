@@ -549,6 +549,31 @@ describe('=> Where', function() {
   })
 })
 
+describe('=> Select', function() {
+  before(async function() {
+    await Post.create({ id: 1, title: 'King Leoric', createdAt: new Date(2012, 4, 15) })
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('.select(...name)', async function() {
+    const post = await Post.select('id', 'title').first
+    expect(post.toJSON()).to.eql({ id: 1, title: 'King Leoric' })
+  })
+
+  it('.select(names[])', async function() {
+    const post = await Post.select(['id', 'title']).first
+    expect(post.toJSON()).to.eql({ id: 1, title: 'King Leoric' })
+  })
+
+  it('.select(name => filter(name))', async function() {
+    const post = await Post.select(name => name == 'id' || name == 'title').first
+    expect(post.toJSON()).to.eql({ id: 1, title: 'King Leoric' })
+  })
+})
+
 describe('=> Scopes', function() {
   before(async function() {
     const results = await Promise.all([
