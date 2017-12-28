@@ -572,6 +572,11 @@ describe('=> Select', function() {
     const post = await Post.select(name => name == 'id' || name == 'title').first
     expect(post.toJSON()).to.eql({ id: 1, title: 'King Leoric' })
   })
+
+  it('.select("...name")', async function() {
+    const post = await Post.select('id, title').first
+    expect(post.toJSON()).to.eql({ id: 1, title: 'King Leoric' })
+  })
 })
 
 describe('=> Scopes', function() {
@@ -704,7 +709,7 @@ describe('=> Associations', function() {
   it('.with({ ...names })', async function() {
     const post = await Post.first.with({
       attachment: {},
-      comments: { select: 'content' },
+      comments: { select: 'id, content' },
       tags: {}
     })
     expect(post.tags[0]).to.be.a(Tag)
@@ -714,11 +719,12 @@ describe('=> Associations', function() {
     expect(post.comments[0].id).to.be.ok()
     // because createdAt is not selected
     expect(() => post.comments[0].createdAt).to.throwException()
-    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments)
+    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort())
   })
 
   it('.with(...names).select()', async function() {
-    const post = await Post.include('attachment').select('attachment.url').first
+    const post = await Post.include('attachment').select('attachment.url, posts.title').first
+    expect(post.title).to.be('Archbishop Lazarus')
     expect(post.attachment).to.be.a(Attachment)
   })
 

@@ -1,15 +1,15 @@
 'use strict'
 
 const expect = require('expect.js')
-const expr = require('../lib/expr')
+const { parseExpr, parseExprList } = require('../lib/expr')
 
 describe('=> parse indentifier', function() {
   it('parse identifiers', function() {
-    expect(expr('createdAt')).to.eql({ type: 'id', value: 'createdAt' })
+    expect(parseExpr('createdAt')).to.eql({ type: 'id', value: 'createdAt' })
   })
 
   it('parse identifier qualifiers', function() {
-    expect(expr('leoric.articles.createdAt')).to.eql({
+    expect(parseExpr('leoric.articles.createdAt')).to.eql({
       type: 'id', value: 'createdAt', qualifiers: ['leoric', 'articles']
     })
   })
@@ -17,7 +17,7 @@ describe('=> parse indentifier', function() {
 
 describe('=> parse functions', function() {
   it('parse COUNT()', function() {
-    expect(expr('COUNT(id)')).to.eql({
+    expect(parseExpr('COUNT(id)')).to.eql({
       type: 'func',
       name: 'count',
       args: [ { type: 'id', value: 'id' } ]
@@ -25,17 +25,17 @@ describe('=> parse functions', function() {
   })
 
   it('parse COUNT() AS', function() {
-    expect(expr('COUNT(id) AS count')).to.eql({
+    expect(parseExpr('COUNT(id) AS count')).to.eql({
       type: 'alias',
+      value: 'count',
       args: [
-        { type: 'func', name: 'count', args: [ { type: 'id', value: 'id' } ] },
-        { type: 'id', value: 'count' }
+        { type: 'func', name: 'count', args: [ { type: 'id', value: 'id' } ] }
       ]
     })
   })
 
   it('parse IFNULL()', function() {
-    expect(expr('IFNULL(foo, UUID())')).to.eql({
+    expect(parseExpr('IFNULL(foo, UUID())')).to.eql({
       type: 'func', name: 'ifnull',
       args: [
         { type: 'id', value: 'foo' },
@@ -47,7 +47,7 @@ describe('=> parse functions', function() {
 
 describe('=> parse modifier', function() {
   it('parse DISTINCT', function() {
-    expect(expr('DISTINCT a')).to.eql({
+    expect(parseExpr('DISTINCT a')).to.eql({
       type: 'mod',
       name: 'distinct',
       args: [ { type: 'id', value: 'a' } ]
@@ -57,14 +57,14 @@ describe('=> parse modifier', function() {
 
 describe('=> parse unary operators', function() {
   it('parse NOT', function() {
-    expect(expr('NOT 1')).to.eql({
+    expect(parseExpr('NOT 1')).to.eql({
       type: 'op', name: 'not',
       args: [ { type: 'number', value: 1 } ]
     })
   })
 
   it('parse !', function() {
-    expect(expr('! (a > 1)')).to.eql({
+    expect(parseExpr('! (a > 1)')).to.eql({
       type: 'op', name: 'not',
       args: [
         { type: 'op', name: '>',
@@ -78,7 +78,7 @@ describe('=> parse unary operators', function() {
 
 describe('=> parse comparison operators', function() {
   it('parse LIKE', function() {
-    expect(expr('title LIKE "%Leoric%"')).to.eql({
+    expect(parseExpr('title LIKE "%Leoric%"')).to.eql({
       type: 'op',
       name: 'like',
       args: [
@@ -89,7 +89,7 @@ describe('=> parse comparison operators', function() {
   })
 
   it('parse IN', function() {
-    expect(expr('id in (1, 2, 3)')).to.eql({
+    expect(parseExpr('id in (1, 2, 3)')).to.eql({
       type: 'op',
       name: 'in',
       args: [
@@ -103,7 +103,7 @@ describe('=> parse comparison operators', function() {
     })
 
     it('parse IS', function() {
-      expect(expr('a is null')).to.eql({
+      expect(parseExpr('a is null')).to.eql({
         type: 'op', name: '=',
         args: [
           { type: 'id', value: 'a' },
@@ -113,7 +113,7 @@ describe('=> parse comparison operators', function() {
     })
 
     it('parse IS NOT', function() {
-      expect(expr('a IS NOT null')).to.eql({
+      expect(parseExpr('a IS NOT null')).to.eql({
         type: 'op', name: '!=',
         args: [
           { type: 'id', value: 'a' },
@@ -124,7 +124,7 @@ describe('=> parse comparison operators', function() {
   })
 
   it('parse BETWEEN', function() {
-    expect(expr('a BETWEEN 1 AND 10')).to.eql({
+    expect(parseExpr('a BETWEEN 1 AND 10')).to.eql({
       type: 'op', name: 'between',
       args: [
         { type: 'id', value: 'a' },
@@ -135,7 +135,7 @@ describe('=> parse comparison operators', function() {
   })
 
   it('parse NOT BETWEEN', function() {
-    expect(expr('a NOT BETWEEN 1 AND 10')).to.eql({
+    expect(parseExpr('a NOT BETWEEN 1 AND 10')).to.eql({
       type: 'op', name: 'not between',
       args: [
         { type: 'id', value: 'a' },
@@ -148,7 +148,7 @@ describe('=> parse comparison operators', function() {
 
 describe('=> parse logical operators', function() {
   it('parse AND', function() {
-    const token = expr('YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9')
+    const token = parseExpr('YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9')
     expect(token.type).to.equal('op')
     expect(token.name).to.equal('and')
   })
@@ -156,19 +156,19 @@ describe('=> parse logical operators', function() {
 
 describe('=> parse unary operators', function() {
   it('parse !', function() {
-    const token = expr('! a')
+    const token = parseExpr('! a')
     expect(token).to.eql({ type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
   })
 
   it('parse NOT', function() {
-    const token = expr('NOT a')
+    const token = parseExpr('NOT a')
     expect(token).to.eql({ type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
   })
 })
 
 describe('=> parse placeholder', function() {
   it('parse placeholder of string', function() {
-    expect(expr('title like ?', '%Leoric%')).to.eql({
+    expect(parseExpr('title like ?', '%Leoric%')).to.eql({
       type: 'op',
       name: 'like',
       args:[
@@ -179,25 +179,25 @@ describe('=> parse placeholder', function() {
   })
 
   it('parse placeholder of Set', function() {
-    expect(expr('?', new Set(['foo', 'bar']))).to.eql({
+    expect(parseExpr('?', new Set(['foo', 'bar']))).to.eql({
       type: 'array', value: ['foo', 'bar']
     })
   })
 
   it('parse placeholder of Date', function() {
     const date = new Date(2012, 4, 15)
-    expect(expr('?', date)).to.eql({ type: 'date', value: date })
+    expect(parseExpr('?', date)).to.eql({ type: 'date', value: date })
   })
 
   it('parse placeholder of boolean', function() {
-    expect(expr('?', true)).to.eql({ type: 'boolean', value: true })
-    expect(expr('?', false)).to.eql({ type: 'boolean', value: false })
+    expect(parseExpr('?', true)).to.eql({ type: 'boolean', value: true })
+    expect(parseExpr('?', false)).to.eql({ type: 'boolean', value: false })
   })
 })
 
 describe('=> parse compound expressions', function() {
   it('parse expressions with precedences', function() {
-    expect(expr('a = 1 && b = 2 && c = 3')).to.eql({
+    expect(parseExpr('a = 1 && b = 2 && c = 3')).to.eql({
       type: 'op', name: 'and',
       args: [
         { type: 'op', name: 'and',
@@ -238,9 +238,9 @@ describe('=> parse compound expressions', function() {
                 { type: 'number', value: 2 } ] } ] }
       ]
     }
-    expect(expr('id > 100 OR (id != 1 AND id != 2)')).to.eql(expected)
+    expect(parseExpr('id > 100 OR (id != 1 AND id != 2)')).to.eql(expected)
     // AND has higher precedence over OR, hence the parenthesis is omissible.
-    expect(expr('id > 100 OR id != 1 AND id != 2')).to.eql(expected)
+    expect(parseExpr('id > 100 OR id != 1 AND id != 2')).to.eql(expected)
   })
 
   it('parse expressions begin with parenthesis', function() {
@@ -263,6 +263,17 @@ describe('=> parse compound expressions', function() {
             { type: 'null' } ] }
       ]
     }
-    expect(expr('(foo = 1 || foo > 3) && bar = null')).to.eql(expected)
+    expect(parseExpr('(foo = 1 || foo > 3) && bar = null')).to.eql(expected)
+  })
+})
+
+describe('parse repeated select expr', function() {
+  it('parse select expr separated with comma', function() {
+    expect(parseExprList('foo, bar, YEAR(baz)')).to.eql([
+      { type: 'id', value: 'foo' },
+      { type: 'id', value: 'bar' },
+      { type: 'func', name: 'year',
+        args: [ { type: 'id', value: 'baz' } ] }
+    ])
   })
 })
