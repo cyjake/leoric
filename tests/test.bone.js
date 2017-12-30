@@ -933,9 +933,9 @@ describe('=> Date Functions', function() {
   })
 
   it('ORDER BY DAY(date)', async function() {
-    const posts = await Post.order('DAY(createdAt)').select('title')
+    const posts = await Post.order('DAY(createdAt)').order('title')
     expect(posts.map(post => post.title)).to.eql([
-      'Leah', 'King Leoric', 'Archbishop Lazarus'
+      'Leah', 'Archbishop Lazarus', 'King Leoric'
     ])
   })
 })
