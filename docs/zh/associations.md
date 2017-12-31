@@ -1,6 +1,6 @@
 ---
-layout: default
-title: Associations
+layout: zh
+title: 关联关系
 ---
 
 关联关系定义完成之后，一次查询即可返回所有关联结果。例如：

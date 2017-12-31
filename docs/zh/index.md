@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: zh
 ---
 
 Leoric 是一个 Node.js 的关系对象映射库（ORM），使用 Leoric 操作数据库的方式大致如下：
@@ -291,7 +291,7 @@ LEFT JOIN tags
 </tbody>
 </table>
 
-## Guides
+## 上手指南
 
 有关 Leoric 的详细信息，请依次阅读如下文档：
 

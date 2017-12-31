@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: en
 title: Associations
 ---
 
@@ -57,7 +57,7 @@ class Item extends Bone {
 
 > Please be noted that the value passed to `className` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association at `Model.describe()` phase can be error prone because it causes cyclic dependencies.
 
-As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by converting the target model name into snake case then appending an `_id`. In this case, the foerign key is converted from `Shop` to `shop_id`.
+As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by uncapitalizing the target model's name and then appending an `Id`. In this case, the foerign key is converted from `Shop` to `shopId`.
 
 > Leoric has two sets of names maintained under the hood. One is the attribute names of the model, which usually are in camel case to be compliant with common JavaScript coding conventions. The other is the columns names of the actual table, which may be in camel case but usually are in snake case.
 
@@ -66,7 +66,7 @@ To override foreign key, we can specify it explicitly:
 ```js
 class Item extends Bone {
   static describe() {
-    this.belongsTo('shop', { foreignKey: 'seller_id' })
+    this.belongsTo('shop', { foreignKey: 'sellerId' })
   }
 }
 ```
@@ -106,7 +106,7 @@ As you can tell from the ER diagram, the foreign key used to join two tables is 
 ```js
 class Shop extends Bone {
   static describe() {
-    this.hasMany('items', { foreignKey: 'seller_id' })
+    this.hasMany('items', { foreignKey: 'sellerId' })
   }
 }
 ```
@@ -167,7 +167,7 @@ class Tag extends Bone {
   <img src="https://img.alicdn.com/tfscom/TB1LiHffyqAXuNjy1XdXXaYcVXa.png">
 </figure>
 
-A `hasOne()` association also sets up a one-to-one connection with another model, but with a few sematic differences. At first glance it may look quite similar to `belongsTo()` or event `hasMany()`.
+A `hasOne()` association also sets up a one-to-one connection with another model, but with a few sematic differences. At first glance it may look quite similar to `belongsTo()` or even `hasMany()`.
 
 The difference between `hasOne()` and `belongsTo()` is mainly at the position of the foreign key. `hasOne()`, like `hasMany()`, needs the foreign key to be added in the target model, while `belongsTo()` needs the it located in the initiating model.
 

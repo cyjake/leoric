@@ -1,6 +1,6 @@
 ---
-layout: default
-title: Basics
+layout: zh
+title: 基础
 ---
 
 本手册意在向大家介绍 Leoric。读完本文后，你将了解：

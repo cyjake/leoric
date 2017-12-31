@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: en
 ---
 
 Leoric is an object-relational mapping library for Node.js, with which you can manipulate database like this:

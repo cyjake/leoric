@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: zh
 title: 查询接口
 ---
 
