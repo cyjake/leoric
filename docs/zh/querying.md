@@ -445,7 +445,7 @@ Post.join(Comment, 'posts.id = comments.postId').where('comments.id = 1')
 
 ## 查询限定
 
-如果数据模型有 `deletedAt` 属性，`Model.remove()` 并不会实际删除对应的记录，而是更新 `deleteAt` 的值为最新时间。这一特性被称作[伪删除（soft delete）](https://en.wikipedia.org/wiki/Wikipedia:Soft_deletion)。
+如果数据模型有 `deletedAt` 属性，`Model.remove()` 并不会实际删除对应的记录，而是更新 `deleteAt` 的值为最新时间。这一特性被称作伪删除（soft delete）。
 
 伪删除逻辑对数据模型的用户来说是透明的，Leoric 默认会在每次查询生成 SQL 之前补上一个默认的查询条件。例如，如果 `Post` 数据模型有 `deletedAt` 属性，那么 `Post.find()` 对应的 SQL 实际上是：
 
