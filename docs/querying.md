@@ -7,7 +7,7 @@ This guide covers different ways to retrieve data from the database using Leoric
 
 - How to filter records using a variety of methods and conditions.
 - How to specify the order, retrieved attributes, grouping, and other properties of the found records.
-- How to use `.find().with()` to reduce the number of database queries needed for data retrieval.
+- How to use `.include()` to reduce the number of database queries needed for data retrieval.
 
 ## Retrieving Objects from the Database
 
@@ -101,7 +101,7 @@ const posts = await Post.find()
 for (const post of posts) // code
 ```
 
-But if the posts table is at large size, or if the posts contains large columns, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without querying the full table and so on. Switch to find in batch is the most convenient one:
+But if the posts table is at large size, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without querying the full table and so on. Switch to find in batch is the most convenient one:
 
 ```js
 async function consume() {
@@ -124,7 +124,7 @@ for await (const post of Post.find().batch()) {
 
 Sadly though, this feature isn't available without flag, let alone Node.js LTS.
 
-Anyway, to set the batch size, we can pass a number to `.batch()`
+Anyway, to set the batch size, we can pass a number to `.batch()`:
 
 ```js
 // This queries database with a LIMIT of 1000
@@ -256,7 +256,7 @@ Post.find('title != ? and createdAt > ?', 'King Leoric', new Date(2017, 10, 11))
 
 To retrieve the records from the database in specific order, you can use the order method.
 
-For example, to retrieve posts updated most recently, we can order the posts by updatedAt in descending order:
+For example, to retrieve posts updated most recently, we can order the posts by `updatedAt` in descending order:
 
 ```js
 Post.order('updatedAt', 'desc')
@@ -298,7 +298,7 @@ By default, `.find()` selects all the fields from the result set using `*`. To s
 ```js
 Post.select('id', 'title', 'createdAt')
 // or
-Post.select('id title createdAt')
+Post.select('id, title, createdAt')
 ```
 
 The SQL equivalent of the above is:
@@ -584,7 +584,7 @@ SELECT COUNT(items.*) AS count FROM (SELECT * FROM shops WHERE id = 1) AS shops 
 
 ### Average
 
-If you want to see the average of certain number in your model's table, you could call `Model.average()`. If you need to be more specific, say to find the average age of your website's subscribed users, you can:
+If you want to see the average of certain number in your model's table, you could call `Model.average()`. Say to find the average age of your website's subscribed users, you can:
 
 ```js
 User.where({ subscribed: true }).average('age')
@@ -598,7 +598,7 @@ SELECT AVG(age) FROM users WHERE subscribed = 1;
 
 ### Minimum
 
-If you want to see the minimum of certain number in your model's table, you could call `Model.minimum()`. If you need to be more specific, say to find the minimum age of your website's subscribed users, you can:
+If you want to see the minimum of certain number in your model's table, you could call `Model.minimum()`. Say to find the minimum age of your website's subscribed users, you can:
 
 ```js
 User.minimum('age')
@@ -612,7 +612,7 @@ SELECT MIN(age) AS minimum FROM users;
 
 ### Maximum
 
-If you want to see the maximum of certain number in your model's table, you could call `Model.maximum()`. If you need to be more specific, say to find the maximum age of your website's subscribed users, you can:
+If you want to see the maximum of certain number in your model's table, you could call `Model.maximum()`. Say to find the maximum age of your website's subscribed users, you can:
 
 ```js
 User.maximum('age')
@@ -626,7 +626,7 @@ SELECT MAX(age) AS maximum FROM users;
 
 ### Sum
 
-If you want to find the sum of a field for all records in your model's table you could call `Model.sum()`. If you need to be more specific, say to find the total price of the items of certain shop, you can:
+If you want to find the sum of a field for all records in your model's table you could call `Model.sum()`. Say to find the total price of the items of certain shop, you can:
 
 ```js
 Shop.find(42).with('items').sum('items.price')

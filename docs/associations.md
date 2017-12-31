@@ -35,7 +35,7 @@ Associations can be declared within the `Model.describe()` method. For example, 
   <img src="https://img.alicdn.com/tfscom/TB1qiWyfyqAXuNjy1XdXXaYcVXa.png">
 </figure>
 
-A `belongsTo()` assocation sets up a one-to-one or many-to-one relationship. For example, a shop can have many items as it finds fit. On the other hand, an item can `belongsTo()` to exactly one shop. We can declare the `Item` this way:
+A `belongsTo()` association sets up a one-to-one or many-to-one relationship. For example, a shop can have many items as it finds fit. On the other hand, an item can `belongsTo()` to exactly one shop. We can declare the `Item` this way:
 
 ```js
 class Item extends Bone {
