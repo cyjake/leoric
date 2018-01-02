@@ -690,7 +690,7 @@ describe('=> Associations', function() {
     const posts = await Post.include('tags')
     expect(posts[0].tags.length).to.greaterThan(0)
     expect(posts[0].tags[0]).to.be.a(Tag)
-    expect(posts[0].tags.map(tag => tag.name)).to.eql(['npc', 'boss'])
+    expect(posts[0].tags.map(tag => tag.name).sort()).to.eql(['npc', 'boss'].sort())
     expect(posts[1].tags.map(tag => tag.name)).to.eql(['player'])
   })
 
