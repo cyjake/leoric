@@ -13,21 +13,21 @@ const shop = await Shop.findOne({ id }).with('items', 'owner')
 //           owner: User { name: 'Tyreal' } }
 ```
 
-本文涵盖 Leoric 的关联关系特性。在阅读本文后，你将知晓：
+本文涵盖 Jorma 的关联关系特性。在阅读本文后，你将知晓：
 
 - 如何定义数据模型间的关联关系；
 - 如何理解关联关系的各种类型。
 
 ## 关联关系的类型
 
-Leoric 支持四种关联关系：
+Jorma 支持四种关联关系：
 
 - `belongsTo()`
 - `hasMany()`
 - `hasMany({ through })`
 - `hasOne()`
 
-这些方法需要在 `Model.describe()` 方法中调用。例如，声明店铺属于 `belongsTo()` 它的 `owner` 之后，Leoric 将在执行 `Shop.find().with('owner')` 时自动 JOIN 店铺和用户表，找到所查找的店铺对应的 `owner`，在结果中实例化对应的数据模型并挂载到店铺的 `owner` 属性。
+这些方法需要在 `Model.describe()` 方法中调用。例如，声明店铺属于 `belongsTo()` 它的 `owner` 之后，Jorma 将在执行 `Shop.find().with('owner')` 时自动 JOIN 店铺和用户表，找到所查找的店铺对应的 `owner`，在结果中实例化对应的数据模型并挂载到店铺的 `owner` 属性。
 
 ### `belongsTo()`
 
@@ -45,7 +45,7 @@ class Item extends Bone {
 }
 ```
 
-Leoric 会把关联关系的名称 `shop` 转为驼峰、首字母大写，再以转换后的 `Shop` 为数据模型名称寻找对应的数据模型定义。如果实际的数据模型名称并非如此，我们也可以使用 `className` 显式指定：
+Jorma 会把关联关系的名称 `shop` 转为驼峰、首字母大写，再以转换后的 `Shop` 为数据模型名称寻找对应的数据模型定义。如果实际的数据模型名称并非如此，我们也可以使用 `className` 显式指定：
 
 ```js
 class Item extends Bone {
@@ -59,7 +59,7 @@ class Item extends Bone {
 
 如你在实例关系图中所见，用于关联 `belongsTo()` 关系的外键是存在于发起关联关系的数据模型中的。外键的名称默认根据目标数据模型的名称转换，首字母转为小写，再跟上 `Id` 后缀。在这个例子里，外键会自动根据 `Shop` 转换成 `shopId`。
 
-> Leoric 在数据模型底层实际维护两套名称。一个是数据模型中属性的名称，与 JavaScript 中常用的编码规范一致，采用驼峰格式。另一个则是这些属性名对应的实际字段名，即数据库表结构设计时所采用的名称，通常是以下划线分隔的。
+> Jorma 在数据模型底层实际维护两套名称。一个是数据模型中属性的名称，与 JavaScript 中常用的编码规范一致，采用驼峰格式。另一个则是这些属性名对应的实际字段名，即数据库表结构设计时所采用的名称，通常是以下划线分隔的。
 
 可以使用 `foreignKey` 参数覆盖默认的外键名称：
 
@@ -89,7 +89,7 @@ class Shop extends Bone {
 
 > 注意，与 `belongsTo()` 不同的是，传给 `hasMany()` 的名称通常是复数形式。
 
-Leoric 寻找对应数据模型的方式都是差不多的。首先将关联关系的名称转为单数，继而首字母大写。在此例中，`items` 被转为 `item`，继而使用 `Item` 寻找实际的数据模型类。
+Jorma 寻找对应数据模型的方式都是差不多的。首先将关联关系的名称转为单数，继而首字母大写。在此例中，`items` 被转为 `item`，继而使用 `Item` 寻找实际的数据模型类。
 
 可以使用 `className` 参数覆盖默认的数据模型名称：
 

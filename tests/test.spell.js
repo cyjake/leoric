@@ -15,35 +15,35 @@ before(async function() {
 describe('=> Insert', function() {
   it('insert', function() {
     const date = new Date(2017, 11, 12)
-    expect(Post.create({ title: 'King Leoric', createdAt: date, updatedAt: date }).toString()).to.equal(
-      "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('King Leoric', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+    expect(Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).toString()).to.equal(
+      "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
     )
   })
 
   it('insert ... on duplicate key update', function() {
     const date = new Date(2017, 11, 12)
-    expect(new Post({ id: 1, title: 'King Leoric', createdAt: date, updatedAt: date }).upsert().toString()).to.equal(
-      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'King Leoric', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = 1, `title` = 'King Leoric', `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000'"
+    expect(new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString()).to.equal(
+      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = 1, `title` = 'New Post', `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000'"
     )
   })
 })
 
 describe('=> Select', function() {
   it('where object condition', function() {
-    expect(Post.where({ title: { $like: '%Leoric%' } }).toString()).to.equal(
-      "SELECT * FROM `articles` WHERE `title` LIKE '%Leoric%' AND `gmt_deleted` IS NULL"
+    expect(Post.where({ title: { $like: '%Post%' } }).toString()).to.equal(
+      "SELECT * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
     )
   })
 
   it('where string conditions', function() {
-    expect(Post.where('title like ?', '%Leoric%').toString()).to.equal(
-      "SELECT * FROM `articles` WHERE `title` LIKE '%Leoric%' AND `gmt_deleted` IS NULL"
+    expect(Post.where('title like ?', '%Post%').toString()).to.equal(
+      "SELECT * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
     )
   })
 
   it('where compound string conditions', function() {
-    expect(Post.where('title like "Arch%" or (title = "King Leoric" || title = "Skeleton King")').toString()).to.equal(
-      "SELECT * FROM `articles` WHERE (`title` LIKE 'Arch%' OR (`title` = 'King Leoric' OR `title` = 'Skeleton King')) AND `gmt_deleted` IS NULL"
+    expect(Post.where('title like "Arch%" or (title = "New Post" || title = "Skeleton King")').toString()).to.equal(
+      "SELECT * FROM `articles` WHERE (`title` LIKE 'Arch%' OR (`title` = 'New Post' OR `title` = 'Skeleton King')) AND `gmt_deleted` IS NULL"
     )
   })
 

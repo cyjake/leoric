@@ -3,7 +3,7 @@ layout: zh
 title: 查询接口
 ---
 
-本文涵盖使用 Leoric 从数据库读取数据的各种方式。读完本文后你将知晓：
+本文涵盖使用 Jorma 从数据库读取数据的各种方式。读完本文后你将知晓：
 
 - 如何使用一系列方法和条件过滤数据记录；
 - 如何指定查询结果的排序方式、所需获取的字段、分组、以及其他。
@@ -11,7 +11,7 @@ title: 查询接口
 
 ## 从数据库读取数据
 
-Leoric 提供两种主要的查询方式，`.find()` 和 `.findOne()`。`.findOne()` 除了仅返回一条记录或者返回 `null`，其他方面跟 `.find()` 没有差别。
+Jorma 提供两种主要的查询方式，`.find()` 和 `.findOne()`。`.findOne()` 除了仅返回一条记录或者返回 `null`，其他方面跟 `.find()` 没有差别。
 
 ### 读取一条数据
 
@@ -32,16 +32,16 @@ SELECT * FROM posts WHERE id = 1 LIMIT 1;
 
 ```js
 const post = await Post.findOne({
-  title: ['King Leoric', 'Archbishop Lazarus'],
+  title: ['New Post', 'Untitled'],
   createdAt: new Date(2012, 4, 15)
 })
-// => Post { id: 1, title: 'King Leoric', ... }
+// => Post { id: 1, title: 'New Post', ... }
 ```
 
 上例对应的 SQL 如下：
 
 ```sql
-SELECT * FROM posts WHERE title IN ('King Leoric', 'Archbishop Lazarus') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
+SELECT * FROM posts WHERE title IN ('New Post', 'Untitled') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
 ```
 
 如果查无记录，`.findOne()` 会返回 `null` 而不是像 `.find()` 一样返回空集合。
@@ -148,8 +148,8 @@ for await (const post of Post.find().batch(1000)) {
 需要查询确定值的时候，纯字符串的查询条件会很合适：
 
 ```js
-Post.find('title != "King Leoric"')
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find('title != "New Post"')
+// => SELECT * FROM posts WHERE title != 'New Post';
 ```
 
 但如果使用时不加注意，这种使用方式也很危险：
@@ -160,7 +160,7 @@ Post.find(`title != ${title}`)
 // => SELECT * FROM posts WHERE title != '' OR 1 = 1;
 ```
 
-为避免这种极易被 SQL 注入的查询方式，当条件判断的左操作数并非 identifier 时，Leoric 将抛出异常。但这并不能完全避免被注入的情况，所以在查询条件中需要包含外部输入时，请使用对象查询条件或者带占位符的字符串查询条件。
+为避免这种极易被 SQL 注入的查询方式，当条件判断的左操作数并非 identifier 时，Jorma 将抛出异常。但这并不能完全避免被注入的情况，所以在查询条件中需要包含外部输入时，请使用对象查询条件或者带占位符的字符串查询条件。
 
 ### 对象查询条件
 
@@ -170,8 +170,8 @@ Post.find(`title != ${title}`)
 Post.find({ id: 1 })
 // => SELECT * FROM posts WHERE id = 1;
 
-Post.find({ title: 'King Leoric' })
-// => SELECT * FROM posts WHERE title = 'King Leoric';
+Post.find({ title: 'New Post' })
+// => SELECT * FROM posts WHERE title = 'New Post';
 
 Post.find({ title: undefined })
 Post.find({ title: null })
@@ -181,14 +181,14 @@ Post.find({ title: null })
 以下是一些使用数组或者其他非简单值的对象查询条件示例：
 
 ```js
-Post.find({ title: ['King Leoric', 'Skeleton King'] })
-// => SELECT * FROM posts WHERE title IN ('King Leoric', 'Skeleton King');
+Post.find({ title: ['New Post', 'Untitled'] })
+// => SELECT * FROM posts WHERE title IN ('New Post', 'Untitled');
 
 Post.find({
-  title: { toSqlString: () => "'King Leoric'" }
+  title: { toSqlString: () => "'New Post'" }
 })
 // 如果传入的是个包含 toSqlString() 方法的对象，将会使用 toSqlString() 的返回值。
-// => SELECT * FROM posts WHERE title = 'King Leoric';
+// => SELECT * FROM posts WHERE title = 'New Post';
 ```
 
 ### 包含操作符的对象查询条件
@@ -196,8 +196,8 @@ Post.find({
 可能在之前的示例中你已经注意到了，对象查询条件中的值也可以是一个对象。如果这个对象仅包含一个属性而且这个属性是 `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)` 的其中一个，这个属性将被映射为 SQL 操作符：
 
 ```js
-Post.find({ title: { $ne: 'King Leoric' } })
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find({ title: { $ne: 'New Post' } })
+// => SELECT * FROM posts WHERE title != 'New Post';
 
 Post.find({ title: { $like: '%King%' } })
 // => SELECT * FROM posts WHERE title LIKE '%King%';
@@ -214,8 +214,8 @@ Post.find({ createdAt: { $notBetween: [new Date(2017, 10, 11), new Date(2017, 11
 需要组合查询条件的时候，带占位符的字符串查询条件通常是比对象查询条件更合适的选择。上文中有关对象查询条件的示例使用带占位符的字符串查询条件可以写成：
 
 ```js
-Post.find('title != ?', 'King Leoric')
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find('title != ?', 'New Post')
+// => SELECT * FROM posts WHERE title != 'New Post';
 
 Post.find('title like ?', '%King%')
 // => SELECT * FROM posts WHERE title LIKE '%King%';
@@ -234,15 +234,15 @@ Post.find('title = ?', null)
 Post.find('title = ?', undefined)
 // => SELECT * FROM posts WHERE title IS NULL;
 
-Post.find('title = ?', ['King Leoric', 'Skeleton King'])
-// => SELECT * FROM posts WHERE title in ('King Leoric', 'Skeleton King');
+Post.find('title = ?', ['New Post', 'Untitled'])
+// => SELECT * FROM posts WHERE title in ('New Post', 'Untitled');
 ```
 
 需要组合多个查询条件时，使用带占位符的字符串查询条件是最方便的：
 
 ```js
-Post.find('title != ? and createdAt > ?', 'King Leoric', new Date(2017, 10, 11))
-// => SELECT * FROM posts WHERE title != 'King Leoric' AND gmt_create > '2017-10-11';
+Post.find('title != ? and createdAt > ?', 'New Post', new Date(2017, 10, 11))
+// => SELECT * FROM posts WHERE title != 'New Post' AND gmt_create > '2017-10-11';
 ```
 
 ## 排序
@@ -369,14 +369,14 @@ SELECT COUNT(*) as count, DATE(created_at) FROM posts GROUP BY DATE(created_at) 
 
 ## Joining Tables
 
-Leoric 提供两种构建 JOIN 查询的方式：
+Jorma 提供两种构建 JOIN 查询的方式：
 
 - 使用 `.with(relationName)` 或者 `.include(relationName)` JOIN 预定义的关联关系，
 - 使用 `.join(Model, onConditions)` JOIN 其他任意数据模型。
 
 ### 预定义的关联关系
 
-可以通过 `Model.relations` 查看当前数据模型预定义的关联关系，这些关系都是在 Leoric 内部调用 `Model.describe()` 方法时生成的。我们可以在这个方法里调用 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()` 来定义关联关系，例如：
+可以通过 `Model.relations` 查看当前数据模型预定义的关联关系，这些关系都是在 Jorma 内部调用 `Model.describe()` 方法时生成的。我们可以在这个方法里调用 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()` 来定义关联关系，例如：
 
 ```js
 class Post extends Bone {
@@ -447,7 +447,7 @@ Post.join(Comment, 'posts.id = comments.postId').where('comments.id = 1')
 
 如果数据模型有 `deletedAt` 属性，`Model.remove()` 并不会实际删除对应的记录，而是更新 `deleteAt` 的值为最新时间。这一特性被称作伪删除（soft delete）。
 
-伪删除逻辑对数据模型的用户来说是透明的，Leoric 默认会在每次查询生成 SQL 之前补上一个默认的查询条件。例如，如果 `Post` 数据模型有 `deletedAt` 属性，那么 `Post.find()` 对应的 SQL 实际上是：
+伪删除逻辑对数据模型的用户来说是透明的，Jorma 默认会在每次查询生成 SQL 之前补上一个默认的查询条件。例如，如果 `Post` 数据模型有 `deletedAt` 属性，那么 `Post.find()` 对应的 SQL 实际上是：
 
 ```sql
 SELECT * FROM posts WHERE deleted_at IS NULL;
@@ -459,7 +459,7 @@ SELECT * FROM posts WHERE deleted_at IS NULL;
 SELECT * FROM posts WHERE deleted_at IS NOT NULL;
 ```
 
-Leoric 将这一行为按查询限定形式实现，后者其实是 Leoric 从 Active Record 抄袭过来的诸多概念之一。目前仅有 `.where({ deletedAt: null })` 这一个默认的查询限定。
+Jorma 将这一行为按查询限定形式实现，后者其实是 Jorma 从 Active Record 抄袭过来的诸多概念之一。目前仅有 `.where({ deletedAt: null })` 这一个默认的查询限定。
 
 ### unscoped
 
@@ -477,7 +477,7 @@ SELECT * FROM posts WHERE id IN (1, 10)
 
 ## 理解链式调用
 
-Leoric 支持[链式调用](http://en.wikipedia.org/wiki/Method_chaining)，允许在编写查询条件时连续各种方法。实现这一特性的原理是，每个查询方法，例如 `.find()` 或者 `.order()`，被调用时都会返回一个 `Spell` 实例。
+Jorma 支持[链式调用](http://en.wikipedia.org/wiki/Method_chaining)，允许在编写查询条件时连续各种方法。实现这一特性的原理是，每个查询方法，例如 `.find()` 或者 `.order()`，被调用时都会返回一个 `Spell` 实例。
 
 ```js
 Post.find()   // => Spell { Model: Post }
@@ -503,7 +503,7 @@ async function() {
 }
 ```
 
-因为 Leoric 采用 ES2016 编写，其中大多数标准已经在最新的 Node.js LTS 版本中实现，所以我们推荐使用 async/await。
+因为 Jorma 采用 ES2016 编写，其中大多数标准已经在最新的 Node.js LTS 版本中实现，所以我们推荐使用 async/await。
 
 书归正传，我们可以往查询对象后面追加任意方法，直到完成查询构建为止：
 
@@ -521,14 +521,14 @@ const posts = await query // 没有排序、LIMIT
 
 > MongoDB 里有 [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id)，PostgreSQL 里则有 [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), 而 MySQL（以及 MariaDB 等衍生数据库）里则有 [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html)。大致来说，都是寻找重复主键，如果存在就更新对应记录。如果不存在重复主键，则插入这条数据。
 
-Leoric 也使用了这一特性。例如：
+Jorma 也使用了这一特性。例如：
 
 ```js
-const post = new Post({ id: 1, name: 'King Leoric' })
+const post = new Post({ id: 1, name: 'New Post' })
 await post.save()
 ```
 
-如果 `Post { id: 1 }` 已经存在，上述代码将更新它的 `name` 为 `King Leoric`。
+如果 `Post { id: 1 }` 已经存在，上述代码将更新它的 `name` 为 `New Post`。
 
 不过 `upsert` 特性与查询或者创建对象的逻辑是有区别的。例如，如果用户是以 `email` 区分的，我们可以先按 `email` 查找用户，如果找不到，就创建一个新用户：
 
@@ -537,7 +537,7 @@ const user = (await User.find({ email: 'john@example.com' })) ||
   await User.create({ email: 'john@example.com' })
 ```
 
-为了从这种冗长的代码中解脱出来，Leoric 默认提供 `Model.findOrCreate()` 方法：
+为了从这种冗长的代码中解脱出来，Jorma 默认提供 `Model.findOrCreate()` 方法：
 
 ```js
 const user = await User.findOrCreate({ email: 'john@example.com' })

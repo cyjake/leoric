@@ -9,8 +9,8 @@ describe('=> parse indentifier', function() {
   })
 
   it('parse identifier qualifiers', function() {
-    expect(parseExpr('leoric.articles.createdAt')).to.eql({
-      type: 'id', value: 'createdAt', qualifiers: ['leoric', 'articles']
+    expect(parseExpr('test.articles.createdAt')).to.eql({
+      type: 'id', value: 'createdAt', qualifiers: ['test', 'articles']
     })
   })
 })
@@ -78,12 +78,12 @@ describe('=> parse unary operators', function() {
 
 describe('=> parse comparison operators', function() {
   it('parse LIKE', function() {
-    expect(parseExpr('title LIKE "%Leoric%"')).to.eql({
+    expect(parseExpr('title LIKE "%Post%"')).to.eql({
       type: 'op',
       name: 'like',
       args: [
         { type: 'id', value: 'title' },
-        { type: 'string', value: '%Leoric%' }
+        { type: 'string', value: '%Post%' }
       ]
     })
   })
@@ -168,12 +168,12 @@ describe('=> parse unary operators', function() {
 
 describe('=> parse placeholder', function() {
   it('parse placeholder of string', function() {
-    expect(parseExpr('title like ?', '%Leoric%')).to.eql({
+    expect(parseExpr('title like ?', '%Post%')).to.eql({
       type: 'op',
       name: 'like',
       args:[
         { type: 'id', value: 'title' },
-        { type: 'string', value: '%Leoric%' }
+        { type: 'string', value: '%Post%' }
       ]
     })
   })

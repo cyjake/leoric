@@ -2,10 +2,10 @@
 layout: en
 ---
 
-Leoric is an object-relational mapping library for Node.js, with which you can manipulate database like this:
+Jorma is an object-relational mapping library for Node.js, with which you can manipulate database like this:
 
 ```js
-const { Bone, connect } = require('leoric')
+const { Bone, connect } = require('jorma')
 
 // define model
 class Post extends Bone {
@@ -20,17 +20,17 @@ async function() {
   await connect({ host: 'example.com', models: [Post], /* among other options */ })
 
   // CRUD
-  await Post.create({ title: 'King Leoric' })
-  const post = await Post.findOne({ title: 'King Leoric' })
-  post.title = 'Skeleton King'
+  await Post.create({ title: 'New Post' })
+  const post = await Post.findOne({ title: 'New Post' })
+  post.title = 'Untitled'
   await post.save()
 
   // or UPDATE directly
-  await Post.update({ title: 'Skeleton King' }, { title: 'King Leoric' })
+  await Post.update({ title: 'Untitled' }, { title: 'New Post' })
 
   // find with associations
-  await Post.include('comments').where('posts.title = ?', 'King Leoric')
-  // => Post { id: 1, title: 'King Leoric', ...,
+  await Post.include('comments').where('posts.title = ?', 'New Post')
+  // => Post { id: 1, title: 'New Post', ...,
   //           comments: [ Comment { id, content }, ... ] }
 }
 ```
@@ -48,12 +48,12 @@ async function() {
   <tr>
     <td>
 {% highlight js %}
-Post.create({ title: 'King Leoric' })
+Post.create({ title: 'New Post' })
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-INSERT INTO posts (title) VALUES ('King Leoric');
+INSERT INTO posts (title) VALUES ('New Post');
 {% endhighlight %}
     </td>
   </tr>
@@ -72,12 +72,12 @@ SELECT * FROM posts;
   <tr>
     <td>
 {% highlight js %}
-Post.find({ title: 'King Leoric' })
+Post.find({ title: 'New Post' })
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-SELECT * FROM posts WHERE title = 'King Leoric';
+SELECT * FROM posts WHERE title = 'New Post';
 {% endhighlight %}
     </td>
   </tr>
@@ -132,12 +132,12 @@ SELECT * FROM posts LIMIT 0, 20;
   <tr>
     <td>
 {% highlight js %}
-Post.update({ id: 42 }, { title: 'Skeleton King' })
+Post.update({ id: 42 }, { title: 'Untitled' })
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-UPDATE posts SET title = 'Skeleton King' WHERE id = 42;
+UPDATE posts SET title = 'Untitled' WHERE id = 42;
 {% endhighlight %}
      </td>
     </tr>
@@ -168,24 +168,24 @@ SELECT * FROM posts WHERE id IN (1, 2, 3);
   <tr>
     <td>
 {% highlight js %}
-Post.select('id, title').where('title like ?', '%Leoric%')
+Post.select('id, title').where('title like ?', '%Post%')
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-SELECT id, title FROM posts WHERE title LIKE '%Leoric%';
+SELECT id, title FROM posts WHERE title LIKE '%Post%';
 {% endhighlight %}
     </td>
   </tr>
   <tr>
     <td>
 {% highlight js %}
-Post.where('title like ? || authorId = ?',  '%Leoric%', 42)
+Post.where('title like ? || authorId = ?',  '%Post%', 42)
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-SELECT * FROM posts WHERE title LIKE '%leoric%' OR author_id = 42;
+SELECT * FROM posts WHERE title LIKE '%Post%' OR author_id = 42;
 {% endhighlight %}
     </td>
   </tr>

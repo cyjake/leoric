@@ -3,7 +3,7 @@ layout: en
 title: Query Interface
 ---
 
-This guide covers different ways to retrieve data from the database using Leoric. After reading this guide, you will know:
+This guide covers different ways to retrieve data from the database using Jorma. After reading this guide, you will know:
 
 - How to filter records using a variety of methods and conditions.
 - How to specify the order, retrieved attributes, grouping, and other properties of the found records.
@@ -11,7 +11,7 @@ This guide covers different ways to retrieve data from the database using Leoric
 
 ## Retrieving Objects from the Database
 
-Leoric provides two major ways to start a query, `.find()` and `.findOne()`. `.findOne()` is basically the same as `.find()`, except that it returns only one record or null if no record were found.
+Jorma provides two major ways to start a query, `.find()` and `.findOne()`. `.findOne()` is basically the same as `.find()`, except that it returns only one record or null if no record were found.
 
 ### Retrieving a Single Object
 
@@ -32,16 +32,16 @@ SELECT * FROM posts WHERE id = 1 LIMIT 1;
 
 ```js
 const post = await Post.findOne({
-  title: ['King Leoric', 'Archbishop Lazarus'],
+  title: ['New Post', 'Untitled'],
   createdAt: new Date(2012, 4, 15)
 })
-// => Post { id: 1, title: 'King Leoric', ... }
+// => Post { id: 1, title: 'New Post', ... }
 ```
 
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM posts WHERE title IN ('King Leoric', 'Archbishop Lazarus') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
+SELECT * FROM posts WHERE title IN ('New Post', 'Untitled') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
 ```
 
 If no record is found, `.findOne()` will return `null` whereas `.find()` will return an empty collection.
@@ -148,8 +148,8 @@ For brevity and security concerns, we'd recommend using template string conditio
 Pure string conditions is quite handy if you need to query with literal values:
 
 ```js
-Post.find('title != "King Leoric"')
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find('title != "New Post"')
+// => SELECT * FROM posts WHERE title != 'New Post';
 ```
 
 But it can be dangerous too, if it is in clumsy hands:
@@ -160,7 +160,7 @@ Post.find(`title != ${title}`)
 // => SELECT * FROM posts WHERE title != '' OR 1 = 1;
 ```
 
-To prevent this SQL injection prone usage, Leoric will throw an error if complex values were found while parsing string conditions. The allowed values are:
+To prevent this SQL injection prone usage, Jorma will throw an error if complex values were found while parsing string conditions. The allowed values are:
 
 - numbers
 - strings with single/double quotations (e.g. `'foo'`, `"bar"`)
@@ -177,8 +177,8 @@ Object conditions may sound familiar because it's a common approach of condition
 Post.find({ id: 1 })
 // => SELECT * FROM posts WHERE id = 1;
 
-Post.find({ title: 'King Leoric' })
-// => SELECT * FROM posts WHERE title = 'King Leoric';
+Post.find({ title: 'New Post' })
+// => SELECT * FROM posts WHERE title = 'New Post';
 
 Post.find({ title: undefined })
 Post.find({ title: null })
@@ -188,14 +188,14 @@ Post.find({ title: null })
 and with values of array or other non-primitive types:
 
 ```js
-Post.find({ title: ['King Leoric', 'Skeleton King'] })
-// => SELECT * FROM posts WHERE title IN ('King Leoric', 'Skeleton King');
+Post.find({ title: ['New Post', 'Untitled'] })
+// => SELECT * FROM posts WHERE title IN ('New Post', 'Untitled');
 
 Post.find({
-  title: { toSqlString: () => "'King Leoric'" }
+  title: { toSqlString: () => "'New Post'" }
 })
 // toSqlString() will be called when it comes to objects with toSqlString() method.
-// => SELECT * FROM posts WHERE title = 'King Leoric';
+// => SELECT * FROM posts WHERE title = 'New Post';
 ```
 
 ### Object Conditions with Operators
@@ -203,11 +203,11 @@ Post.find({
 As you may have noticed in the previous example, the values in object conditions can be objects as well. If the object has got only one key and the key is one of `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)`, it will be mapped to SQL operators accordingly:
 
 ```js
-Post.find({ title: { $ne: 'King Leoric' } })
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find({ title: { $ne: 'New Post' } })
+// => SELECT * FROM posts WHERE title != 'New Post';
 
-Post.find({ title: { $like: '%King%' } })
-// => SELECT * FROM posts WHERE title LIKE '%King%';
+Post.find({ title: { $like: '%Post%' } })
+// => SELECT * FROM posts WHERE title LIKE '%Post%';
 
 Post.find({ createdAt: { $lt: new Date(2017, 10, 11) } })
 // => SELECT * FROM posts WHERE gmt_create < '2017-11-11 00:00:00';
@@ -221,11 +221,11 @@ Post.find({ createdAt: { $notBetween: [new Date(2017, 10, 11), new Date(2017, 11
 Templated string conditions usually are the better option against object conditions when it comes to multiple conditions or comparison conditions for its brevity. The example of object conditions above can be written in templated string conditions as this:
 
 ```js
-Post.find('title != ?', 'King Leoric')
-// => SELECT * FROM posts WHERE title != 'King Leoric';
+Post.find('title != ?', 'New Post')
+// => SELECT * FROM posts WHERE title != 'New Post';
 
-Post.find('title like ?', '%King%')
-// => SELECT * FROM posts WHERE title LIKE '%King%';
+Post.find('title like ?', '%Post%')
+// => SELECT * FROM posts WHERE title LIKE '%Post%';
 
 Post.find('createdAt < ?', new Date(2017, 10, 11))
 // => SELECT * FROM posts WHERE gmt_create < '2017-11-11 00:00:00'
@@ -241,15 +241,15 @@ Post.find('title = ?', null)
 Post.find('title = ?', undefined)
 // => SELECT * FROM posts WHERE title IS NULL;
 
-Post.find('title = ?', ['King Leoric', 'Skeleton King'])
-// => SELECT * FROM posts WHERE title in ('King Leoric', 'Skeleton King');
+Post.find('title = ?', ['New Post', 'Untitled'])
+// => SELECT * FROM posts WHERE title in ('New Post', 'Untitled');
 ```
 
 When it comes to combining multiple conditions, templated string conditions is at its best advantage:
 
 ```js
-Post.find('title != ? and createdAt > ?', 'King Leoric', new Date(2017, 10, 11))
-// => SELECT * FROM posts WHERE title != 'King Leoric' AND gmt_create > '2017-10-11';
+Post.find('title != ? and createdAt > ?', 'New Post', new Date(2017, 10, 11))
+// => SELECT * FROM posts WHERE title != 'New Post' AND gmt_create > '2017-10-11';
 ```
 
 ## Ordering
@@ -378,7 +378,7 @@ And the results might be:
 
 ## Joining Tables
 
-Leoric provides two ways of constructing JOIN querys:
+Jorma provides two ways of constructing JOIN querys:
 
 - Join predefined associations using `.with(relationName)`,
 - Join arbitrary models using `.join(Model, onConditions)`.
@@ -468,7 +468,7 @@ But if any where conditional expressions have got `deletedAt` referenced already
 SELECT * FROM posts WHERE deleted_at IS NOT NULL;
 ```
 
-Leoric implemented this behavior as scopes, which is a concept (among many others) stolen from Active Record. Currently this conditional `.where({ deletedAt: null })` is the only default scope.
+Jorma implemented this behavior as scopes, which is a concept (among many others) stolen from Active Record. Currently this conditional `.where({ deletedAt: null })` is the only default scope.
 
 ### unscoped
 
@@ -486,7 +486,7 @@ SELECT * FROM posts WHERE id IN (1, 10)
 
 ## Understanding Method Chaining
 
-Leoric supports [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining), which allows methods be appended consecutively to complete the query. It is implemented by returning an instance of `Spell` when a query method of the model, such as `.find()` and `.order()`, is called.
+Jorma supports [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining), which allows methods be appended consecutively to complete the query. It is implemented by returning an instance of `Spell` when a query method of the model, such as `.find()` and `.order()`, is called.
 
 ```js
 Post.find()   // => Spell { Model: Post }
@@ -512,12 +512,12 @@ async function() {
 }
 ```
 
-Since Leoric is written in ES2016, which is supported by Node.js LTS already, we'd encourage you to start using async/await too.
+Since Jorma is written in ES2016, which is supported by Node.js LTS already, we'd encourage you to start using async/await too.
 
 Anyway, you can always append further query details onto the spell until it's done, even if there's asynchronous jobs in between:
 
 ```js
-const query = Post.where('title LIKE ?', '%King%')
+const query = Post.where('title LIKE ?', '%Post%')
 if (await top10) {
   const top10posts = await query.order('updatedAt desc').limit(10)
 }
@@ -530,14 +530,14 @@ It is common to find the existence of an object first, if not then create the ob
 
 > In MongoDB there's [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id), in PostgreSQL there's [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), and in MySQL (and forks such as MariaDB) there's [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html). In general, if duplicated values of primary key were found, the record gets updated. If not, the record gets inserted.
 
-Leoric takes this behavior to update on duplicated keys. For example:
+Jorma takes this behavior to update on duplicated keys. For example:
 
 ```js
-const post = new Post({ id: 1, name: 'King Leoric' })
+const post = new Post({ id: 1, name: 'New Post' })
 await post.save()
 ```
 
-If `Post { id: 1 }` exists, its name gets updated to `King Leoric`.
+If `Post { id: 1 }` exists, its name gets updated to `New Post`.
 
 But this `upsert` thing is **NOT** exactly the same as the meaning of *Find or Build a New Object*. For example, if our users were distinguished by email, we can find the user by email, or create a new one if not found:
 
@@ -565,7 +565,7 @@ const results = await Post.count()
 Or on a query:
 
 ```js
-const results = await Post.where('name like ?', '%King%').count()
+const results = await Post.where('name like ?', '%Post%').count()
 ```
 
 ### Count

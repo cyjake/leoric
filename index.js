@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * Entry module of Leoric
+ * Entry module
  * @module
  */
 const Bone = require('./lib/bone')
@@ -80,7 +80,7 @@ function columnInfo(pool, db, tables) {
  * @param {string} opts.models - an array of models
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
-const connect = async function Leoric_connect(opts) {
+const connect = async function Jorma_connect(opts) {
   if (Bone.pool) return
 
   const models = opts.path

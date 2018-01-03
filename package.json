@@ -1,15 +1,15 @@
 {
-  "name": "leoric",
-  "version": "0.1.8",
-  "description": "Object-relational mapping for Node.js",
+  "name": "jorma",
+  "version": "0.2.0",
+  "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
-    "test": "mysql -uroot < tests/dumpfile.sql && DEBUG=leoric mocha --exit tests/test.*.js"
+    "test": "mysql -uroot < tests/dumpfile.sql && DEBUG=jorma mocha --exit tests/test.*.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dotnil/leoric.git"
+    "url": "https://github.com/dotnil/jorma.git"
   },
   "keywords": [
     "orm",

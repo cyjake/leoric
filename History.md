@@ -1,3 +1,9 @@
+0.2.0 / 2018-01-03
+==================
+
+ * Breaking: renamed from Leoric to Jorma
+
+
 0.1.8 / 2017-12-31
 ==================
 
@@ -61,7 +67,7 @@
 ==================
 
  * Refactor: automatic versioning on spells. When client calls query methods with chaining, new versions of spell gets duplicated. Makes reuse of spells possible.
- * Docs: english verion is almost complete <http://cyj.me/leoric>.
+ * Docs: english verion is almost complete <http://cyj.me/jorma>.
 
 0.1.0 / 2017-12-09
 ==================

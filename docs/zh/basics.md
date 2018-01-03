@@ -3,19 +3,19 @@ layout: zh
 title: 基础
 ---
 
-本手册意在向大家介绍 Leoric。读完本文后，你将了解：
+本手册意在向大家介绍 Jorma。读完本文后，你将了解：
 
-- 对象关系映射（Object Relational Mapping）和 Leoric 是什么, 以及怎么用；
-- 如何使用 Leoric 的数据模型来操作关系数据库中存储的数据.
-- Leoric 的表结构命名约定。
+- 对象关系映射（Object Relational Mapping）和 Jorma 是什么, 以及怎么用；
+- 如何使用 Jorma 的数据模型来操作关系数据库中存储的数据.
+- Jorma 的表结构命名约定。
 
-## Leoric 是什么
+## Jorma 是什么
 
-Leoric 是 Node.js 与关系型数据库之间的一层对象关系映射模型。它可以被用作 [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) 中的 M - 即 MVC 体系中负责表现业务数据与逻辑的那一层。
+Jorma 是 Node.js 与关系型数据库之间的一层对象关系映射模型。它可以被用作 [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) 中的 M - 即 MVC 体系中负责表现业务数据与逻辑的那一层。
 
-对象关系映射（简称 ORM）是应用程序中的对象与关系型数据管理系统中的表相互联系的一种方式。在许多编程语言中都有流行 ORM 的概念，例如 Ruby 的 Active Record、Python 的 SQLAlchemy、以及 Java 的 Hibernate。Leoric 受 [Active Record](http://guides.rubyonrails.org/active_record_basics.html) 影响颇多，或许你从 Leoric 的文档组织方式已经看出一二。
+对象关系映射（简称 ORM）是应用程序中的对象与关系型数据管理系统中的表相互联系的一种方式。在许多编程语言中都有流行 ORM 的概念，例如 Ruby 的 Active Record、Python 的 SQLAlchemy、以及 Java 的 Hibernate。Jorma 受 [Active Record](http://guides.rubyonrails.org/active_record_basics.html) 影响颇多，或许你从 Jorma 的文档组织方式已经看出一二。
 
-Leoric 应当具备的能力是：
+Jorma 应当具备的能力是：
 
 - 表现数据模型及其背后的数据；
 - 表现数据模型之前的关联；
@@ -25,11 +25,11 @@ Leoric 应当具备的能力是：
 
 ## 约定大于配置
 
-一般而言，出于明确性考虑，配置是较约定要更受欢迎一些的。不过，如果你理解 Leoric 所采用的约定方式，你将在保留明确性的同时，仅需少量、甚至不用配置即可完成一个数据模型的定义。
+一般而言，出于明确性考虑，配置是较约定要更受欢迎一些的。不过，如果你理解 Jorma 所采用的约定方式，你将在保留明确性的同时，仅需少量、甚至不用配置即可完成一个数据模型的定义。
 
 ### 命名约定
 
-默认情况下，Leoric 会按一定规则寻找数据模型与数据库表的对应关系。详细规则如下：
+默认情况下，Jorma 会按一定规则寻找数据模型与数据库表的对应关系。详细规则如下：
 
 - 数据模型的类名遵从 `CamelCase` 格式，首字母大写，对应的表名则是类名变为复数、继而转为 `snake_case`；
 - 数据模型的属性遵从 `camelCase` 格式，首字母小写。这些属性名称是从表结构信息中读取并自动转换的，通常在表中使用的字段名规范为 `snake_case`。
@@ -43,11 +43,11 @@ Leoric 应当具备的能力是：
 | Mouse   | mice    |
 | Person  | people  |
 
-Leoric 使用 [pluralize](https://www.npmjs.com/package/pluralize) 转换单复数。如果你觉得这些转换规则不直观（对非英语母语的人来说很正常），也可以明确配置数据模型对应的表名称、或者重命名数据模型的属性。我们将在“覆盖命名约定”一文深入讨论。
+Jorma 使用 [pluralize](https://www.npmjs.com/package/pluralize) 转换单复数。如果你觉得这些转换规则不直观（对非英语母语的人来说很正常），也可以明确配置数据模型对应的表名称、或者重命名数据模型的属性。我们将在“覆盖命名约定”一文深入讨论。
 
 ### 表结构约定
 
-Leoric 提供三个配置关联关系的静态方法 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()`。用于关联的主键、外键约定如下：
+Jorma 提供三个配置关联关系的静态方法 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()`。用于关联的主键、外键约定如下：
 
 - **外键**命名应当遵循 `modelNameId` 格式（例如 `shopId`)。对应的字段名则为属性名转为下划线分隔 `model_name_id`（例如 `shop_id`）。
 - **主键**应为无符号整型 `id`。
@@ -62,7 +62,7 @@ Leoric 提供三个配置关联关系的静态方法 `.hasMany()`、`.hasOne()`�
 
 > TDDL 使用的时间戳字段会被自动映射。`gmt_create` 映射为 `createdAt`、`gmt_modified` 映射为 `updatedAt`、以及 `gmt_deleted`（如果存在）会被映射为 `deletedAt`。
 
-调用数据模型的 `Model.remove({...})` 方法时，如果存在`deletedAt` 属性，Leoric 将更新待删除记录的 `deletedAt` 属性，而不是将这些记录从数据库中永久删除。可以改为调用 `Model.remove({...}, true)` 方法来执行永久删除。
+调用数据模型的 `Model.remove({...})` 方法时，如果存在`deletedAt` 属性，Jorma 将更新待删除记录的 `deletedAt` 属性，而不是将这些记录从数据库中永久删除。可以改为调用 `Model.remove({...}, true)` 方法来执行永久删除。
 
 ## 编写数据模型
 
@@ -76,10 +76,10 @@ CREATE TABLE shops (
 );
 ```
 
-`Shop` 数据模型需要继承 Leoric 输出的 `Bone` 基类：
+`Shop` 数据模型需要继承 Jorma 输出的 `Bone` 基类：
 
 ```js
-const { Bone } = require('leoric')
+const { Bone } = require('jorma')
 class Shop extends Bone {}
 ```
 
@@ -124,10 +124,10 @@ class Shop extends Bone {
 
 ## 连接数据模型和数据库
 
-数据模型需要与数据库连接方可使用。使用 `connect()` 方法连接数据模型和数据库时，Leoric 会从表结构信息表中读取结构信息，更新对应数据模型的属性定义，并记录结构信息到 `Model.schema`、`Model.attributes`、以及 `Model.columns` 属性（后两者其实是 getter 属性，基于 `Model.schema` 动态计算）。
+数据模型需要与数据库连接方可使用。使用 `connect()` 方法连接数据模型和数据库时，Jorma 会从表结构信息表中读取结构信息，更新对应数据模型的属性定义，并记录结构信息到 `Model.schema`、`Model.attributes`、以及 `Model.columns` 属性（后两者其实是 getter 属性，基于 `Model.schema` 动态计算）。
 
 ```js
-const { connect } = require('leoric')
+const { connect } = require('jorma')
 
 async function() {
   // 连接数据模型到数据库
@@ -194,7 +194,7 @@ INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000, 'taobao');
 
 ### 读取
 
-尽管 Leoric 提供的查询方法花样繁多，最常用的还是 `Model.find()` and `Model.findOne()`：
+尽管 Jorma 提供的查询方法花样繁多，最常用的还是 `Model.find()` and `Model.findOne()`：
 
 ```js
 // 读取所有店铺
@@ -261,7 +261,7 @@ await Shop.remove({ name: 'Barracks' }, true)
 // DELETE FROM shops WHERE name = 'Barracks'
 ```
 
-你可能会奇怪这里额外传递的 `true` 参数是做什么用的。这是因为默认情况下 Leoric 会执行伪删除，仅更新 `deleteAt` 属性，而不是真的把数据从数据库删除。数据模型必须包含 `deleteAt` 属性，用来记录删除时间。
+你可能会奇怪这里额外传递的 `true` 参数是做什么用的。这是因为默认情况下 Jorma 会执行伪删除，仅更新 `deleteAt` 属性，而不是真的把数据从数据库删除。数据模型必须包含 `deleteAt` 属性，用来记录删除时间。
 
 所以如果 `Shop` 数据模型有 `deletedAt` 属性：
 
@@ -275,4 +275,4 @@ await Shop.remove({ name: 'Barracks' })
 // UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks';
 ```
 
-如果 `Shop` 数据模型没有 `deletedAt` 属性，而 `model.remove()`、`Model.remove()` 方法并没有传递 `true`，Leoric 将抛出异常。
+如果 `Shop` 数据模型没有 `deletedAt` 属性，而 `model.remove()`、`Model.remove()` 方法并没有传递 `true`，Jorma 将抛出异常。

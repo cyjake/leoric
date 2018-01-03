@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS leoric;
+CREATE DATABASE IF NOT EXISTS jorma;
 
-USE leoric;
+USE jorma;
 
 DROP TABLE IF EXISTS `articles`;
 CREATE TABLE `articles` (
