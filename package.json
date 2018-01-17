@@ -1,11 +1,12 @@
 {
   "name": "jorma",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
-    "test": "mysql -uroot < tests/dumpfile.sql && DEBUG=jorma mocha --exit tests/test.*.js"
+    "pretest": "./tests/prepare.sh",
+    "test": "DEBUG=jorma mocha --exit tests/test.*.js"
   },
   "repository": {
     "type": "git",
@@ -23,13 +24,16 @@
   "dependencies": {
     "debug": "^3.1.0",
     "deep-equal": "^1.0.1",
-    "mysql": "^2.15.0",
-    "pluralize": "^7.0.0"
+    "pluralize": "^7.0.0",
+    "sqlstring": "^2.3.0"
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.5.5",
-    "mocha": "^4.0.1"
+    "mocha": "^4.0.1",
+    "mysql": "^2.15.0",
+    "mysql2": "^1.5.1",
+    "sqlite3": "git+https://github.com/dotnil/node-sqlite3.git"
   }
 }

@@ -7,7 +7,11 @@ describe('connect', function() {
   this.timeout(5000)
 
   it('connect models passed in opts.models', async function() {
-    await connect(require('./config'))
+    await connect({
+      user: 'root',
+      database: 'jorma',
+      models: `${__dirname}/models`
+    })
     const Book = require('./models/book')
     expect(Object.keys(Book.schema).length).to.be.above(0)
   })

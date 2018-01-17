@@ -17,7 +17,11 @@ class Post extends Bone {
 
 async function() {
   // connect models to database
-  await connect({ host: 'example.com', models: [Post], /* among other options */ })
+  await connect({
+    client: 'mysql',
+    host: 'example.com', /* among other connection options */
+    models: [Post]
+  })
 
   // CRUD
   await Post.create({ title: 'New Post' })

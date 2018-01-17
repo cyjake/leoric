@@ -1,8 +1,14 @@
+0.3.0 / 2018-01-??
+==================
+
+ * New: SQLite support with a [forked sqlite3](https://github.com/dotnil/node-sqlite3)
+ * New: mysql2 support (which is trivial since both mysql and mysql2 share the same API)
+ * Refactor: Spell now formats SQL with the literals separated, which gets escaped by the corresponding client itself later on.
+
 0.2.0 / 2018-01-03
 ==================
 
  * Breaking: renamed from Leoric to Jorma
-
 
 0.1.8 / 2017-12-31
 ==================

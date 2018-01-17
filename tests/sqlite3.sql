@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS `articles`;
 CREATE TABLE `articles` (
-  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `gmt_deleted` datetime DEFAULT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE `articles` (
 
 DROP TABLE IF EXISTS `attachments`;
 CREATE TABLE `attachments` (
-  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `article_id` bigint(20) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE `attachments` (
 
 DROP TABLE IF EXISTS `books`;
 CREATE TABLE `books` (
-  `isbn` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `isbn` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `name` varchar(1000) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE `books` (
 
 DROP TABLE IF EXISTS `comments`;
 CREATE TABLE `comments` (
-  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `gmt_deleted` datetime DEFAULT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE `comments` (
 
 DROP TABLE IF EXISTS `tag_maps`;
 CREATE TABLE `tag_maps` (
-  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `target_id` bigint(20) NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `tag_maps` (
 
 DROP TABLE IF EXISTS `tags`;
 CREATE TABLE `tags` (
-  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint(20) PRIMARY KEY,
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL,
   `name` varchar(255) NOT NULL,

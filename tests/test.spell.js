@@ -9,7 +9,11 @@ const Comment = require('./models/comment')
 
 before(async function() {
   this.timeout(5000)
-  await connect(require('./config'))
+  await connect({
+    models: `${__dirname}/models`,
+    database: 'jorma',
+    user: 'root'
+  })
 })
 
 describe('=> Insert', function() {

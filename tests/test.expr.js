@@ -59,7 +59,7 @@ describe('=> parse unary operators', function() {
   it('parse NOT', function() {
     expect(parseExpr('NOT 1')).to.eql({
       type: 'op', name: 'not',
-      args: [ { type: 'number', value: 1 } ]
+      args: [ { type: 'literal', value: 1 } ]
     })
   })
 
@@ -70,7 +70,7 @@ describe('=> parse unary operators', function() {
         { type: 'op', name: '>',
           args: [
             { type: 'id', value: 'a' },
-            { type: 'number', value: 1 } ] }
+            { type: 'literal', value: 1 } ] }
       ]
     })
   })
@@ -83,7 +83,7 @@ describe('=> parse comparison operators', function() {
       name: 'like',
       args: [
         { type: 'id', value: 'title' },
-        { type: 'string', value: '%Post%' }
+        { type: 'literal', value: '%Post%' }
       ]
     })
   })
@@ -94,11 +94,8 @@ describe('=> parse comparison operators', function() {
       name: 'in',
       args: [
         { type: 'id', value: 'id' },
-        { type: 'array',
-          value: [
-            { type: 'number', value: 1 },
-            { type: 'number', value: 2 },
-            { type: 'number', value: 3 } ] }
+        { type: 'literal',
+          value: [1, 2, 3] }
       ]
     })
 
@@ -107,7 +104,7 @@ describe('=> parse comparison operators', function() {
         type: 'op', name: '=',
         args: [
           { type: 'id', value: 'a' },
-          { type: 'null' }
+          { type: 'literal', value: null }
         ]
       })
     })
@@ -117,7 +114,7 @@ describe('=> parse comparison operators', function() {
         type: 'op', name: '!=',
         args: [
           { type: 'id', value: 'a' },
-          { type: 'null' }
+          { type: 'literal', value: null }
         ]
       })
     })
@@ -128,8 +125,8 @@ describe('=> parse comparison operators', function() {
       type: 'op', name: 'between',
       args: [
         { type: 'id', value: 'a' },
-        { type: 'number', value: 1 },
-        { type: 'number', value: 10 }
+        { type: 'literal', value: 1 },
+        { type: 'literal', value: 10 }
       ]
     })
   })
@@ -139,8 +136,8 @@ describe('=> parse comparison operators', function() {
       type: 'op', name: 'not between',
       args: [
         { type: 'id', value: 'a' },
-        { type: 'number', value: 1 },
-        { type: 'number', value: 10 }
+        { type: 'literal', value: 1 },
+        { type: 'literal', value: 10 }
       ]
     })
   })
@@ -173,25 +170,25 @@ describe('=> parse placeholder', function() {
       name: 'like',
       args:[
         { type: 'id', value: 'title' },
-        { type: 'string', value: '%Post%' }
+        { type: 'literal', value: '%Post%' }
       ]
     })
   })
 
   it('parse placeholder of Set', function() {
     expect(parseExpr('?', new Set(['foo', 'bar']))).to.eql({
-      type: 'array', value: ['foo', 'bar']
+      type: 'literal', value: ['foo', 'bar']
     })
   })
 
   it('parse placeholder of Date', function() {
     const date = new Date(2012, 4, 15)
-    expect(parseExpr('?', date)).to.eql({ type: 'date', value: date })
+    expect(parseExpr('?', date)).to.eql({ type: 'literal', value: date })
   })
 
   it('parse placeholder of boolean', function() {
-    expect(parseExpr('?', true)).to.eql({ type: 'boolean', value: true })
-    expect(parseExpr('?', false)).to.eql({ type: 'boolean', value: false })
+    expect(parseExpr('?', true)).to.eql({ type: 'literal', value: true })
+    expect(parseExpr('?', false)).to.eql({ type: 'literal', value: false })
   })
 })
 
@@ -205,15 +202,15 @@ describe('=> parse compound expressions', function() {
             { type: 'op', name: '=',
               args: [
                 { type: 'id', value: 'a' },
-                { type: 'number', value: 1 } ] },
+                { type: 'literal', value: 1 } ] },
             { type: 'op', name: '=',
               args: [
                 { type: 'id', value: 'b' },
-                { type: 'number', value: 2 } ] } ] },
+                { type: 'literal', value: 2 } ] } ] },
         { type: 'op', name: '=',
           args: [
             { type: 'id', value: 'c' },
-            { type: 'number', value: 3 } ] }
+            { type: 'literal', value: 3 } ] }
       ]
     })
   })
@@ -225,17 +222,17 @@ describe('=> parse compound expressions', function() {
         { type: 'op', name: '>',
           args: [
             { type: 'id', value: 'id' },
-            { type: 'number', value: 100 } ] },
+            { type: 'literal', value: 100 } ] },
         { type: 'op', name: 'and',
           args: [
             { type: 'op', name: '!=',
               args: [
                 { type: 'id', value: 'id' },
-                { type: 'number', value: 1 } ] },
+                { type: 'literal', value: 1 } ] },
             { type: 'op', name: '!=',
               args: [
                 { type: 'id', value: 'id' },
-                { type: 'number', value: 2 } ] } ] }
+                { type: 'literal', value: 2 } ] } ] }
       ]
     }
     expect(parseExpr('id > 100 OR (id != 1 AND id != 2)')).to.eql(expected)
@@ -252,15 +249,15 @@ describe('=> parse compound expressions', function() {
             { type: 'op', name: '=',
               args: [
                 { type: 'id', value: 'foo' },
-                { type: 'number', value: 1 } ] },
+                { type: 'literal', value: 1 } ] },
             { type: 'op', name: '>',
               args: [
                 { type: 'id', value: 'foo' },
-                { type: 'number', value: 3 } ] } ] },
+                { type: 'literal', value: 3 } ] } ] },
         { type: 'op', name: '=',
           args: [
             { type: 'id', value: 'bar' },
-            { type: 'null' } ] }
+            { type: 'literal', value: null } ] }
       ]
     }
     expect(parseExpr('(foo = 1 || foo > 3) && bar = null')).to.eql(expected)
