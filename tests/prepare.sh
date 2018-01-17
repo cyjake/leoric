@@ -1,3 +1,5 @@
+mkdir -p tmp
+
 cat <<EOF | mysql -uroot
 CREATE DATABASE IF NOT EXISTS jorma;
 USE jorma;
