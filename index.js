@@ -43,7 +43,7 @@ async function schemaInfo(pool, database, tables) {
   const schema = {}
   for (const result of results) {
     const { table_name, column_name, data_type, is_nullable, column_default } = result
-    const columns = schema[table_name] || (schema[table_name] = [])
+    const columns = schema[table_name] || (schema[table_name.toLocaleLowerCase()] = [])
     columns.push({
       name: column_name,
       type: data_type,
