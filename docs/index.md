@@ -2,10 +2,10 @@
 layout: en
 ---
 
-Jorma is an object-relational mapping library for Node.js, with which you can manipulate database like this:
+Leoric is an object-relational mapping library for Node.js, with which you can manipulate database like this:
 
 ```js
-const { Bone, connect } = require('jorma')
+const { Bone, connect } = require('leoric')
 
 // define model
 class Post extends Bone {

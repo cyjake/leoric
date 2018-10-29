@@ -42,13 +42,13 @@ async function schemaInfo(pool, database, tables) {
   })
   const schema = {}
   for (const result of results) {
-    const { table_name, column_name, data_type, is_nullable, column_default } = result
-    const columns = schema[table_name] || (schema[table_name] = [])
+    const name = result.TABLE_NAME || result.table_name
+    const columns = schema[name] || (schema[name] = [])
     columns.push({
-      name: column_name,
-      type: data_type,
-      isNullable: is_nullable,
-      default: column_default
+      name: result.COLUMN_NAME || result.column_name,
+      type: result.DATA_TYPE || result.data_type,
+      isNullable: result.IS_NULLABLE || result.is_nullable,
+      default: result.COLUMN_DEFAULT || result.column_default
     })
   }
   return schema
@@ -99,7 +99,7 @@ function findClient(name) {
  * @param {Object} opts.
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
-const connect = async function Jorma_connect(opts) {
+const connect = async function Leoric_connect(opts) {
   if (Bone.pool) return
   opts = Object.assign({ client: 'mysql', database: opts.db }, opts)
   const { client, database } = opts

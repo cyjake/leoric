@@ -11,7 +11,7 @@ before(async function() {
   this.timeout(5000)
   await connect({
     models: `${__dirname}/models`,
-    database: 'jorma',
+    database: 'leoric',
     user: 'root'
   })
 })

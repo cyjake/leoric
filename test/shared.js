@@ -369,10 +369,7 @@ exports.querying = function() {
 
     it('.find([ id ])', async function() {
       const postIds = (await Post.all).map(post => post.id)
-      console.log(postIds)
       const posts = await Post.find(postIds)
-      console.log(posts)
-      console.log(await Post.all)
       expect(posts.map(post => post.title)).to.contain('New Post')
     })
 
@@ -721,7 +718,8 @@ exports.associations = function() {
     })
 
     it('Bone.hasMany through / finding RefModel', async function() {
-      const posts = await Post.include('topics')
+      // It seems mysql2 analyses queries and tries to return cached results if possible. Without the `.limit(1)` part, the query generated below is no different than the one above, except the `AS topics` part, which then gives wrong result because the qualifier `tags` is used instead of `topics`.
+      const posts = await Post.include('topics').limit(1)
       expect(posts[0].topics.map(tag => tag.name)).to.eql(['demon'])
     })
 
@@ -992,7 +990,7 @@ exports.grouping = function() {
     })
 
     it('Bone.group().count()', async function() {
-      expect(await Post.group('title').count()).to.eql([
+      expect(await Post.group('title').count().order('count').order('title')).to.eql([
         { count: 1, title: 'Archangel Tyrael' },
         { count: 1, title: 'Archbishop Lazarus' },
         { count: 2, title: 'New Post' }
@@ -1072,7 +1070,7 @@ exports.joining = function() {
     })
 
     it('Bone.join().group()', async function() {
-      const query = Post.include('comments').group('title').count('comments.id').having('count > 0')
+      const query = Post.include('comments').group('title').count('comments.id').having('count > 0').order('count')
       expect(await query).to.eql([
         { count: 1, title: 'Archangel Tyrael' },
         { count: 2, title: 'Archbishop Lazarus' }

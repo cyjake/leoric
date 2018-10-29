@@ -8,7 +8,7 @@
   "source": {
     "include": ["index.js", "lib", "Readme.md"],
     "includePattern": ".js$",
-    "excludePattern": "^(?:docs|node_modules|tests)"
+    "excludePattern": "^(?:docs|node_modules|test)"
   },
   "tags": {
     "allowUnknownTags": true,

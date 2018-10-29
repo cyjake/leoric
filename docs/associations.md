@@ -13,21 +13,21 @@ const shop = await Shop.findOne({ id }).with('items', 'owner')
 //           owner: User { name: 'Tyreal' } }
 ```
 
-This guide covers the association features of Jorma. After reading this guide, you will know:
+This guide covers the association features of Leoric. After reading this guide, you will know:
 
 - How to declare assocations between models.
 - How to understand the various types of associations.
 
 ## Types of Associations
 
-Jorma supports four types of associations:
+Leoric supports four types of associations:
 
 - `belongsTo()`
 - `hasMany()`
 - `hasMany({ through })`
 - `hasOne()`
 
-Associations can be declared within the `Model.describe()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Jorma that when `Shop.find().with('owner')`, Jorma should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
+Associations can be declared within the `Model.describe()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Leoric that when `Shop.find().with('owner')`, Leoric should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
 
 ### `belongsTo()`
 
@@ -45,7 +45,7 @@ class Item extends Bone {
 }
 ```
 
-Jorma locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `className`:
+Leoric locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `className`:
 
 ```js
 class Item extends Bone {
@@ -59,7 +59,7 @@ class Item extends Bone {
 
 As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by uncapitalizing the target model's name and then appending an `Id`. In this case, the foerign key is converted from `Shop` to `shopId`.
 
-> Jorma has two sets of names maintained under the hood. One is the attribute names of the model, which usually are in camel case to be compliant with common JavaScript coding conventions. The other is the columns names of the actual table, which may be in camel case but usually are in snake case.
+> Leoric has two sets of names maintained under the hood. One is the attribute names of the model, which usually are in camel case to be compliant with common JavaScript coding conventions. The other is the columns names of the actual table, which may be in camel case but usually are in snake case.
 
 To override foreign key, we can specify it explicitly:
 
@@ -89,7 +89,7 @@ class Shop extends Bone {
 
 > Please be noted that unlike `belongsTo()`, the name passed to `hasMany()` is usually in plural.
 
-The way Jorma locates the actual model class is quite similar. It starts with singularizing the name, then capitalizing. In this case, `items` get singularized to `item`, and then `Item` is used to look for the actual model class.
+The way Leoric locates the actual model class is quite similar. It starts with singularizing the name, then capitalizing. In this case, `items` get singularized to `item`, and then `Item` is used to look for the actual model class.
 
 To override the model name, we can specify it explicitly:
 

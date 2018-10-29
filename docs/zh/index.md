@@ -2,10 +2,10 @@
 layout: zh
 ---
 
-Jorma 是一个 Node.js 的关系对象映射库（ORM），使用 Jorma 操作数据库的方式大致如下：
+Leoric 是一个 Node.js 的关系对象映射库（ORM），使用 Leoric 操作数据库的方式大致如下：
 
 ```js
-const { Bone, connect } = require('jorma')
+const { Bone, connect } = require('leoric')
 
 // 基于 Bone 定义模型，映射关系表
 class Post extends Bone {
@@ -293,7 +293,7 @@ LEFT JOIN tags
 
 ## 上手指南
 
-有关 Jorma 的详细信息，请依次阅读如下文档：
+有关 Leoric 的详细信息，请依次阅读如下文档：
 
 1. [基础]({{ '/zh/basics' | relative_url }})
 2. [关联关系]({{ '/zh/associations' | relative_url }})

@@ -1,16 +1,16 @@
 {
-  "name": "jorma",
+  "name": "leoric",
   "version": "0.3.0",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
-    "pretest": "./tests/prepare.sh",
-    "test": "DEBUG=jorma mocha --exit tests/test.*.js"
+    "pretest": "./test/prepare.sh",
+    "test": "DEBUG=leoric mocha --exit test/test.*.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dotnil/jorma.git"
+    "url": "https://github.com/dotnil/leoric.git"
   },
   "keywords": [
     "orm",

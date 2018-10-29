@@ -9,7 +9,7 @@ describe('connect', function() {
   it('connect models passed in opts.models', async function() {
     await connect({
       user: 'root',
-      database: 'jorma',
+      database: 'leoric',
       models: `${__dirname}/models`
     })
     const Book = require('./models/book')

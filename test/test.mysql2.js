@@ -6,10 +6,10 @@ const shared = require('./shared')
 before(async function() {
   this.timeout(5000)
   await connect({
-    client: 'mysql',
+    client: 'mysql2',
     host: 'localhost',
     user: 'root',
-    database: 'jorma',
+    database: 'leoric',
     models: `${__dirname}/models`
   })
 })
@@ -17,7 +17,7 @@ before(async function() {
 shared.basics()
 shared.querying()
 shared.associations()
-shared.crud()
 shared.date()
+shared.crud()
 shared.grouping()
 shared.joining()

@@ -3,7 +3,7 @@ layout: en
 title: Query Interface
 ---
 
-This guide covers different ways to retrieve data from the database using Jorma. After reading this guide, you will know:
+This guide covers different ways to retrieve data from the database using Leoric. After reading this guide, you will know:
 
 - How to filter records using a variety of methods and conditions.
 - How to specify the order, retrieved attributes, grouping, and other properties of the found records.
@@ -11,7 +11,7 @@ This guide covers different ways to retrieve data from the database using Jorma.
 
 ## Retrieving Objects from the Database
 
-Jorma provides two major ways to start a query, `.find()` and `.findOne()`. `.findOne()` is basically the same as `.find()`, except that it returns only one record or null if no record were found.
+Leoric provides two major ways to start a query, `.find()` and `.findOne()`. `.findOne()` is basically the same as `.find()`, except that it returns only one record or null if no record were found.
 
 ### Retrieving a Single Object
 
@@ -160,7 +160,7 @@ Post.find(`title != ${title}`)
 // => SELECT * FROM posts WHERE title != '' OR 1 = 1;
 ```
 
-To prevent this SQL injection prone usage, Jorma will throw an error if complex values were found while parsing string conditions. The allowed values are:
+To prevent this SQL injection prone usage, Leoric will throw an error if complex values were found while parsing string conditions. The allowed values are:
 
 - numbers
 - strings with single/double quotations (e.g. `'foo'`, `"bar"`)
@@ -378,7 +378,7 @@ And the results might be:
 
 ## Joining Tables
 
-Jorma provides two ways of constructing JOIN querys:
+Leoric provides two ways of constructing JOIN querys:
 
 - Join predefined associations using `.with(relationName)`,
 - Join arbitrary models using `.join(Model, onConditions)`.
@@ -468,7 +468,7 @@ But if any where conditional expressions have got `deletedAt` referenced already
 SELECT * FROM posts WHERE deleted_at IS NOT NULL;
 ```
 
-Jorma implemented this behavior as scopes, which is a concept (among many others) stolen from Active Record. Currently this conditional `.where({ deletedAt: null })` is the only default scope.
+Leoric implemented this behavior as scopes, which is a concept (among many others) stolen from Active Record. Currently this conditional `.where({ deletedAt: null })` is the only default scope.
 
 ### unscoped
 
@@ -486,7 +486,7 @@ SELECT * FROM posts WHERE id IN (1, 10)
 
 ## Understanding Method Chaining
 
-Jorma supports [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining), which allows methods be appended consecutively to complete the query. It is implemented by returning an instance of `Spell` when a query method of the model, such as `.find()` and `.order()`, is called.
+Leoric supports [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining), which allows methods be appended consecutively to complete the query. It is implemented by returning an instance of `Spell` when a query method of the model, such as `.find()` and `.order()`, is called.
 
 ```js
 Post.find()   // => Spell { Model: Post }
@@ -512,7 +512,7 @@ async function() {
 }
 ```
 
-Since Jorma is written in ES2016, which is supported by Node.js LTS already, we'd encourage you to start using async/await too.
+Since Leoric is written in ES2016, which is supported by Node.js LTS already, we'd encourage you to start using async/await too.
 
 Anyway, you can always append further query details onto the spell until it's done, even if there's asynchronous jobs in between:
 
@@ -530,7 +530,7 @@ It is common to find the existence of an object first, if not then create the ob
 
 > In MongoDB there's [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id), in PostgreSQL there's [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), and in MySQL (and forks such as MariaDB) there's [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html). In general, if duplicated values of primary key were found, the record gets updated. If not, the record gets inserted.
 
-Jorma takes this behavior to update on duplicated keys. For example:
+Leoric takes this behavior to update on duplicated keys. For example:
 
 ```js
 const post = new Post({ id: 1, name: 'New Post' })

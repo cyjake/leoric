@@ -1,21 +1,21 @@
-# Jorma
+# Leoric
 
-[![NPM Downloads](https://img.shields.io/npm/dm/oceanify.svg?style=flat)](https://www.npmjs.com/package/jorma)
-[![NPM Version](http://img.shields.io/npm/v/jorma.svg?style=flat)](https://www.npmjs.com/package/jorma)
-[![Build Status](https://travis-ci.org/dotnil/jorma.svg)](https://travis-ci.org/dotnil/jorma)
+[![NPM Downloads](https://img.shields.io/npm/dm/oceanify.svg?style=flat)](https://www.npmjs.com/package/leoric)
+[![NPM Version](http://img.shields.io/npm/v/leoric.svg?style=flat)](https://www.npmjs.com/package/leoric)
+[![Build Status](https://travis-ci.org/dotnil/leoric.svg)](https://travis-ci.org/dotnil/leoric)
 
-Jorma is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](http://cyj.me/jorma) for detail.
+Leoric is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](http://cyj.me/leoric) for detail.
 
 ## Requirements
 
-Currently, Jorma only supports MySQL (and variants such as MariaDB) database.
+Currently, Leoric only supports MySQL (and variants such as MariaDB) database.
 
 ## Usage
 
-Assume the tables of posts, users, and comments were setup already. We may declare the models as classes extended from the base class `Bone` of Jorma. After the models are connected to the database using `connect`, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
+Assume the tables of posts, users, and comments were setup already. We may declare the models as classes extended from the base class `Bone` of Leoric. After the models are connected to the database using `connect`, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
 
 ```js
-const { Bone, connect } = require('jorma')
+const { Bone, connect } = require('leoric')
 
 // define model
 class Post extends Bone {
@@ -58,15 +58,15 @@ async function() {
 | `Post.update({ id: 42 }, { title: 'Skeleton King' })` | `UPDATE posts SET title = 'Skeleton King' WHERE id = 42` |
 | `Post.remove({ id: 42 })`               | `DELETE FROM posts WHERE id = 42`                  |
 
-A more detailed syntax table may be found at the [documentation](http://cyj.me/jorma/#syntax-table) site.
+A more detailed syntax table may be found at the [documentation](http://cyj.me/leoric/#syntax-table) site.
 
 ## Migrations
 
-Currently, Jorma doesn't provide a way to do database migrations. There are two popular approaches:
+Currently, Leoric doesn't provide a way to do database migrations. There are two popular approaches:
 
 - A separated migration DSL and database metadata, like Active Record.
 - A detailed enumeration of attributes and types in the models, like Django.
 
-There is a third way, which is the very reason Jorma has yet to implement migrations, that the database can be designed through a third-party service. It can be an ER designer, a GUI software for MySQL, or a MySQL-compliant database in the cloud.
+There is a third way, which is the very reason Leoric has yet to implement migrations, that the database can be designed through a third-party service. It can be an ER designer, a GUI software for MySQL, or a MySQL-compliant database in the cloud.
 
 But I'm sure we'll get to that.
