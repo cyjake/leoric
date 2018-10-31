@@ -286,7 +286,7 @@ Post
    SELECT *
      FROM posts AS posts
 LEFT JOIN tag_maps AS tagMaps
-       ON tagMaps.target_id = posts.id AND tag_maps.target_type = 0
+       ON tagMaps.target_id = posts.id AND tagMaps.target_type = 0
 LEFT JOIN tags
        ON tagMaps.tag_id = tags.id;
 {% endhighlight %}

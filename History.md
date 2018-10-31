@@ -1,4 +1,4 @@
-0.3.0 / 2018-01-??
+0.3.0 / 2018-10-31
 ==================
 
  * New: SQLite support with a [forked sqlite3](https://github.com/dotnil/node-sqlite3)
@@ -8,7 +8,7 @@
 0.2.0 / 2018-01-03
 ==================
 
- * Breaking: renamed from Leoric to Leoric
+ * Breaking: renaming
 
 0.1.8 / 2017-12-31
 ==================

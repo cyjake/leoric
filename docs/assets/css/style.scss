@@ -84,12 +84,10 @@
 }
 
 .markdown-body .syntax-table {
+  table-layout: fixed;
   width: 100%;
+  border-collapse: collapse;
   font-size: 90%;
-
-  th, td {
-    width: 60%;
-  }
 
   .highlight {
     margin: 0;
@@ -121,5 +119,9 @@
     img {
       width: 80%;
     }
+  }
+
+  .syntax-table .highlight {
+    width: 462px;
   }
 }
