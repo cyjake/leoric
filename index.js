@@ -6,6 +6,8 @@
  */
 const Bone = require('./lib/bone')
 const Collection = require('./lib/collection')
+const debug = require('debug')('leoric')
+const SqlString = require('sqlstring')
 
 const fs = require('fs')
 const path = require('path')
@@ -30,44 +32,36 @@ function readdir(path, opts = {}) {
  * @param {Object}  schema
  */
 async function schemaInfo(pool, database, tables) {
-  const [results] = await new Promise((resolve, reject) => {
-    pool.query(
-      'SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = ? AND table_name in (?)',
-      [database, tables],
-      function(err, results, fields) {
-        if (err) reject(err)
-        else resolve([results, fields])
-      }
-    )
-  })
+  const sql = pool.Leoric_type == 'pg'
+    ? 'SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_catalog = ? AND table_name = ANY (?)'
+    : 'SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = ? AND table_name in (?)'
+  const values = [database, tables]
+  const { rows } = await pool.Leoric_query(sql, values)
   const schema = {}
-  for (const result of results) {
-    const name = result.TABLE_NAME || result.table_name
+
+  for (const row of rows) {
+    const name = row.TABLE_NAME || row.table_name
     const columns = schema[name] || (schema[name] = [])
     columns.push({
-      name: result.COLUMN_NAME || result.column_name,
-      type: result.DATA_TYPE || result.data_type,
-      isNullable: result.IS_NULLABLE || result.is_nullable,
-      default: result.COLUMN_DEFAULT || result.column_default
+      name: row.COLUMN_NAME || row.column_name,
+      type: row.DATA_TYPE || row.data_type,
+      isNullable: row.IS_NULLABLE || row.is_nullable,
+      default: row.COLUMN_DEFAULT || row.column_default
     })
   }
+
   return schema
 }
 
 async function tableInfo(pool, tables) {
   const queries = tables.map(table => {
-    return new Promise((resolve, reject) => {
-      pool.query(`PRAGMA table_info(${pool.escapeId(table)})`, (err, rows, fields) => {
-        if (err) reject(err)
-        else resolve([rows, fields])
-      })
-    })
+    return pool.Leoric_query(`PRAGMA table_info(${pool.escapeId(table)})`)
   })
   const results = await Promise.all(queries)
   const schema = {}
   for (let i = 0; i < tables.length; i++) {
     const table = tables[i]
-    const [rows] = results[i]
+    const { rows } = results[i]
     const columns = rows.map(({ name, type, notnull, dflt_value, pk }) => {
       return { name, type, isNullable: notnull == 1, default: dflt_value }
     })

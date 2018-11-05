@@ -2,17 +2,16 @@
 
 const expect = require('expect.js')
 
-const { Bone } = require('..')
+const { Bone } = require('../..')
 
-const Attachment = require('./models/attachment')
-const Book = require('./models/book')
-const Comment = require('./models/comment')
-const Post = require('./models/post')
-const TagMap = require('./models/tagMap')
-const Tag = require('./models/tag')
+const Attachment = require('../models/attachment')
+const Book = require('../models/book')
+const Comment = require('../models/comment')
+const Post = require('../models/post')
+const TagMap = require('../models/tagMap')
+const Tag = require('../models/tag')
 
-
-exports.basics = function() {
+module.exports = function() {
   describe('=> Attributes', function() {
     before(async function() {
       await Post.create({
@@ -293,9 +292,7 @@ exports.basics = function() {
       ])
     })
   })
-}
 
-exports.querying = function() {
   describe('=> Query', function() {
     before(async function() {
       await Promise.all([
@@ -635,9 +632,8 @@ exports.querying = function() {
       expect(await Post.findOne({ title: 'New Post' })).to.be(null)
     })
   })
-}
 
-exports.associations = function() {
+
   describe('=> Associations', function() {
     // http://diablo.wikia.com/wiki/Archbishop_Lazarus
     const comments = [
@@ -758,8 +754,8 @@ exports.associations = function() {
     })
 
     it('.with(...names).order()', async function() {
-      const post = await Post.include('comments').order('comments.content desc').first
-      expect(post.comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
+      const post = await Post.include('comments').order('comments.content asc').first
+      expect(post.comments.map(comment => comment.content)).to.eql(comments.sort())
 
       const posts = await Post.include('comments').order({ 'posts.title': 'desc', 'comments.content': 'desc' })
       expect(posts[0].title).to.be('Leah')
@@ -767,9 +763,7 @@ exports.associations = function() {
       expect(posts[1].comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
     })
   })
-}
 
-exports.crud = function() {
   describe('=> Create', function() {
     beforeEach(async function() {
       await Post.remove({}, true)
@@ -875,100 +869,6 @@ exports.crud = function() {
       expect(await Post.unscoped.all).to.empty()
     })
   })
-}
-
-exports.date = function() {
-  // https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html
-  describe('=> Date Functions', function() {
-    before(async function() {
-      await Promise.all([
-        Post.create({ title: 'New Post', createdAt: new Date(2012, 4, 15) }),
-        Post.create({ title: 'Archbishop Lazarus', createdAt: new Date(2012, 4, 15) }),
-        Post.create({ title: 'Leah', createdAt: new Date(2017, 10, 11) })
-      ])
-    })
-
-    after(async function() {
-      await Post.remove({}, true)
-    })
-
-    it('SELECT YEAR(date)', async function() {
-      expect(await Post.select('YEAR(createdAt) as year').order('year')).to.eql([
-        { year: 2012 }, { year: 2012 }, { year: 2017 }
-      ])
-    })
-
-    it('WHERE YEAR(date)', async function() {
-      const posts = await Post.select('title').where('YEAR(createdAt) = 2017')
-      expect(posts.map(post => post.title)).to.eql(['Leah'])
-    })
-
-    it('GROUP BY MONTH(date)', async function() {
-      expect(await Post.group('MONTH(createdAt)').count()).to.eql([
-        { count: 2, 'MONTH(`gmt_create`)': 5 },
-        { count: 1, 'MONTH(`gmt_create`)': 11 }
-      ])
-    })
-
-    it('GROUP BY MONTH(date) AS month', async function() {
-      expect(await Post.select('MONTH(createdAt) as month').group('month').count()).to.eql([
-        { count: 2, month: 5 },
-        { count: 1, month: 11 }
-      ])
-      expect(await Post.group('MONTH(createdAt) as month').count()).to.eql([
-        { count: 2, month: 5 },
-        { count: 1, month: 11 }
-      ])
-    })
-
-    it('ORDER BY DAY(date)', async function() {
-      const posts = await Post.order('DAY(createdAt)').order('title')
-      expect(posts.map(post => post.title)).to.eql([
-        'Leah', 'Archbishop Lazarus', 'New Post'
-      ])
-    })
-  })
-}
-
-exports.grouping = function() {
-  describe('=> Calculations', function() {
-    before(async function() {
-      await Promise.all([
-        Book.create({ isbn: 9780596006624, name: 'Hackers and Painters', price: 22.95 }),
-        Book.create({ isbn: 9780881792065, name: 'The Elements of Typographic Style', price: 29.95 }),
-        Book.create({ isbn: 9781575863269, name: 'Things a Computer Scientist Rarely Talks About', price: 21 })
-      ])
-    })
-
-    after(async function() {
-      await Book.remove({}, true)
-    })
-
-    it('Bone.count() should count records', async function() {
-      const [ { count } ] = await Book.count()
-      expect(count).to.equal(3)
-    })
-
-    it('Bone.average() should return the average of existing records', async function() {
-      const [ { average } ] = await Book.average('price')
-      expect(Math.abs((22.95 + 29.95 + 21) / 3 - average)).to.be.within(0, 1)
-    })
-
-    it('Bone.minimum() should return the minimum value of existing records', async function() {
-      const [ { minimum } ] = await Book.minimum('price')
-      expect(parseFloat(minimum)).to.equal(21)
-    })
-
-    it('Bone.maximum() should return the maximum value of existing records', async function() {
-      const [ { maximum } ] = await Book.maximum('price')
-      expect(Math.floor(maximum)).to.equal(Math.floor(29.95))
-    })
-
-    it('Bone.sum()', async function() {
-      const [ { sum } ] = await Book.sum('price')
-      expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21))
-    })
-  })
 
   describe('=> Count / Group / Having', function() {
     before(async function() {
@@ -1003,9 +903,7 @@ exports.grouping = function() {
       ])
     })
   })
-}
 
-exports.joining = function() {
   describe('=> Group / Join / Subqueries', function() {
     before(async function() {
       const posts = await Promise.all([
@@ -1058,9 +956,9 @@ exports.joining = function() {
     })
 
     it('query / query.with() / query.count()', async function() {
-      const query = Post.find({ title: ['Archangel Tyrael', 'New Post'], deletedAt: null }).order('title')
-      const [ { count } ] = await query.count()
-      const posts = await query.with('attachment')
+      const query = Post.find({ title: ['Archangel Tyrael', 'New Post'], deletedAt: null })
+      const [{ count }] = await query.count()
+      const posts = await query.order('title').with('attachment')
       expect(posts.length).to.equal(count)
       expect(posts[0]).to.be.a(Post)
       expect(posts[0].title).to.equal('Archangel Tyrael')
@@ -1079,6 +977,53 @@ exports.joining = function() {
         { count: 1, title: 'Archangel Tyrael' },
         { count: 2, title: 'Archbishop Lazarus' }
       ])
+    })
+  })
+
+  describe('=> Transaction', function() {
+    afterEach(async function() {
+      await Post.remove({}, true)
+    })
+
+    it('Bone.transaction()', async function() {
+      await Post.transaction(function* () {
+        yield new Post({ title: 'Leah' }).create()
+        yield new Post({ title: 'Diablo' }).create()
+      })
+
+      const posts = await Post.find()
+      expect(posts.map(post => post.title)).to.eql(['Leah', 'Diablo'])
+    })
+
+    it('should be able to rollback transaction', async function() {
+      try {
+        await Post.transaction(function* () {
+          yield new Post({ title: 'Leah' }).create()
+          yield new Post({ title: 'Diablo' }).create()
+          throw new Error('rollback')
+        })
+      } catch (err) {
+        if (err.message !== 'rollback') {
+          throw err
+        }
+      }
+
+      const posts = await Post.find()
+      expect(posts).to.eql([])
+    })
+
+    it('should not interfere with other connections', async function() {
+      await Promise.all([
+        Post.transaction(function* () {
+          yield new Post({ title: 'Leah' }).create()
+          yield new Post({ title: 'Diablo' }).create()
+          throw new Error('rollback')
+        }).catch(() => {}),
+        new Post({ title: 'Archangel Tyrael' }).create()
+      ])
+
+      const posts = await Post.find()
+      expect(posts.map(post => post.title)).to.eql(['Archangel Tyrael'])
     })
   })
 }

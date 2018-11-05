@@ -1,7 +1,6 @@
 'use strict'
 
 const { connect } = require('..')
-const shared = require('./shared')
 
 before(async function() {
   this.timeout(5000)
@@ -14,10 +13,5 @@ before(async function() {
   })
 })
 
-shared.basics()
-shared.querying()
-shared.associations()
-shared.date()
-shared.crud()
-shared.grouping()
-shared.joining()
+require('./suite/shared')()
+require('./suite/date')()

@@ -1,3 +1,11 @@
+0.4.0 / 2018-11-05
+==================
+
+  * New: PostgreSQL support
+  * New: Transaction support
+  * Upgrade: (forked) SQLite client updated to SQLite 3.24
+
+
 0.3.0 / 2018-10-31
 ==================
 
