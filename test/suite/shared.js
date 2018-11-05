@@ -653,10 +653,10 @@ module.exports = function() {
     }
 
     before(async function() {
-      const posts = await Promise.all([
-        Post.create({ title: 'Archbishop Lazarus' }),
-        Post.create({ title: 'Leah' })
-      ])
+      const posts = [
+        await Post.create({ title: 'Archbishop Lazarus' }),
+        await Post.create({ title: 'Leah' })
+      ]
       const tags = await Promise.all(tagNames.map(name => Tag.create({ name, type: 0 })))
       const topics = await Promise.all(topicNames.map(name => Tag.create({ name, type: 1 })))
 
