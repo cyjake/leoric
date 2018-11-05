@@ -7,7 +7,7 @@ EOF
 createdb leoric > /dev/null 2>&1 || true
 cat test/dumpfile.sql |
   sed 's/`/"/g' |
-  sed 's/bigint(20) AUTO_INCREMENT/SERIAL/g' |
+  sed 's/bigint(20) AUTO_INCREMENT/BIGSERIAL/g' |
   sed 's/tinyint(1) DEFAULT 0/boolean DEFAULT false/g' |
   sed -E 's/int\([[:digit:]]+\)/int/g' |
   sed 's/datetime/timestamp/g' |

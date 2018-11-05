@@ -980,6 +980,45 @@ module.exports = function() {
     })
   })
 
+  describe('=> Calculations', function() {
+    before(async function() {
+      await Promise.all([
+        Book.create({ isbn: 9780596006624, name: 'Hackers and Painters', price: 22.95 }),
+        Book.create({ isbn: 9780881792065, name: 'The Elements of Typographic Style', price: 29.95 }),
+        Book.create({ isbn: 9781575863269, name: 'Things a Computer Scientist Rarely Talks About', price: 21 })
+      ])
+    })
+
+    after(async function() {
+      await Book.remove({}, true)
+    })
+
+    it('Bone.count() should count records', async function() {
+      const [ { count } ] = await Book.count()
+      expect(count).to.equal(3)
+    })
+
+    it('Bone.average() should return the average of existing records', async function() {
+      const [ { average } ] = await Book.average('price')
+      expect(Math.abs((22.95 + 29.95 + 21) / 3 - average)).to.be.within(0, 1)
+    })
+
+    it('Bone.minimum() should return the minimum value of existing records', async function() {
+      const [ { minimum } ] = await Book.minimum('price')
+      expect(parseFloat(minimum)).to.equal(21)
+    })
+
+    it('Bone.maximum() should return the maximum value of existing records', async function() {
+      const [ { maximum } ] = await Book.maximum('price')
+      expect(Math.floor(maximum)).to.equal(Math.floor(29.95))
+    })
+
+    it('Bone.sum()', async function() {
+      const [ { sum } ] = await Book.sum('price')
+      expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21))
+    })
+  })
+
   describe('=> Transaction', function() {
     afterEach(async function() {
       await Post.remove({}, true)
