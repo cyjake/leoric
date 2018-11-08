@@ -6,3 +6,6 @@ node_js:
 services:
   - "mysql"
   - "postgresql"
+
+after_success:
+  - npm run coveralls

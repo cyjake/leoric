@@ -3,6 +3,7 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/oceanify.svg?style=flat)](https://www.npmjs.com/package/leoric)
 [![NPM Version](http://img.shields.io/npm/v/leoric.svg?style=flat)](https://www.npmjs.com/package/leoric)
 [![Build Status](https://travis-ci.org/dotnil/leoric.svg)](https://travis-ci.org/dotnil/leoric)
+[![Coverage Status](https://coveralls.io/repos/github/dotnil/leoric/badge.svg?branch=master)](https://coveralls.io/github/dotnil/leoric?branch=master)
 
 Leoric is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](http://cyj.me/leoric) for detail.
 
