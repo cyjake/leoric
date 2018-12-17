@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dotnil/leoric.git"
+    "url": "https://github.com/cyjake/leoric.git"
   },
   "keywords": [
     "orm",
     "mysql"
   ],
-  "author": "dotnil (http://cyj.me)",
+  "author": "cyjake (http://cyj.me)",
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">= 8.0.0"
@@ -38,6 +38,6 @@
     "mysql2": "^1.5.1",
     "nyc": "^13.1.0",
     "pg": "^7.6.0",
-    "sqlite3": "git+https://github.com/dotnil/node-sqlite3.git"
+    "sqlite3": "git+https://github.com/cyjake/node-sqlite3.git"
   }
 }

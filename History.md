@@ -9,7 +9,7 @@
 0.3.0 / 2018-10-31
 ==================
 
- * New: SQLite support with a [forked sqlite3](https://github.com/dotnil/node-sqlite3)
+ * New: SQLite support with a [forked sqlite3](https://github.com/cyjake/node-sqlite3)
  * New: mysql2 support (which is trivial since both mysql and mysql2 share the same API)
  * Refactor: Spell now formats SQL with the literals separated, which gets escaped by the corresponding client itself later on.
 
