@@ -518,41 +518,34 @@ Anyway, you can always append further query details onto the spell until it's do
 
 ```js
 const query = Post.where('title LIKE ?', '%Post%')
-if (await top10) {
-  const top10posts = await query.order('updatedAt desc').limit(10)
-}
-const posts = await query // unordered and unlimited
+const posts = await query.order('updatedAt desc').limit(10)
+const [{ count }] = await query.count() // unordered and unlimited count
+this.body = { posts, count }
 ```
 
 ## Find or Build a New Object
 
-It is common to find the existence of an object first, if not then create the object. Morden databases provide (not quite) similar means to accompilish this by checking on duplications of primary keys.
+It's common that you need to find a record or create it if it doesn't exist. Hence our source of inspiration, Active Record, provides a specific `find_or_create_by` method. It's trivial to implement but can get confused with `upsert` behaviour a lot.
 
 > In MongoDB there's [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id), in PostgreSQL there's [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), and in MySQL (and forks such as MariaDB) there's [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html). In general, if duplicated values of primary key were found, the record gets updated. If not, the record gets inserted.
 
-Leoric takes this behavior to update on duplicated keys. For example:
+Leoric takes this `upsert` behavior to update on duplicated keys. For example:
 
 ```js
-const post = new Post({ id: 1, name: 'New Post' })
+const post = new Post({ id: 1, title: 'New Post' })
 await post.save()
 ```
 
-If `Post { id: 1 }` exists, its name gets updated to `New Post`.
+If `Post { id: 1 }` exists, its `title` gets updated to `New Post`.
 
 But this `upsert` thing is **NOT** exactly the same as the meaning of *Find or Build a New Object*. For example, if our users were distinguished by email, we can find the user by email, or create a new one if not found:
 
 ```js
-let user = await User.find({ email: 'john@example.com' })
+let user = await User.findOne({ email: 'john@example.com' })
 if (!user) user = await User.create({ email: 'john@example.com' })
 ```
 
-To liberate us from this kind of cumbersome code, a method called `Model.findOrCreate()` is provided:
-
-```js
-const user = await User.findOrCreate({ email: 'john@example.com' })
-```
-
-To make a long story short, if the value of the primary key is known, feel free to use `model.save()` or `Model.create()` because it's taken care of with `upsert`. If not, use `Model.findOrCreate()` instead.
+To make a long story short, if the value of the primary key is known, feel free to use `model.save()` because it's taken care of with `upsert`. If not, we'll need to find or build a new object by hand.
 
 ## Calculations
 

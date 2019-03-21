@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require('assert')
 const expect = require('expect.js')
 
 const { Bone } = require('../..')
@@ -10,6 +11,7 @@ const Comment = require('../models/comment')
 const Post = require('../models/post')
 const TagMap = require('../models/tagMap')
 const Tag = require('../models/tag')
+const Like = require('../models/like')
 
 module.exports = function() {
   describe('=> Attributes', function() {
@@ -1063,6 +1065,46 @@ module.exports = function() {
 
       const posts = await Post.find()
       expect(posts.map(post => post.title)).to.eql(['Archangel Tyrael'])
+    })
+  })
+
+  // a very premature sharding check
+  describe('=> Sharding', function() {
+    after(async function() {
+      await Post.remove({}, true)
+      await Like.remove({ userId: 1 }, true)
+    })
+
+    it('should function properly if sharding key is not defined', async function() {
+      await new Post({ title: 'Leah' }).create()
+      const post = await Post.findOne()
+      expect(post.id).to.be.ok()
+      expect(post.title).to.eql('Leah')
+      await post.remove()
+    })
+
+    it('should throw if sharding key is defined but not set when INSERT', async function() {
+      await assert.rejects(async () => {
+        await new Like({ articleId: 1 }).create()
+      }, /sharding key/i)
+    })
+
+    it('should throw if sharding key is defined but not present in where conditions when SELECT', async function() {
+      await assert.rejects(async () => {
+        await Like.find()
+      }, /sharding key/i)
+    })
+
+    it('should throw if sharding key is defined but not present in where conditions when DELETE', async function() {
+      await assert.rejects(async () => {
+        await Like.remove({})
+      }, /sharding key/i)
+    })
+
+    it('should throw if sharding key is defined but set to null when UPDATE', async function() {
+      await assert.rejects(async () => {
+        await Like.update({ userid: 1 }, { userId: null })
+      }, /sharding key/i)
     })
   })
 }

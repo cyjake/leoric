@@ -509,41 +509,34 @@ async function() {
 
 ```js
 const query = Post.where('title LIKE ?', '%King%')
-if (await top10) {
-  const top10posts = await query.order('updatedAt desc').limit(10)
-}
-const posts = await query // 没有排序、LIMIT
+const posts = await query.order('updatedAt desc').limit(10)
+const [{ count }] = await query.count() // 没有排序、LIMIT
+this.body = { posts, count }
 ```
 
 ## 查询或者创建一条记录
 
-先查询某个对象存在与否，如果没有就创建，这一使用场景很普遍。现代数据库有一个根据主键是否重复来判断是更新还是创建记录的逻辑，和这个有些像，但并不相同。
+查找记录，如果找不到就创建一条，是个很常见的需求。我们的灵感涞源 Active Record 还提供一个专门的 `find_or_create_by` 方法。虽然实现起来很简单，但这个方法实在是太容易和 `upsert` 行为混淆了。
 
 > MongoDB 里有 [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id)，PostgreSQL 里则有 [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), 而 MySQL（以及 MariaDB 等衍生数据库）里则有 [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html)。大致来说，都是寻找重复主键，如果存在就更新对应记录。如果不存在重复主键，则插入这条数据。
 
-Leoric 也使用了这一特性。例如：
+Leoric 使用 `upsert` 来创建或者更新记录，例如：
 
 ```js
-const post = new Post({ id: 1, name: 'New Post' })
+const post = new Post({ id: 1, title: 'New Post' })
 await post.save()
 ```
 
-如果 `Post { id: 1 }` 已经存在，上述代码将更新它的 `name` 为 `New Post`。
+如果 `Post { id: 1 }` 已经存在，将更新它的标题为 `New Post`。
 
 不过 `upsert` 特性与查询或者创建对象的逻辑是有区别的。例如，如果用户是以 `email` 区分的，我们可以先按 `email` 查找用户，如果找不到，就创建一个新用户：
 
 ```js
-const user = (await User.find({ email: 'john@example.com' })) ||
+const user = (await User.findOne({ email: 'john@example.com' })) ||
   await User.create({ email: 'john@example.com' })
 ```
 
-为了从这种冗长的代码中解脱出来，Leoric 默认提供 `Model.findOrCreate()` 方法：
-
-```js
-const user = await User.findOrCreate({ email: 'john@example.com' })
-```
-
-简而言之，如果需要判断的主键是已知的，用 `model.save()` 就够了，因为它底层会走 `upsert` 逻辑。如果主键不明确，需要改用 `Model.findOrCreate()` 方法。
+简而言之，如果需要判断的主键是已知的，用 `model.save()` 就够了，因为它底层会走 `upsert` 逻辑。如果主键不明确，就需要自己手动查找或者创建一条记录了。
 
 ## 计算函数
 

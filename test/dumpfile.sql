@@ -61,3 +61,11 @@ CREATE TABLE `tags` (
   `gmt_deleted` datetime DEFAULT NULL
 );
 
+DROP TABLE IF EXISTS `likes`;
+CREATE TABLE `likes` (
+  `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
+  `gmt_create` datetime NOT NULL,
+  `article_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `gmt_deleted` datetime DEFAULT NULL
+);

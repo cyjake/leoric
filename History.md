@@ -1,3 +1,10 @@
+0.4.1 / 2019-03-21
+==================
+
+  * New: premature sharding key validation
+  * Fix: output complete SQL instead of parameterized query with values.
+  * Docs: no more `.findOrCreate()`, just `.upsert()`
+
 0.4.0 / 2018-11-05
 ==================
 
