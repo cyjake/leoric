@@ -104,15 +104,13 @@ const connect = async function Leoric_connect(opts) {
 
   Bone.pool = pool
   Collection.pool = pool
-  const tables =  models.map(model => {
-    return model.physicTables ? model.physicTables[0] : model.table
-  })
+
   const query = client.includes('sqlite')
-    ? tableInfo(pool, models.map(model => model.table))
-    : schemaInfo(pool, database, tables)
+    ? tableInfo(pool, models.map(model => model.physicTable))
+    : schemaInfo(pool, database, models.map(model => model.physicTable))
   const schema = await query
   for (const Model of models) {
-    Model.describeTable(schema[Model.table])
+    Model.describeTable(schema[Model.physicTable])
   }
   Bone.models = models
 
