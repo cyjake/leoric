@@ -14,8 +14,10 @@
     "url": "https://github.com/cyjake/leoric.git"
   },
   "keywords": [
+    "mysql",
     "orm",
-    "mysql"
+    "postgresql",
+    "query builder"
   ],
   "author": "cyjake (http://cyj.me)",
   "license": "BSD-3-Clause",

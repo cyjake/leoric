@@ -7,13 +7,9 @@
 
 Leoric is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](http://cyj.me/leoric) for detail.
 
-## Requirements
-
-Currently, Leoric only supports MySQL (and variants such as MariaDB) database.
-
 ## Usage
 
-Assume the tables of posts, users, and comments were setup already. We may declare the models as classes extended from the base class `Bone` of Leoric. After the models are connected to the database using `connect`, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
+Assume the tables of posts, users, and comments were setup already. We may declare the models as classes by extending from the base class `Bone` of Leoric. After the models are `connect`ed to the database, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
 
 ```js
 const { Bone, connect } = require('leoric')
@@ -68,6 +64,6 @@ Currently, Leoric doesn't provide a way to do database migrations. There are two
 - A separated migration DSL and database metadata, like Active Record.
 - A detailed enumeration of attributes and types in the models, like Django.
 
-There is a third way, which is the very reason Leoric has yet to implement migrations, that the database can be designed through a third-party service. It can be an ER designer, a GUI software for MySQL, or a MySQL-compliant database in the cloud.
+There is a third way, which is the very reason Leoric has yet to implement migrations, which is that the database can be designed through a third-party service. It can be an ER designer, a GUI software for MySQL, or a MySQL-compliant database in the cloud.
 
 But I'm sure we'll get to that.
