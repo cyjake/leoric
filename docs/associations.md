@@ -3,6 +3,19 @@ layout: en
 title: Associations
 ---
 
+This guide covers the association features of Leoric. After reading this guide, you will know:
+
+- How to declare assocations between models.
+- How to understand the various types of associations.
+
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
+
+## Why Associations
+
 With associations well defined, developers can pull structured data with a single query such as:
 
 ```js
@@ -12,11 +25,6 @@ const shop = await Shop.findOne({ id }).with('items', 'owner')
 //           items: [ Item { name: "Wirt's Leg" }, ... ],
 //           owner: User { name: 'Tyreal' } }
 ```
-
-This guide covers the association features of Leoric. After reading this guide, you will know:
-
-- How to declare assocations between models.
-- How to understand the various types of associations.
 
 ## Types of Associations
 

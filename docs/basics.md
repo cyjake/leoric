@@ -9,6 +9,12 @@ This guide is an introduction to Leoric. After reading this guide, you will know
 - How to use Leoric models to manipulate data stored in a relational database.
 - Leoric schema naming conventions.
 
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
+
 ## What is Leoric
 
 Leoric is a thin Object Relational Mapping layer between Node.js and database. It can be used as the M in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - which is the layer of the system responsible for representing business data and logic.

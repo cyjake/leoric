@@ -9,6 +9,12 @@ This guide covers different ways to retrieve data from the database using Leoric
 - How to specify the order, retrieved attributes, grouping, and other properties of the found records.
 - How to use `.include()` to reduce the number of database queries needed for data retrieval.
 
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
+
 ## Retrieving Objects from the Database
 
 Leoric provides two major ways to start a query, `.find()` and `.findOne()`. `.findOne()` is basically the same as `.find()`, except that it returns only one record or null if no record were found.
@@ -462,7 +468,7 @@ To make soft delete transparent to model consumers, a default WHERE condition is
 SELECT * FROM posts WHERE deleted_at IS NULL;
 ```
 
-But if any where conditional expressions have got `deletedAt` referenced already, the default `.where({ deletedAt: null })` won't be appended. For example, the SQL equivalent of `Post.find('deletedAt != null')` is:
+But if any `WHERE` conditional expressions have got `deletedAt` referenced already, the default `.where({ deletedAt: null })` won't be appended. For example, the SQL equivalent of `Post.find('deletedAt != null')` is:
 
 ```sql
 SELECT * FROM posts WHERE deleted_at IS NOT NULL;

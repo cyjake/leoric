@@ -9,6 +9,12 @@ title: 基础
 - 如何使用 Leoric 的数据模型来操作关系数据库中存储的数据.
 - Leoric 的表结构命名约定。
 
+## 目录
+{:.no_toc}
+
+1. 目录
+{:toc}
+
 ## Leoric 是什么
 
 Leoric 是 Node.js 与关系型数据库之间的一层对象关系映射模型。它可以被用作 [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) 中的 M - 即 MVC 体系中负责表现业务数据与逻辑的那一层。
@@ -145,7 +151,7 @@ async function() {
 })
 ```
 
-## Reading and Writing Data
+## 读取与写入数据
 
 数据模型声明、连接后，我们可以：
 

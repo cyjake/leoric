@@ -36,7 +36,7 @@ async function() {
   await Post.update({ title: 'Untitled' }, { title: 'New Post' })
 
   // find with associations
-  const postWithComments = await Post.findOne({ title: 'New Post' }).with('comments')
+  const post = await Post.findOne({ title: 'New Post' }).with('comments')
   console.log(post.comments) // => [ Comment { id, content }, ... ]
 }
 ```

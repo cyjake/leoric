@@ -19,7 +19,8 @@ description: > # this means to ignore newlines until "baseurl:"
 baseurl: "/leoric" # the subpath of your site, e.g. /blog
 
 # Build settings
-markdown: kramdown
+kramdown:
+  toc_levels: 2..3
 theme: jekyll-theme-primer
 exclude:
   - Gemfile
