@@ -22,7 +22,7 @@
   "author": "cyjake (http://cyj.me)",
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 10.0.0"
   },
   "dependencies": {
     "debug": "^3.1.0",
@@ -39,7 +39,6 @@
     "mysql": "^2.15.0",
     "mysql2": "^1.5.1",
     "nyc": "^13.1.0",
-    "pg": "^7.6.0",
-    "sqlite3": "git+https://github.com/cyjake/node-sqlite3.git"
+    "pg": "^7.6.0"
   }
 }

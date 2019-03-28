@@ -3,7 +3,10 @@
 
   * New: premature sharding key validation
   * Fix: output complete SQL instead of parameterized query with values.
+  * Fix: both `connect({ model })` and `connect({ models })` are allowed.
   * Docs: no more `.findOrCreate()`, just `.upsert()`
+  * Docs: table of contents with kramdown's `{:toc}`
+  * Misc: droped experimental sqlite3 support
 
 0.4.0 / 2018-11-05
 ==================

@@ -7,17 +7,8 @@
 const Bone = require('./lib/bone')
 const Collection = require('./lib/collection')
 
-const fs = require('fs')
+const fs = require('fs').promises
 const path = require('path')
-
-function readdir(path, opts = {}) {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path, opts, function(err, entries) {
-      if (err) reject(err)
-      else resolve(entries)
-    })
-  })
-}
 
 /**
  * Fetch column infomations from schema database
@@ -82,6 +73,20 @@ function findClient(name) {
   }
 }
 
+async function requireModels(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true })
+  const models = []
+
+  for (const entry of entries) {
+    if (entry.isFile()) {
+      const model = require(path.join(dir, entry.name))
+      if (model.prototype instanceof Bone) models.push(model)
+    }
+  }
+
+  return models
+}
+
 /**
  * Connect models to database. Need to provide both the settings of the connection and the models, or the path of the models, to connect.
  * @alias module:index.connect
@@ -96,11 +101,10 @@ const connect = async function Leoric_connect(opts) {
   opts = Object.assign({ client: 'mysql', database: opts.db }, opts)
   const { client, database } = opts
   const pool = findClient(client)(opts)
-  const models = typeof opts.models == 'string'
-    ? (await readdir(opts.models)).map(entry => require(path.join(opts.models, entry)))
-    : opts.models
+  const dir = opts.model || opts.models
+  const models = Array.isArray(dir) ? dir : (await requireModels(dir))
 
-  if (!(models && models.length > 0)) throw new Error('Unable to find any models')
+  if (models.length <= 0) throw new Error('Unable to find any models')
 
   Bone.pool = pool
   Collection.pool = pool
