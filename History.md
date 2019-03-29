@@ -1,3 +1,10 @@
+0.4.2 / 2019-03-29
+==================
+
+  * Fix: unset attribute should be overwritable
+  * Fix: `attributeChanged()` should be false if attribute is unset
+  * Fix: subclass with incomplete getter/setter should not override default ones completely
+
 0.4.1 / 2019-03-21
 ==================
 

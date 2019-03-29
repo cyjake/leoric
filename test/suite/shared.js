@@ -35,7 +35,7 @@ module.exports = function() {
       expect(() => post.attribute('non-existant attribute')).to.throwException()
     })
 
-    it('bone.attribute(missing attribute)', async function() {
+    it('bone.attribute(unset attribute)', async function() {
       const post = await Post.first.select('title')
       expect(() => post.thumb).to.throwException()
       expect(() => post.attribute('thumb')).to.throwException()
@@ -47,9 +47,10 @@ module.exports = function() {
       expect(post.attribute('title')).to.be(null)
     })
 
-    it('bone.attribute(missing attribute, value)', async function() {
+    it('bone.attribute(unset attribute, value)', async function() {
       const post = await Post.first.select('title')
-      expect(() => post.attribute('thumn', 'foo')).to.throwException()
+      expect(() => post.attribute('thumb', 'foo')).to.not.throwException()
+      expect(post.attribute('thumb')).to.eql('foo')
     })
 
     it('bone.attributeWas(name) should be undefined when initialized', async function() {
@@ -101,6 +102,29 @@ module.exports = function() {
       Post.renameAttribute('thumbnail', 'thumb')
       const post2 = await Post.findOne({ thumb: { $ne: null } })
       expect(post2.thumb).to.be.ok()
+    })
+  })
+
+  // Attribute get/set
+  describe('=> Accessor', function() {
+    it('provides bone.attr & bone.attr= by default', async function() {
+      const post = new Post()
+      post.name = 'Skeleton King'
+      expect(post.name).to.eql('Skeleton King')
+    })
+
+    it('bone.attr can be overriden by subclass', async function() {
+      const book = new Book({ price: Math.PI })
+      expect(book.price).to.eql(3.14)
+      book.price = 42
+      expect(book.price).to.eql(42)
+    })
+
+    it('bone.attr= can be overriden by subclass', async function() {
+      const book = new Book({ name: 'Speaking JavaScript' })
+      expect(() => book.isbn = null).to.throwException()
+      book.isbn = 9781449365035
+      expect(book.isbn).to.eql(9781449365035)
     })
   })
 
@@ -843,6 +867,25 @@ module.exports = function() {
       expect(() => post.id).to.throwError()
       post.title = 'Skeleton King'
       expect(() => post.save()).to.throwError()
+    })
+
+    it('bone.save() should allow unset attributes be overridden', async function() {
+      await Post.create({ title: 'New Post'})
+      const post = await Post.select('id').first
+      expect(() => post.title).to.throwError()
+      post.title = 'Skeleton King'
+      await post.save()
+      expect(await Post.first).to.eql(post)
+    })
+
+    it('bone.save() should skip if no attributes were changed', async function() {
+      await Post.create({ title: 'New Post' })
+      const post = await Post.first
+      const changed = await post.save()
+      expect(changed).to.eql(0)
+      post.title = 'Skeleton King'
+      expect(await post.save()).to.eql(1)
+      expect(await Post.first).to.eql(post)
     })
   })
 
