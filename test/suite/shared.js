@@ -1132,6 +1132,12 @@ module.exports = function() {
       }, /sharding key/i)
     })
 
+    it('should not throw if sharding key is defined and set when INSERT', async function() {
+      await assert.doesNotReject(async () => {
+        await new Like({ userId: 1, articleId: 1 }).create()
+      }, /sharding key/i)
+    })
+
     it('should throw if sharding key is defined but not present in where conditions when SELECT', async function() {
       await assert.rejects(async () => {
         await Like.find()

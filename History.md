@@ -4,7 +4,7 @@
   * Fix: unset attribute should be overwritable
   * Fix: `attributeChanged()` should be false if attribute is unset
   * Fix: subclass with incomplete getter/setter should not override default ones completely
-  * Fix: sharding key validation on `Bone.update()`
+  * Fix: sharding key validation on `Bone.update()` and `Bone.save()`
 
 0.4.1 / 2019-03-21
 ==================
