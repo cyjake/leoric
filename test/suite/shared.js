@@ -1146,7 +1146,13 @@ module.exports = function() {
 
     it('should throw if sharding key is defined but set to null when UPDATE', async function() {
       await assert.rejects(async () => {
-        await Like.update({ userid: 1 }, { userId: null })
+        await Like.update({ userId: 1 }, { userId: null })
+      }, /sharding key/i)
+    })
+
+    it('should not throw if sharding key is defined and not set when UPDATE', async function() {
+      await assert.doesNotReject(async () => {
+        await Like.update({ userId: 1 }, { deletedAt: new Date() })
       }, /sharding key/i)
     })
   })
