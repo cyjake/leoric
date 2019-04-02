@@ -193,9 +193,9 @@ module.exports = function() {
       await Post.remove({}, true)
     })
 
-    it('bone.inspect()', async function() {
+    it('util.inspect(bone)', async function() {
       const post = await Post.findOne({ title: 'New Post' })
-      const result = post.inspect()
+      const result = require('util').inspect(post)
 
       expect(result).to.be.an('string')
       expect(result).to.contain('Post')
@@ -894,24 +894,39 @@ module.exports = function() {
       await Post.remove({}, true)
     })
 
-    it('Bone.remove(where) should fake removal with deletedAt updated', async function() {
+    it('Bone.remove(where) should fake removal if deletedAt presents', async function() {
       const post = await Post.create({ title: 'New Post' })
       await Post.remove({ title: 'New Post' })
       const foundPost = await Post.findOne({ id: post.id })
       expect(foundPost).to.be(null)
-      const removedPost = await Post.findOne({ id: post.id, deletedAt: { $ne: null } })
+      const removedPost = await Post.findOne({ id: post.id }).unscoped
       expect(removedPost.id).to.equal(post.id)
     })
 
-    it('Bone.remove(where) should throw error unless deletedAt presents', async function() {
+    it('Bone.remove(where) should DELETE if deletedAt does not present', async function() {
       await TagMap.create({ targetId: 1, targetType: 1, tagId: 1 })
-      expect(() => TagMap.remove({ targetId: 1 })).to.throwException()
+      await TagMap.remove({ targetId: 1 })
+      expect((await TagMap.find()).length).to.eql(0)
     })
 
-    it('Bone.remove(where, true) should REMOVE rows no matter the presence of deletedAt', async function() {
+    it('Bone.remove(where, true) should DELETE rows no matter the presence of deletedAt', async function() {
       await Post.create({ title: 'New Post' })
       expect(await Post.remove({ title: 'New Post' }, true)).to.be(1)
       expect(await Post.unscoped.all).to.empty()
+    })
+
+    it('bone.remove() should fake removal if deletedAt presents', async function() {
+      const post = await Post.create({ title: 'New Post' })
+      const effected = await post.remove()
+      expect(effected).to.eql(1)
+      expect((await Post.find({})).length).to.eql(0)
+    })
+
+    it('bone.remove() should DELETE if deletedAt does not present', async function() {
+      const tagMap = await TagMap.create({ targetId: 1, targetType: 1, tagId: 1 })
+      const effected = await tagMap.remove()
+      expect(effected).to.eql(1)
+      expect((await TagMap.find({})).length).to.eql(0)
     })
   })
 
@@ -1160,6 +1175,12 @@ module.exports = function() {
       await assert.doesNotReject(async () => {
         await Like.update({ userId: 1 }, { deletedAt: new Date() })
       }, /sharding key/i)
+    })
+
+    it('should append sharding key to remove condition automatically', async function() {
+      const like = await Like.create({ articleId: 1, userId: 1 })
+      await like.remove()
+      await like.remove(true)
     })
   })
 }
