@@ -289,10 +289,12 @@ module.exports = function() {
       const post = Post.instantiate({
         id: 1,
         title: 'Archbishop Lazarus',
-        extra: JSON.stringify({ versions: [2] })
+        extra: JSON.stringify({ versions: [2] }),
+        gmt_deleted: null
       })
       expect(post).to.be.a(Post)
       expect(post.title).to.equal('Archbishop Lazarus')
+      expect(post.deletedAt).to.eql(null)
     })
   })
 
