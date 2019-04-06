@@ -12,6 +12,7 @@ const Post = require('../models/post')
 const TagMap = require('../models/tagMap')
 const Tag = require('../models/tag')
 const Like = require('../models/like')
+const User = require('../models/user')
 
 module.exports = function() {
   describe('=> Attributes', function() {
@@ -833,6 +834,7 @@ module.exports = function() {
   describe('=> Update', function() {
     beforeEach(async function() {
       await Post.remove({}, true)
+      await User.remove({}, true)
     })
 
     it('Bone.update(where, values)', async function() {
@@ -868,7 +870,9 @@ module.exports = function() {
       const post = await Post.findOne().select('title')
       expect(() => post.id).to.throwError()
       post.title = 'Skeleton King'
-      expect(() => post.save()).to.throwError()
+      await assert.rejects(async () => {
+        await post.save()
+      }, /primary key/)
     })
 
     it('bone.save() should allow unset attributes be overridden', async function() {
@@ -888,6 +892,14 @@ module.exports = function() {
       post.title = 'Skeleton King'
       expect(await post.save()).to.eql(1)
       expect(await Post.first).to.eql(post)
+    })
+
+    it('bone.save() should keep primary key intact if updated with upsert', async function() {
+      const { id } = await User.create({ email: 'john@example.com', nickname: 'John Doe' })
+      const user = new User({ id, email: 'john@example.com', nickname: 'John Doe' })
+      await user.save()
+      expect(user.id).to.eql(id)
+      expect((await User.findOne({ email: 'john@example.com' })).id).to.eql(id)
     })
   })
 
