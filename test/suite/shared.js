@@ -1,6 +1,6 @@
 'use strict'
 
-const assert = require('assert')
+const assert = require('assert').strict
 const expect = require('expect.js')
 
 const { Bone } = require('../..')
@@ -887,19 +887,26 @@ module.exports = function() {
     it('bone.save() should skip if no attributes were changed', async function() {
       await Post.create({ title: 'New Post' })
       const post = await Post.first
-      const changed = await post.save()
-      expect(changed).to.eql(0)
+      // affectedRows is only available through `bone.update()` directly
+      assert.equal(await post.update(), 0)
       post.title = 'Skeleton King'
-      expect(await post.save()).to.eql(1)
-      expect(await Post.first).to.eql(post)
+      assert.equal(await post.update(), 1)
+      assert.deepEqual(await Post.first, post)
     })
 
-    it('bone.save() should keep primary key intact if updated with upsert', async function() {
+    it('bone.save() should keep primary key intact', async function() {
       const { id } = await User.create({ email: 'john@example.com', nickname: 'John Doe' })
       const user = new User({ id, email: 'john@example.com', nickname: 'John Doe' })
       await user.save()
       expect(user.id).to.eql(id)
       expect((await User.findOne({ email: 'john@example.com' })).id).to.eql(id)
+    })
+
+    it('bone.save() should always return itself', async function() {
+      const post = await new Post({ title: 'New Post' }).save()
+      assert(post instanceof Post)
+      post.title = 'Skeleton King'
+      assert.deepEqual(await post.save(), post)
     })
   })
 

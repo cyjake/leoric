@@ -42,23 +42,6 @@ async function schemaInfo(pool, database, tables) {
   return schema
 }
 
-async function tableInfo(pool, tables) {
-  const queries = tables.map(table => {
-    return pool.Leoric_query(`PRAGMA table_info(${pool.escapeId(table)})`)
-  })
-  const results = await Promise.all(queries)
-  const schema = {}
-  for (let i = 0; i < tables.length; i++) {
-    const table = tables[i]
-    const { rows } = results[i]
-    const columns = rows.map(({ name, type, notnull, dflt_value, pk }) => {
-      return { name, type, isNullable: notnull == 1, default: dflt_value }
-    })
-    schema[table] = columns
-  }
-  return schema
-}
-
 function findClient(name) {
   switch (name) {
     case 'mysql':
@@ -66,8 +49,6 @@ function findClient(name) {
       return require('./lib/clients/mysql')
     case 'pg':
       return require('./lib/clients/pg')
-    case 'sqlite3':
-      return require('./lib/clients/sqlite')
     default:
       throw new Error(`Unsupported database ${name}`)
   }
@@ -109,10 +90,7 @@ const connect = async function Leoric_connect(opts) {
   Bone.pool = pool
   Collection.pool = pool
 
-  const query = client.includes('sqlite')
-    ? tableInfo(pool, models.map(model => model.physicTable))
-    : schemaInfo(pool, database, models.map(model => model.physicTable))
-  const schema = await query
+  const schema = await schemaInfo(pool, database, models.map(model => model.physicTable))
   for (const Model of models) {
     Model.describeTable(schema[Model.physicTable])
   }
