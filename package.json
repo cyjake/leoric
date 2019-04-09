@@ -6,8 +6,8 @@
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
-    "test": "DEBUG=leoric mocha --exit test/test.*.js",
-    "coveralls": "nyc mocha --exit test/test.*.js && nyc report --reporter=text-lcov | coveralls"
+    "test": "for test in $(ls test/test.*.js); do DEBUG=leoric mocha --exit --timeout 5000 ${test} || exit $?; done",
+    "coveralls": "for test in $(ls test/test.*.js); do nyc --no-clean mocha --exit --timeout 5000 ${test} || exit $?; done && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
