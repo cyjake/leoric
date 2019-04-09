@@ -606,8 +606,8 @@ describe('=> Group / Join / Subqueries', function() {
     const comments = await Comment.join(Post, 'comments.articleId = posts.id')
       .select('count(comments.id) as count', 'posts.title').group('comments.articleId').order('count')
     expect(comments).to.eql([
-      { count: 1, articleId: 3, title: 'Archangel Tyrael' },
-      { count: 2, articleId: 2, title: 'Archbishop Lazarus' }
+      { '': { count: 1 }, comments: { articleId: 3 }, posts: { title: 'Archangel Tyrael' } },
+      { '': { count: 2 }, comments: { articleId: 2 }, posts: { title: 'Archbishop Lazarus' } }
     ])
   })
 
@@ -626,12 +626,12 @@ describe('=> Group / Join / Subqueries', function() {
   it('Bone.join().group()', async function() {
     const query = Post.include('comments').group('title').count('comments.id').having('count > 0').order('count')
     expect(await query).to.eql([
-      { count: 1, title: 'Archangel Tyrael' },
-      { count: 2, title: 'Archbishop Lazarus' }
+      { '': { count: 1 }, posts: { title: 'Archangel Tyrael' } },
+      { '': { count: 2 }, posts: { title: 'Archbishop Lazarus' } }
     ])
     expect(await query.select('posts.title')).to.eql([
-      { count: 1, title: 'Archangel Tyrael' },
-      { count: 2, title: 'Archbishop Lazarus' }
+      { '': { count: 1 }, posts: { title: 'Archangel Tyrael' } },
+      { '': { count: 2 }, posts: { title: 'Archbishop Lazarus' } }
     ])
   })
 })
@@ -691,20 +691,16 @@ describe('=> Transaction', function() {
   })
 
   it('should be able to rollback transaction', async function() {
-    try {
+    await assert.rejects(async function() {
       await Post.transaction(function* () {
         yield new Post({ title: 'Leah' }).create()
         yield new Post({ title: 'Diablo' }).create()
         throw new Error('rollback')
       })
-    } catch (err) {
-      if (err.message !== 'rollback') {
-        throw err
-      }
-    }
+    }, /rollback/)
 
     const posts = await Post.find()
-    expect(posts).to.eql([])
+    assert(posts.length === 0)
   })
 
   it('should not interfere with other connections', async function() {
@@ -773,10 +769,20 @@ describe('=> Sharding', function() {
     }, /sharding key/i)
   })
 
-  it('should append sharding key to remove condition automatically', async function() {
+  it('should append sharding key to DELETE condition automatically', async function() {
     const like = await Like.create({ articleId: 1, userId: 1 })
-    await like.remove()
-    await like.remove(true)
+    await assert.doesNotReject(async () => {
+      await like.remove()
+      await like.remove(true)
+    }, /sharding key/i)
+  })
+
+  it('should append sharding key to UPDATE condition automatically', async function() {
+    const like = await Like.create({ articleId: 1, userId: 1})
+    like.articleId = 2
+    await assert.doesNotReject(async () => {
+      await like.update()
+    }, /sharding key/i)
   })
 })
 
