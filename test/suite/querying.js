@@ -251,6 +251,16 @@ describe('=> Query $op', function() {
     const post = await Post.findOne({ title: { $notLike: '%Post' } })
     expect(post.title).to.not.match(/Post/)
   })
+
+  it('.find compound $op', async function() {
+    const post = await Post.findOne({ id: { $gt: 90, $lt: 100 } })
+    assert(post.id > 90 && post.id < 100)
+  })
+
+  it('.find mixed $op', async function() {
+    const post = await Post.findOne({ id: { $gt: 90, $lt: 100 } }).where('deletedAt != NULL or updatedAt != NULL')
+    assert(post.id > 90 && post.id < 100)
+  })
 })
 
 describe('=> Where', function() {

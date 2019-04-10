@@ -126,7 +126,7 @@ describe('=> Config', function() {
     expect(Comment.table).to.eql('comments')
   })
 
-  it('.table can be overriden with a static table getter', function() {
+  it('Bone.table can be overriden with a static table getter', function() {
     /**
      * class Post {
      *   static get table() {

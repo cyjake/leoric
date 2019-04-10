@@ -88,8 +88,7 @@ describe('=> Associations', function() {
   })
 
   it('Bone.hasMany through / finding RefModel', async function() {
-    // It seems mysql2 analyses queries and tries to return cached results if possible. Without the `.limit(1)` part, the query generated below is no different than the one above, except the `AS topics` part, which then gives wrong result because the qualifier `tags` is used instead of `topics`.
-    const posts = await Post.include('topics').limit(1)
+    const posts = await Post.include('topics')
     expect(posts[0].topics.map(tag => tag.name)).to.eql(['demon'])
   })
 
