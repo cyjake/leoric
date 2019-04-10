@@ -104,7 +104,7 @@ describe('=> Query', function() {
   })
 
   it('.find({ foo: [] })', async function() {
-    const posts = await Post.find({ title: ['New Post', 'Archangel Tyrael'] })
+    const posts = await Post.find({ title: ['New Post', 'Archangel Tyrael'] }).order('id')
     expect(posts.length).to.be(2)
     expect(posts.map(post => post.title)).to.eql([
       'New Post', 'Archangel Tyrael'
@@ -112,7 +112,7 @@ describe('=> Query', function() {
   })
 
   it('.find({ foo: Set })', async function() {
-    const posts = await Post.find({ title: new Set(['New Post', 'Archangel Tyrael']) })
+    const posts = await Post.find({ title: new Set(['New Post', 'Archangel Tyrael']) }).order('id')
     expect(posts.map(post => post.title)).to.eql([
       'New Post', 'Archangel Tyrael'
     ])
