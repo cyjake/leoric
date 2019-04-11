@@ -199,7 +199,7 @@ Post.find({
 
 ### 包含操作符的对象查询条件
 
-可能在之前的示例中你已经注意到了，对象查询条件中的值也可以是一个对象。如果这个对象仅包含一个属性而且这个属性是 `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)` 的其中一个，这个属性将被映射为 SQL 操作符：
+可能在之前的示例中你已经注意到了，对象查询条件中的值也可以是一个对象。如果这个对象的所有属性都是 `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)` 的其中一个，这个对象将被映射为 SQL 查询条件：
 
 ```js
 Post.find({ title: { $ne: 'New Post' } })
@@ -214,6 +214,15 @@ Post.find({ createdAt: { $lt: new Date(2017, 10, 11) } })
 Post.find({ createdAt: { $notBetween: [new Date(2017, 10, 11), new Date(2017, 11, 12)] } })
 // => SELECT * FROM posts WHERE gmt_create NOT BETWEEN '2017-11-11 00:00:00' AND '2017-12-12 00:00:00';
 ```
+
+如果对象包含多个操作符，相关查询条件将以 `AND` 逻辑合并：
+
+```js
+Post.find({ id: { $gt: 0, $lt: 999999 }})
+// => SELECT * FROM posts WHERE id >= 0 AND id <= 999999
+```
+
+目前对象查询条件所支持的操作符还不包含逻辑操作符（比如 `AND`、`OR`、或者 `!`），可以改用纯字符串的查询条件实现。
 
 ### 字符串查询条件
 
@@ -373,6 +382,42 @@ SELECT COUNT(*) as count, DATE(created_at) FROM posts GROUP BY DATE(created_at) 
   ... ]
 ```
 
+## Transactions
+
+> 由于缺乏 `LOCK` 支持，当前的事务实现还比较初级。希望我们可以尽快解决这个问题。
+
+可以使用 `Model.transaction()` 从数据库连接池（`Model.pool`）获取连接，再通过所获取的连接执行 `BEGIN` 和 `COMMIT`/`ROLLBACK` 实现事务。以下面这段代码为例：
+
+```js
+Post.transaction(function* () {
+  yield Comment.create({ content: 'tl;dr', articleId: 1 })
+  yield Post.findOne({ id: 1 }).increment('commentCount')
+})
+```
+
+对应的 SQL 如下：
+
+```sql
+BEGIN
+INSERT INTO comments (content, article_id) VALUES ('tl;dr', 1);
+UPDATE posts SET comment_count = comment_count + 1 WHERE id = 1;
+COMMIT
+```
+
+乍一看会觉得这里的 `function* () {}` 很扎眼。选择使用 Generator 作为事务的回调函数格式是因为 Generator 能提供非常细粒度的控制。上面这段 js 代码背后的逻辑如下：
+
+1. 从数据库连接池获取连接；
+2. `BEGIN`
+3. 执行回调函数，获取 Generator；
+4. 使用 `generator.next()` 推动执行进度；
+5. 如果 `generator.next()` 的返回值是个 Spell 实例，就将设置 `spell.connection` 为当前连接；
+6. 如此迭代直到异步流程结束；
+7. `COMMIT`
+
+通过这种方式，我们实现了自动传递事务当前连接，省去人肉传参的麻烦。
+
+如果 Generator 迭代过程中出现异常，`Model.transaction()` 将执行 `ROLLBACK` 并抛出异常。
+
 ## Joining Tables
 
 Leoric 提供两种构建 JOIN 查询的方式：
@@ -417,7 +462,7 @@ Post.include('comments', 'author')
 Post.find().with('comments').with('author')
 ```
 
-### 任意 Joins
+### 任意 JOIN
 
 如果需要 JOIN 未在 `Model.describe()` 预先定义的关联关系，可以使用 `.join()` 方法：
 
@@ -522,7 +567,7 @@ this.body = { posts, count }
 
 ## 查询或者创建一条记录
 
-查找记录，如果找不到就创建一条，是个很常见的需求。我们的灵感涞源 Active Record 还提供一个专门的 `find_or_create_by` 方法。虽然实现起来很简单，但这个方法实在是太容易和 `upsert` 行为混淆了。
+查找记录，如果找不到就创建一条，是个很常见的需求。我们所借鉴的 Active Record 还专门提供 `find_or_create_by` 方法。虽然实现起来很简单，但这个方法实在是太容易和 `upsert` 行为混淆了。
 
 > MongoDB 里有 [`db.collection.update({ upsert: true })`](https://docs.mongodb.com/manual/reference/method/db.collection.update/#mongodb30-upsert-id)，PostgreSQL 里则有 [`INSERT ... ON CONFLICT ... DO UPDATE`](https://www.postgresql.org/docs/9.5/static/sql-insert.html#SQL-ON-CONFLICT), 而 MySQL（以及 MariaDB 等衍生数据库）里则有 [`INSERT ... ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html)。大致来说，都是寻找重复主键，如果存在就更新对应记录。如果不存在重复主键，则插入这条数据。
 
@@ -533,9 +578,9 @@ const post = new Post({ id: 1, title: 'New Post' })
 await post.save()
 ```
 
-如果 `Post { id: 1 }` 已经存在，将更新它的标题为 `New Post`。
+如果 `Post { id: 1 }` 已经存在，就把它的标题更新为 `New Post`。
 
-不过 `upsert` 特性与查询或者创建对象的逻辑是有区别的。例如，如果用户是以 `email` 区分的，我们可以先按 `email` 查找用户，如果找不到，就创建一个新用户：
+不过 `upsert` 的特性跟“查询或者创建对象”的逻辑是有区别的。例如，如果用户是以 `email` 区分的，我们可以先按 `email` 查找用户，如果找不到，就创建一个新用户：
 
 ```js
 const user = (await User.findOne({ email: 'john@example.com' })) ||
