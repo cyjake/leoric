@@ -8,6 +8,10 @@
   * Fix: sharding key should be along with primary key on `bone.remove()`
   * Fix: `Bone.cast()` should leave `null` as is
   * Fix: `INSERT ... UPDATE` with `id = LAST_INSERT_ID(id)` in MySQL
+  * Fix: `Model.find({ name: { $op1, $op2 } })` object conditions with multiple operators
+  * Fix: prefixing result set with qualifiers if query contains join relations and is not dispatchable
+  * Docs: `Model.transaction()`
+  * Docs: definition types with `index.d.ts`
 
 0.4.1 / 2019-03-21
 ==================

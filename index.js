@@ -74,7 +74,6 @@ async function requireModels(dir) {
  * @param {Object} opts
  * @param {string} opts.client - client name
  * @param {string|Bone[]} opts.models - an array of models
- * @param {Object} opts.
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
 const connect = async function Leoric_connect(opts) {

@@ -410,7 +410,7 @@ COMMIT
 2. `BEGIN`
 3. 执行回调函数，获取 Generator；
 4. 使用 `generator.next()` 推动执行进度；
-5. 如果 `generator.next()` 的返回值是个 Spell 实例，就将设置 `spell.connection` 为当前连接；
+5. 如果 `generator.next()` 的返回值是个 Spell 实例，设置 `spell.connection` 为当前连接；
 6. 如此迭代直到异步流程结束；
 7. `COMMIT`
 
