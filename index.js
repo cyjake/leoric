@@ -55,6 +55,7 @@ function findClient(name) {
 }
 
 async function requireModels(dir) {
+  if (!dir || typeof dir !== 'string') throw new Error(`Unexpected dir (${dir})`)
   const entries = await fs.readdir(dir, { withFileTypes: true })
   const models = []
 
@@ -77,25 +78,28 @@ async function requireModels(dir) {
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
 const connect = async function Leoric_connect(opts) {
-  if (Bone.pool) return
+  if (Bone.pool) {
+    throw new Error('connected already')
+  }
   opts = Object.assign({ client: 'mysql', database: opts.db }, opts)
   const { client, database } = opts
-  const pool = findClient(client)(opts)
   const dir = opts.model || opts.models
-  const models = Array.isArray(dir) ? dir : (await requireModels(dir))
+  const Models = Array.isArray(dir) ? dir : (await requireModels(dir))
 
-  if (models.length <= 0) throw new Error('Unable to find any models')
+  if (Models.length <= 0) throw new Error(`Unable to find models (${dir})`)
 
+  const pool = findClient(client)(opts)
+  Bone.model = {}
   Bone.pool = pool
   Collection.pool = pool
 
-  const schema = await schemaInfo(pool, database, models.map(model => model.physicTable))
-  for (const Model of models) {
+  const schema = await schemaInfo(pool, database, Models.map(Model => Model.physicTable))
+  for (const Model of Models) {
     Model.describeTable(schema[Model.physicTable])
+    Bone.model[Model.name] = Model
   }
-  Bone.models = models
 
-  for (const Model of Bone.models) {
+  for (const Model of Models) {
     Model.describe()
   }
 

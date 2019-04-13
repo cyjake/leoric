@@ -1,10 +1,20 @@
 'use strict'
 
-const expect = require('expect.js')
+const assert = require('assert').strict
 const { connect } = require('..')
 
 describe('connect', function() {
-  this.timeout(5000)
+  it('rejects unsupported database', async function() {
+    await assert.rejects(async () => {
+      await connect({ client: 'sqlite', models: `${__dirname}/models` })
+    }, /unsupported database/i)
+  })
+
+  it('rejects empty models', async function() {
+    await assert.rejects(async () => {
+      await connect({ models: [] })
+    }, /unable to find models/i)
+  })
 
   it('connect models passed in opts.models', async function() {
     await connect({
@@ -13,6 +23,12 @@ describe('connect', function() {
       models: `${__dirname}/models`
     })
     const Book = require('./models/book')
-    expect(Object.keys(Book.schema).length).to.be.above(0)
+    assert(Object.keys(Book.schema).length > 0)
+  })
+
+  it('rejects duplicated connect', async function() {
+    await assert.rejects(async () => {
+      await connect({ user: 'root', database: 'leoric' })
+    }, /connected already/i)
   })
 })

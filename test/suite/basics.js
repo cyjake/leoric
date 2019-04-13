@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require('assert').strict
 const expect = require('expect.js')
 const { Bone } = require('../..')
 const Attachment = require('../models/attachment')
@@ -22,22 +23,22 @@ describe('=> Attributes', function() {
 
   it('bone.attribute(name)', async function() {
     const post = new Post({ title: 'Untitled' })
-    expect(post.attribute('title')).to.eql('Untitled')
+    assert.equal(post.attribute('title'), 'Untitled')
     post.title = 'New Post'
-    expect(post.title).to.eql('New Post')
-    expect(() => post.attribute('non-existant attribute')).to.throwException()
+    assert.equal(post.title, 'New Post')
+    assert.throws(() => post.attribute('non-existant attribute'), /no attribute/)
   })
 
   it('bone.attribute(unset attribute)', async function() {
     const post = await Post.first.select('title')
-    expect(() => post.thumb).to.throwException()
-    expect(() => post.attribute('thumb')).to.throwException()
+    assert.throws(() => post.thumb, /unset attribute/i)
+    assert.throws(() => post.attribute('thumb'), /unset attribute/i)
   })
 
   it('bone.attribute(name, value)', async function() {
     const post = new Post({ title: 'Untitled' })
     post.attribute('title', undefined)
-    expect(post.attribute('title')).to.be(null)
+    assert.equal(post.attribute('title'), null)
   })
 
   it('bone.attribute(unset attribute, value)', async function() {
@@ -311,5 +312,44 @@ describe('=> Automatic Versioning', function() {
     expect((await query.order('title')).map(post => post.title)).to.eql([
       'New Post', 'New Post 2'
     ])
+  })
+})
+
+describe('=> Collection', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'New Post' }),
+      Post.create({ title: 'Leah' })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('collection.toJSON()', async function() {
+    const posts = await Post.all
+    // toJSON() skips attributes with null values, hence `post.text` returns undefined.
+    for (const post of posts.toJSON()) {
+      assert.equal(typeof post.title, 'string')
+      assert.equal(typeof post.content, 'undefined')
+    }
+  })
+
+  it('collection.toObject()', async function() {
+    const posts = await Post.all
+    for (const post of posts) {
+      assert.equal(typeof post.title, 'string')
+      assert.equal(post.content, null)
+    }
+  })
+
+  it('collection.save()', async function() {
+    const posts = await Post.order('id', 'asc').all
+    posts[0].title = 'Updated Post'
+    posts[1].title = 'Diablo'
+    await posts.save()
+    assert.equal((await Post.first).title, 'Updated Post')
+    assert.equal((await Post.last).title, 'Diablo')
   })
 })

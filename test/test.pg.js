@@ -33,7 +33,7 @@ describe('=> Date Functions', function() {
   })
 
   it('GROUP BY MONTH(date)', async function() {
-    assert.deepEqual(await Post.group('MONTH(createdAt)').count(), [
+    assert.deepEqual(await Post.group('MONTH(createdAt)').count().order('count', 'desc'), [
       { count: 2, 'date_part': 5 },
       { count: 1, 'date_part': 11 }
     ])

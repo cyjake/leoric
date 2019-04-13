@@ -133,6 +133,8 @@ type ResultSet = Attributes[] | { [qualifier: string]: Attributes }[]
 
 declare class Collection<Bone> extends Array<Bone> {
   save(): Promise<void>;
+  toJSON(): Object[];
+  toObject(): Object[];
 }
 
 type Query = Spell & Promise<Collection<Bone>>;
