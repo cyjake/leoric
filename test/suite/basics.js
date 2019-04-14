@@ -338,7 +338,7 @@ describe('=> Collection', function() {
 
   it('collection.toObject()', async function() {
     const posts = await Post.all
-    for (const post of posts) {
+    for (const post of posts.toObject()) {
       assert.equal(typeof post.title, 'string')
       assert.equal(post.content, null)
     }

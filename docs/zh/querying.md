@@ -103,39 +103,35 @@ SELECT * FROM posts WHERE id in (1, 10);
 要遍历较大的数据集时，我们的第一反应可能是：
 
 ```js
-const posts = await Post.find()
-for (const post of posts) // code
-```
-
-但假如 `Post` 表所包含的数据条数过多，这种遍历方式会变得耗时，因此不切实际。有很多种避免这种情况的方法，而转 `.find()` 为批量查询是其中最方便的一个：
-
-```js
-async function consume() {
-  const batch = Post.find().batch() // 此时不需要 await
-  while (true) {
-    const { done, value } = await batch.next()
-    if (value) handle(value)
-    if (done) break
-  }
+for (const post of (await Post.all)) {
+  // handle post
 }
 ```
 
-如果你熟悉 JavaScript 的 [`Iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)，你可能会觉得上面这个实例有些熟悉，`.batch()` 的结果能否使用 `for...of` 遍历？答案是，是也不是。因为 JavaScript 一贯以来的异步特质，`.batch()` 结果并非寻常的 Iterator，这也意味着 `for...of` 不能用来正常遍历。幸运的是，`Iterator` 的异步版本已经有[提案](https://github.com/tc39/proposal-async-iteration)（并且 [V8 有实现](https://jakearchibald.com/2017/async-iterators-and-generators/))。在这个提案中，我们可以使用 `for await...of` 来遍历异步 Iterator：
+但假如 `Post` 表所包含的数据条数过多，这种遍历方式会变得耗时，因此不切实际。有很多种避免这种情况的方法，而转 `.all` 为批量查询是其中最方便的一个：
+
 
 ```js
-for await (const post of Post.find().batch()) {
-  handle(post)
+for await (const post of Post.all.batch()) {
+  // handle post
 }
 ```
 
-不过眼下这个特性还藏在一个开关后面，更别提 Node.js LTS 了。
+The SQL equivalent of the above is:
 
-言归正传，要设置批量查询时每批查询的个数，可以给 `.batch()` 传个数字：
+```sql
+-- 假设 posts 表包含 2000 条记录，默认查询 LIMIT 1000
+SELECT * FROM posts LIMIT 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 2000;
+```
+
+可以给 `.batch()` 传参来设置批量查询时每批查询的个数：
 
 ```js
-// 将以每批 1000 个逐批查询 Post
-for await (const post of Post.find().batch(1000)) {
-  handle(post)
+// 将以每批 100 个逐批查询 Post
+for await (const post of Post.all.batch(100)) {
+  // handle post
 }
 ```
 

@@ -103,39 +103,35 @@ SELECT * FROM posts WHERE id in (1, 10);
 When we need to iterate over a large collection, the solution might seems straightforward:
 
 ```js
-const posts = await Post.find()
-for (const post of posts) // code
-```
-
-But if the posts table is at large size, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without querying the full table and so on. Switch to find in batch is the most convenient one:
-
-```js
-async function consume() {
-  const batch = Post.find().batch() // no need to await here
-  while (true) {
-    const { done, value } = await batch.next()
-    if (value) handle(value)
-    if (done) break
-  }
+const posts = await Post.all
+for (const post of posts) {
+  // handle post
 }
 ```
 
-If you've got aquainted with JavaScript's [`Iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)s, you may see the example above a bit familiar and wonder, can `.batch()` results be consumed with `for...of`? The answer is yes and no. Because the asynchronous charactor of JavaScript, the `.batch()` results can't be regular iterators, which means normal `for...of` can't iterate them over properly. But luckily, the asynchronous version of `Iterator` is [proposed](https://github.com/tc39/proposal-async-iteration) (and [implemented by V8](https://jakearchibald.com/2017/async-iterators-and-generators/) behind a flag) already. With async iterator supported, the example above can be turned into:
+But if the posts table is at large size, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without loading all rows at once and so on. Switch to find in batch is the most convenient one:
 
 ```js
-for await (const post of Post.find().batch()) {
-  handle(post)
+for await (const post of Post.all.batch()) {
+  // handle post
 }
 ```
 
-Sadly though, this feature isn't available without flag, let alone Node.js LTS.
+The SQL equivalent of the above is:
 
-Anyway, to set the batch size, we can pass a number to `.batch()`:
+```sql
+-- assume posts contains 2000 rows, the default LIMIT is 1000
+SELECT * FROM posts LIMIT 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 2000;
+```
+
+To set batch size, we can pass a number to `.batch()`:
 
 ```js
-// This queries database with a LIMIT of 1000
-for await (const post of Post.find().batch(1000)) {
-  handle(post)
+// This queries database with LIMIT 100
+for await (const post of Post.all.batch(100)) {
+  // handle post
 }
 ```
 

@@ -685,6 +685,28 @@ describe('=> Calculations', function() {
   })
 })
 
+describe('=> Batch', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'New Post' }),
+      Post.create({ title: 'New Post 2' }),
+      Post.create({ title: 'New Post 3' })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('spell.batch', async function() {
+    const posts = []
+    for await (const post of Post.all.batch(1)) {
+      posts.push(post)
+    }
+    assert.deepEqual(posts, Array.from(await Post.all))
+  })
+})
+
 describe('=> Transaction', function() {
   afterEach(async function() {
     await Post.remove({}, true)
