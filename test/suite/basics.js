@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict
 const expect = require('expect.js')
-const { Bone } = require('../..')
+const { Bone, Collection } = require('../..')
 const Attachment = require('../models/attachment')
 const Book = require('../models/book')
 const Comment = require('../models/comment')
@@ -176,15 +176,22 @@ describe('=> Config', function() {
 
 describe('=> Integration', function() {
   before(async function() {
-    await Post.create({
+    const post = await Post.create({
       title: 'New Post',
       extra: { versions: [2, 3] },
       thumb: 'https://a1.alicdn.com/image/2016/09/21/29f93b05-5d4a-4b57-99e8-71c52803b9a3.png'
     })
+    await Comment.create({
+      articleId: post.id,
+      content: 'New Comment'
+    })
   })
 
   after(async function() {
-    await Post.remove({}, true)
+    await Promise.all([
+      Post.remove({}, true),
+      Comment.remove({}, true)
+    ])
   })
 
   it('util.inspect(bone)', async function() {
@@ -221,17 +228,43 @@ describe('=> Integration', function() {
     expect(result.title).to.equal('New Post')
   })
 
+  it('bone.toJSON() includes associations', async function() {
+    const post = await Post.first.with('comments')
+    const { title, comments } = post.toJSON()
+    assert.equal(title, 'New Post')
+    assert(Array.isArray(comments))
+    assert(comments.every(comment => !(comment instanceof Collection)))
+    assert.equal(comments[0].content, 'New Comment')
+  })
+
   it('bone.toObject() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title')
     const result = post.toObject()
     expect(result).to.eql({ title: 'New Post' })
   })
 
+  // the major difference between `bone.toJSON()` and `bone.toObject()`
+  it('bone.toObject() includes null attributes', async function() {
+    const post = await Post.first
+    assert(!post.toJSON().hasOwnProperty('content'))
+    assert(post.toObject().hasOwnProperty('content'))
+    assert.equal(post.toObject().content, null)
+    assert.deepEqual(Object.keys(post.toObject()), Post.attributes)
+  })
+
+  // the other difference between `bone.toJSON()` and `bone.toObject()`
   it('bone.toObject() prefers bone.attribute(name) over getter properties', async function() {
     const post = await Post.findOne({ title: 'New Post' })
     const result = post.toObject()
     expect(result).to.be.an('object')
     expect(result.title).to.be('New Post')
+  })
+
+  it('bone.toObject() includes associations', async function() {
+    const post = await Post.first.with('comments')
+    const { comments } = post.toObject()
+    assert(comments.every(comment => !(comment instanceof Collection)))
+    assert.deepEqual(Object.keys(comments[0]), Comment.attributes)
   })
 })
 
