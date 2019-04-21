@@ -88,6 +88,10 @@ describe('=> Attributes', function() {
     expect(() => Post.attribute('non-existant attribtue', { foo: 'bar' })).to.throwException()
   })
 
+  it('Bone.renameAttribute(name, newName) should throw if newName is taken', async function() {
+    assert.throws(() => Post.renameAttribute('content', 'title'), /existing attribute/)
+  })
+
   it('Bone.renameAttribute(name, newName)', async function() {
     Post.renameAttribute('thumb', 'thumbnail')
     const post = await Post.findOne({ thumbnail: { $ne: null } })
@@ -166,7 +170,6 @@ describe('=> Config', function() {
   })
 
   it('Bone.attributes should be the names of attributes', function() {
-    // Bone.renameAttribute('oldName', 'newName')
     expect(Post.attributes).to.be.a(Array)
     expect(Post.attributes.length).to.be.above(1)
     expect(Post.attributes.includes('title')).to.be.ok()

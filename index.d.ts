@@ -1,3 +1,4 @@
+import { Schema } from "inspector";
 
 interface ExprIdentifier {
   type: 'id';
@@ -58,37 +59,37 @@ type WithOptions = {
 declare class Spell {
   constructor(Model: Bone, factory: SpellFactory, opts: SpellOptions);
 
-  $select(...names: string[]): this & Promise<Bone>;
-  $insert(opts: SetOptions): this & Promise<number>;
-  $update(opts: SetOptions): this & Promise<number>;
-  $upsert(opts: SetOptions): this & Promise<number>;
-  $delete(): this & Promise<number>;
+  select(...names: string[]): Spell & Promise<Bone>;
+  insert(opts: SetOptions): Spell & Promise<number>;
+  update(opts: SetOptions): Spell & Promise<number>;
+  upsert(opts: SetOptions): Spell & Promise<number>;
+  delete(): Spell & Promise<number>;
 
-  $from(table: string | Spell): this & Promise<Bone>;
+  from(table: string | Spell): Spell & Promise<Bone>;
 
-  $with(opts: WithOptions): this & Promise<Bone>;
-  $with(...qualifiers: string[]): this & Promise<Bone>;
+  with(opts: WithOptions): Spell & Promise<Bone>;
+  with(...qualifiers: string[]): Spell & Promise<Bone>;
 
-  $join(Model: Bone, onConditions: string, ...values: Literal[]): this & Promise<Bone>;
-  $join(Model: Bone, onConditions: WhereConditions): this & Promise<Bone>;
+  join(Model: Bone, onConditions: string, ...values: Literal[]): Spell & Promise<Bone>;
+  join(Model: Bone, onConditions: WhereConditions): Spell & Promise<Bone>;
 
-  $where(conditions: string, ...values: Literal[]): this & Promise<Bone>;
-  $where(conditions: WhereConditions): this & Promise<Bone>;
+  where(conditions: string, ...values: Literal[]): Spell & Promise<Bone>;
+  where(conditions: WhereConditions): Spell & Promise<Bone>;
 
-  $group(...names: string[]): this & Promise<ResultSet>;
-  $having(conditions: WhereConditions): this & Promise<ResultSet>;
+  group(...names: string[]): Spell & Promise<ResultSet>;
+  having(conditions: WhereConditions): Spell & Promise<ResultSet>;
 
-  $order(name: string, order?: 'desc' | 'asc'): this & Promise<Bone>;
-  $order(opts: OrderOptions): this & Promise<Bone>;
+  order(name: string, order?: 'desc' | 'asc'): Spell & Promise<Bone>;
+  order(opts: OrderOptions): Spell & Promise<Bone>;
 
-  $offset(skip: number): this & Promise<Bone>;
-  $limit(skip: number): this & Promise<Bone>;
+  offset(skip: number): Spell & Promise<Bone>;
+  limit(skip: number): Spell & Promise<Bone>;
 
-  $count(name?: string): this & Promise<ResultSet>;
-  $average(name?: string): this & Promise<ResultSet>;
-  $minimum(name?: string): this & Promise<ResultSet>;
-  $maximum(name?: string): this & Promise<ResultSet>;
-  $sum(name?: string): this & Promise<ResultSet>;
+  count(name?: string): Spell & Promise<ResultSet>;
+  average(name?: string): Spell & Promise<ResultSet>;
+  minimum(name?: string): Spell & Promise<ResultSet>;
+  maximum(name?: string): Spell & Promise<ResultSet>;
+  sum(name?: string): Spell & Promise<ResultSet>;
 
   batch(size?: number): AsyncIterable<Bone>;
 
@@ -121,7 +122,10 @@ interface Attributes {
 }
 
 interface AttributeMeta {
-  type: JSON;
+  column: string,
+  columnType: string,
+  isNullable: boolean,
+  type: boolean | number | string | Date | JSON;
 }
 
 interface RelateOptions {
@@ -145,18 +149,43 @@ declare class Bone {
   static table: string;
   static aliasName: string;
   static primaryKey: string;
+  static attributes: string[];
+  static schema: { [key: string]: AttributeMeta };
 
   static shardingKey: string;
   static physicTables: string[];
 
+  /**
+   * Override attribute metadata
+   * @example
+   * Bone.attribute('foo', { type: JSON })
+   */
   static attribute(name: string, meta: AttributeMeta): void;
+
+  /**
+   * Rename attribute
+   * @example
+   * Bone.renameAttribute('foo', 'bar')
+   */
   static renameAttribute(originalName: string, newName: string): void;
+
   static hasOne(name: string, opts?: RelateOptions): void;
   static hasMany(name: string, opts?: RelateOptions): void;
   static belongsTo(name: string, opts?: RelateOptions): void;
 
+  /**
+   * INSERT rows
+   * @example
+   * Bone.create({ foo: 1, bar: 'baz' })
+   */
   static create(attributes: Attributes): Promise<Bone>;
 
+  /**
+   * SELECT rows
+   * @example
+   * Bone.find('foo = ?', 1)
+   * Bone.find({ foo: { $eq: 1 } })
+   */
   static find(whereConditions: string, ...values: Literal[]): Query;
   static find(whereConditions: WhereConditions): Query;
   static find(): Query;
