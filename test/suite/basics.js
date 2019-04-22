@@ -26,7 +26,7 @@ describe('=> Attributes', function() {
     assert.equal(post.attribute('title'), 'Untitled')
     post.title = 'New Post'
     assert.equal(post.title, 'New Post')
-    assert.throws(() => post.attribute('non-existant attribute'), /no attribute/)
+    assert.throws(() => post.attribute('missing attribute'), /no attribute/)
   })
 
   it('bone.attribute(unset attribute)', async function() {
@@ -39,6 +39,8 @@ describe('=> Attributes', function() {
     const post = new Post({ title: 'Untitled' })
     post.attribute('title', undefined)
     assert.equal(post.attribute('title'), null)
+    // should return this
+    assert.equal(post.attribute('title', 'Untitled'), post)
   })
 
   it('bone.attribute(unset attribute, value)', async function() {
