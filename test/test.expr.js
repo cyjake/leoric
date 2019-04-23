@@ -3,7 +3,61 @@
 const assert = require('assert').strict
 const { parseExpr, parseExprList } = require('../lib/expr')
 
-describe('=> parse indentifier', function() {
+function assertExpr(str, ast) {
+  assert.deepEqual(parseExpr(str), ast)
+  // remove unnecessary spaces and test again
+  assert.deepEqual(parseExpr(str.replace(/\s*([-+*\/~^%!<>,=&|])\s*/g, '$1')), ast)
+}
+
+describe('=> parse literals', function() {
+  it('parse NULL', function() {
+    assert.deepEqual(parseExpr('NULL'), { type: 'literal', value: null })
+  })
+
+  it('parse number', function() {
+    assert.deepEqual(parseExpr('1'), { type: 'literal', value: 1 })
+  })
+
+  it('parse string', function() {
+    assert.deepEqual(parseExpr('"a"'), { type: 'literal', value: 'a' })
+    assert.deepEqual(parseExpr("'b'"), { type: 'literal', value: 'b' })
+  })
+
+  it('parse number[]', function() {
+    assert.deepEqual(
+      parseExpr('a in (1, 2, 3)'),
+      { type: 'op', name: 'in', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: [1, 2, 3] } ] }
+    )
+  })
+
+  it('parse string[]', function() {
+    assert.deepEqual(
+      parseExpr('a in ("foo", "bar")'),
+      { type: 'op', name: 'in', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: ['foo', 'bar'] } ] }
+    )
+  })
+})
+
+describe('=> parse wildcard', function() {
+  it('parse select *', function() {
+    assert.deepEqual(parseExpr('*'), { type: 'wildcard' })
+  })
+
+  it('parse select count(*) as count', function() {
+    assert.deepEqual(
+      parseExpr('count(*) as count'),
+      { type: 'alias', value: 'count', args:
+        [ { type: 'func', name: 'count', args:
+            [ { type: 'wildcard' } ] } ] }
+    )
+  })
+})
+
+describe('=> parse identifiers', function() {
   it('parse identifiers', function() {
     assert.deepEqual(
       parseExpr('createdAt'),
@@ -59,23 +113,81 @@ describe('=> parse modifier', function() {
 describe('=> parse unary operators', function() {
   it('parse NOT', function() {
     assert.deepEqual(
+      parseExpr('NOT a'),
+      { type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
+
+    assert.deepEqual(
       parseExpr('NOT 1'),
       { type: 'op', name: 'not', args: [ { type: 'literal', value: 1 } ] }
     )
   })
 
   it('parse !', function() {
-    assert.deepEqual(
-      parseExpr('! (a > 1)'),
+    assertExpr(
+      '! a',
+      { type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] }
+    )
+
+    assertExpr(
+      '! (a > 1)',
       { type: 'op', name: 'not', args:
         [ { type: 'op', name: '>', args:
             [ { type: 'id', value: 'a' },
               { type: 'literal', value: 1 } ] } ] }
     )
   })
+
+  it('parse unary minus', function() {
+    assertExpr('- 1', { type: 'literal', value: -1 })
+    assertExpr(
+      '- a',
+      { type: 'op', name: '-', args:
+        [ { type: 'id', value: 'a' } ] }
+    )
+    assertExpr(
+      '- (1 + 1)',
+      { type: 'op', name: '-', args:
+        [ { type: 'op', name: '+', args:
+            [ { type: 'literal', value: 1 },
+              { type: 'literal', value: 1 } ] } ] }
+    )
+  })
+
+  it('parse ~', function() {
+    assertExpr(
+      '~ (1 + 1)',
+      { type: 'op', name: '~', args:
+        [ { type: 'op', name: '+', args:
+            [ { type: 'literal', value: 1 },
+              { type: 'literal', value: 1 } ] } ] }
+    )
+  })
 })
 
 describe('=> parse comparison operators', function() {
+  it('parse =', function() {
+    assertExpr(
+      'a = 1',
+      { type: 'op', name: '=', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    )
+  })
+
+  it('parse == should throw unexpected token', function() {
+    assert.throws(() => parseExpr('a == 1'), /unexpected token =/i)
+    assert.throws(() => parseExpr('a % 2 == -1'), /unexpected token =/i)
+  })
+
+  it('parse !=', function() {
+    assertExpr(
+      'a != 1',
+      { type: 'op', name: '!=', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    )
+  })
+
   it('parse LIKE', function() {
     assert.deepEqual(
       parseExpr('title LIKE "%Post%"'),
@@ -86,8 +198,8 @@ describe('=> parse comparison operators', function() {
   })
 
   it('parse IN', function() {
-    assert.deepEqual(
-      parseExpr('id in (1, 2, 3)'),
+    assertExpr(
+      'id in (1, 2, 3)',
       { type: 'op', name: 'in', args:
         [ { type: 'id', value: 'id' },
           { type: 'literal',
@@ -136,23 +248,19 @@ describe('=> parse comparison operators', function() {
 
 describe('=> parse logical operators', function() {
   it('parse AND', function() {
-    const token = parseExpr('YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9')
-    assert.equal(token.type, 'op')
-    assert.equal(token.name, 'and')
-  })
-})
-
-describe('=> parse unary operators', function() {
-  it('parse !', function() {
-    assert.deepEqual(
-      parseExpr('! a'),
-      { type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
-  })
-
-  it('parse NOT', function() {
-    assert.deepEqual(
-      parseExpr('NOT a'),
-      { type: 'op', name: 'not', args: [ { type: 'id', value: 'a' } ] })
+    assertExpr(
+      'YEAR(createdAt) <= 2017 && MONTH(createdAt) BETWEEN 4 AND 9',
+      { type: 'op', name: 'and', args:
+        [ { type: 'op', name: '<=', args:
+            [ { type: 'func', name: 'year', args:
+                [ { type: 'id', value: 'createdAt' } ] },
+              { type: 'literal', value: 2017 } ] },
+          { type: 'op', name: 'between', args:
+            [ { type: 'func', name: 'month', args:
+                [ { type: 'id', value: 'createdAt' } ] },
+              { type: 'literal', value: 4 },
+              { type: 'literal', value: 9 } ] } ] }
+    )
   })
 })
 
@@ -186,8 +294,8 @@ describe('=> parse placeholder', function() {
 
 describe('=> parse compound expressions', function() {
   it('parse expressions with precedences', function() {
-    assert.deepEqual(
-      parseExpr('a = 1 && b = 2 && c = 3'),
+    assertExpr(
+      'a = 1 && b = 2 && c = 3',
       { type: 'op', name: 'and', args:
         [ { type: 'op', name: 'and', args:
             [ { type: 'op', name: '=', args:
@@ -217,19 +325,14 @@ describe('=> parse compound expressions', function() {
                 { type: 'literal', value: 2 } ] } ] } ]
     }
 
-    assert.deepEqual(
-      parseExpr('id > 100 OR (id != 1 AND id != 2)'),
-      expected)
-
-      // AND has higher precedence over OR, hence the parenthesis is omissible.
-    assert.deepEqual(
-      parseExpr('id > 100 OR id != 1 AND id != 2'),
-      expected)
+    assertExpr('id > 100 OR (id != 1 AND id != 2)', expected)
+    // AND has higher precedence over OR, hence the parenthesis is omissible.
+    assertExpr('id > 100 OR id != 1 AND id != 2', expected)
   })
 
   it('parse expressions begin with parenthesis', function() {
-    assert.deepEqual(
-      parseExpr('(foo = 1 || foo > 3) && bar = null'),
+    assertExpr(
+      '(foo = 1 || foo > 3) && bar = null',
       { type: 'op', name: 'and', args:
         [ { type: 'op', name: 'or', args:
             [ { type: 'op', name: '=', args:
@@ -245,8 +348,8 @@ describe('=> parse compound expressions', function() {
   })
 })
 
-describe('parse repeated select expr', function() {
-  it('parse select expr separated with comma', function() {
+describe('=> parse expression list', function() {
+  it('parse select expression separated with comma', function() {
     assert.deepEqual(
       parseExprList('foo, bar, YEAR(baz)'),
       [ { type: 'id', value: 'foo' },
@@ -257,11 +360,11 @@ describe('parse repeated select expr', function() {
   })
 })
 
-describe('parse arithmetic operators', function() {
+describe('=> parse arithmetic operators', function() {
   it('parse +-*/', function() {
     for (const op of ['+', '-', '*', '/']) {
-      assert.deepEqual(
-        parseExpr(`a ${op} b`),
+      assertExpr(
+        `a ${op} b`,
         { type: 'op', name: op,
           args:
           [ { type: 'id', value: 'a' },
@@ -271,28 +374,48 @@ describe('parse arithmetic operators', function() {
   })
 
   it('parse condition consists of arithmetic operators', function() {
-    assert.deepEqual(
-      parseExpr('width / height >= 520 / 280'),
+    assertExpr(
+      'width / height >= 520 / 280',
       { type: 'op', name: '>=', args:
-        [ { name: '/', type: 'op',
-            args:
+        [ { type: 'op', name: '/', args:
             [ { type: 'id', value: 'width' },
               { type: 'id', value: 'height' } ] },
-          { name: '/', type: 'op',
-            args:
+          { type: 'op', name: '/', args:
             [ { type: 'literal', value: 520 },
               { type: 'literal', value: 280 } ] } ] }
     )
   })
 
   it('parse compound +-*/ with precedences', function() {
-    assert.deepEqual(
-      parseExpr('a + b * c'),
-      { name: '+', type: 'op', args:
+    assertExpr(
+      'a + b * c',
+      { type: 'op', name: '+', args:
         [ { type: 'id', value: 'a' },
           { type: 'op', name: '*', args:
             [ { type: 'id', value: 'b' },
               { type: 'id', value: 'c' } ] } ] }
+    )
+
+    assertExpr(
+      'a * b + c',
+      { type: 'op', name: '+', args:
+        [ { type: 'op', name: '*', args:
+            [ { type: 'id', value: 'a' },
+              { type: 'id', value: 'b' } ] },
+          { type: 'id', value: 'c' } ] }
+    )
+  })
+
+  it('parse modulo operator with precendences', function() {
+    assertExpr(
+      'a % 2 - 1 = -1',
+      { type: 'op', name: '=', args:
+        [ { type: 'op', name: '-', args:
+            [ { type: 'op', name: '%', args:
+                [ { type: 'id', value: 'a' },
+                  { type: 'literal', value: 2 } ] },
+              { type: 'literal', value: 1 } ] },
+          { type: 'literal', value: -1 } ] }
     )
   })
 })

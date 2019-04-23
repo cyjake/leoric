@@ -55,6 +55,20 @@ describe('=> Select', function() {
     )
   })
 
+  it('where arithmetic conditions', function() {
+    assert.equal(
+      Post.where('id % 2 - 1 = -1').toString(),
+      'SELECT * FROM `articles` WHERE `id` % 2 - 1 = -1 AND `gmt_deleted` IS NULL'
+    )
+  })
+
+  it('where conditions with unary operators', function() {
+    assert.equal(
+      Post.where('~id = -1').toString(),
+      'SELECT * FROM `articles` WHERE ~ `id` = -1 AND `gmt_deleted` IS NULL'
+    )
+  })
+
   it('where in Spell', function() {
     assert.equal(
       Post.where({ id: TagMap.select('targetId').where({ tagId: 1 }) }).toString(),
@@ -62,7 +76,7 @@ describe('=> Select', function() {
     )
   })
 
-  it('count / group by / having /order', function() {
+  it('count / group by / having / order', function() {
     assert.equal(
       Post.group('authorId').count().having({ count: { $gt: 0 } }).order('count desc').toString(),
       'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 0 ORDER BY `count` DESC'

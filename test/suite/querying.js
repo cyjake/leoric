@@ -10,7 +10,6 @@ const Like = require('../models/like')
 const Post = require('../models/post')
 const Tag = require('../models/tag')
 const TagMap = require('../models/tagMap')
-const User = require('../models/user')
 
 describe('=> Query', function() {
   before(async function() {
@@ -362,180 +361,6 @@ describe('=> Scopes', function() {
   })
 })
 
-describe('=> Create', function() {
-  beforeEach(async function() {
-    await Post.remove({}, true)
-  })
-
-  it('Bone.create(values) should INSERT INTO table', async function() {
-    const post = await Post.create({ title: 'New Post' })
-    expect(post.id).to.be.above(0)
-    const foundPost = await Post.findOne({})
-    expect(foundPost.id).to.equal(post.id)
-    expect(foundPost.title).to.equal(post.title)
-  })
-
-  it('Bone.create(values) should handle timestamps', async function() {
-    const post = await Post.create({ title: 'New Post' })
-    expect(post.createdAt).to.be.a(Date)
-    expect(post.updatedAt).to.be.a(Date)
-    expect(post.updatedAt.getTime()).to.equal(post.createdAt.getTime())
-  })
-
-  it('bone.save() should INSERT INTO table when primaryKey is undefined', async function() {
-    const post = new Post({ title: 'New Post' })
-    await post.save()
-    expect(post.id).to.be.ok()
-    const foundPost = await Post.findOne({})
-    expect(foundPost.id).to.equal(post.id)
-    expect(foundPost.title).to.equal(post.title)
-  })
-
-  it('bone.save() should INSERT INTO table when primaryKey is defined but not saved yet', async function() {
-    const post = new Post({ id: 1, title: 'New Post' })
-    await post.save()
-    expect(post.id).to.equal(1)
-    const foundPost = await Post.findOne({ id: 1 })
-    expect(foundPost.title).to.equal(post.title)
-  })
-})
-
-describe('=> Update', function() {
-  beforeEach(async function() {
-    await Post.remove({}, true)
-    await User.remove({}, true)
-  })
-
-  it('Bone.update(where, values)', async function() {
-    const post = await Post.create({ title: 'New Post', createdAt: new Date(2010, 9, 11) })
-    await Post.update({ title: 'New Post' }, { title: 'Skeleton King' })
-    const foundPost = await Post.findOne({ title: 'Skeleton King' })
-    expect(await Post.findOne({ title: 'New Post' })).to.be(null)
-    expect(foundPost.id).to.equal(post.id)
-    expect(foundPost.updatedAt.getTime()).to.be.above(post.updatedAt.getTime())
-  })
-
-  it('Bone.update(where, values) can UPDATE multiple rows', async function() {
-    const posts = await Promise.all([
-      Post.create({ title: 'New Post' }),
-      Post.create({ title: 'New Post 2'})
-    ])
-    const affectedRows = await Post.update({ title: { $like: '%Post%' } }, { title: 'Untitled' })
-    expect(posts.length).to.equal(affectedRows)
-  })
-
-  it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
-    const post = await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2010, 9, 11) })
-    const updatedAtWas = post.updatedAt
-    post.title = 'Skeleton King'
-    await post.save()
-    const foundPost = await Post.findOne({ title: 'Skeleton King' })
-    expect(foundPost.id).to.equal(post.id)
-    expect(foundPost.updatedAt.getTime()).to.be.above(updatedAtWas.getTime())
-  })
-
-  it('bone.save() should throw if missing primary key', async function() {
-    await Post.create({ title: 'New Post' })
-    const post = await Post.findOne().select('title')
-    expect(() => post.id).to.throwError()
-    post.title = 'Skeleton King'
-    await assert.rejects(async () => {
-      await post.save()
-    }, /primary key/)
-  })
-
-  it('bone.save() should allow unset attributes be overridden', async function() {
-    await Post.create({ title: 'New Post'})
-    const post = await Post.select('id').first
-    expect(() => post.title).to.throwError()
-    post.title = 'Skeleton King'
-    await post.save()
-    expect(await Post.first).to.eql(post)
-  })
-
-  it('bone.save() should skip if no attributes were changed', async function() {
-    await Post.create({ title: 'New Post' })
-    const post = await Post.first
-    // affectedRows is only available through `bone.update()` directly
-    assert.equal(await post.update(), 0)
-    post.title = 'Skeleton King'
-    assert.equal(await post.update(), 1)
-    assert.deepEqual(await Post.first, post)
-  })
-
-  it('bone.save() should keep primary key intact', async function() {
-    const { id } = await User.create({ email: 'john@example.com', nickname: 'John Doe' })
-    const user = new User({ id, email: 'john@example.com', nickname: 'John Doe' })
-    await user.save()
-    expect(user.id).to.eql(id)
-    expect((await User.findOne({ email: 'john@example.com' })).id).to.eql(id)
-  })
-
-  it('bone.save() should always return itself', async function() {
-    const post = await new Post({ title: 'New Post' }).save()
-    assert(post instanceof Post)
-    post.title = 'Skeleton King'
-    assert.deepEqual(await post.save(), post)
-  })
-
-  it('bone.upsert() should skip if called directly with no attributes changed', async function() {
-    const post = await Post.create({ title: 'New Post' })
-    assert.equal(await post.upsert(), 0)
-  })
-
-  it('bone.upsert() should return affectedRows', async function() {
-    const post = new Post({ title: 'New Post' })
-    // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
-    assert.equal(await post.upsert(), 1)
-    post.title = 'Skeleton King'
-    // to pass sql analyse of database
-    post.createdAt = new Date()
-    // INSERT ... UPDATE returns 2 if the UPDATE branch were chosen in MySQL database
-    assert.equal(await post.upsert(), Post.pool.Leoric_type === 'mysql' ? 2 : 1)
-  })
-})
-
-describe('=> Remove', function() {
-  beforeEach(async function() {
-    await Post.remove({}, true)
-  })
-
-  it('Bone.remove(where) should fake removal if deletedAt presents', async function() {
-    const post = await Post.create({ title: 'New Post' })
-    await Post.remove({ title: 'New Post' })
-    const foundPost = await Post.findOne({ id: post.id })
-    expect(foundPost).to.be(null)
-    const removedPost = await Post.findOne({ id: post.id }).unscoped
-    expect(removedPost.id).to.equal(post.id)
-  })
-
-  it('Bone.remove(where) should DELETE if deletedAt does not present', async function() {
-    await TagMap.create({ targetId: 1, targetType: 1, tagId: 1 })
-    await TagMap.remove({ targetId: 1 })
-    expect((await TagMap.find()).length).to.eql(0)
-  })
-
-  it('Bone.remove(where, true) should DELETE rows no matter the presence of deletedAt', async function() {
-    await Post.create({ title: 'New Post' })
-    expect(await Post.remove({ title: 'New Post' }, true)).to.be(1)
-    expect(await Post.unscoped.all).to.empty()
-  })
-
-  it('bone.remove() should fake removal if deletedAt presents', async function() {
-    const post = await Post.create({ title: 'New Post' })
-    const effected = await post.remove()
-    expect(effected).to.eql(1)
-    expect((await Post.find({})).length).to.eql(0)
-  })
-
-  it('bone.remove() should DELETE if deletedAt does not present', async function() {
-    const tagMap = await TagMap.create({ targetId: 1, targetType: 1, tagId: 1 })
-    const effected = await tagMap.remove()
-    expect(effected).to.eql(1)
-    expect((await TagMap.find({})).length).to.eql(0)
-  })
-})
-
 describe('=> Count / Group / Having', function() {
   before(async function() {
     await Promise.all([
@@ -621,7 +446,7 @@ describe('=> Group / Join / Subqueries', function() {
     ])
   })
 
-  it('query / query.with() / query.count()', async function() {
+  it('Bone.join().count()', async function() {
     const query = Post.find({ title: ['Archangel Tyrael', 'New Post'], deletedAt: null })
     const [{ count }] = await query.count()
     const posts = await query.order('title').with('attachment')
@@ -643,6 +468,12 @@ describe('=> Group / Join / Subqueries', function() {
       { '': { count: 1 }, posts: { title: 'Archangel Tyrael' } },
       { '': { count: 2 }, posts: { title: 'Archbishop Lazarus' } }
     ])
+  })
+
+  // check if the ORDER fields are handled correctly when the attribute name and field name are different.
+  it('Bone.join().order()', async function() {
+    const query = Post.include('comments').order('updatedAt', 'desc').order('id', 'desc')
+    assert.deepEqual((await query)[0], await query.first)
   })
 })
 
@@ -860,5 +691,27 @@ describe('=> Date Functions', function() {
     expect(posts.map(post => post.title)).to.eql([
       'Leah', 'Archbishop Lazarus', 'New Post'
     ])
+  })
+})
+
+describe('=> Arithmetic Operators', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'New Post' }),
+      Post.create({ title: 'Archbishop Lazarus' }),
+      Post.create({ title: 'Leah' })
+    ])
+  })
+
+  after(async function() {
+    await Post.remove({}, true)
+  })
+
+  it('should support querying on calculated fields', async function() {
+    const oddPosts = await Post.find('id % 2 = 1')
+    const evenPosts = await Post.find('id % 2 - 1 = -1')
+    oddPosts.forEach(post => assert.equal(post.id % 2, 1))
+    evenPosts.forEach(post => assert.equal(post.id % 2, 0))
+    assert.deepEqual(oddPosts.concat(evenPosts), await Post.all)
   })
 })
