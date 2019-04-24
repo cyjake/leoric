@@ -1,6 +1,9 @@
 0.4.2 / 2019-03-29
 ==================
 
+  * New: `Spell#orWhere()` and `Spell#orHaving()`
+  * New: arithmetic operators
+  * New: unary operators such as unary minus `-` and bit invertion `~`
   * Fix: unset attribute should be overwritable
   * Fix: `attributeChanged()` should be false if attribute is unset and not overwritten
   * Fix: subclass with incomplete getter/setter should be complemented
@@ -10,9 +13,7 @@
   * Fix: `INSERT ... UPDATE` with `id = LAST_INSERT_ID(id)` in MySQL
   * Fix: `Model.find({ name: { $op1, $op2 } })` object conditions with multiple operators
   * Fix: prefixing result set with qualifiers if query contains join relations and is not dispatchable
-  * Fix: arithmetic operators
-  * Fix: unary operators
-  * Fix: `Spell.$get(index)` with LIMIT
+  * Fix: `Spell#$get(index)` with LIMIT
   * Docs: `Model.transaction()`
   * Docs: definition types with `index.d.ts`
 

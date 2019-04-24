@@ -76,8 +76,16 @@ declare class Spell {
   where(conditions: string, ...values: Literal[]): Spell & Promise<Bone>;
   where(conditions: WhereConditions): Spell & Promise<Bone>;
 
+  orWhere(conditions: string, ...values: Literal[]): Spell & Promise<Bone>;
+  orWhere(conditions: WhereConditions): Spell & Promise<Bone>;
+
   group(...names: string[]): Spell & Promise<ResultSet>;
+
+  having(conditions: string, ...values: Literal[]): Spell & Promise<ResultSet>;
   having(conditions: WhereConditions): Spell & Promise<ResultSet>;
+
+  orHaving(conditions: string, ...values: Literal[]): Spell & Promise<ResultSet>;
+  orHaving(conditions: WhereConditions): Spell & Promise<ResultSet>;
 
   order(name: string, order?: 'desc' | 'asc'): Spell & Promise<Bone>;
   order(opts: OrderOptions): Spell & Promise<Bone>;

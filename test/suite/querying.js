@@ -293,6 +293,11 @@ describe('=> Where', function() {
     expect(posts[1].title).to.equal('Archbishop Lazarus')
     expect(posts[1].authorId).to.equal(2)
   })
+
+  it('.orWhere(query, ...values)', async function() {
+    const posts = await Post.where('title = ?', 'New Post').orWhere('title = ?', 'Skeleton King').order('title')
+    assert.deepEqual(Array.from(posts, post => post.title), ['New Post', 'Skeleton King'])
+  })
 })
 
 describe('=> Select', function() {
@@ -392,6 +397,14 @@ describe('=> Count / Group / Having', function() {
     expect(await Post.group('title').count().having('count > ?', 1)).to.eql([
       { count: 2, title: 'New Post' }
     ])
+  })
+
+  it('Bone.group().having().orHaving()', async function() {
+    assert.deepEqual(
+      await Post.group('title').count().having('count > 1').orHaving('title = ?', 'Archangel Tyrael').order('count', 'desc'),
+      [ { count: 2, title: 'New Post' },
+        { count: 1, title: 'Archangel Tyrael'} ]
+    )
   })
 })
 

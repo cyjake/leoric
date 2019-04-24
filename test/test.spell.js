@@ -76,6 +76,20 @@ describe('=> Select', function() {
     )
   })
 
+  it('orWhere', function() {
+    assert.equal(
+      Post.where({ id: 1 }).where('title = ?', 'New Post').orWhere('title = ?', 'Leah').toString(),
+      "SELECT * FROM `articles` WHERE (`id` = 1 AND `title` = 'New Post' OR `title` = 'Leah') AND `gmt_deleted` IS NULL"
+    )
+  })
+
+  it('orHaving', function() {
+    assert.equal(
+      Post.count().group('authorId').having('count > ?', 10).orHaving('count = 5').toString(),
+      'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 OR `count` = 5'
+    )
+  })
+
   it('count / group by / having / order', function() {
     assert.equal(
       Post.group('authorId').count().having({ count: { $gt: 0 } }).order('count desc').toString(),
