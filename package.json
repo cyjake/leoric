@@ -4,6 +4,11 @@
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib"
+  ],
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
