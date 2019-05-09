@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require('assert').strict
 const expect = require('expect.js')
 
 const Attachment = require('../models/attachment')
@@ -134,5 +135,31 @@ describe('=> Associations', function() {
     expect(posts[0].title).to.be('Leah')
     expect(posts[1].title).to.be('Archbishop Lazarus')
     expect(posts[1].comments.map(comment => comment.content)).to.eql(comments.sort().reverse())
+  })
+})
+
+describe('scattered associations', function() {
+  before(async function() {
+    const post1 = await Post.create({ title: 'New Post' })
+    await Comment.create({ content: 'Abandon your foolish request!', articleId: post1.id })
+    const post2 = await Post.create({ title: 'New Post 2' })
+    await Comment.create({ content: 'You are too late to save the child!', articleId: post2.id })
+    // await new Promise(resolve => setTimeout(resolve, 10))
+    await Comment.create({ content: "Now you'll join them", articleId: post1.id })
+  })
+
+  after(async function() {
+    await Promise.all([
+      Post.remove({}, true),
+      Comment.remove({}, true)
+    ])
+  })
+
+  it('should return duplicated records', async function() {
+    const posts = await Post.all.with('comments')
+    assert.deepEqual(Array.from(posts[0].comments, comment => comment.content), [
+      'Abandon your foolish request!',
+      "Now you'll join them"
+    ])
   })
 })
