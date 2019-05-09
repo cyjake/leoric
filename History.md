@@ -1,4 +1,9 @@
-0.4.2 / 2019-03-29
+0.4.3 / 2019-05-09
+==================
+
+  * Fix: prevent Bone.dispatch from creating duplicated records of main table
+
+0.4.2 / 2019-04-26
 ==================
 
   * New: `Spell#orWhere()` and `Spell#orHaving()`
