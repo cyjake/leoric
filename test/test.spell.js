@@ -121,7 +121,7 @@ describe('=> Select', function() {
   it('predefined hasOne join', function() {
     assert.equal(
       Post.select('title', 'createdAt').with('attachment').toString(),
-      'SELECT `posts`.*, `attachment`.* FROM (SELECT `title`, `gmt_create`, `id` FROM `articles` WHERE `gmt_deleted` IS NULL) AS `posts` LEFT JOIN `attachments` AS `attachment` ON `posts`.`id` = `attachment`.`article_id`'
+      'SELECT `posts`.*, `attachment`.* FROM (SELECT `title`, `gmt_create`, `id` FROM `articles` WHERE `gmt_deleted` IS NULL) AS `posts` LEFT JOIN `attachments` AS `attachment` ON `posts`.`id` = `attachment`.`article_id` AND `attachment`.`gmt_deleted` IS NULL'
     )
   })
 
