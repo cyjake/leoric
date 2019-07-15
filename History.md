@@ -1,3 +1,8 @@
+0.4.4 / 2019-07-15
+==================
+
+  * Fix: append default scope when declaring relations, fixes #10
+
 0.4.3 / 2019-05-09
 ==================
 
