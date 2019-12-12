@@ -38,7 +38,9 @@
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
+    "babel-eslint": "^10.0.3",
     "coveralls": "^3.0.2",
+    "eslint": "^6.7.2",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.5.5",
     "mocha": "^5.2.0",

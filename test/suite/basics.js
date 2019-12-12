@@ -525,6 +525,14 @@ describe('=> Update', function() {
     // INSERT ... UPDATE returns 2 if the UPDATE branch were chosen in MySQL database
     assert.equal(await post.upsert(), Post.pool.Leoric_type === 'mysql' ? 2 : 1)
   })
+
+  it('bone.upsert() should not override existing primary key', async function() {
+    const { id } = await Post.create({ title: 'New Post' })
+    const post = new Post({ id, title: 'New Post 2' })
+    await post.upsert()
+    assert.equal(post.id, id)
+    assert.equal(post.title, 'New Post 2')
+  })
 })
 
 describe('=> Remove', function() {
