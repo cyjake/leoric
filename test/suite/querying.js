@@ -414,7 +414,7 @@ describe('=> Group / Join / Subqueries', function() {
       Post.create({ id: 1, title: 'New Post' }),
       Post.create({ id: 2, title: 'Archbishop Lazarus' }),
       Post.create({ id: 3, title: 'Archangel Tyrael' }),
-      Post.create({ id: 4, title: 'New Post' })
+      Post.create({ id: 4, title: 'New Post 2' })
     ])
 
     await Promise.all([
