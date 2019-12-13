@@ -1,3 +1,8 @@
+0.4.5 / 2019-12-14
+==================
+
+  * Fix: prevent primary key from being overridden with incorrect `LAST_INSERT_ID()`
+
 0.4.4 / 2019-07-15
 ==================
 
