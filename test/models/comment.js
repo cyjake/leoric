@@ -1,13 +1,13 @@
-'use strict'
+'use strict';
 
-const { Bone } = require('../..')
+const { Bone } = require('../..');
 
 class Comment extends Bone {
   static describe() {
     this.belongsTo('post', {
       foreignKey: 'articleId'
-    })
+    });
   }
 }
 
-module.exports = Comment
+module.exports = Comment;

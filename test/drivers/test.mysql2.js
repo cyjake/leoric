@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { connect } = require('..');
+const { connect } = require('../..');
 
 before(async function() {
   await connect({
@@ -9,9 +9,9 @@ before(async function() {
     host: 'localhost',
     user: 'root',
     database: 'leoric',
-    models: path.resolve(__dirname, './models')
+    models: path.resolve(__dirname, '../models')
   });
 });
 
-require('./suite');
-require('./suite/dates');
+require('../suite');
+require('../suite/dates');

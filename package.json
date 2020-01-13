@@ -12,18 +12,20 @@
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
-    "test": "for test in $(ls test/test.*.js); do DEBUG=leoric mocha --exit --timeout 5000 ${test} || exit $?; done",
-    "coveralls": "for test in $(ls test/test.*.js); do nyc --no-clean mocha --exit --timeout 5000 ${test} || exit $?; done && nyc report --reporter=text-lcov | coveralls"
+    "test": "for test in $(ls test/**/test.*.js); do DEBUG=leoric mocha --exit --timeout 5000 ${test} || exit $?; done",
+    "coveralls": "for test in $(ls test/**/test.*.js); do nyc --no-clean mocha --exit --timeout 5000 ${test} || exit $?; done && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/cyjake/leoric.git"
   },
   "keywords": [
+    "model",
     "mysql",
     "orm",
     "postgresql",
-    "query builder"
+    "query builder",
+    "sqlite"
   ],
   "author": "cyjake (http://cyj.me)",
   "license": "BSD-3-Clause",
@@ -40,14 +42,14 @@
     "@cara/minami": "^1.2.3",
     "babel-eslint": "^10.0.3",
     "coveralls": "^3.0.9",
-    "eslint": "^6.7.2",
+    "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.6.3",
     "mocha": "^5.2.0",
     "mysql": "^2.17.1",
     "mysql2": "^1.7.0",
     "nyc": "^13.1.0",
-    "pg": "^7.14.0",
+    "pg": "^7.17.1",
     "sqlite3": "^4.1.1"
   }
 }

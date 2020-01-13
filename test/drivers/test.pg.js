@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const path = require('path');
 
-const { connect } = require('..');
+const { connect } = require('../..');
 
 before(async function() {
   await connect({
@@ -11,15 +11,15 @@ before(async function() {
     host: '127.0.0.1',
     // user: 'root',
     database: 'leoric',
-    models: path.resolve(__dirname, './models')
+    models: path.resolve(__dirname, '../models')
   });
 });
 
-require('./suite');
-require('./suite/dates');
+require('../suite');
+require('../suite/dates');
 
 describe('=> Date Functions', function() {
-  const Post = require('./models/post');
+  const Post = require('../models/post');
 
   before(async function() {
     await Promise.all([

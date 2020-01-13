@@ -45,10 +45,10 @@ async function findModels(dir) {
 async function initModels(Model, models, opts) {
   const { database } = opts;
   const tables = models.map(model => model.physicTable);
-  const schema = await Model.driver.querySchemaInfo(database, tables);
+  const schemaInfo = await Model.driver.querySchemaInfo(database, tables);
 
   for (const model of models) {
-    model.describeTable(schema[model.physicTable]);
+    model.init(schemaInfo[model.physicTable]);
     Model[model.name] = model;
   }
 

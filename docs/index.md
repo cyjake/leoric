@@ -197,7 +197,7 @@ SELECT * FROM posts WHERE title LIKE '%Post%' OR author_id = 42;
     <td>
 {% highlight js %}
 Post
-  .select('count(id) as count', 'authorId')
+  .select('count(id) as count')
   .group('authorId')
   .having('count > 0')
   .order('count', 'desc')
@@ -216,11 +216,7 @@ ORDER BY count DESC;
   <tr>
     <td>
 {% highlight js %}
-Book
-  .average('price')
-  .select('genre')
-  .group('genre')
-  .having('average > 50')
+Book.average('price').group('genre').having('average > 50')
 {% endhighlight %}
     </td>
     <td>

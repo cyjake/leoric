@@ -1,19 +1,19 @@
-'use strict'
+'use strict';
 
-const { Bone } =require('../..')
+const { Bone } =require('../..');
 
 class Like extends Bone {
   static get table() {
-    return 'likes'
+    return 'likes';
   }
 
   static get physicTables() {
-    return ['likes']
+    return ['likes'];
   }
 
   static get shardingKey() {
-    return 'userId'
+    return 'userId';
   }
 }
 
-module.exports = Like
+module.exports = Like;
