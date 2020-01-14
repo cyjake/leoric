@@ -11,7 +11,7 @@
     "curly": [2, "multi-line"],
     "consistent-return": 0,
     "quotes": [2, "single", "avoid-escape"],
-    "semi": [2, "never"],
+    "semi": [2, "always"],
     "strict": ["error", "safe"],
     "no-const-assign": "error",
     "no-undef": 2,

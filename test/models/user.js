@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
-const { Bone } = require('../..')
+const { Bone } = require('../..');
 
-class User extends Bone {}
+class User extends Bone {};
 
-module.exports = User
+module.exports = User;
