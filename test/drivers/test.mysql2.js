@@ -15,3 +15,4 @@ before(async function() {
 
 require('../suite');
 require('../suite/dates');
+require('../adapters/sequelize');

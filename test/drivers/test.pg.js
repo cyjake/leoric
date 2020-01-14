@@ -17,6 +17,7 @@ before(async function() {
 
 require('../suite');
 require('../suite/dates');
+require('../adapters/sequelize');
 
 describe('=> Date Functions', function() {
   const Post = require('../models/post');
