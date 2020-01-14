@@ -144,7 +144,6 @@ describe('scattered associations', function() {
     await Comment.create({ content: 'Abandon your foolish request!', articleId: post1.id });
     const post2 = await Post.create({ title: 'New Post 2' });
     await Comment.create({ content: 'You are too late to save the child!', articleId: post2.id });
-    // await new Promise(resolve => setTimeout(resolve, 10))
     await Comment.create({ content: "Now you'll join them", articleId: post1.id });
   });
 

@@ -74,10 +74,10 @@ const connect = async function connect(opts = {}) {
     define: { underscored: false, ...opts.define },
   };
 
-  if (Model.driver) throw new Error('connected already');
-
-  Model.driver = new (findDriver(client))(client, restOpts);
-  Model.defineConfig = define;
+  if (!Model.driver) {
+    Model.driver = new (findDriver(client))(client, restOpts);
+    Model.defineConfig = define;
+  }
 
   if (define.underscored) {
     Model.timestamps = Object.keys(Model.timestamps).reduce((result, name) => {

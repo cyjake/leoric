@@ -8,6 +8,8 @@ const Note = Bone.define('Note', {
   title: STRING,
   body: TEXT,
   createdAt: DATE,
+}, {
+  tableName: 'notes',
 });
 
 module.exports = Note;
