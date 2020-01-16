@@ -7,18 +7,18 @@ const { connect } = require('../..');
 
 before(async function() {
   await connect({
-    host: 'localhost',
-    user: 'root',
+    client: 'postgres',
+    host: '127.0.0.1',
+    // user: 'root',
     database: 'leoric',
     models: path.resolve(__dirname, '../models')
   });
 });
 
-require('../suite');
-require('../suite/dates');
-require('../adapters/sequelize');
+require('./suite');
+require('./suite/dates');
 
-describe('=> Date Functions', function() {
+describe('=> Date functions (postgres)', function() {
   const Post = require('../models/post');
 
   before(async function() {
@@ -34,14 +34,13 @@ describe('=> Date Functions', function() {
   });
 
   it('GROUP BY MONTH(date)', async function() {
-    const result = await Post.select('MONTH(createdAt)')
+    const result = await Post.select('MONTH(createdAt')
       .group('MONTH(createdAt)')
       .count()
-      .order({ count: 'desc' });
-
+      .order('count', 'desc');
     assert.deepEqual(result, [
-      { count: 2, 'MONTH(`gmt_create`)': 5 },
-      { count: 1, 'MONTH(`gmt_create`)': 11 }
+      { count: 2, 'date_part': 5 },
+      { count: 1, 'date_part': 11 }
     ]);
   });
 });

@@ -2,13 +2,13 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
-const { Bone, Collection } = require('../..');
-const Attachment = require('../models/attachment');
-const Book = require('../models/book');
-const Comment = require('../models/comment');
-const Post = require('../models/post');
-const TagMap = require('../models/tagMap');
-const User = require('../models/user');
+const { Bone, Collection } = require('../../..');
+const Attachment = require('../../models/attachment');
+const Book = require('../../models/book');
+const Comment = require('../../models/comment');
+const Post = require('../../models/post');
+const TagMap = require('../../models/tagMap');
+const User = require('../../models/user');
 
 describe('=> Attributes', function() {
   before(async function() {
@@ -87,8 +87,8 @@ describe('=> Attributes', function() {
   // to override attribute types. Other usage of Bone.attribute have got no effect.
   it('Bone.attribute(name, meta) sets column meta, should not be public', async function() {
     Post.attribute('extra', { foo: 'bar' });
-    expect(Post.schema['extra']['foo']).to.eql('bar');
-    delete Post.schema['extra']['foo'];
+    expect(Post.attributes['extra']['foo']).to.eql('bar');
+    delete Post.attributes['extra']['foo'];
     expect(() => Post.attribute('non-existant attribtue', { foo: 'bar' })).to.throwException();
   });
 
@@ -128,9 +128,7 @@ describe('=> Accessors', function() {
     book.isbn = 9781449365035;
     expect(book.isbn).to.eql(9781449365035);
   });
-});
 
-describe('=> Config', function() {
   it('Bone.table should be the model name in plural', function() {
     expect(Comment.table).to.eql('comments');
   });
@@ -164,20 +162,6 @@ describe('=> Config', function() {
   it('Bone.primaryColumn should be Bone.primaryKey in snake_case', function() {
     expect(Post.primaryColumn).to.eql('id');
     expect(Book.primaryColumn).to.eql('isbn');
-  });
-
-  it('Bone.columns should contain the names of columns', function() {
-    expect(Post.columns).to.be.a(Array);
-    expect(Post.columns.length).to.be.above(1);
-    expect(Post.columns.includes('title')).to.be.ok();
-    expect(Post.columns.includes('gmt_create')).to.be.ok();
-  });
-
-  it('Bone.attributes should be the names of attributes', function() {
-    expect(Post.attributes).to.be.a(Array);
-    expect(Post.attributes.length).to.be.above(1);
-    expect(Post.attributes.includes('title')).to.be.ok();
-    expect(Post.attributes.includes('createdAt')).to.be.ok();
   });
 });
 
@@ -256,7 +240,7 @@ describe('=> Integration', function() {
     assert(!post.toJSON().hasOwnProperty('content'));
     assert(post.toObject().hasOwnProperty('content'));
     assert.equal(post.toObject().content, null);
-    assert.deepEqual(Object.keys(post.toObject()), Post.attributes);
+    assert.deepEqual(Object.keys(post.toObject()), Object.keys(Post.attributes));
   });
 
   // the other difference between `bone.toJSON()` and `bone.toObject()`
@@ -271,7 +255,7 @@ describe('=> Integration', function() {
     const post = await Post.first.with('comments');
     const { comments } = post.toObject();
     assert(comments.every(comment => !(comment instanceof Collection)));
-    assert.deepEqual(Object.keys(comments[0]), Comment.attributes);
+    assert.deepEqual(Object.keys(comments[0]), Object.keys(Comment.attributes));
   });
 });
 

@@ -398,7 +398,7 @@ declare class Bone {
 }
 
 interface ConnectOptions {
-  client?: 'mysql' | 'mysql2' | 'pg';
+  client?: 'mysql' | 'mysql2' | 'postgres';
   host: string;
   user: string;
   database: string;

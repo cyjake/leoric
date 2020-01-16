@@ -36,12 +36,12 @@
     "debug": "^3.1.0",
     "deep-equal": "^1.1.1",
     "pluralize": "^7.0.0",
-    "sqlstring": "^2.3.0"
+    "sqlstring": "^2.3.0",
+    "strftime": "^0.10.0"
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
     "babel-eslint": "^10.0.3",
-    "coveralls": "^3.0.9",
     "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.6.3",

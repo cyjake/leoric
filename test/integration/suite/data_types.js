@@ -1,13 +1,19 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Note = require('../models/note');
+const { Bone } = require('../../..');
+const { INTEGER, STRING, DATE, TEXT } = Bone;
 
-const { STRING } = Note;
+const Note = Bone.define('Note', {
+  id: INTEGER,
+  title: STRING,
+  body: TEXT,
+  createdAt: DATE,
+});
 
 describe('=> Data Types', () => {
   it('define attributes', async () => {
-    assert.deepEqual(Note.definitions.title, {
+    assert.deepEqual(Note.attributes.title, {
       allowNull: true,
       columnName: 'title',
       dataType: STRING,

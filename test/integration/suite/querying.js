@@ -3,13 +3,13 @@
 const assert = require('assert').strict;
 const expect = require('expect.js');
 
-const Attachment = require('../models/attachment');
-const Book = require('../models/book');
-const Comment = require('../models/comment');
-const Like = require('../models/like');
-const Post = require('../models/post');
-const Tag = require('../models/tag');
-const TagMap = require('../models/tagMap');
+const Attachment = require('../../models/attachment');
+const Book = require('../../models/book');
+const Comment = require('../../models/comment');
+const Like = require('../../models/like');
+const Post = require('../../models/post');
+const Tag = require('../../models/tag');
+const TagMap = require('../../models/tagMap');
 
 describe('=> Query', function() {
   before(async function() {
@@ -381,8 +381,8 @@ describe('=> Count / Group / Having', function() {
   });
 
   it('Bone.count()', async function() {
-    expect(await Post.count()).to.eql([ { count: 4 } ]);
-    expect(await Post.where('title like "Arch%"').count()).to.eql([ { count: 2 } ]);
+    expect(await Post.count()).to.eql(4);
+    expect(await Post.where('title like "Arch%"').count()).to.eql(2);
   });
 
   it('Bone.group().count()', async function() {
@@ -471,7 +471,7 @@ describe('=> Group / Join / Subqueries', function() {
 
   it('Bone.join().count()', async function() {
     const query = Post.find({ title: ['Archangel Tyrael', 'New Post'] });
-    const [{ count }] = await query.count();
+    const count = await query.count();
     const posts = await query.order('title').with('attachment');
     expect(posts.length).to.equal(count);
     expect(posts[0]).to.be.a(Post);
@@ -521,27 +521,27 @@ describe('=> Calculations', function() {
   });
 
   it('Bone.count() should count records', async function() {
-    const [ { count } ] = await Book.count();
+    const count = await Book.count();
     expect(count).to.equal(3);
   });
 
   it('Bone.average() should return the average of existing records', async function() {
-    const [ { average } ] = await Book.average('price');
+    const average = await Book.average('price');
     expect(Math.abs((22.95 + 29.95 + 21) / 3 - average)).to.be.within(0, 1);
   });
 
   it('Bone.minimum() should return the minimum value of existing records', async function() {
-    const [ { minimum } ] = await Book.minimum('price');
+    const minimum = await Book.minimum('price');
     expect(parseFloat(minimum)).to.equal(21);
   });
 
   it('Bone.maximum() should return the maximum value of existing records', async function() {
-    const [ { maximum } ] = await Book.maximum('price');
+    const maximum = await Book.maximum('price');
     expect(Math.floor(maximum)).to.equal(Math.floor(29.95));
   });
 
   it('Bone.sum()', async function() {
-    const [ { sum } ] = await Book.sum('price');
+    const sum = await Book.sum('price');
     expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21));
   });
 });

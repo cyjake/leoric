@@ -1,10 +1,10 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Post = require('../models/post');
+const Post = require('../../models/post');
 
 // https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html
-describe('=> Date Functions', function() {
+describe('=> Date functions', function() {
   before(async function() {
     await Promise.all([
       Post.create({ title: 'New Post', createdAt: new Date(2012, 4, 15) }),

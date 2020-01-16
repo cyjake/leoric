@@ -3,11 +3,11 @@
 const assert = require('assert').strict;
 const expect = require('expect.js');
 
-const Attachment = require('../models/attachment');
-const Comment = require('../models/comment');
-const Post = require('../models/post');
-const Tag = require('../models/tag');
-const TagMap = require('../models/tagMap');
+const Attachment = require('../../models/attachment');
+const Comment = require('../../models/comment');
+const Post = require('../../models/post');
+const Tag = require('../../models/tag');
+const TagMap = require('../../models/tagMap');
 
 describe('=> Associations', function() {
   // http://diablo.wikia.com/wiki/Archbishop_Lazarus

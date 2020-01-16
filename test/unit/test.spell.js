@@ -1,15 +1,16 @@
 'use strict';
 
 const assert = require('assert').strict;
+const path = require('path');
 
-const { connect } = require('..');
-const Post = require('./models/post');
-const TagMap = require('./models/tagMap');
-const Comment = require('./models/comment');
+const { connect } = require('../..');
+const Post = require('../models/post');
+const TagMap = require('../models/tagMap');
+const Comment = require('../models/comment');
 
 before(async function() {
   await connect({
-    models: `${__dirname}/models`,
+    models: path.resolve(__dirname, '../models'),
     database: 'leoric',
     user: 'root'
   });

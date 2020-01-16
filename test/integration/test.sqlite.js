@@ -11,5 +11,4 @@ before(async function() {
   });
 });
 
-require('../suite');
-require('../adapters/sequelize');
+require('./suite');
