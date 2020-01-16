@@ -16,7 +16,7 @@ describe('connect', function() {
   });
 
   it('connect models passed in opts.models', async function() {
-    const Book = require('./models/book');
+    const Book = require('../models/book');
     await connect({
       user: 'root',
       database: 'leoric',
@@ -30,9 +30,9 @@ describe('connect', function() {
     await connect({
       user: 'root',
       database: 'leoric',
-      models: path.join(__dirname, 'models'),
+      models: path.resolve(__dirname, '../models'),
     });
-    const User = require('./models/user');
+    const User = require('../models/user');
     assert(User.synchronized);
   });
 
