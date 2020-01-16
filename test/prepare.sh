@@ -1,3 +1,7 @@
+if [ $GITHUB_ACTIONS = true ]; then
+  mysqladmin -u root -proot password '';
+fi
+
 ##
 # MySQL
 cat <<EOF | mysql -uroot
