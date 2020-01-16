@@ -8,7 +8,8 @@ const { connect } = require('../..');
 before(async function() {
   await connect({
     client: 'postgres',
-    host: '127.0.0.1',
+    host: process.env.POSTGRES_HOST || '127.0.0.1',
+    port: process.env.POSTGRES_PORT,
     // user: 'root',
     database: 'leoric',
     models: path.resolve(__dirname, '../models')

@@ -1,4 +1,4 @@
-if [ $GITHUB_ACTIONS = true ]; then
+if [ ${GITHUB_ACTIONS:-false} = true ]; then
   mysqladmin -u root -proot password '';
 fi
 
@@ -19,7 +19,7 @@ cat test/dumpfile.sql |
   sed 's/tinyint(1) DEFAULT 0/boolean DEFAULT false/g' |
   sed -E 's/int\([[:digit:]]+\)/int/g' |
   sed 's/datetime/timestamp/g' |
-  psql -d leoric
+  psql -p ${POSTGRES_PORT:-5432} -d leoric
 
 ##
 # SQLite
