@@ -12,8 +12,8 @@
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
-    "test": "for test in $(ls test/**/test.*.js); do DEBUG=leoric mocha --exit --timeout 5000 ${test} || exit $?; done",
-    "coveralls": "for test in $(ls test/**/test.*.js); do nyc --no-clean mocha --exit --timeout 5000 ${test} || exit $?; done && nyc report --reporter=text-lcov | coveralls"
+    "test": "./test/start.sh",
+    "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -36,12 +36,12 @@
     "debug": "^3.1.0",
     "deep-equal": "^1.1.1",
     "pluralize": "^7.0.0",
-    "sqlstring": "^2.3.0"
+    "sqlstring": "^2.3.0",
+    "strftime": "^0.10.0"
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
     "babel-eslint": "^10.0.3",
-    "coveralls": "^3.0.9",
     "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
     "jsdoc": "^3.6.3",
