@@ -10,7 +10,7 @@ before(async function() {
     client: 'postgres',
     host: process.env.POSTGRES_HOST || '127.0.0.1',
     port: process.env.POSTGRES_PORT,
-    // user: 'root',
+    user: process.env.POSTGRES_USER || '',
     database: 'leoric',
     models: path.resolve(__dirname, '../models')
   });
