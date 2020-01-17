@@ -1,15 +1,42 @@
 #!/bin/bash
 
+args=
+
 function run {
-  text=$1;
-  echo "> DEBUG=leoric mocha --exit --timeout 5000 ${test}";
-  DEBUG=leoric mocha --exit --timeout 5000 ${test} || exit $?;
+  file=$1;
+  echo ""
+  echo "> DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args}";
+  DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args} || exit $?;
 }
 
 ##
 # Run unit tests first in order catch bugs as soon as possible
-for test in $(ls test/unit/{,drivers}/test.*.js); do run ${test}; done
+function unit {
+  for file in $(ls test/unit/{,drivers/}test.*.js); do run ${file}; done
+}
 
 ##
 # integration tests
-for test in $(ls test/integration/test.*.js); do run ${test}; done
+function integration {
+  for file in $(ls test/integration/test.*.js); do run ${file}; done
+}
+
+case $1 in
+  unit)
+    args="${@:2}"
+    unit
+    ;;
+  integration)
+    args="${@:2}"
+    integration
+    ;;
+  *.js)
+    args="${@:1}"
+    run $1
+    ;;
+  *)
+    args="$@"
+    unit
+    integration
+    ;;
+esac
