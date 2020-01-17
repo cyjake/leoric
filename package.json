@@ -13,6 +13,7 @@
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
     "test": "./test/start.sh",
+    "test-local": "./test/start.sh",
     "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
