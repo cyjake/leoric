@@ -12,7 +12,7 @@ before(async function() {
     port: process.env.POSTGRES_PORT,
     user: process.env.POSTGRES_USER || '',
     database: 'leoric',
-    models: path.resolve(__dirname, '../models')
+    models: path.resolve(__dirname, '../models'),
   });
 });
 
