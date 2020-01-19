@@ -1,10 +1,10 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone } = require('../../..');
+const { Bone, DataTypes } = require('../../..');
 const { checkDefinitions } = require('../helpers');
 
-const { STRING, TEXT } = Bone;
+const { INTEGER, STRING, TEXT } = DataTypes;
 
 describe('=> Table definitions', () => {
   beforeEach(async () => {
@@ -24,9 +24,6 @@ describe('=> Table definitions', () => {
   });
 
   it('should be able to alter table', async () => {
-    // modify column not ready yet
-    if (Bone.driver.type === 'sqlite') return;
-
     await Bone.driver.createTable('notes', {
       title: { dataType: STRING, allowNull: false },
     });
@@ -57,9 +54,6 @@ describe('=> Table definitions', () => {
   });
 
   it('should be able to change column', async () => {
-    // modify column not ready yet
-    if (Bone.driver.type === 'sqlite') return;
-
     await Bone.driver.createTable('notes', {
       title: { dataType: STRING, allowNull: false },
     });
@@ -80,7 +74,8 @@ describe('=> Bone.sync()', () => {
   });
 
   it('should create table if not exists', async () => {
-    const Note = Bone.define('Note', { title: STRING, body: TEXT });
+    class Note extends Bone {};
+    Note.init({ title: STRING, body: TEXT });
     assert.equal(Note.table, 'notes');
     assert(!Note.synchronized);
 
@@ -95,7 +90,8 @@ describe('=> Bone.sync()', () => {
     await Bone.driver.createTable('notes', {
       title: { dataType: STRING, allowNull: false },
     });
-    const Note = Bone.define('Note', { title: STRING, body: TEXT });
+    class Note extends Bone {};
+    Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
 
     await Note.sync();
@@ -113,7 +109,8 @@ describe('=> Bone.sync()', () => {
       title: { dataType: STRING, allowNull: false },
       body: { dataType: STRING },
     });
-    const Note = Bone.define('Note', { title: STRING, body: TEXT });
+    class Note extends Bone {};
+    Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
 
     await Note.sync();
@@ -124,4 +121,23 @@ describe('=> Bone.sync()', () => {
   });
 });
 
+describe('=> Bone.drop()', () => {
+  beforeEach(async () => {
+    await Bone.driver.query('CREATE TABLE IF NOT EXISTS temp (foo VARCHAR(255))');
+  });
 
+  it('should be able to drop table', async () => {
+    class Temp extends Bone {};
+    Temp.init({
+      id: INTEGER,
+      foo: STRING,
+    }, { tableName: 'temp' });
+
+    await checkDefinitions('temp', {
+      foo: { dataType: 'varchar'},
+    });
+
+    await Temp.drop();
+    await checkDefinitions('temp', null);
+  });
+});

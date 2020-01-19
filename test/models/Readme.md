@@ -19,13 +19,8 @@ In order to separate concerns, models in Sequelize style are mostly defined on t
 ```js
 const { connect, Bone } = require('leoric');
 
-// old school
-const { STRING, TEXT } = Bone;
-const Note = Bone.define('Note', { title: STRING, body: TEXT });
-
-// or with class
 class Memo extends Bone {}
-Memoi.init({ title: STRING, body: TEXT });
+Memo.init({ title: STRING, body: TEXT });
 
 // connect to database
 await connect({ models: [ Note, Memo ]});

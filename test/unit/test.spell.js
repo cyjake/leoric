@@ -21,7 +21,7 @@ describe('=> Insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).toString(),
-      "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
     );
   });
 
@@ -29,7 +29,7 @@ describe('=> Insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
-      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `title` = 'New Post', `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000'"
+      "INSERT INTO `articles` (`id`, `gmt_create`, `gmt_modified`, `title`) VALUES (1, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000', `title` = 'New Post'"
     );
   });
 });
@@ -39,6 +39,38 @@ describe('=> Select', function() {
     assert.equal(
       Post.where({ title: { $like: '%Post%' } }).toString(),
       "SELECT * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+    );
+  });
+
+  it('where object condition with logical operator', () => {
+    assert.equal(
+      Post.where({
+        $or: {
+          title: { $like: '%Cain%' },
+          content: { $like: '%Leah%' },
+        },
+      }).toString(),
+      "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' OR `content` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $or: [
+          { title: { $like: '%Cain%' } },
+          { title: { $like: '%Leah%' } },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' OR `title` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $or: [
+          { title: 'Leah' },
+          { title: { $like: '%Diablo%' } },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` LIKE '%Diablo%') AND `gmt_deleted` IS NULL"
     );
   });
 

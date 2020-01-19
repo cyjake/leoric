@@ -22,7 +22,7 @@ class Post extends Bone {
   }
 }
 
-async function() {
+async function main() {
   // connect models to database
   await connect({ host: 'example.com', models: [Post], /* among other options */ })
 
