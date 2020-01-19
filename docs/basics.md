@@ -181,7 +181,7 @@ async function() {
 There are two ways in Leoric to INSERT records into database. We can do this either by calling `Model.create()` with one blow:
 
 ```js
-const shop = await Shop.create({ name: 'Barracks', credit: 10000, type: 'taobao' })
+const shop = await Shop.create({ name: 'Barracks', credit: 10000 })
 ```
 
 or by instantiating a model from scratch, settings the attributes, the `model.save()` it at last:
@@ -189,14 +189,13 @@ or by instantiating a model from scratch, settings the attributes, the `model.sa
 ```js
 const shop = new Shop({ name: 'Barracks' })
 shop.credit = 10000
-shop.type = 'taobao'
 await shop.save()
 ```
 
 The SQL equivalent of both is:
 
 ```sql
-INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000, 'taobao');
+INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000);
 ```
 
 ### Read

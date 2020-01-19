@@ -1,13 +1,26 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone } = require('../../..');
-const sequelize = require('../../../lib/adapters/sequelize');
-const Book = sequelize(require('../../models/book'));
-const Post = sequelize(require('../../models/post'));
-const { checkDefinitions } = require('../helpers');
+const { Bone, connect, sequelize} = require('../../..');
 
-describe('=> Sequelize Adapter', () => {
+describe('=> Sequelize adapter', () => {
+  const Spine = sequelize(Bone);
+  class Book extends Spine {};
+  class Post extends Spine {
+    static get table() {
+      return 'articles';
+    }
+  };
+
+  before(async () => {
+    await connect({
+      Model: Spine,
+      client: 'sqlite',
+      database: '/tmp/leoric.sqlite3',
+      models: [ Book, Post ],
+    });
+  });
+
   beforeEach(async () => {
     await Book.remove({});
     await Post.remove({});
@@ -84,23 +97,6 @@ describe('=> Sequelize Adapter', () => {
     ]);
     const rowCount = await Post.destroy();
     assert.equal(rowCount, 2);
-  });
-
-  it('Model.drop()', async () => {
-    const { INTEGER, STRING } = Bone;
-    const Temp = Bone.define('Temp', {
-      id: INTEGER,
-      foo: STRING,
-    }, { tableName: 'temp' });
-
-    // let schemaInfo = await Temp.driver.querySchemaInfo('leoric', [ Temp.table ]);
-    // Temp.init(schemaInfo[Temp.table]);  // manual connect
-    // await Temp.sync();
-    // assert.ok('id' in Temp.schema);
-    // assert.ok('foo' in Temp.schema);
-
-    await Temp.drop();
-    await checkDefinitions('temp', null);
   });
 
   it('Model.findAll()', async () => {

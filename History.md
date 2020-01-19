@@ -1,3 +1,20 @@
+0.5.0 / 2020-02-??
+==================
+
+  * New: `Bone.sync()` to synchronize model with database
+  * New: `Bone.createMigrationFile()` to create migration file
+  * New: `Bone.migrate()` to run migrations
+  * New: `require('leoric')` now exports a class called `Realm` (but not necessarily) to instantiate and connect multiple databases
+  * New: `realm.define()` to define models in an old fashioned way
+  * New: `realm.connect()` to connect to database
+  * New: SQLite support without hacking node-sqlite3
+  * New: `Bone.DataTypes` for type references
+  * New: `Bone.init()` to initialize models
+  * New: an adaptor to use Leoric in (partially) Sequelize complaint API
+  * Refactor: a complete re-write of JOIN queries
+  * Refactor: added `Bone.driver` to better encapsulate and planish database nuances
+
+
 0.4.5 / 2019-12-14
 ==================
 
