@@ -11,6 +11,18 @@ const driver = new SqliteDriver('sqlite', {
 });
 
 describe('=> SQLite driver', () => {
+  it('driver.logger', async () => {
+    const result = [];
+    const driver2 = new SqliteDriver('sqlite', {
+      database: '/tmp/leoric.sqlite3',
+      logger(sql) {
+        result.push(sql);
+      },
+    });
+    await driver2.query('SELECT 1');
+    assert.equal(result[0], 'SELECT 1');
+  });
+
   it('driver.querySchemaInfo()', async () => {
     const schemaInfo = await driver.querySchemaInfo(null, 'articles');
     assert.ok(schemaInfo.articles);

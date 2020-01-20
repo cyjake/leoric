@@ -102,4 +102,19 @@ describe('=> Sequelize adapter', () => {
   it('Model.findAll()', async () => {
 
   });
+
+  it('model.restore()', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    await post.restore();
+    assert.ok(await Post.first);
+  });
+
+  it('model.update()', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await post.update({ title: 'By three thy way opens' });
+    const result = await Post.first;
+    assert.equal(result.title, 'By three thy way opens');
+  });
 });
