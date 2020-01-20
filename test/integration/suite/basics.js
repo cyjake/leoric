@@ -83,13 +83,11 @@ describe('=> Attributes', function() {
     expect(post.attributeChanged('extra')).to.be(true);
   });
 
-  // This test case might be misleading. Model authors can use Bone.attribute(name, { type })
-  // to override attribute types. Other usage of Bone.attribute have got no effect.
   it('Bone.attribute(name, meta) sets column meta, should not be public', async function() {
-    Post.attribute('extra', { foo: 'bar' });
-    expect(Post.attributes['extra']['foo']).to.eql('bar');
-    delete Post.attributes['extra']['foo'];
-    expect(() => Post.attribute('non-existant attribtue', { foo: 'bar' })).to.throwException();
+    Post.attribute('extra', { type: String });
+    expect(Post.attributes.extra.jsType).to.eql(String);
+    Post.attribute('extra', { type: JSON });
+    expect(() => Post.attribute('missing', { type: JSON })).to.throwException();
   });
 
   it('Bone.renameAttribute(name, newName) should throw if newName is taken', async function() {
@@ -104,6 +102,14 @@ describe('=> Attributes', function() {
     Post.renameAttribute('thumbnail', 'thumb');
     const post2 = await Post.findOne({ thumb: { $ne: null } });
     expect(post2.thumb).to.be.ok();
+  });
+
+  it('bone.reload()', async function() {
+    const post = await Post.first;
+    await Post.update({ id: post.id }, { title: 'Tyrael' });
+    assert.equal(post.title, 'New Post');
+    await post.reload();
+    assert.equal(post.title, 'Tyrael');
   });
 });
 
@@ -281,26 +287,6 @@ describe('=> Type casting', function() {
   it('Bone.unalias(attribute)', function() {
     expect(Post.unalias('updatedAt')).to.eql('gmt_modified');
     expect(Post.unalias('title')).to.eql('title');
-  });
-
-  it('Bone.reflectType(type)', function() {
-    expect(Bone.reflectType('bigint')).to.be(Number);
-    expect(Bone.reflectType('smallint')).to.be(Number);
-    expect(Bone.reflectType('tinyint')).to.be(Number);
-    expect(Bone.reflectType('int')).to.be(Number);
-    expect(Bone.reflectType('datetime')).to.be(Date);
-    expect(Bone.reflectType('longtext')).to.be(String);
-    expect(Bone.reflectType('mediumtext')).to.be(String);
-    expect(Bone.reflectType('text')).to.be(String);
-    expect(Bone.reflectType('varchar')).to.be(String);
-    expect(Bone.reflectType('timestamp')).to.be(String);
-  });
-
-  it('Bone.reflectClass(ClassName)', function() {
-    expect(Post.reflectClass('Post')).to.be(Post);
-    expect(Post.reflectClass('Comment')).to.be(Comment);
-    expect(Post.reflectClass('Attachment')).to.be(Attachment);
-    expect(() => Post.reflectClass('NonExistantModel')).to.throwException();
   });
 
   it('Bone.instantiate(entry)', function() {

@@ -17,9 +17,10 @@ describe('=> Data Types', () => {
     assert.deepEqual(Note.attributes.title, {
       allowNull: true,
       columnName: 'title',
-      dataType: STRING,
+      dataType: 'varchar',
+      jsType: String,
+      type: STRING,
       defaultValue: null,
-      type: String,
     });
   });
 
