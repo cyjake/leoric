@@ -34,6 +34,12 @@ To be more specific, we can filter test files and cases:
 $ npm run test-local -- test/unit/test.connect.js --grep "should work"
 ```
 
+It is recommended that we start with unit tests first, such as:
+
+```bash
+$ npm run test-local -- test/unit/adapters/test.sequelize.js
+```
+
 ## How the code is organized
 
 TODO

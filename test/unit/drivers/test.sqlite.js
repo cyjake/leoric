@@ -26,8 +26,8 @@ describe('=> SQLite driver', () => {
   it('driver.createTable(table, definitions)', async () => {
     await driver.dropTable('notes');
     await driver.createTable('notes', {
-      id: { dataType: INTEGER, primaryKey: true, autoIncrement: true },
-      public: { dataType: INTEGER },
+      id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+      public: { type: INTEGER },
     });
   });
 });

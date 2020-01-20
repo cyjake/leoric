@@ -45,7 +45,21 @@ describe('=> Realm', () => {
     assert.equal(realm.options.define.createdAt, 'created_at');
   });
 
-  it('should be able to customize logger', async () => {
+  it('should be able to customize logger with function', async () => {
+    const queries = [];
+    const realm = new Realm({
+      user: 'root',
+      database: 'leoric',
+      logger(sql) {
+        queries.push(sql);
+      }
+    });
+    await realm.connect();
+    realm.driver.query('SELECT 1');
+    assert.equal(queries[0], 'SELECT 1');
+  });
+
+  it('should be able to customize logger with object', async () => {
     const queries = [];
     const realm = new Realm({
       user: 'root',
