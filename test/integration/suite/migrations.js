@@ -44,8 +44,8 @@ describe('=> Migrations', async () => {
 module.exports = {
   async up(driver, { STRING, TEXT }) {
     await driver.createTable('topics', {
-      title: { dataType: STRING, allowNull: false },
-      body: { dataType: TEXT },
+      title: { type: STRING, allowNull: false },
+      body: { type: TEXT },
     });
   },
 

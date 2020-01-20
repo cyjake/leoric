@@ -13,8 +13,8 @@ describe('=> Table definitions', () => {
 
   it('should be able to create table', async () => {
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
-      body: { dataType: TEXT },
+      title: { type: STRING, allowNull: false },
+      body: { type: TEXT },
     });
 
     await checkDefinitions('notes', {
@@ -25,13 +25,13 @@ describe('=> Table definitions', () => {
 
   it('should be able to alter table', async () => {
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
+      title: { type: STRING, allowNull: false },
     });
     await checkDefinitions('notes', { body: null });
 
     await Bone.driver.alterTable('notes', {
-      title: { exists: true, dataType: STRING, allowNull: true },
-      body: { dataType: TEXT },
+      title: { exists: true, type: STRING, allowNull: true },
+      body: { type: TEXT },
     });
 
     await checkDefinitions('notes', {
@@ -42,11 +42,11 @@ describe('=> Table definitions', () => {
 
   it('should be able to add column', async () => {
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
+      title: { type: STRING, allowNull: false },
     });
     await checkDefinitions('notes', { body: null });
 
-    await Bone.driver.addColumn('notes', 'body', { dataType: TEXT });
+    await Bone.driver.addColumn('notes', 'body', { type: TEXT });
     await checkDefinitions('notes', {
       title: { dataType: 'varchar', allowNull: false },
       body: { dataType: 'text' },
@@ -55,11 +55,11 @@ describe('=> Table definitions', () => {
 
   it('should be able to change column', async () => {
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
+      title: { type: STRING, allowNull: false },
     });
 
     await Bone.driver.changeColumn('notes', 'title', {
-      dataType: STRING,
+      type: STRING,
       allowNull: true
     });
     await checkDefinitions('notes', {
@@ -88,7 +88,7 @@ describe('=> Bone.sync()', () => {
 
   it('should add column if not exists', async () => {
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
+      title: { type: STRING, allowNull: false },
     });
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
@@ -106,8 +106,8 @@ describe('=> Bone.sync()', () => {
     if (Bone.driver.type === 'sqlite') return;
 
     await Bone.driver.createTable('notes', {
-      title: { dataType: STRING, allowNull: false },
-      body: { dataType: STRING },
+      title: { type: STRING, allowNull: false },
+      body: { type: STRING },
     });
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
