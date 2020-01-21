@@ -100,7 +100,63 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('Model.findAll()', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
 
+    let posts = await Post.findAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+    });
+    assert.equal(posts.length, 2);
+    assert.equal(posts[0].title, 'Tyrael');
+    assert.equal(posts[1].title, 'Leah');
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+      offset: 1,
+      limit: 2,
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+      limit: 1,
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Tyrael');
+
+    posts = await Post.findAll({
+      attributes: [ 'title' ],
+      where: { title: 'Leah' },
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+    assert.throws(() => posts[0].content);
+  });
+
+  it('Model.findAndCountAll()', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const { rows, count } = await Post.findAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+    });
+    assert.equal(rows.length, 1);
+    assert.equal(count, 1);
   });
 
   it('model.restore()', async () => {
