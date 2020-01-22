@@ -9,6 +9,7 @@ const { INTEGER, STRING, TEXT } = DataTypes;
 describe('=> Table definitions', () => {
   beforeEach(async () => {
     await Bone.driver.dropTable('notes');
+    await Bone.driver.dropTable('memos');
   });
 
   it('should be able to create table', async () => {
@@ -30,7 +31,7 @@ describe('=> Table definitions', () => {
     await checkDefinitions('notes', { body: null });
 
     await Bone.driver.alterTable('notes', {
-      title: { exists: true, type: STRING, allowNull: true },
+      title: { modify: true, type: STRING, allowNull: true },
       body: { type: TEXT },
     });
 
@@ -64,6 +65,47 @@ describe('=> Table definitions', () => {
     });
     await checkDefinitions('notes', {
       title: { dataType: 'varchar', allowNull: true },
+    });
+  });
+
+  it('should be able to remove column', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING },
+      body: { type: TEXT },
+    });
+
+    await Bone.driver.removeColumn('notes', 'title');
+    await checkDefinitions('notes', {
+      title: null,
+      body: { dataType: 'text' },
+     });
+  });
+
+  it('should be able to rename column', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING },
+      body: { type: TEXT },
+    });
+
+    await Bone.driver.renameColumn('notes', 'title', 'subject');
+    console.log(await Bone.driver.querySchemaInfo(null, 'notes'));
+    await checkDefinitions('notes', {
+      title: null,
+      subject: { dataType: 'varchar' },
+    });
+  });
+
+  it('should be table to rename table', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING },
+      body: { type: TEXT },
+    });
+
+    await Bone.driver.renameTable('notes', 'memos');
+    await checkDefinitions('notes', null);
+    await checkDefinitions('memos', {
+      title: { dataType: 'varchar' },
+      body: { dataType: 'text' },
     });
   });
 });
