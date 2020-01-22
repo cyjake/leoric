@@ -165,7 +165,8 @@ describe('=> Bone.sync()', () => {
 
 describe('=> Bone.drop()', () => {
   beforeEach(async () => {
-    await Bone.driver.query('CREATE TABLE IF NOT EXISTS temp (foo VARCHAR(255))');
+    await Bone.driver.query('DROP TABLE IF EXISTS temp');
+    await Bone.driver.query('CREATE TABLE temp (foo VARCHAR(255))');
   });
 
   it('should be able to drop table', async () => {
