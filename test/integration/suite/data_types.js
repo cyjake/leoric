@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('assert').strict;
+const strftime = require('strftime');
+
 const { Bone, DataTypes } = require('../../..');
 const { INTEGER, STRING, DATE, TEXT } = DataTypes;
 
@@ -35,18 +37,11 @@ describe('=> Data types', () => {
 
   it('DATE', async () => {
     const createdAt = new Date();
+    // milliseconds in different databases is a long story, just datetime for now
     createdAt.setMilliseconds(0);
     await Note.create({ title: 'Leah', createdAt });
     const note  = await Note.first;
-
     assert.deepEqual(note.createdAt, createdAt);
-    // avoid date values being displayed as integers in SQLite
-    const { rows } = await Note.driver.query('SELECT created_at FROM notes');
-    const { created_at } = rows[0];
-    assert.deepEqual(
-      created_at instanceof Date ? created_at : new Date(created_at),
-      createdAt
-    );
   });
 
   it('validate attributes', async () => {
