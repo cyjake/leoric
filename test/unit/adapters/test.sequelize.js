@@ -150,13 +150,23 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
 
-    const { rows, count } = await Post.findAll({
+    const { rows, count } = await Post.findAndCountAll({
       where: {
         title: { $like: '%ea%' },
       },
     });
     assert.equal(rows.length, 1);
     assert.equal(count, 1);
+  });
+
+  it('Model.findOne()', async () => {
+    const posts = await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const post = await Post.findOne(posts[1].id);
+    assert.equal(post.title, 'Tyrael');
   });
 
   it('model.restore()', async () => {

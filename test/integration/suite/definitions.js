@@ -88,7 +88,6 @@ describe('=> Table definitions', () => {
     });
 
     await Bone.driver.renameColumn('notes', 'title', 'subject');
-    console.log(await Bone.driver.querySchemaInfo(null, 'notes'));
     await checkDefinitions('notes', {
       title: null,
       subject: { dataType: 'varchar' },
@@ -144,9 +143,6 @@ describe('=> Bone.sync()', () => {
   });
 
   it('should change column if modified', async () => {
-    // modify column not ready yet
-    if (Bone.driver.type === 'sqlite') return;
-
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
       body: { type: STRING },
@@ -165,8 +161,7 @@ describe('=> Bone.sync()', () => {
 
 describe('=> Bone.drop()', () => {
   beforeEach(async () => {
-    await Bone.driver.query('DROP TABLE IF EXISTS temp');
-    await Bone.driver.query('CREATE TABLE temp (foo VARCHAR(255))');
+    await Bone.driver.dropTable('temp');
   });
 
   it('should be able to drop table', async () => {
@@ -176,6 +171,7 @@ describe('=> Bone.drop()', () => {
       foo: STRING,
     }, { tableName: 'temp' });
 
+    await Temp.sync();
     await checkDefinitions('temp', {
       foo: { dataType: 'varchar'},
     });
