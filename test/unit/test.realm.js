@@ -65,7 +65,7 @@ describe('=> Realm', () => {
       user: 'root',
       database: 'leoric',
       logger: {
-        info(sql) {
+        logQuery(sql) {
           queries.push(sql);
         }
       }

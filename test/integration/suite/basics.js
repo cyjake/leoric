@@ -3,7 +3,6 @@
 const assert = require('assert').strict;
 const expect = require('expect.js');
 const { Bone, Collection } = require('../../..');
-const Attachment = require('../../models/attachment');
 const Book = require('../../models/book');
 const Comment = require('../../models/comment');
 const Post = require('../../models/post');

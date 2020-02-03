@@ -31,7 +31,9 @@ describe('connect', function() {
   it('connect models passed in opts.models', async function() {
     const { STRING } = DataTypes;
     class Book extends Bone {};
-    Book.init({ name: STRING });
+    Book.init({
+      name: { type: STRING, allowNull: false },
+    });
     await connect({
       user: 'root',
       database: 'leoric',

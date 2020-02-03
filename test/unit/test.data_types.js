@@ -6,6 +6,6 @@ const DataTypes = require('../../lib/data_types');
 describe('=> Data Types', () => {
   it('STRING', () => {
     const { STRING } = DataTypes;
-    assert.equal(STRING.type, 'varchar');
+    assert.equal(STRING.dataType, 'varchar');
   });
 });

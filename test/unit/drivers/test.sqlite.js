@@ -7,7 +7,7 @@ const { DataTypes } = require('../../..');
 const { heresql } = require('../../../lib/utils/string');
 const SqliteDriver = require('../../../lib/drivers/sqlite');
 
-const { INTEGER, STRING, DATE } = DataTypes;
+const { INTEGER, STRING, DATE, BOOLEAN } = DataTypes;
 
 const driver = new SqliteDriver('sqlite', {
   database: '/tmp/leoric.sqlite3',
@@ -48,16 +48,12 @@ describe('=> SQLite driver', () => {
 });
 
 describe('=> SQLite driver.query()', () => {
-  before(async () => {
+  beforeEach(async () => {
     await driver.dropTable('notes');
-    await driver.createTable('notes', {
-      id: { type: INTEGER, primaryKey: true },
-      title: STRING,
-      createdAt: DATE,
-    });
   });
 
   it('should handle timestamp correctly', async () => {
+    await driver.createTable('notes', { title: STRING, createdAt: DATE });
     const createdAt = new Date();
     await driver.query('INSERT INTO notes (title, created_at) VALUES (?, ?)', [
       'Leah', createdAt,
@@ -70,5 +66,18 @@ describe('=> SQLite driver.query()', () => {
       SELECT datetime(created_at, 'localtime') AS created_at FROM notes
     `));
     assert.equal(created_at, strftime('%Y-%m-%d %H:%M:%S', createdAt));
+  });
+
+  it('should handle boolean correctly', async () => {
+    await driver.createTable('notes', { title: STRING, isPrivate: BOOLEAN });
+    await driver.query('INSERT INTO notes (title, is_private) VALUES (?, ?)', [
+      'Leah', true,
+    ]);
+    const {
+      rows: [
+        { is_private }
+      ]
+    } = await driver.query('SELECT is_private FROM notes');
+    assert.equal(is_private, 1);
   });
 });

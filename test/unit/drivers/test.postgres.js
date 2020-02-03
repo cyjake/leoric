@@ -21,6 +21,7 @@ describe('=> PostgreSQL driver', () => {
     ];
     for (const column of columns) {
       for (const prop of props) assert.ok(column.hasOwnProperty(prop));
+      assert.equal(column.primaryKey, column.columnName === 'id');
     }
   });
 });
