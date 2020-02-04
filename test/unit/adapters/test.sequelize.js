@@ -167,6 +167,9 @@ describe('=> Sequelize adapter', () => {
 
     const post = await Post.findOne(posts[1].id);
     assert.equal(post.title, 'Tyrael');
+
+    const post2 = await Post.findOne({ title: 'Leah' });
+    assert.equal(post2.title, 'Leah');
   });
 
   it('model.restore()', async () => {
