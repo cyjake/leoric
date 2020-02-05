@@ -35,16 +35,6 @@ describe('=> Realm', () => {
     assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
   });
 
-  it('should initialize timestamp attribute names', async () => {
-    let realm = new Realm();
-    assert.equal(realm.options.define.createdAt, 'createdAt');
-
-    realm = new Realm({
-      define: { createdAt: 'created_at' },
-    });
-    assert.equal(realm.options.define.createdAt, 'created_at');
-  });
-
   it('should be able to customize logger with function', async () => {
     const queries = [];
     const realm = new Realm({
@@ -55,7 +45,7 @@ describe('=> Realm', () => {
       }
     });
     await realm.connect();
-    realm.driver.query('SELECT 1');
+    await realm.driver.query('SELECT 1');
     assert.equal(queries[0], 'SELECT 1');
   });
 
@@ -65,13 +55,13 @@ describe('=> Realm', () => {
       user: 'root',
       database: 'leoric',
       logger: {
-        info(sql) {
+        logQuery(sql) {
           queries.push(sql);
         }
       }
     });
     await realm.connect();
-    realm.driver.query('SELECT 1');
+    await realm.driver.query('SELECT 1');
     assert.equal(queries[0], 'SELECT 1');
   });
 });

@@ -8,12 +8,17 @@ const strftime = require('strftime');
 const Realm = require('../../..');
 const { checkDefinitions } = require('../helpers');
 
+const { Bone } = Realm;
 const migrations = path.join(__dirname, '../migrations');
 
 // class Topic extends Realm.Bone {}
 
 describe('=> Migrations', async () => {
-  const realm = new Realm({ migrations });
+  let realm;
+
+  before(() => {
+    realm = new Realm({ driver: Bone.driver, migrations });
+  });
 
   beforeEach(async () => {
     await realm.driver.dropTable('topics');

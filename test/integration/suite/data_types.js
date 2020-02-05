@@ -1,16 +1,16 @@
 'use strict';
 
 const assert = require('assert').strict;
-const strftime = require('strftime');
 
 const { Bone, DataTypes } = require('../../..');
-const { INTEGER, STRING, DATE, TEXT } = DataTypes;
+const { INTEGER, STRING, DATE, TEXT, BOOLEAN } = DataTypes;
 
 class Note extends Bone {};
 Note.init({
   id: { type: INTEGER, primaryKey: true },
   title: STRING,
   body: TEXT,
+  isPrivate: BOOLEAN,
   createdAt: DATE,
 });
 
@@ -25,14 +25,13 @@ describe('=> Data types', () => {
   });
 
   it('STRING', async () => {
-    assert.deepEqual(Note.attributes.title, {
-      allowNull: true,
-      columnName: 'title',
-      dataType: 'varchar',
-      jsType: String,
-      type: STRING,
-      defaultValue: null,
-    });
+    const { title } = Note.attributes;
+    assert.equal(title.allowNull, true);
+    assert.equal(title.columnName, 'title');
+    assert.equal(title.dataType, 'varchar');
+    assert.equal(title.jsType, String);
+    assert.ok(title.type instanceof STRING);
+    assert.equal(title.defaultValue, null);
   });
 
   it('DATE', async () => {
@@ -42,6 +41,12 @@ describe('=> Data types', () => {
     await Note.create({ title: 'Leah', createdAt });
     const note  = await Note.first;
     assert.deepEqual(note.createdAt, createdAt);
+  });
+
+  it('BOOLEAN', async () => {
+    await Note.create({ title: 'Cain', isPrivate: false });
+    const note = await Note.first;
+    assert.equal(note.isPrivate, false);
   });
 
   it('validate attributes', async () => {

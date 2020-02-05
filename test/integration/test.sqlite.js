@@ -30,7 +30,7 @@ describe('=> Table definitions (sqlite)', () => {
     await Note.sync();
     await checkDefinitions('notes', {
       id: { dataType: 'integer', primaryKey: true },
-      public: { dataType: 'integer', primaryKey: undefined },
+      public: { dataType: 'int', primaryKey: false },
     });
   });
 });

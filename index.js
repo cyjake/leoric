@@ -1,15 +1,98 @@
 'use strict';
 
-/**
- * Entry module
- * @module
- */
+const fs = require('fs').promises;
+const path = require('path');
+
 const Bone = require('./lib/bone');
 const Collection = require('./lib/collection');
-const connect = require('./lib/connect');
-const DataTypes =require('./lib/data_types');
+const DataTypes = require('./lib/data_types');
+const { findDriver } = require('./lib/drivers');
 const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
+const { camelCase } = require('./lib/utils/string');
+
+const { STRING, INTEGER, BIGINT, DATE, TEXT, BOOLEAN } = DataTypes;
+
+async function findModels(dir) {
+  if (!dir || typeof dir !== 'string') {
+    throw new Error(`Unexpected dir (${dir})`);
+  }
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const models = [];
+
+  for (const entry of entries) {
+    const extname = path.extname(entry.name);
+    if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
+      const model = require(path.join(dir, entry.name));
+      if (model.prototype instanceof Bone) models.push(model);
+    }
+  }
+
+  return models;
+}
+
+const LEGACY_TIMESTAMP_MAP = {
+  gmtCreate: 'createdAt',
+  gmtModified: 'updatedAt',
+  gmtDeleted: 'deletedAt',
+};
+
+function findType(dataType) {
+  switch (dataType) {
+    case 'varchar':
+      return STRING;
+    case 'text':
+      return TEXT;
+    case 'datetime':
+    case 'timestamp':
+      return DATE;
+    case 'decimal':
+    case 'int':
+    case 'integer':
+    case 'numeric':
+    case 'smallint':
+    case 'tinyint':
+      return INTEGER;
+    case 'bigint':
+      return BIGINT;
+    case 'boolean':
+      return BOOLEAN;
+    default:
+      throw new Error(`Unexpected data type ${dataType}`);
+  }
+}
+
+function initAttributes(model, columns) {
+  const attributes = {};
+
+  for (const columnInfo of columns) {
+    const { columnName, dataType } = columnInfo;
+    const name = columnName == '_id' ? columnName : camelCase(columnName);
+    attributes[ LEGACY_TIMESTAMP_MAP[name] || name ] = {
+      ...columnInfo,
+      type: findType(dataType),
+    };
+  }
+
+  model.init(attributes);
+}
+
+async function loadModels(Bone, models, opts) {
+  const { database } = opts;
+  const tables = models.map(model => model.physicTable);
+  const schemaInfo = await Bone.driver.querySchemaInfo(database, tables);
+
+  for (const model of models) {
+    const columns = schemaInfo[model.physicTable];
+    if (!model.attributes) initAttributes(model, columns);
+    model.load(columns);
+    Bone.models[model.name] = model;
+  }
+
+  for (const model of models) {
+    model.describe();
+  }
+}
 
 class Realm {
   constructor(opts = {}) {
@@ -20,10 +103,15 @@ class Realm {
       ...opts
     };
     const Spine = dialect ? sequelize(Osteon) : Osteon;
+    const models = {};
 
-    this.Bone = Spine;
-    this.models = Spine.models = {};
-    this.options = Spine.options = {
+    // test/integration/suite/migrations.js currently depends on this behavior
+    const driver = opts.driver || new (findDriver(client))(client, {
+      database,
+      ...restOpts
+    });
+
+    const options = {
       client,
       dialect,
       database,
@@ -31,16 +119,10 @@ class Realm {
       define: { underscored: true, ...opts.define },
     };
 
-    const { define } = this.options;
-    for (const prop of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
-      if (!define.hasOwnProperty(prop)) define[prop] = prop;
-    }
-  }
-
-  get driver() {
-    const { driver } = this.Bone;
-    if (!driver) throw new Error('database not connected yet');
-    return driver;
+    this.Bone = Spine;
+    this.models = Spine.models = models;
+    this.driver = Spine.driver = driver;
+    this.options = Spine.options = options;
   }
 
   define(name, attributes, opts = {}) {
@@ -53,18 +135,47 @@ class Realm {
   }
 
   async connect() {
-    await connect({ ...this.options, Bone: this.Bone });
+    const { Bone } = this;
+    const { models: dir } = this.options;
+
+    let models;
+    if (dir) {
+      models = Array.isArray(dir) ? dir  : (await findModels(dir));
+    } else {
+      models = Object.values(this.models);
+    }
+
+    if (models.length > 0) await loadModels(Bone, models, this.options);
+    this.connected = true;
+    return Bone;
   }
 
   async sync() {
-    const { Bone } = this;
-    if (!Bone.driver) await this.connect();
+    if (!this.connected) await this.connect();
+    const { models } = this;
 
-    for (const model of Object.values(Bone.models)) {
+    for (const model of Object.values(models)) {
       await model.sync();
     }
   }
 }
+
+/**
+ * Connect models to database. Need to provide both the settings of the connection and the models, or the path of the models, to connect.
+ * @alias module:index.connect
+ * @param {Object} opts
+ * @param {string} opts.client - client name
+ * @param {string|Bone[]} opts.models - an array of models
+ * @returns {Pool} the connection pool in case we need to perform raw query
+ */
+const connect = async function connect(opts = {}) {
+  opts = { Bone, ...opts };
+  const { Bone: Spine } = opts;
+  if (Spine.driver) throw new Error('connected already');
+  const realm = new Realm(opts);
+  return await realm.connect();
+};
+
 
 Object.assign(Realm.prototype, migrations, { DataTypes });
 Object.assign(Realm, { connect, Bone, Collection, DataTypes, sequelize });

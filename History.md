@@ -4,7 +4,7 @@
   * New: `Bone.sync()` to synchronize model with database
   * New: `Bone.createMigrationFile()` to create migration file
   * New: `Bone.migrate()` to run migrations
-  * New: `require('leoric')` now exports a class called `Realm` (but not necessarily) to instantiate and connect multiple databases
+  * New: `require('leoric')` now exports `Realm` to connect with multiple databases
   * New: `realm.define()` to define models in an old fashioned way
   * New: `realm.connect()` to connect to database
   * New: SQLite support without hacking node-sqlite3
