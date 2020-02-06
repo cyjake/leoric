@@ -11,8 +11,6 @@ const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
 
-const { STRING, INTEGER, BIGINT, DATE, TEXT, BOOLEAN } = DataTypes;
-
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
     throw new Error(`Unexpected dir (${dir})`);
@@ -37,31 +35,6 @@ const LEGACY_TIMESTAMP_MAP = {
   gmtDeleted: 'deletedAt',
 };
 
-function findType(dataType) {
-  switch (dataType) {
-    case 'varchar':
-      return STRING;
-    case 'text':
-      return TEXT;
-    case 'datetime':
-    case 'timestamp':
-      return DATE;
-    case 'decimal':
-    case 'int':
-    case 'integer':
-    case 'numeric':
-    case 'smallint':
-    case 'tinyint':
-      return INTEGER;
-    case 'bigint':
-      return BIGINT;
-    case 'boolean':
-      return BOOLEAN;
-    default:
-      throw new Error(`Unexpected data type ${dataType}`);
-  }
-}
-
 function initAttributes(model, columns) {
   const attributes = {};
 
@@ -70,7 +43,7 @@ function initAttributes(model, columns) {
     const name = columnName == '_id' ? columnName : camelCase(columnName);
     attributes[ LEGACY_TIMESTAMP_MAP[name] || name ] = {
       ...columnInfo,
-      type: findType(dataType),
+      type: model.driver.DataTypes.findType(dataType),
     };
   }
 
