@@ -151,7 +151,7 @@ describe('=> Bone.sync()', () => {
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
-
+console.log(Note.attributes);
     await Note.sync();
     assert(Note.synchronized);
     await checkDefinitions('notes', {

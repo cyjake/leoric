@@ -12,6 +12,8 @@ Note.init({
   body: TEXT,
   isPrivate: BOOLEAN,
   createdAt: DATE,
+  updatedAt: DATE,
+  publishedAt: DATE(6),
 });
 
 describe('=> Data types', () => {
@@ -36,20 +38,20 @@ describe('=> Data types', () => {
 
   it('DATE', async () => {
     const createdAt = new Date();
-    // milliseconds in different databases is a long story, just datetime for now
+    // DATE without precision
     createdAt.setMilliseconds(0);
     await Note.create({ title: 'Leah', createdAt });
     const note  = await Note.first;
     assert.deepEqual(note.createdAt, createdAt);
+
+    const now = new Date();
+    await note.update({ publishedAt: now });
+    assert.deepEqual(note.publishedAt, now);
   });
 
   it('BOOLEAN', async () => {
     await Note.create({ title: 'Cain', isPrivate: false });
     const note = await Note.first;
     assert.equal(note.isPrivate, false);
-  });
-
-  it('validate attributes', async () => {
-
   });
 });
