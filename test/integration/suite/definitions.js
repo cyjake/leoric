@@ -56,15 +56,16 @@ describe('=> Table definitions', () => {
 
   it('should be able to change column', async () => {
     await Bone.driver.createTable('notes', {
-      title: { type: STRING, allowNull: false },
+      title: { type: STRING, allowNull: true, defaultValue: '' },
     });
 
     await Bone.driver.changeColumn('notes', 'title', {
       type: STRING,
-      allowNull: true
+      allowNull: false,
+      defaultValue: null,
     });
     await checkDefinitions('notes', {
-      title: { dataType: 'varchar', allowNull: true },
+      title: { dataType: 'varchar', allowNull: false, defaultValue: null },
     });
   });
 

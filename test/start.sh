@@ -4,7 +4,7 @@ args=
 
 function run {
   file=$1;
-  echo ""
+  echo "";
   echo "> DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args}";
   DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args} || exit $?;
 }
@@ -12,7 +12,11 @@ function run {
 ##
 # Run unit tests first in order catch bugs as soon as possible
 function unit {
-  for file in $(ls test/unit/{,drivers/}test.*.js); do run ${file}; done
+  # recursive glob nor available in bash 3
+  # - https://unix.stackexchange.com/questions/49913/recursive-glob
+  for file in $(ls test/unit/{,drivers/,drivers/*/}test.*.js); do
+    run ${file};
+  done
 }
 
 ##
