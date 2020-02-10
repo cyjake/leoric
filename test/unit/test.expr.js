@@ -21,6 +21,8 @@ describe('=> parse literals', function() {
   it('parse string', function() {
     assert.deepEqual(parseExpr('"a"'), { type: 'literal', value: 'a' });
     assert.deepEqual(parseExpr("'b'"), { type: 'literal', value: 'b' });
+    // incomplete literal
+    assert.throws(() => parseExpr("'a"), 'Unexpected end of string');
   });
 
   it('parse number[]', function() {
