@@ -144,6 +144,24 @@ describe('=> Sequelize adapter', () => {
     assert.throws(() => posts[0].content);
   });
 
+  it('Model.findAll({ order })', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const posts = await Post.findAll({
+      order: [
+        [ 'title', 'desc' ],
+        [ 'createdAt', 'desc' ],
+      ],
+    });
+    assert.equal(posts.length, 3);
+    assert.equal(posts[0].title, 'Tyrael');
+    assert.ok(posts[1].createdAt > posts[2].createdAt);
+  });
+
   it('Model.findAndCountAll()', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
