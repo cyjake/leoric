@@ -502,6 +502,16 @@ describe('=> Update', function() {
     assert.equal(post.id, id);
     assert.equal(post.title, 'New Post 2');
   });
+
+  it('bone.upsert() should not touch created_at if update', async () => {
+    const { id, createdAt } = await Post.create({ title: 'Leah' });
+    const post = new Post({ id, title: 'Cain' });
+    await post.upsert();
+    assert.equal(post.id, id);
+    assert.equal(post.title, 'Cain');
+    // upsert does not reload timestamps by default
+    assert.deepEqual((await Post.first).createdAt, createdAt);
+  });
 });
 
 describe('=> Remove', function() {

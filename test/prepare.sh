@@ -20,7 +20,6 @@ cat test/dumpfile.sql |
   sed 's/bigint(20) AUTO_INCREMENT/BIGSERIAL/g' |
   sed 's/tinyint(1) DEFAULT 0/boolean DEFAULT false/g' |
   sed -E 's/int\([[:digit:]]+\)/int/g' |
-  sed 's/datetime/timestamp/g' |
   psql \
     -h ${POSTGRES_HOST:-localhost} \
     -U ${POSTGRES_USER:-$(whoami)} \
