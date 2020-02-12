@@ -29,7 +29,7 @@ describe('=> Insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
-      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `id`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 1, 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_create` = '2017-12-12 00:00:00.000', `gmt_modified` = '2017-12-12 00:00:00.000', `title` = 'New Post'"
+      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `id`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 1, 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_modified` = '2017-12-12 00:00:00.000', `title` = 'New Post'"
     );
   });
 });
