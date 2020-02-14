@@ -17,5 +17,5 @@ class Book extends Bone {
     return Math.round(price * 100) / 100;
   }
 }
-
+console.log(Book.primaryKey);
 module.exports = Book;

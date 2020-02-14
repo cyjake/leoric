@@ -166,6 +166,26 @@ describe('=> parse unary operators', function() {
   });
 });
 
+describe('=> parse binary operators', function() {
+  it('parse +', function() {
+    assertExpr(
+      'a + 1',
+      { type: 'op', name: '+', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    );
+  });
+
+  it('parse -', function() {
+    assertExpr(
+      'a - 1',
+      { type: 'op', name: '-', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    );
+  });
+});
+
 describe('=> parse comparison operators', function() {
   it('parse =', function() {
     assertExpr(

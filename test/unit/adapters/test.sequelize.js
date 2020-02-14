@@ -5,7 +5,13 @@ const { Bone, connect, sequelize} = require('../../..');
 
 describe('=> Sequelize adapter', () => {
   const Spine = sequelize(Bone);
-  class Book extends Spine {};
+
+  class Book extends Spine {
+    static get primaryKey() {
+      return 'isbn';
+    }
+  };
+
   class Post extends Spine {
     static get table() {
       return 'articles';
@@ -22,8 +28,8 @@ describe('=> Sequelize adapter', () => {
   });
 
   beforeEach(async () => {
-    await Book.remove({});
-    await Post.remove({});
+    await Book.remove({}, true);
+    await Post.remove({}, true);
   });
 
   it('Model.aggregate()', async () => {
@@ -83,7 +89,15 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('Model.decrement()', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await Book.decrement('price', { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 9);
 
+    await Book.decrement({ price: 2 }, { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 7);
   });
 
   it('Model.describe()', async () => {
@@ -162,6 +176,24 @@ describe('=> Sequelize adapter', () => {
     assert.ok(posts[1].createdAt > posts[2].createdAt);
   });
 
+  it('Model.findAll({ group })', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const result = await Post.findAll({
+      attributes: 'count(*) AS count',
+      group: 'title',
+      order: [[ 'title', 'desc' ]],
+    });
+    assert.deepEqual(result, [
+      { title: 'Tyrael', count: 1 },
+      { title: 'Leah', count: 2 },
+    ]);
+  });
+
   it('Model.findAndCountAll()', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
@@ -188,6 +220,42 @@ describe('=> Sequelize adapter', () => {
 
     const post2 = await Post.findOne({ title: 'Leah' });
     assert.equal(post2.title, 'Leah');
+  });
+
+  it('Model.increment()', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await Book.increment('price', { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 11);
+
+    await Book.increment({ price: 2 }, { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 13);
+  });
+
+  it('model.decrement()', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await book.decrement('price');
+    await book.reload();
+    assert.equal(book.price, 9);
+
+    await book.decrement({ price: 2 });
+    await book.reload();
+    assert.equal(book.price, 7);
+  });
+
+  it('model.increment()', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await book.increment('price');
+    await book.reload();
+    assert.equal(book.price, 11);
+
+    await book.increment({ price: 2 });
+    await book.reload();
+    assert.equal(book.price, 13);
   });
 
   it('model.restore()', async () => {
