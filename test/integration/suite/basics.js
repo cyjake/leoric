@@ -425,6 +425,15 @@ describe('=> Update', function() {
     expect(posts.length).to.equal(affectedRows);
   });
 
+  it('Bone.update(where, values) should support customized type', async () => {
+    const { id } = await Post.create({ title: 'New Post' });
+    await Post.update({ id }, {
+      extra: { versions: [ 2, 3 ] },
+    });
+    const post = await Post.findOne(id);
+    assert.deepEqual(post.extra, { versions: [ 2, 3 ] });
+  });
+
   it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
     const post = await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2010, 9, 11) });
     const updatedAtWas = post.updatedAt;
@@ -510,7 +519,8 @@ describe('=> Update', function() {
     assert.equal(post.id, id);
     assert.equal(post.title, 'Cain');
     // upsert does not reload timestamps by default
-    assert.deepEqual((await Post.first).createdAt, createdAt);
+    await post.reload();
+    assert.deepEqual(post.createdAt, createdAt);
   });
 });
 

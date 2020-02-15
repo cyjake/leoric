@@ -7,6 +7,7 @@ const { connect } = require('../..');
 const Post = require('../models/post');
 const TagMap = require('../models/tagMap');
 const Comment = require('../models/comment');
+const Book = require('../models/book');
 
 before(async function() {
   await connect({
@@ -162,6 +163,22 @@ describe('=> Select', function() {
     assert.equal(
       Post.join(Comment, 'comments.articleId = posts.id').toString(),
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
+    );
+  });
+});
+
+describe('=> Update', () => {
+  it('increment', () => {
+    assert.equal(
+      Book.where({ isbn: 9787550616950 }).increment('price').toString(),
+      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950'
+    );
+  });
+
+  it('decrement', () => {
+    assert.equal(
+      Book.where({ isbn: 9787550616950 }).decrement('price').toString(),
+      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950'
     );
   });
 });
