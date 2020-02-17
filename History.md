@@ -15,7 +15,6 @@
   * Refactor: a complete re-write of JOIN queries
   * Refactor: added `Bone.driver` to better encapsulate and planish database nuances
 
-
 0.4.5 / 2019-12-14
 ==================
 

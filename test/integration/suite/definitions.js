@@ -89,14 +89,13 @@ describe('=> Table definitions', () => {
     });
 
     await Bone.driver.renameColumn('notes', 'title', 'subject');
-    console.log((await Bone.driver.querySchemaInfo(null, 'notes')).notes);
     await checkDefinitions('notes', {
       title: null,
       subject: { dataType: 'varchar' },
     });
   });
 
-  it('should be table to rename table', async () => {
+  it('should be able to rename table', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING },
       body: { type: TEXT },
@@ -108,6 +107,22 @@ describe('=> Table definitions', () => {
       title: { dataType: 'varchar' },
       body: { dataType: 'text' },
     });
+  });
+
+  it('should be able to drop table', async () => {
+    await Bone.driver.createTable('notes', { title: STRING });
+    await Bone.driver.dropTable('notes');
+    await checkDefinitions('notes', null);
+  });
+
+  it('should be able to add and remove index', async () => {
+    await Bone.driver.createTable('notes', {
+      id: { type: INTEGER },
+      userId: { type: INTEGER },
+      title: { type: STRING },
+    });
+    await Bone.driver.addIndex('notes', [ 'userId', 'title' ]);
+    await Bone.driver.removeIndex('notes', [ 'userId', 'title' ]);
   });
 });
 
@@ -152,7 +167,7 @@ describe('=> Bone.sync()', () => {
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
-console.log(Note.attributes);
+
     await Note.sync();
     assert(Note.synchronized);
     await checkDefinitions('notes', {
