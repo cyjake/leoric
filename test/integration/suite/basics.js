@@ -572,12 +572,14 @@ describe('=> Bulk', () => {
   });
 
   it('Bone.bulkCreate() should return bulk created instances', async () => {
-    // await Post.create({ id: 1, title: 'Mipha' });
+    // distractor
+    await Post.create({ id: 1, title: 'Mipha' });
     const posts = await Post.bulkCreate([
       { title: 'Tyrael' },
       { title: 'Leah' },
     ]);
-    console.log(posts, await Post.find())
+
+    assert.equal(await Post.count(), 3);
     for (const entry of posts) {
       assert.ok(entry.id);
       const post = await Post.findOne(entry.id);
@@ -585,5 +587,35 @@ describe('=> Bulk', () => {
       assert.deepEqual(entry.createdAt, post.createdAt);
       assert.deepEqual(entry.updatedAt, post.updatedAt);
     }
+  });
+
+  it('Bone.bulkCreate() should be able to insert with ids', async () => {
+    // distractor
+    await Post.create({ id: 1, title: 'Mipha' });
+    const posts = await Post.bulkCreate([
+      { id: 2, title: 'Tyrael' },
+      { id: 3, title: 'Leah' },
+    ]);
+
+    assert.equal(await Post.count(), 3);
+    for (const entry of posts) {
+      assert.ok(entry.id);
+      const post = await Post.findOne(entry.id);
+      assert.equal(entry.title, post.title);
+      assert.deepEqual(entry.createdAt, post.createdAt);
+      assert.deepEqual(entry.updatedAt, post.updatedAt);
+    }
+  });
+
+  it('Bone.bulkCreate() should not insert anything if duplicated', async () => {
+    // distractor
+    await Post.create({ id: 1, title: 'Mipha' });
+    await assert.rejects(async () => {
+      await Post.bulkCreate([
+        { id: 1, title: 'Tyrael' },
+        { id: 2, title: 'Leah' },
+      ]);
+    });
+    assert.equal(await Post.count(), 1);
   });
 });
