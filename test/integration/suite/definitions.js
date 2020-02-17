@@ -89,6 +89,7 @@ describe('=> Table definitions', () => {
     });
 
     await Bone.driver.renameColumn('notes', 'title', 'subject');
+    console.log((await Bone.driver.querySchemaInfo(null, 'notes')).notes);
     await checkDefinitions('notes', {
       title: null,
       subject: { dataType: 'varchar' },
