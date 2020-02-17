@@ -11,6 +11,7 @@ const User = require('../../models/user');
 
 describe('=> Attributes', function() {
   before(async function() {
+    await Post.remove({}, true);
     await Post.create({
       title: 'New Post',
       extra: { versions: [2, 3] },
@@ -562,5 +563,27 @@ describe('=> Remove', function() {
     const effected = await tagMap.remove();
     expect(effected).to.eql(1);
     expect((await TagMap.find({})).length).to.eql(0);
+  });
+});
+
+describe('=> Bulk', () => {
+  beforeEach(async () => {
+    await Post.remove({}, true);
+  });
+
+  it('Bone.bulkCreate() should return bulk created instances', async () => {
+    // await Post.create({ id: 1, title: 'Mipha' });
+    const posts = await Post.bulkCreate([
+      { title: 'Tyrael' },
+      { title: 'Leah' },
+    ]);
+    console.log(posts, await Post.find())
+    for (const entry of posts) {
+      assert.ok(entry.id);
+      const post = await Post.findOne(entry.id);
+      assert.equal(entry.title, post.title);
+      assert.deepEqual(entry.createdAt, post.createdAt);
+      assert.deepEqual(entry.updatedAt, post.updatedAt);
+    }
   });
 });

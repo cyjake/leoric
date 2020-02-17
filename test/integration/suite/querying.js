@@ -13,6 +13,7 @@ const TagMap = require('../../models/tagMap');
 
 describe('=> Query', function() {
   before(async function() {
+    await Post.remove({}, true);
     await Promise.all([
       Post.create({ id: 1, title: 'New Post', createdAt: new Date(2017, 10) }),
       Post.create({ id: 2, title: 'Archbishop Lazarus', createdAt: new Date(2017, 10) }),
