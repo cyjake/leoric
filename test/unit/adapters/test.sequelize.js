@@ -222,6 +222,20 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post2.title, 'Leah');
   });
 
+  it('Model.findOne()', async () => {
+    const { id } = await Post.create({ title: 'Leah' });
+
+    const post = await Post.findOne();
+    assert.equal(post.title, 'Leah');
+
+    // if passed value, take the value as primary key
+    assert.deepEqual((await Post.findOne(id)).toJSON(), post.toJSON());
+
+    // if passed null or undefined, return null
+    assert.equal(await Post.findOne(null), null);
+    assert.equal(await Post.findOne(undefined), null);
+  });
+
   it('Model.increment()', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
