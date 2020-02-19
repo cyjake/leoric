@@ -1,4 +1,4 @@
-0.5.0 / 2020-02-??
+0.5.0 / 2020-02-19
 ==================
 
   * New: `Bone.sync()` to synchronize model with database
