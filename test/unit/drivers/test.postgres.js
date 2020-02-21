@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const PostgresDriver = require('../../../lib/drivers/postgres');
 
 const database = 'leoric';
-const driver = new PostgresDriver('postgres', {
+const driver = new PostgresDriver({
   host: process.env.POSTGRES_HOST || 'localhost',
   port: process.env.POSTGRES_PORT,
   user: process.env.POSTGRES_USER || process.env.USER,
