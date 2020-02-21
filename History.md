@@ -1,7 +1,12 @@
+0.5.2 / 2020-02-21
+==================
+
+  * Fix: drop the default and unused `require('sqlite3')`
+
 0.5.1 / 2020-02-21
 ==================
 
-  * New: `connect({ client: '@journeyapps/sqlcipher' })`
+  * Fix: `connect({ client: '@journeyapps/sqlcipher' })`
 
 0.5.0 / 2020-02-19
 ==================
