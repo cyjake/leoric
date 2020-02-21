@@ -9,14 +9,14 @@ const SqliteDriver = require('../../../lib/drivers/sqlite');
 
 const { INTEGER, STRING, DATE, BOOLEAN } = DataTypes;
 
-const driver = new SqliteDriver('sqlite', {
+const driver = new SqliteDriver({
   database: '/tmp/leoric.sqlite3',
 });
 
 describe('=> SQLite driver', () => {
   it('driver.logger', async () => {
     const result = [];
-    const driver2 = new SqliteDriver('sqlite', {
+    const driver2 = new SqliteDriver({
       database: '/tmp/leoric.sqlite3',
       logger(sql) {
         result.push(sql);

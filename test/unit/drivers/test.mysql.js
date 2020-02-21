@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const MysqlDriver = require('../../../lib/drivers/mysql');
 
 const database = 'leoric';
-const driver = new MysqlDriver('mysql', {
+const driver = new MysqlDriver({
   host: 'localhost',
   user: 'root',
   database,

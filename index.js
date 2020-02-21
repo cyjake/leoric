@@ -79,7 +79,8 @@ class Realm {
     const models = {};
 
     // test/integration/suite/migrations.js currently depends on this behavior
-    const driver = opts.driver || new (findDriver(client))(client, {
+    const driver = opts.driver || new (findDriver(client))({
+      client,
       database,
       ...restOpts
     });
