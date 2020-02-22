@@ -6,7 +6,7 @@ const { checkDefinitions } = require('./helpers');
 
 before(async function() {
   await connect({
-    client: 'sqlite3',
+    dialect: 'sqlite',
     database: '/tmp/leoric.sqlite3',
     models: path.resolve(__dirname, '../models'),
   });

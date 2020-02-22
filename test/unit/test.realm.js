@@ -19,8 +19,8 @@ describe('=> Realm', () => {
     assert.equal(arda.Bone, Bone);
   });
 
-  it('should subclass with sequelize api if exists opts.dialect', async () => {
-    const realm = new Realm({ dialect: 'mysql' });
+  it('should subclass with sequelize api if opts.sequelize', async () => {
+    const realm = new Realm({ sequelize: true });
     const { Bone: Spine } = realm;
     assert.ok(typeof Spine.prototype.setDataValue === 'function');
   });
@@ -31,7 +31,7 @@ describe('=> Realm', () => {
   });
 
   it('should rename opts.storage to opts.database', async () => {
-    const realm = new Realm({ client: 'sqlite3', storage: '/tmp/leoric.sqlite3' });
+    const realm = new Realm({ dialect: 'sqlite', storage: '/tmp/leoric.sqlite3' });
     assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
   });
 

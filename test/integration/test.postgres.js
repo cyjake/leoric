@@ -7,7 +7,7 @@ const { connect } = require('../..');
 
 before(async function() {
   await connect({
-    client: 'postgres',
+    dialect: 'postgres',
     host: process.env.POSTGRES_HOST || '127.0.0.1',
     port: process.env.POSTGRES_PORT,
     user: process.env.POSTGRES_USER || '',

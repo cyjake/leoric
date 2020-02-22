@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const path = require('path');
 
-const { connect } = require('../..');
+const { connect, Bone } = require('../..');
 const Post = require('../models/post');
 const TagMap = require('../models/tagMap');
 const Comment = require('../models/comment');
@@ -14,6 +14,13 @@ before(async function() {
     models: path.resolve(__dirname, '../models'),
     database: 'leoric',
     user: 'root'
+  });
+});
+
+describe('=> Spell', function() {
+  it('rejects query if not connected yet', async () => {
+    class Note extends Bone {};
+    await assert.rejects(async () => await Note.all);
   });
 });
 
