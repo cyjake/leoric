@@ -1,3 +1,9 @@
+0.5.3 / 2020-02-22
+==================
+
+  * Fix: `connect({ sequelize, dialect, client })` to allow mandatory sqlite client
+  * Fix: prevent queries being performed unless model is correctly connected
+
 0.5.2 / 2020-02-21
 ==================
 

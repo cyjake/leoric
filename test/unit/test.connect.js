@@ -11,7 +11,7 @@ describe('connect', function() {
 
   it('rejects unsupported database', async function() {
     await assert.rejects(async () => {
-      await connect({ client: 'mongodb', models: `${__dirname}/models` });
+      await connect({ dialect: 'mongodb', models: `${__dirname}/models` });
     }, /unsupported database/i);
   });
 
@@ -23,9 +23,9 @@ describe('connect', function() {
   });
 
   it('connect with specified Bone', async function() {
-    const Osteon = await connect({ Bone: class extends Bone {} });
-    assert.ok(Osteon.prototype instanceof Bone);
-    assert.ok(Osteon.models);
+    const Spine = await connect({ Bone: class extends Bone {} });
+    assert.ok(Spine.prototype instanceof Bone);
+    assert.ok(Spine.models);
   });
 
   it('connect models passed in opts.models', async function() {

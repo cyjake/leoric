@@ -21,7 +21,7 @@ describe('=> Sequelize adapter', () => {
   before(async () => {
     await connect({
       Model: Spine,
-      client: 'sqlite',
+      dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
       models: [ Book, Post ],
     });

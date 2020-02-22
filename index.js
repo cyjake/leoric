@@ -67,19 +67,24 @@ async function loadModels(Bone, models, opts) {
   }
 }
 
+function createSpine(opts) {
+  if (opts.Bone) return opts.Bone;
+  if (opts.sequelize) return sequelize(Bone);
+  return class Spine extends Bone {};
+}
+
 class Realm {
   constructor(opts = {}) {
-    const { client, dialect, database, Bone: Osteon, ...restOpts } = {
-      client: opts.dialect || 'mysql',
+    const { client, dialect, database, ...restOpts } = {
+      dialect: 'mysql',
       database: opts.db || opts.storage,
-      Bone: class Spine extends Bone {},
       ...opts
     };
-    const Spine = dialect ? sequelize(Osteon) : Osteon;
+    const Spine = createSpine(opts);
     const models = {};
 
     // test/integration/suite/migrations.js currently depends on this behavior
-    const driver = opts.driver || new (findDriver(client))({
+    const driver = opts.driver || new (findDriver(dialect))({
       client,
       database,
       ...restOpts
@@ -135,7 +140,7 @@ class Realm {
 }
 
 /**
- * Connect models to database. Need to provide both the settings of the connection and the models, or the path of the models, to connect.
+ * Connect models to database. Need to provide both connect options and models.
  * @alias module:index.connect
  * @param {Object} opts
  * @param {string} opts.client - client name
@@ -149,7 +154,6 @@ const connect = async function connect(opts = {}) {
   const realm = new Realm(opts);
   return await realm.connect();
 };
-
 
 Object.assign(Realm.prototype, migrations, { DataTypes });
 Object.assign(Realm, { connect, Bone, Collection, DataTypes, sequelize });
