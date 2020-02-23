@@ -6,4 +6,3 @@ require('./associations');
 require('./data_types');
 require('./definitions');
 require('./migrations');
-
