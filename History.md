@@ -1,3 +1,10 @@
+1.0.0 / 2020-02-24
+==================
+
+First major release. Let's get serious with semver.
+
+  * New: logger.logQuery(sql, duration) & logger.logQueryError(sql, err)
+
 0.5.3 / 2020-02-22
 ==================
 

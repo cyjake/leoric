@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "0.5.3",
+  "version": "1.0.0",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "index.d.ts",
