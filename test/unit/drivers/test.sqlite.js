@@ -9,21 +9,41 @@ const SqliteDriver = require('../../../lib/drivers/sqlite');
 
 const { INTEGER, STRING, DATE, BOOLEAN } = DataTypes;
 
-const driver = new SqliteDriver({
+const options = {
   database: '/tmp/leoric.sqlite3',
-});
+};
+const driver = new SqliteDriver(options);
 
 describe('=> SQLite driver', () => {
-  it('driver.logger', async () => {
+  it('driver.logger.logQuery', async () => {
     const result = [];
     const driver2 = new SqliteDriver({
-      database: '/tmp/leoric.sqlite3',
-      logger(sql) {
-        result.push(sql);
+      ...options,
+      logger(sql, duration) {
+        result.push([ sql, duration ]);
       },
     });
     await driver2.query('SELECT 1');
-    assert.equal(result[0], 'SELECT 1');
+    const [ sql, duration ] = result[0];
+    assert.equal(sql, 'SELECT 1');
+    assert.ok(duration >= 0);
+  });
+
+  it('driver.logger.logQueryError', async () => {
+    const result = [];
+    const driver2 = new SqliteDriver({
+      ...options,
+      logger: {
+        logQueryError(sql, err) {
+          result.push([ sql, err ]);
+        },
+      },
+    });
+    await assert.rejects(async () => await driver2.query('SELECT x'));
+    const [ sql, err ] = result[0];
+    assert.equal(sql, 'SELECT x');
+    assert.ok(err);
+    assert.ok(/no such column/.test(err.message));
   });
 
   it('driver.querySchemaInfo()', async () => {
