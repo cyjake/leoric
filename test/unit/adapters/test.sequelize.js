@@ -71,7 +71,15 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('Model.bulkCreate()', async () => {
-
+    const books = await Book.bulkCreate([
+      { name: 'Rendezvous with Rama', price: 42 },
+      { name: 'Excellent Sheep', price: 23 },
+    ]);
+    assert.equal(books.length, 2);
+    assert.ok(books[0].isbn);
+    assert.ok(books[1].isbn);
+    assert.equal(books[0].name, 'Rendezvous with Rama');
+    assert.equal(books[1].name, 'Excellent Sheep');
   });
 
   it('Model.count()', async () => {

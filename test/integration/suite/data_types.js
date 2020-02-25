@@ -50,8 +50,9 @@ describe('=> Data types', () => {
   });
 
   it('BOOLEAN', async () => {
-    await Note.create({ title: 'Cain', isPrivate: false });
-    const note = await Note.first;
+    const note = await Note.create({ title: 'Cain', isPrivate: false });
     assert.equal(note.isPrivate, false);
+    const foundNote = await Note.first;
+    assert.equal(foundNote.isPrivate, false);
   });
 });
