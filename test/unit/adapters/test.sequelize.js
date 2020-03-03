@@ -184,6 +184,13 @@ describe('=> Sequelize adapter', () => {
     assert.ok(posts[1].createdAt > posts[2].createdAt);
   });
 
+  it('Model.findAll({ order }) malformed', async () => {
+    const posts = await Post.findAll({
+      order: [ null ],
+    });
+    assert.equal(posts.length, 0);
+  });
+
   it('Model.findAll({ group })', async () => {
     await Promise.all([
       { title: 'Leah' },
