@@ -1,3 +1,8 @@
+1.0.2 / 2020-03-04
+==================
+
+  * Fix: driver.alterTable() with multiple columns to add in SQLite
+
 1.0.1 / 2020-02-25
 ==================
 
