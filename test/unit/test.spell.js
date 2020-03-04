@@ -172,6 +172,13 @@ describe('=> Select', function() {
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
     );
   });
+
+  it('select as', function() {
+    assert.equal(
+      Post.select("IFNULL(title, 'foo') AS title").order('title', 'desc').toString(),
+      "SELECT IFNULL(`title`, 'foo') AS `title` FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `title` DESC"
+    );
+  });
 });
 
 describe('=> Update', () => {

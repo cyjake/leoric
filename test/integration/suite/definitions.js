@@ -155,7 +155,29 @@ describe('=> Bone.sync()', () => {
     await Note.sync();
     assert(Note.synchronized);
     await checkDefinitions('notes', {
+      title: { dataType: 'varchar', allowNull: true },
       body: { dataType: 'text' },
+    });
+  });
+
+  it('should add multiple columns if not exist', async () => {
+    await Bone.driver.createTable('notes', {
+      title: STRING,
+    });
+    class Note extends Bone {};
+    Note.init({
+      title: STRING,
+      body: TEXT,
+      bodyDraft: TEXT,
+    });
+    assert(!Note.synchronized);
+
+    await Note.sync();
+    assert(Note.synchronized);
+    await checkDefinitions('notes', {
+      title: { dataType: 'varchar' },
+      body: { dataType: 'text' },
+      body_draft: { dataType: 'text' },
     });
   });
 
