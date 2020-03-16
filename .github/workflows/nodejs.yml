@@ -9,7 +9,7 @@ jobs:
     # https://github.com/actions/example-services/blob/master/.github/workflows/postgres-service.yml
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:11.5
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD:
