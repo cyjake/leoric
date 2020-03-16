@@ -1,3 +1,8 @@
+1.0.3 / 2020-03-16
+==================
+
+  * Fix: replace `deep-equal` (which is bloated) with `util.isDeepStrictEqual`
+
 1.0.2 / 2020-03-04
 ==================
 
