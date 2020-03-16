@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "index.d.ts",
@@ -35,7 +35,6 @@
   },
   "dependencies": {
     "debug": "^3.1.0",
-    "deep-equal": "^1.1.1",
     "pluralize": "^7.0.0",
     "sqlstring": "^2.3.0",
     "strftime": "^0.10.0"
