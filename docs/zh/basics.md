@@ -180,7 +180,7 @@ async function() {
 有两种插入数据库的方式。我们可以使用 `Model.create()`：
 
 ```js
-const shop = await Shop.create({ name: 'Barracks', credit: 10000, type: 'taobao' })
+const shop = await Shop.create({ name: 'Barracks', credit: 10000 })
 ```
 
 或者先创建一个实例，更新属性，最后再使用 `model.save()`：
@@ -188,14 +188,13 @@ const shop = await Shop.create({ name: 'Barracks', credit: 10000, type: 'taobao'
 ```js
 const shop = new Shop({ name: 'Barracks' })
 shop.credit = 10000
-shop.type = 'taobao'
 await shop.save()
 ```
 
 两者对应的 SQL 都是：
 
 ```sql
-INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000, 'taobao');
+INSERT INTO shops (name, credit, type) VALUES ('Barracks', 1000);
 ```
 
 ### 读取

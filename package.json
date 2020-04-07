@@ -1,23 +1,32 @@
 {
   "name": "leoric",
-  "version": "0.4.2",
+  "version": "1.0.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib"
+  ],
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
-    "test": "DEBUG=leoric mocha --exit test/test.*.js",
-    "coveralls": "nyc mocha --exit test/test.*.js && nyc report --reporter=text-lcov | coveralls"
+    "test": "./test/start.sh",
+    "test-local": "./test/start.sh",
+    "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/cyjake/leoric.git"
   },
   "keywords": [
+    "model",
     "mysql",
     "orm",
     "postgresql",
-    "query builder"
+    "query builder",
+    "sqlite"
   ],
   "author": "cyjake (http://cyj.me)",
   "license": "BSD-3-Clause",
@@ -26,19 +35,21 @@
   },
   "dependencies": {
     "debug": "^3.1.0",
-    "deep-equal": "^1.0.1",
     "pluralize": "^7.0.0",
-    "sqlstring": "^2.3.0"
+    "sqlstring": "^2.3.0",
+    "strftime": "^0.10.0"
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
-    "coveralls": "^3.0.2",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
-    "jsdoc": "^3.5.5",
+    "jsdoc": "^3.6.3",
     "mocha": "^5.2.0",
-    "mysql": "^2.15.0",
-    "mysql2": "^1.5.1",
+    "mysql": "^2.17.1",
+    "mysql2": "^1.7.0",
     "nyc": "^13.1.0",
-    "pg": "^7.6.0"
+    "pg": "^7.17.1",
+    "sqlite3": "^4.1.1"
   }
 }

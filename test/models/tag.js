@@ -1,10 +1,10 @@
-'use strict'
+'use strict';
 
-const { Bone } = require('../..')
+const { Bone } = require('../..');
 
 class Tag extends Bone {
   static describe() {
   }
 }
 
-module.exports = Tag
+module.exports = Tag;

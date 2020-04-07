@@ -1,6 +1,79 @@
-0.4.2 / 2019-03-29
+1.0.3 / 2020-03-16
 ==================
 
+  * Fix: replace `deep-equal` (which is bloated) with `util.isDeepStrictEqual`
+
+1.0.2 / 2020-03-04
+==================
+
+  * Fix: driver.alterTable() with multiple columns to add in SQLite
+
+1.0.1 / 2020-02-25
+==================
+
+  * Fix: bulkCreate in sequelize shim
+
+1.0.0 / 2020-02-24
+==================
+
+First major release. Let's get serious with semver.
+
+  * New: logger.logQuery(sql, duration) & logger.logQueryError(sql, err)
+
+0.5.3 / 2020-02-22
+==================
+
+  * Fix: `connect({ sequelize, dialect, client })` to allow mandatory sqlite client
+  * Fix: prevent queries being performed unless model is correctly connected
+
+0.5.2 / 2020-02-21
+==================
+
+  * Fix: drop the default and unused `require('sqlite3')`
+
+0.5.1 / 2020-02-21
+==================
+
+  * Fix: `connect({ client: '@journeyapps/sqlcipher' })`
+
+0.5.0 / 2020-02-19
+==================
+
+  * New: `Bone.sync()` to synchronize model with database
+  * New: `Bone.createMigrationFile()` to create migration file
+  * New: `Bone.migrate()` to run migrations
+  * New: `Bone.bulkCreate()` to bulk insert records
+  * New: `require('leoric')` now exports `Realm` to connect with multiple databases
+  * New: `realm.define()` to define models in an old fashioned way
+  * New: `realm.connect()` to connect with database
+  * New: SQLite support without hacking node-sqlite3
+  * New: `Bone.DataTypes` for type references
+  * New: `Bone.init()` to initialize models
+  * New: an adaptor to use Leoric in (partially) Sequelize complaint API
+  * Refactor: a complete re-write of JOIN queries
+  * Refactor: added `Bone.driver` to better encapsulate and planish database nuances
+
+0.4.5 / 2019-12-14
+==================
+
+  * Fix: prevent primary key from being overridden with incorrect `LAST_INSERT_ID()`
+
+0.4.4 / 2019-07-15
+==================
+
+  * Fix: append default scope when declaring relations, fixes #10
+
+0.4.3 / 2019-05-09
+==================
+
+  * Fix: prevent Bone.dispatch from creating duplicated records of main table
+
+0.4.2 / 2019-04-26
+==================
+
+  * New: `Spell#orWhere()` and `Spell#orHaving()`
+  * New: arithmetic operators
+  * New: unary operators such as unary minus `-` and bit invertion `~`
   * Fix: unset attribute should be overwritable
   * Fix: `attributeChanged()` should be false if attribute is unset and not overwritten
   * Fix: subclass with incomplete getter/setter should be complemented
@@ -8,6 +81,11 @@
   * Fix: sharding key should be along with primary key on `bone.remove()`
   * Fix: `Bone.cast()` should leave `null` as is
   * Fix: `INSERT ... UPDATE` with `id = LAST_INSERT_ID(id)` in MySQL
+  * Fix: `Model.find({ name: { $op1, $op2 } })` object conditions with multiple operators
+  * Fix: prefixing result set with qualifiers if query contains join relations and is not dispatchable
+  * Fix: `Spell#$get(index)` with LIMIT
+  * Docs: `Model.transaction()`
+  * Docs: definition types with `index.d.ts`
 
 0.4.1 / 2019-03-21
 ==================

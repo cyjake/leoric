@@ -103,39 +103,35 @@ SELECT * FROM posts WHERE id in (1, 10);
 When we need to iterate over a large collection, the solution might seems straightforward:
 
 ```js
-const posts = await Post.find()
-for (const post of posts) // code
-```
-
-But if the posts table is at large size, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without querying the full table and so on. Switch to find in batch is the most convenient one:
-
-```js
-async function consume() {
-  const batch = Post.find().batch() // no need to await here
-  while (true) {
-    const { done, value } = await batch.next()
-    if (value) handle(value)
-    if (done) break
-  }
+const posts = await Post.all
+for (const post of posts) {
+  // handle post
 }
 ```
 
-If you've got aquainted with JavaScript's [`Iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)s, you may see the example above a bit familiar and wonder, can `.batch()` results be consumed with `for...of`? The answer is yes and no. Because the asynchronous charactor of JavaScript, the `.batch()` results can't be regular iterators, which means normal `for...of` can't iterate them over properly. But luckily, the asynchronous version of `Iterator` is [proposed](https://github.com/tc39/proposal-async-iteration) (and [implemented by V8](https://jakearchibald.com/2017/async-iterators-and-generators/) behind a flag) already. With async iterator supported, the example above can be turned into:
+But if the posts table is at large size, this approach becomes slow and memory consuming, hence impractical. There are many ways to circumvent situations like this, such as refactor the implementation into smaller operations without loading all rows at once and so on. Switch to find in batch is the most convenient one:
 
 ```js
-for await (const post of Post.find().batch()) {
-  handle(post)
+for await (const post of Post.all.batch()) {
+  // handle post
 }
 ```
 
-Sadly though, this feature isn't available without flag, let alone Node.js LTS.
+The SQL equivalent of the above is:
 
-Anyway, to set the batch size, we can pass a number to `.batch()`:
+```sql
+-- assume posts contains 2000 rows, the default LIMIT is 1000
+SELECT * FROM posts LIMIT 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 1000;
+SELECT * FROM posts LIMIT 1000 OFFSET 2000;
+```
+
+To set batch size, we can pass a number to `.batch()`:
 
 ```js
-// This queries database with a LIMIT of 1000
-for await (const post of Post.find().batch(1000)) {
-  handle(post)
+// This queries database with LIMIT 100
+for await (const post of Post.all.batch(100)) {
+  // handle post
 }
 ```
 
@@ -206,7 +202,7 @@ Post.find({
 
 ### Object Conditions with Operators
 
-As you may have noticed in the previous example, the values in object conditions can be objects as well. If the object has got only one key and the key is one of `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)`, it will be mapped to SQL operators accordingly:
+As you may have noticed in the previous example, the values in object conditions can be objects as well. If every property of the object is one of `($eq, $gt, $gte, $lt, $lte, $ne, $in, $nin, $notIn, $like, $notLike, $between, $notBetween)`, the object is considered operator object condition:
 
 ```js
 Post.find({ title: { $ne: 'New Post' } })
@@ -221,6 +217,15 @@ Post.find({ createdAt: { $lt: new Date(2017, 10, 11) } })
 Post.find({ createdAt: { $notBetween: [new Date(2017, 10, 11), new Date(2017, 11, 12)] } })
 // => SELECT * FROM posts WHERE gmt_create NOT BETWEEN '2017-11-11 00:00:00' AND '2017-12-12 00:00:00';
 ```
+
+If the object has multiple operators, the condition is combined with `AND`:
+
+```js
+Post.find({ id: { $gt: 0, $lt: 999999 }})
+// => SELECT * FROM posts WHERE id >= 0 AND id <= 999999
+```
+
+Currently no logical operators (such as `AND`, `OR`, and `!`) is supported via operator object condition. Consider using string conditions instead.
 
 ### Templated String Conditions
 
@@ -381,6 +386,43 @@ And the results might be:
 [ { count: 4, 'DATE(created_at)': '2017-11-11' },
   ... ]
 ```
+
+## Transactions
+
+> The transaction ability is a bit premature currently due to the lack of `LOCK`. Hopefully we'll see to it soon.
+
+We can use `Model.transaction()` to obtain a connection from the connection pool, which is available at `Model.pool`, and wrap the queries between `BEGIN` and `COMMIT`/`ROLLBACK` through the obtained connection. Take following transaction for example:
+
+```js
+Post.transaction(function* () {
+  yield Comment.create({ content: 'tl;dr', articleId: 1 })
+  yield Post.findOne({ id: 1 }).increment('commentCount')
+})
+// => Promise
+```
+
+The SQL equivalent of the above is:
+
+```sql
+BEGIN
+INSERT INTO comments (content, article_id) VALUES ('tl;dr', 1);
+UPDATE posts SET comment_count = comment_count + 1 WHERE id = 1;
+COMMIT
+```
+
+The use of `function* () {}` might be a bit absurd at first glance. It is chosen as the function type for transaction factory because of its ability to create fine grained asynchronous procedure. Behind the curtain,
+
+1. A connection is obtained from the pool before the generator function is called.
+2. `BEGIN`
+3. Call `generator.next()` to push the iterator forward.
+4. If `generator.next()` returns an instance of `Spell`, the obtained connection is set to `spell.connection`.
+5. Spell performs the query through given connection.
+6. Continue the iteration until the very end.
+7. `COMMIT`
+
+In this way we make sure all the related SQLs are queried through the same connection.
+
+If there were any exceptions thrown during iteration, `Model.transaction()` forwards the exception after executing `ROLLBACK`.
 
 ## Joining Tables
 
