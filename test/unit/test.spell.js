@@ -13,7 +13,8 @@ before(async function() {
   await connect({
     models: path.resolve(__dirname, '../models'),
     database: 'leoric',
-    user: 'root'
+    user: 'root',
+    port: process.env.MYSQL_PORT,
   });
 });
 

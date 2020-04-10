@@ -6,6 +6,7 @@ const MysqlDriver = require('../../../lib/drivers/mysql');
 const database = 'leoric';
 const options = {
   host: 'localhost',
+  port: process.env.MYSQL_PORT,
   user: 'root',
   database,
 };

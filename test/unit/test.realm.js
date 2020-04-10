@@ -38,6 +38,7 @@ describe('=> Realm', () => {
   it('should be able to customize logger with function', async () => {
     const queries = [];
     const realm = new Realm({
+      port: process.env.MYSQL_PORT,
       user: 'root',
       database: 'leoric',
       logger(sql) {
@@ -52,6 +53,7 @@ describe('=> Realm', () => {
   it('should be able to customize logger with object', async () => {
     const queries = [];
     const realm = new Realm({
+      port: process.env.MYSQL_PORT,
       user: 'root',
       database: 'leoric',
       logger: {
