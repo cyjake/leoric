@@ -16,9 +16,17 @@ describe('connect', function() {
   });
 
   it('rejects duplicated connect', async function() {
-    await connect({ user: 'root', database: 'leoric' });
+    await connect({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+    });
     await assert.rejects(async () => {
-      await connect({ user: 'root', database: 'leoric' });
+      await connect({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
     }, /connected already/i);
   });
 
@@ -35,6 +43,7 @@ describe('connect', function() {
       name: { type: STRING, allowNull: false },
     });
     await connect({
+      port: process.env.MYSQL_PORT,
       user: 'root',
       database: 'leoric',
       models: [ Book ],
@@ -45,13 +54,19 @@ describe('connect', function() {
 
   it('initialize model attributes if not defined in model itself', async () => {
     const Book = require('../models/book');
-    await connect({ user: 'root', database: 'leoric', models: [ Book ]});
+    await connect({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      models: [ Book ],
+    });
     assert(Book.synchronized);
     assert(Object.keys(Book.attributes).length > 0);
   });
 
   it('connect models in the directory specified by opts.models', async () => {
     await connect({
+      port: process.env.MYSQL_PORT,
       user: 'root',
       database: 'leoric',
       models: path.resolve(__dirname, '../models'),

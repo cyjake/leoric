@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [ ${GITHUB_ACTIONS:-false} = true ]; then
-  mysqladmin -u root -proot password '';
+  mysqladmin -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot -p${MYSQL_ROOT_PASSWORD} password '';
 fi
 
 ##
 # MySQL
-cat <<EOF | mysql -uroot
+cat <<EOF | mysql -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot
 CREATE DATABASE IF NOT EXISTS leoric;
 USE leoric;
 source test/dumpfile.sql;

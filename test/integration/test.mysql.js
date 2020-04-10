@@ -8,6 +8,7 @@ const { connect } = require('../..');
 before(async function() {
   await connect({
     host: 'localhost',
+    port: process.env.MYSQL_PORT,
     user: 'root',
     database: 'leoric',
     models: path.resolve(__dirname, '../models')
