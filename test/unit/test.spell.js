@@ -23,6 +23,18 @@ describe('=> Spell', function() {
     class Note extends Bone {};
     await assert.rejects(async () => await Note.all);
   });
+
+  it('supports error convention with nodeify', async () => {
+    const result = await new Promise((resolve, reject) => {
+      Post.create({ title: 'Gettysburg Address' }).nodeify((err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+    assert.ok(result instanceof Post);
+    assert.ok(result.id);
+    assert.equal(result.title, 'Gettysburg Address');
+  });
 });
 
 describe('=> Insert', function() {
