@@ -10,6 +10,10 @@ describe('=> Sequelize adapter', () => {
     static get primaryKey() {
       return 'isbn';
     }
+
+    set name(value) {
+      this.attribute('name', value == 'Book of Eli' ? 'Book of Tyrael' : value);
+    }
   };
 
   class Post extends Spine {
@@ -70,6 +74,16 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.createdAt, null);
   });
 
+  it('Model.build(values, { raw })', async () => {
+    let book = Book.build({ name: 'Book of Eli' });
+    assert.ok(!book.id);
+    assert.equal(book.name, 'Book of Tyrael');
+
+    book = Book.build({ name: 'Book of Eli' }, { raw: true });
+    assert.ok(!book.id);
+    assert.equal(book.name, 'Book of Eli');
+  });
+
   it('Model.bulkCreate()', async () => {
     const books = await Book.bulkCreate([
       { name: 'Rendezvous with Rama', price: 42 },
@@ -88,6 +102,17 @@ describe('=> Sequelize adapter', () => {
       Post.create({ title: 'By three thy way opens' }),
     ]);
     assert.equal(await Post.count(), 2);
+  });
+
+  it('Model.count({ where })', async () => {
+    await Promise.all([
+      Post.create({ title: 'By three they come' }),
+      Post.create({ title: 'By three thy way opens' }),
+    ]);
+    const result = await Post.count({
+      where: { title: 'By three they come' },
+    });
+    assert.equal(result, 1);
   });
 
   it('Model.create()', async () => {
@@ -237,7 +262,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post2.title, 'Leah');
   });
 
-  it('Model.findOne()', async () => {
+  it('Model.findOne(id)', async () => {
     const { id } = await Post.create({ title: 'Leah' });
 
     const post = await Post.findOne();
@@ -249,6 +274,63 @@ describe('=> Sequelize adapter', () => {
     // if passed null or undefined, return null
     assert.equal(await Post.findOne(null), null);
     assert.equal(await Post.findOne(undefined), null);
+  });
+
+  it('Model.max(attribute)', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.max('price'), 20);
+  });
+
+  it('Model.max(attribute, { where })', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    const max = await Book.max('price', {
+      where: { name: 'Book of Cain' },
+    });
+    assert.equal(max, 10);
+  });
+
+  it('Model.min(attribute)', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.min('price'), 10);
+  });
+
+  it('Model.min(attribute, { where })', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    const min = await Book.min('price', {
+      where: { name: 'Book of Tyrael' },
+    });
+    assert.equal(min, 20);
+  });
+
+  it('Model.sum(attribute)', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.sum('price'), 30);
+  });
+
+  it('Model.sum(attribute, { where })', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    const sum = await Book.sum('price', {
+      where: { name: 'Book of Cain' },
+    });
+    assert.equal(sum, 10);
   });
 
   it('Model.increment()', async () => {
