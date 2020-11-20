@@ -370,7 +370,7 @@ describe('=> Create', function() {
   });
 
   it('Bone.create(values) should INSERT INTO table', async function() {
-    const post = await Post.create({ title: 'New Post' });
+    const post = await Post.create({ title: 'New Post', extra: { a: 1, b: 1} });
     expect(post.id).to.be.above(0);
     const foundPost = await Post.findOne({});
     expect(foundPost.id).to.equal(post.id);
