@@ -1,3 +1,11 @@
+1.1.0 / 2020-11-23
+==================
+
+  * Feat: JSON and JSONB data types
+  * Feat: support `stringifyObjects` option for mysql client
+  * Feat: aggregate functions for sequelize adapter
+  * Feat: `Spell.prototype.nodeify()`
+
 1.0.3 / 2020-03-16
 ==================
 
