@@ -18,7 +18,7 @@ User.init({
     allowNull: false,
   },
   meta: {
-    type: JSON,
+    type: DataTypes.JSON,
   }
 })
 

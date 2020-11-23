@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const DataTypes = require('../../lib/data_types');
 const {
-  STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT,
+  STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB
 } = DataTypes;
 
 describe('=> Data Types', () => {
@@ -35,5 +35,13 @@ describe('=> Data Types', () => {
 
   it('TEXT', () => {
     assert.equal(new TEXT().dataType, 'text');
+  });
+
+  it('JSON', () => {
+    assert.equal(new JSON().dataType, 'json');
+  });
+
+  it('JSONB', () => {
+    assert.equal(new JSONB().dataType, 'jsonb');
   });
 });
