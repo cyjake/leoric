@@ -72,6 +72,8 @@ describe('connect', function() {
       models: path.resolve(__dirname, '../models'),
     });
     const User = require('../models/user');
-    assert(User.synchronized);
+    const user = await User.create({ email: 'hello@hh.com', nickname: 'testy', meta: { foo: 1, bar: 'baz'} });
+    assert(user.email === 'hello@hh.com');
+    assert(user.meta.foo === 1);
   });
 });

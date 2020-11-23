@@ -75,5 +75,6 @@ CREATE TABLE `users` (
   `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
   `gmt_create` timestamp(3) NULL,
   `email` varchar(256) NOT NULL UNIQUE,
-  `nickname` varchar(256) NOT NULL
+  `nickname` varchar(256) NOT NULL,
+  `meta` text
 );
