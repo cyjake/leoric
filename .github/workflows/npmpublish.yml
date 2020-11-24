@@ -21,6 +21,16 @@ jobs:
         - 5432/tcp
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      # https://github.community/t5/GitHub-Actions/github-actions-cannot-connect-to-mysql-service/td-p/30611#
+      # mysql:latest doesn't work out of the box yet (https://github.com/mysqljs/mysql/issues/2046)
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: leoric
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - uses: actions/checkout@v2
