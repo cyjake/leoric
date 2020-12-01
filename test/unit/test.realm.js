@@ -97,6 +97,8 @@ describe('=> Realm', () => {
       },
     });
     await realm.connect();
+    // clean all prev data in users
+    await realm.query('TRUNCATE TABLE users');
     assert.rejects(async () => {
       await realm.transaction(function *() {
         yield realm.query(`INSERT INTO
@@ -116,6 +118,7 @@ describe('=> Realm', () => {
       }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
     });
     const { rows } = await realm.query('SELECT * FROM users');
+    console.log(rows, 'sss');
     assert(rows.length === 0);
   });
 });
