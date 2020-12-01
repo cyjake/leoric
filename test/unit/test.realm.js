@@ -118,7 +118,6 @@ describe('=> Realm', () => {
       }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
     });
     const { rows } = await realm.query('SELECT * FROM users');
-    console.log(rows, 'sss');
     assert(rows.length === 0);
   });
 });
