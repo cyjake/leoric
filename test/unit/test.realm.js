@@ -66,4 +66,56 @@ describe('=> Realm', () => {
     await realm.driver.query('SELECT 1');
     assert.equal(queries[0], 'SELECT 1');
   });
+
+  it('realm.query should work', async () => {
+    const queries = [];
+    const realm = new Realm({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      logger: {
+        logQuery(sql) {
+          queries.push(sql);
+        }
+      }
+    });
+    await realm.connect();
+    await realm.query('SELECT 1');
+    assert.equal(queries[0], 'SELECT 1');
+  });
+
+  it('realm.transaction should work', async () => {
+    const queries = [];
+    const realm = new Realm({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      logger: {
+        logQuery(sql) {
+          queries.push(sql);
+        }
+      },
+    });
+    await realm.connect();
+    assert.rejects(async () => {
+      await realm.transaction(function *() {
+        yield realm.query(`INSERT INTO
+        users (gmt_create, email, nickname)
+        VALUES (?, ?, ?)`, [
+          new Date(),
+          'lighting@valhalla.ne',
+          'Thor',
+        ]);
+        yield realm.query(`INSERT INTO
+        users (gmt_create, email, nickname)
+        VALUES (?, ?, ?)`,[
+          new Date(),
+          'lighting@valhalla.ne',
+          'Thor',
+        ]);
+      }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
+    });
+    const { rows } = await realm.query('SELECT * FROM users');
+    assert(rows.length === 0);
+  });
 });

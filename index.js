@@ -10,6 +10,7 @@ const { findDriver } = require('./lib/drivers');
 const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
+const Spell = require('./lib/spell');
 
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
@@ -135,6 +136,34 @@ class Realm {
 
     for (const model of Object.values(models)) {
       await model.sync();
+    }
+  }
+
+  query(query, values, opts = {}) {
+    return this.driver.query(query, values, opts);
+  }
+
+  async transaction(callback) {
+    if (callback.constructor.name !== 'GeneratorFunction') {
+      throw new Error('unexpected transaction function, should be GeneratorFunction.');
+    }
+    const connection = await this.driver.getConnection();
+    const gen = callback();
+    let result;
+    try {
+      await this.driver.query('BEGIN', [], { connection, Model: this, command: 'BEGIN' });
+      while (true) {
+        const { value: spell, done } = gen.next(result);
+        if (done) break;
+        if (spell instanceof Spell) spell.connection = connection;
+        result = typeof spell.then === 'function' ? await spell : spell;
+      }
+      await this.driver.query('COMMIT', [], { connection, Model: this, command: 'COMMIT' });
+    } catch (err) {
+      await this.driver.query('ROLLBACK', [], { connection, Model: this, command: 'ROLLBACK' });
+      throw err;
+    } finally {
+      connection.release();
     }
   }
 }
