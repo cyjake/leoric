@@ -84,7 +84,7 @@ describe('=> Realm', () => {
     assert.equal(queries[0], 'SELECT 1');
   });
 
-  it('realm.transaction should work', async () => {
+  it('realm.transaction generator callback should work', async () => {
     const queries = [];
     const realm = new Realm({
       port: process.env.MYSQL_PORT,
@@ -109,6 +109,43 @@ describe('=> Realm', () => {
           'Thor',
         ]);
         yield realm.query(`INSERT INTO
+        users (gmt_create, email, nickname)
+        VALUES (?, ?, ?)`,[
+          new Date(),
+          'lighting@valhalla.ne',
+          'Thor',
+        ]);
+      }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
+    });
+    const { rows } = await realm.query('SELECT * FROM users');
+    assert(rows.length === 0);
+  });
+
+  it('realm.transaction async callback should work', async () => {
+    const queries = [];
+    const realm = new Realm({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      logger: {
+        logQuery(sql) {
+          queries.push(sql);
+        }
+      },
+    });
+    await realm.connect();
+    // clean all prev data in users
+    await realm.query('TRUNCATE TABLE users');
+    assert.rejects(async () => {
+      await realm.transaction(async () => {
+        await realm.query(`INSERT INTO
+        users (gmt_create, email, nickname)
+        VALUES (?, ?, ?)`, [
+          new Date(),
+          'lighting@valhalla.ne',
+          'Thor',
+        ]);
+        await realm.query(`INSERT INTO
         users (gmt_create, email, nickname)
         VALUES (?, ?, ?)`,[
           new Date(),
