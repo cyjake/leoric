@@ -86,6 +86,7 @@ describe('=> Realm', () => {
 
   it('realm.transaction generator callback should work', async () => {
     const queries = [];
+    const email = 'lighting@valhalla.ne';
     const realm = new Realm({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -105,24 +106,25 @@ describe('=> Realm', () => {
         users (gmt_create, email, nickname)
         VALUES (?, ?, ?)`, [
           new Date(),
-          'lighting@valhalla.ne',
+          email,
           'Thor',
         ]);
         yield realm.query(`INSERT INTO
         users (gmt_create, email, nickname)
         VALUES (?, ?, ?)`,[
           new Date(),
-          'lighting@valhalla.ne',
-          'Thor',
+          email,
+          'Loki',
         ]);
-      }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
+      }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
     });
-    const { rows } = await realm.query('SELECT * FROM users');
+    const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
     assert(rows.length === 0);
   });
 
   it('realm.transaction async callback should work', async () => {
     const queries = [];
+    const email = 'lighting@valhalla.ne';
     const realm = new Realm({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -142,19 +144,19 @@ describe('=> Realm', () => {
         users (gmt_create, email, nickname)
         VALUES (?, ?, ?)`, [
           new Date(),
-          'lighting@valhalla.ne',
+          email,
           'Thor',
         ]);
         await realm.query(`INSERT INTO
         users (gmt_create, email, nickname)
         VALUES (?, ?, ?)`,[
           new Date(),
-          'lighting@valhalla.ne',
-          'Thor',
+          email,
+          'Loki',
         ]);
-      }, `Error: ER_DUP_ENTRY: Duplicate entry 'lighting@valhalla.ne' for key 'users.email'`); // rollback
+      }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
     });
-    const { rows } = await realm.query('SELECT * FROM users');
+    const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
     assert(rows.length === 0);
   });
 });
