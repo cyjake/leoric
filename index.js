@@ -10,6 +10,7 @@ const { findDriver } = require('./lib/drivers');
 const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
+const Spell = require('./lib/spell');
 
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
@@ -136,6 +137,14 @@ class Realm {
     for (const model of Object.values(models)) {
       await model.sync();
     }
+  }
+
+  query(query, values, opts = {}) {
+    return this.driver.query(query, values, opts);
+  }
+
+  async transaction(callback) {
+    return await this.Bone.transaction(callback);
   }
 }
 
