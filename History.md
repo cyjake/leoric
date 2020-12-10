@@ -1,3 +1,11 @@
+1.2.0 / 2020-12-10
+==================
+
+  * Feat: `Realm.prototype.transaction()` with async function support
+  * Feat: `Realm.prototype.query()` for raw queries
+  * Feat: `logger.logQuery(sql, duration, { Model, command })`
+  * Feat: `logger.logQueryError(sql, err, duration, { Model, command })`
+
 1.1.0 / 2020-11-23
 ==================
 
