@@ -101,21 +101,10 @@ describe('=> Realm', () => {
     // clean all prev data in users
     await realm.query('TRUNCATE TABLE users');
     assert.rejects(async () => {
-      await realm.transaction(function *() {
-        yield realm.query(`INSERT INTO
-        users (gmt_create, email, nickname)
-        VALUES (?, ?, ?)`, [
-          new Date(),
-          email,
-          'Thor',
-        ]);
-        yield realm.query(`INSERT INTO
-        users (gmt_create, email, nickname)
-        VALUES (?, ?, ?)`,[
-          new Date(),
-          email,
-          'Loki',
-        ]);
+      await realm.transaction(function *({ connection }) {
+        const sql = 'INSERT INTO users (gmt_create, email, nickname) VALUES (?, ?, ?)';
+        yield realm.query(sql, [ new Date(), email, 'Thor' ], { connection });
+        yield realm.query(sql, [ new Date(), email, 'Loki' ], { connection });
       }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
     });
     const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
@@ -139,21 +128,10 @@ describe('=> Realm', () => {
     // clean all prev data in users
     await realm.query('TRUNCATE TABLE users');
     assert.rejects(async () => {
-      await realm.transaction(async () => {
-        await realm.query(`INSERT INTO
-        users (gmt_create, email, nickname)
-        VALUES (?, ?, ?)`, [
-          new Date(),
-          email,
-          'Thor',
-        ]);
-        await realm.query(`INSERT INTO
-        users (gmt_create, email, nickname)
-        VALUES (?, ?, ?)`,[
-          new Date(),
-          email,
-          'Loki',
-        ]);
+      await realm.transaction(async ({ connection }) => {
+        const sql = 'INSERT INTO users (gmt_create, email, nickname) VALUES (?, ?, ?)';
+        await realm.query(sql, [ new Date(), email, 'Thor' ], { connection });
+        await realm.query(sql, [ new Date(), email, 'Loki' ], { connection });
       }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
     });
     const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
