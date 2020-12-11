@@ -52,6 +52,8 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_USER: postgres
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
+          MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
+          MYSQL_ROOT_PASSWORD: password
 
   publish-npm:
     needs: build
