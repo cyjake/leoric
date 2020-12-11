@@ -12,7 +12,7 @@ before(async function() {
   });
 });
 
-require('./suite');
+require('./suite/index.test');
 
 describe('=> Table definitions (sqlite)', () => {
   beforeEach(async () => {

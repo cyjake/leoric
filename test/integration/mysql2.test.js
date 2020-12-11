@@ -14,5 +14,5 @@ before(async function() {
   });
 });
 
-require('./suite');
-require('./suite/dates');
+require('./suite/index.test');
+require('./suite/dates.test');
