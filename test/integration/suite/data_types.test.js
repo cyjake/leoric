@@ -28,7 +28,7 @@ describe('=> Data types', () => {
 
   after(async () => {
     await Note.driver.dropTable('notes');
-  })
+  });
 
   it('STRING', async () => {
     const { title } = Note.attributes;

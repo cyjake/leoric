@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
-const { Bone, Collection } = require('../../..');
+const { Collection } = require('../../..');
 const Book = require('../../models/book');
 const Comment = require('../../models/comment');
 const Post = require('../../models/post');
@@ -47,7 +47,7 @@ describe('=> Attributes', function() {
 
   it('bone.attribute(unset attribute, value)', async function() {
     const post = await Post.first.select('title');
-    expect(() => post.attribute('thumb', 'foo')).to.not.throwException();
+  expect(() => post.attribute('thumb', 'foo')).to.not.throwException();
     expect(post.attribute('thumb')).to.eql('foo');
   });
 
@@ -266,24 +266,6 @@ describe('=> Integration', function() {
 });
 
 describe('=> Type casting', function() {
-  it('Bone.cast(value, type)', async function() {
-    const json = Bone.cast('{"test":1}', JSON);
-    expect(json.test).to.eql(1);
-    expect(json).to.be.an('object');
-
-    const string = Bone.cast('string', String);
-    expect(string).to.eql('string');
-  });
-
-  it('Bone.uncast(value, type)', async function() {
-    const json = Bone.uncast({test:1}, JSON);
-    expect(json).to.be.a('string');
-    expect(json).to.contain('test');
-
-    const string = Bone.uncast('string', String);
-    expect(string).to.eql('string');
-  });
-
   it('Bone.unalias(attribute)', function() {
     expect(Post.unalias('updatedAt')).to.eql('gmt_modified');
     expect(Post.unalias('title')).to.eql('title');
@@ -617,5 +599,20 @@ describe('=> Bulk', () => {
       ]);
     });
     assert.equal(await Post.count(), 1);
+  });
+
+  it('Bone.bulkCreate() should uncast types accordingly', async () => {
+    await assert.doesNotReject(async () => {
+      await Post.bulkCreate([
+        { title: 'Leah', extra: { foo: 1 } },
+        { title: 'Tyrael', extra: { bar: 2 } },
+      ]);
+    });
+    const posts = await Post.order('title');
+    assert.equal(posts.length, 2);
+    assert.deepEqual(posts[0].title, 'Leah');
+    assert.deepEqual(posts[0].extra, { foo: 1 });
+    assert.deepEqual(posts[1].title, 'Tyrael');
+    assert.deepEqual(posts[1].extra, { bar: 2 });
   });
 });
