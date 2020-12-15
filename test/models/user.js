@@ -2,7 +2,11 @@
 
 const { Bone, DataTypes } = require('../..');
 
-class User extends Bone {};
+class User extends Bone {
+  get isValid() {
+    return this.status === 1;
+  }
+};
 
 // test init
 User.init({
@@ -19,6 +23,17 @@ User.init({
   },
   meta: {
     type: DataTypes.JSON,
+  },
+  status: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
+  }
+}, {}, {
+  isValid: {
+    get() {
+      return this.status !== 1;
+    }
   }
 })
 

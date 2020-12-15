@@ -169,6 +169,19 @@ describe('=> Accessors', function() {
     expect(Post.primaryColumn).to.eql('id');
     expect(Book.primaryColumn).to.eql('isbn');
   });
+
+  it('Bone.init(arrt, opts, descriptors) should work', async () => {
+    await User.remove({}, true);
+    const user = await User.create({
+      email: 'adin1@par.com',
+      meta: {
+        h: 1
+      },
+      nickname: 'JJ2',
+      status: 1,
+    });
+    expect(user.isValid).to.eql(false);
+  })
 });
 
 describe('=> Integration', function() {
