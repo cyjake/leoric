@@ -38,7 +38,11 @@ describe('connect', function() {
 
   it('connect models passed in opts.models', async function() {
     const { STRING } = DataTypes;
-    class Book extends Bone {};
+    class Book extends Bone {
+      static get primaryKey () {
+        return 'isbn';
+      }
+    };
     Book.init({
       name: { type: STRING, allowNull: false },
     });
