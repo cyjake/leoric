@@ -19,6 +19,11 @@ User.init({
   },
   meta: {
     type: DataTypes.JSON,
+  },
+  status: {
+    allowNull: false,
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
   }
 })
 
