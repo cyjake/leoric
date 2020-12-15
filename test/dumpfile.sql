@@ -76,5 +76,6 @@ CREATE TABLE `users` (
   `gmt_create` timestamp(3) NULL,
   `email` varchar(256) NOT NULL UNIQUE,
   `nickname` varchar(256) NOT NULL,
-  `meta` text
+  `meta` text,
+  `status` int NOT NULL DEFAULT 1
 );

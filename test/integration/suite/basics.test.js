@@ -349,6 +349,7 @@ describe('=> Collection', function() {
 describe('=> Create', function() {
   beforeEach(async function() {
     await Post.remove({}, true);
+    await User.remove({}, true);
   });
 
   it('Bone.create(values) should INSERT INTO table', async function() {
@@ -381,6 +382,29 @@ describe('=> Create', function() {
     expect(post.id).to.equal(1);
     const foundPost = await Post.findOne({ id: 1 });
     expect(foundPost.title).to.equal(post.title);
+  });
+
+  it('bone.create(values) should assign defaultValue automatically', async function() {
+    const user = await User.create({
+      email: 'adin@par.com',
+      meta: {
+        h: 1
+      },
+      nickname: 'JJ'
+    });
+    expect(user.status, 1);
+  });
+
+  it('bone.create(values) should not assign defaultValue if exist', async function() {
+    const user = await User.create({
+      email: 'adin1@par.com',
+      meta: {
+        h: 1
+      },
+      nickname: 'JJ2',
+      status: 2
+    });
+    expect(user.status, 2);
   });
 });
 
@@ -551,6 +575,7 @@ describe('=> Remove', function() {
 describe('=> Bulk', () => {
   beforeEach(async () => {
     await Post.remove({}, true);
+    await User.remove({}, true);
   });
 
   it('Bone.bulkCreate() should return bulk created instances', async () => {
@@ -615,4 +640,28 @@ describe('=> Bulk', () => {
     assert.deepEqual(posts[1].title, 'Tyrael');
     assert.deepEqual(posts[1].extra, { bar: 2 });
   });
+
+  it('Bone.bulkCreate() should assign defaultValue automatically', async () => {
+    await User.bulkCreate([
+      {
+        email: 'adin@par.com',
+        meta: {
+          h: 1
+        },
+        nickname: 'JJ'
+      },
+      {
+        email: 'adin1@par.com',
+        meta: {
+          h: 1
+        },
+        nickname: 'JJ2',
+        status: 2
+      }
+    ])
+    assert.equal(await User.count(), 2);
+    const users = await User.find();
+    expect(users[0].status, 1);
+    expect(users[1].status, 2);
+  })
 });
