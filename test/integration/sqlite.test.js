@@ -19,6 +19,10 @@ describe('=> Table definitions (sqlite)', () => {
     await Bone.driver.dropTable('notes');
   });
 
+  after(async () => {
+    await Bone.driver.dropTable('notes');
+  });
+
   it('should be able to create table with INTEGER PRIMARY KEY', async () => {
     const { INTEGER } = Bone.DataTypes;
     class Note extends Bone {}
