@@ -36,10 +36,28 @@ describe('connect', function() {
     assert.ok(Spine.models);
   });
 
-  it('connect models passed in opts.models', async function() {
-    const { STRING } = DataTypes;
+  it.only('connect models passed in opts.models (init with primaryKey)', async function() {
+    const { STRING, BIGINT } = DataTypes;
+    class Book extends Bone {};
+    Book.init({
+      isbn: { type: BIGINT, primaryKey: true },
+      name: { type: STRING, allowNull: false },
+    });
+    await connect({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      models: [ Book ],
+    });
+    assert(Book.synchronized);
+    assert(Book.primaryKey === 'isbn');
+    assert(Object.keys(Book.attributes).length > 0);
+  });
+
+  it('connect models passed in opts.models (define class with primaryKey)', async function() {
+    const { STRING, BIGINT } = DataTypes;
     class Book extends Bone {
-      static get primaryKey () {
+      static get primaryKey() {
         return 'isbn';
       }
     };
@@ -53,6 +71,7 @@ describe('connect', function() {
       models: [ Book ],
     });
     assert(Book.synchronized);
+    assert(Book.primaryKey === 'isbn');
     assert(Object.keys(Book.attributes).length > 0);
   });
 

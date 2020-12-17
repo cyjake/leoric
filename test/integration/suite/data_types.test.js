@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 
 const { Bone, DataTypes } = require('../../..');
-const { BIGINT, STRING, DATE, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
+const { INTEGER, STRING, DATE, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
 
 
 describe('=> Data types', () => {
@@ -11,7 +11,7 @@ describe('=> Data types', () => {
   before(async () => {
     await Note.driver.dropTable('notes');
     Note.init({
-      id: { type: BIGINT, primaryKey: true },
+      id: { type: INTEGER, primaryKey: true },
       title: STRING,
       body: TEXT,
       isPrivate: BOOLEAN,
@@ -67,7 +67,7 @@ describe('=> Data types - JSON', () => {
   it('=> init', async () => {
     class Note extends Bone {};
     Note.init({
-      id: { type: BIGINT, primaryKey: true },
+      id: { type: INTEGER, primaryKey: true },
       title: STRING,
       body: TEXT,
       isPrivate: BOOLEAN,
