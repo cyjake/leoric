@@ -36,7 +36,7 @@ describe('connect', function() {
     assert.ok(Spine.models);
   });
 
-  it.only('connect models passed in opts.models (init with primaryKey)', async function() {
+  it('connect models passed in opts.models (init with primaryKey)', async function() {
     const { STRING, BIGINT } = DataTypes;
     class Book extends Bone {};
     Book.init({
