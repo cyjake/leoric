@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const PostgresDriver = require('../../../lib/drivers/postgres');
+const { Bone, DataTypes } = require('../../..');
 
 const database = 'leoric';
 const options = {
@@ -48,6 +49,25 @@ describe('=> PostgreSQL driver', () => {
     const schemaInfo = await driver.querySchemaInfo(database, 'articles');
     assert.ok(schemaInfo.articles);
     const columns = schemaInfo.articles;
+    const props = [
+      'columnName', 'columnType', 'dataType', 'defaultValue', 'allowNull',
+    ];
+    for (const column of columns) {
+      for (const prop of props) assert.ok(column.hasOwnProperty(prop));
+      assert.equal(column.primaryKey, column.columnName === 'id');
+    }
+  });
+
+  it('driver.querySchemaInfo() after init with primaryKey', async () => {
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true },
+      title: { type: DataTypes.STRING, allowNull: false },
+      body: { type: DataTypes.TEXT },
+    });
+    const schemaInfo = await driver.querySchemaInfo(database, 'notes');
+    assert.ok(schemaInfo.notes);
+    const columns = schemaInfo.notes;
     const props = [
       'columnName', 'columnType', 'dataType', 'defaultValue', 'allowNull',
     ];

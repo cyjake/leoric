@@ -24,10 +24,10 @@ describe('=> Table definitions (sqlite)', () => {
   });
 
   it('should be able to create table with INTEGER PRIMARY KEY', async () => {
-    const { INTEGER } = Bone.DataTypes;
+    const { BIGINT, INTEGER } = Bone.DataTypes;
     class Note extends Bone {}
     Note.init({
-      id: { type: INTEGER, primaryKey: true },
+      id: { type: BIGINT, primaryKey: true },
       public: { type: INTEGER },
     });
 

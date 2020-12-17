@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const { Bone, DataTypes } = require('../../..');
 const { checkDefinitions } = require('../helpers');
 
-const { INTEGER, STRING, TEXT } = DataTypes;
+const { INTEGER, STRING, TEXT, BIGINT } = DataTypes;
 
 describe('=> Table definitions', () => {
   beforeEach(async () => {
@@ -121,7 +121,7 @@ describe('=> Table definitions', () => {
 
   it('should be able to add and remove index', async () => {
     await Bone.driver.createTable('notes', {
-      id: { type: INTEGER },
+      id: { type: BIGINT },
       userId: { type: INTEGER },
       title: { type: STRING },
     });
@@ -152,7 +152,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should add column if not exists', async () => {
+  it.only('should add column if not exists', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
     });
@@ -168,7 +168,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should add multiple columns if not exist', async () => {
+  it.only('should add multiple columns if not exist', async () => {
     await Bone.driver.createTable('notes', {
       title: STRING,
     });
