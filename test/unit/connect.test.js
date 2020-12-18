@@ -51,11 +51,12 @@ describe('connect', function() {
     });
     assert(Book.synchronized);
     assert(Book.primaryKey === 'isbn');
+    assert(Book.primaryColumn === 'isbn');
     assert(Object.keys(Book.attributes).length > 0);
   });
 
   it('connect models passed in opts.models (define class with primaryKey)', async function() {
-    const { STRING, BIGINT } = DataTypes;
+    const { STRING } = DataTypes;
     class Book extends Bone {
       static get primaryKey() {
         return 'isbn';
@@ -72,6 +73,7 @@ describe('connect', function() {
     });
     assert(Book.synchronized);
     assert(Book.primaryKey === 'isbn');
+    assert(Book.primaryColumn === 'isbn');
     assert(Object.keys(Book.attributes).length > 0);
   });
 
