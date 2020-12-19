@@ -7,7 +7,7 @@ const { DataTypes } = require('../../..');
 const { heresql } = require('../../../lib/utils/string');
 const SqliteDriver = require('../../../lib/drivers/sqlite');
 
-const { INTEGER, STRING, DATE, BOOLEAN } = DataTypes;
+const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = DataTypes;
 
 const options = {
   database: '/tmp/leoric.sqlite3',
@@ -61,7 +61,7 @@ describe('=> SQLite driver', () => {
   it('driver.createTable(table, definitions)', async () => {
     await driver.dropTable('notes');
     await driver.createTable('notes', {
-      id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
       public: { type: INTEGER },
     });
   });
