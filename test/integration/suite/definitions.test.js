@@ -12,6 +12,10 @@ describe('=> Table definitions', () => {
     await Bone.driver.dropTable('memos');
   });
 
+  after(async () => {
+    await Bone.driver.dropTable('notes');
+  });
+
   it('should be able to create table', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
@@ -128,6 +132,10 @@ describe('=> Table definitions', () => {
 
 describe('=> Bone.sync()', () => {
   beforeEach(async () => {
+    await Bone.driver.dropTable('notes');
+  });
+
+  after(async () => {
     await Bone.driver.dropTable('notes');
   });
 
