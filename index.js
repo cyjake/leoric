@@ -105,11 +105,11 @@ class Realm {
     this.options = Spine.options = options;
   }
 
-  define(name, attributes, opts = {}) {
+  define(name, attributes, opts = {}, descriptors = {}) {
     const { Bone } = this;
     const Model = class extends Bone {};
     Object.defineProperty(Model, 'name', { value: name });
-    Model.init(attributes, opts);
+    Model.init(attributes, opts, descriptors);
     Bone.models[name] = Model;
     return Model;
   }
