@@ -1,3 +1,4 @@
+
 'use strict';
 
 const assert = require('assert').strict;
@@ -181,6 +182,28 @@ describe('=> Accessors', function() {
       status: 1,
     });
     expect(user.isValid).to.eql(false);
+  })
+
+  it('Bone.init(arrt, opts, descriptors) should work with setter', async () => {
+    await User.remove({}, true);
+    const user = await User.create({
+      email: 'adin1@par.com',
+      meta: {
+        h: 1
+      },
+      nickname: 'Zeus',
+      status: 1,
+    });
+    const user1 = await User.create({
+      email: 'adin12@par.com',
+      meta: {
+        h: 1
+      },
+      nickname: 'g',
+      status: 1,
+    });
+    expect(user.nickname).to.eql('V');
+    expect(user1.nickname).to.eql('G');
   })
 });
 
