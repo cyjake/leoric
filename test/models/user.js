@@ -17,13 +17,11 @@ class User extends Bone {
   get isValid() {
     return this.status === 1;
   }
-}
 
-Object.defineProperty(User, 'formatter', {
-  get() {
+  static get formatter() {
     return formatter;
-  },
-});
+  }
+}
 
 // test init
 User.init({
@@ -54,8 +52,7 @@ User.init({
     if (value === 'Zeus') {
       this.attribute('nickname', 'V');
     } else {
-      const { formatter: format } = this.constructor;
-      this.attribute('nickname', format.formatName(value));
+      this.attribute('nickname', this.constructor.formatter.formatName(value));
     }
   },
 })
