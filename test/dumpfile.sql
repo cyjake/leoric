@@ -77,5 +77,6 @@ CREATE TABLE `users` (
   `email` varchar(256) NOT NULL UNIQUE,
   `nickname` varchar(256) NOT NULL,
   `meta` text,
-  `status` int NOT NULL DEFAULT 1
+  `status` int NOT NULL DEFAULT 1,
+  `desc` varchar(256)
 );
