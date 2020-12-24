@@ -36,6 +36,10 @@ describe('=> Sequelize adapter', () => {
     await Post.remove({}, true);
   });
 
+  after(() => {
+    Bone.driver = null;
+  })
+
   it('Model.aggregate()', async () => {
     await Promise.all([
       await Book.create({ name: 'Book of Tyrael', price: 20 }),
