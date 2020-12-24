@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, connect, sequelize} = require('../../..');
+const { Bone, connect, sequelize, DataTypes } = require('../../..');
 
 describe('=> Sequelize adapter', () => {
   const Spine = sequelize(Bone);
@@ -383,4 +383,77 @@ describe('=> Sequelize adapter', () => {
     const result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
   });
+});
+
+describe('model.init with getterMethods and setterMethods', () => {
+  const attributes = {
+    id: DataTypes.BIGINT,
+    gmt_create: DataTypes.DATE,
+    gmt_deleted: DataTypes.DATE,
+    email: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+      unique: true,
+    },
+    nickname: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+    },
+    meta: {
+      type: DataTypes.JSON,
+    },
+    status: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
+    desc: {
+      type: DataTypes.STRING,
+    }
+  }
+
+  const Spine = sequelize(Bone);
+
+  class User extends Spine {}
+  User.init(attributes, {
+    getterMethods: {
+      nickname() {
+        return this.getDataValue('nickname');
+      },
+      NICKNAME() {
+        return this.nickname.toUpperCase();
+      },
+      specDesc() {
+        return this.desc;
+      }
+    },
+    setterMethods: {
+      specDesc(value) {
+        if (value) this.setDataValue('desc', value.toUpperCase());
+      }
+    }
+  });
+
+
+  before(async () => {
+    await connect({
+      Model: Spine,
+      dialect: 'sqlite',
+      database: '/tmp/leoric.sqlite3',
+      models: [ User ],
+    });
+  });
+
+  beforeEach(async () => {
+    await User.remove({}, true);
+  });
+
+  it('should work', async () => {
+    const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+    user.specDesc = 'hello';
+    assert.equal(user.desc, 'HELLO');
+    assert.equal(user.specDesc, 'HELLO');
+    assert.equal(user.NICKNAME, 'TESTY');
+    assert.equal(user.nickname, 'testy');
+  })
 });
