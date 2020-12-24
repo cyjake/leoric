@@ -383,4 +383,14 @@ describe('=> Sequelize adapter', () => {
     const result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
   });
+
+  it('model.changed(key)', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.equal(post.changed('title'), true);
+    await post.update();
+    assert.equal(post.changed('title'), true);
+    assert.equal(post.attributeChanged('title'), false);
+    assert.equal(post.previous('title'), 'By three they come');
+  })
 });
