@@ -2,11 +2,26 @@
 
 const { Bone, DataTypes } = require('../..');
 
+const formatter = {
+  formatName(value) {
+    if (value) {
+      return value.toUpperCase();
+    }
+    return value;
+  }
+}
 class User extends Bone {
+  constructor(opts) {
+    super(opts);
+  }
   get isValid() {
     return this.status === 1;
   }
-};
+
+  static get formatter() {
+    return formatter;
+  }
+}
 
 // test init
 User.init({
@@ -30,11 +45,16 @@ User.init({
     defaultValue: 1,
   }
 }, {}, {
-  isValid: {
-    get() {
-      return this.status !== 1;
+  get isValid() {
+    return this.status !== 1;
+  },
+  set nickname(value) {
+    if (value === 'Zeus') {
+      this.attribute('nickname', 'V');
+    } else {
+      this.attribute('nickname', this.constructor.formatter.formatName(value));
     }
-  }
+  },
 })
 
 module.exports = User;
