@@ -171,7 +171,7 @@ describe('=> Accessors', function() {
     expect(Book.primaryColumn).to.eql('isbn');
   });
 
-  it('Bone.init(arrts, opts, descriptors) should work', async () => {
+  it('Bone.init(attrs, opts, descriptors) should work', async () => {
     await User.remove({}, true);
     const user = await User.create({
       email: 'adin1@par.com',
@@ -184,7 +184,7 @@ describe('=> Accessors', function() {
     expect(user.isValid).to.eql(false);
   })
 
-  it('Bone.init(arrts, opts, descriptors) should work with setter', async () => {
+  it('Bone.init(attrs, opts, descriptors) should work with setter', async () => {
     await User.remove({}, true);
     const user = await User.create({
       email: 'adin1@par.com',
