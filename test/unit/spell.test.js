@@ -209,3 +209,20 @@ describe('=> Update', () => {
     );
   });
 });
+
+describe('=> Delete', () => {
+  it('where object condition', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' } }).toString();
+    assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL$/.test(sqlString));
+  });
+
+  it('force delete', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' } }, true).toString();
+    assert.equal(sqlString, "DELETE FROM `articles` WHERE `title` LIKE '%Post%'");
+  });
+
+  it('set deletedAt', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
+    assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
+  });
+})
