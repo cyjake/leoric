@@ -104,6 +104,17 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Post.count(), 2);
   });
 
+  it('Model.count({ where }, { paranoid: false })', async () => {
+    await Promise.all([
+      Post.create({ title: 'By three they come' }),
+      Post.create({ title: 'By three thy way opens' }),
+    ]);
+    assert.equal(await Post.count(), 2);
+    await Post.destroy({ where: { title: 'By three they come' } });
+    assert.equal(await Post.count(), 1);
+    assert.equal(await Post.count({}, { paranoid: false }), 2);
+  });
+
   it('Model.count({ where })', async () => {
     await Promise.all([
       Post.create({ title: 'By three they come' }),
@@ -191,6 +202,55 @@ describe('=> Sequelize adapter', () => {
     assert.throws(() => posts[0].content);
   });
 
+  it('Model.findAll(opt, { paranoid: false })', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    let posts = await Post.findAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+
+    await Post.destroy({ title: 'Leah' });
+    const post = await Post.findOne({ title: 'Leah' });
+    assert(!post);
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+    }, { paranoid: false });
+    assert.equal(posts.length, 2);
+    assert.equal(posts[0].title, 'Tyrael');
+    assert.equal(posts[1].title, 'Leah');
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+      offset: 1,
+      limit: 2,
+    },  { paranoid: false });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+
+    posts = await Post.findAll({
+      order: [[ 'createdAt', 'desc' ]],
+      limit: 1,
+    },  { paranoid: false });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Tyrael');
+
+    posts = await Post.findAll({
+      attributes: [ 'title' ],
+      where: { title: 'Leah' },
+    },  { paranoid: false });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Leah');
+    assert.throws(() => posts[0].content);
+  });
+
   it('Model.findAll({ order })', async () => {
     await Promise.all([
       { title: 'Leah' },
@@ -249,6 +309,26 @@ describe('=> Sequelize adapter', () => {
     assert.equal(count, 1);
   });
 
+  it('Model.findAndCountAll(opt, { paranoid: false })', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+    await Post.destroy({ title: 'Leah' });
+    const post = await Post.findOne({ title: 'Leah' });
+    assert(!post);
+    const post1 = await Post.findOne({ title: 'Leah' }, { paranoid: false });
+    assert.equal(post1.title, 'Leah');
+
+    const { rows, count } = await Post.findAndCountAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+    }, { paranoid: false });
+    assert.equal(rows.length, 1);
+    assert.equal(count, 1);
+  });
+
   it('Model.findOne()', async () => {
     const posts = await Promise.all([
       { title: 'Leah' },
@@ -274,6 +354,40 @@ describe('=> Sequelize adapter', () => {
     // if passed null or undefined, return null
     assert.equal(await Post.findOne(null), null);
     assert.equal(await Post.findOne(undefined), null);
+  });
+
+  it('Model.findOne(id, { paranoid: false })', async () => {
+    const { id } = await Post.create({ title: 'Leah' });
+
+    const post = await Post.findOne();
+    assert.equal(post.title, 'Leah');
+    await post.remove();
+    const post1 = await Post.findOne();
+    assert(!post1);
+
+    const post2 = await Post.findOne({ id }, { paranoid: false });
+    assert.equal(post2.title, 'Leah');
+  });
+
+  it('Model.findByPk(pk)', async () => {
+    const { id } = await Post.create({ title: 'Leah' });
+
+    const post = await Post.findByPk(id);
+    assert.equal(post.title, 'Leah');
+  });
+
+  it('Model.findByPk(pk, { paranoid: false })', async () => {
+    const { id } = await Post.create({ title: 'Leah' });
+
+    const post = await Post.findByPk(id);
+    assert.equal(post.title, 'Leah');
+
+    await post.remove();
+    const post1 = await Post.findByPk(id);
+    assert(!post1);
+
+    const post2 = await Post.findByPk(id, { paranoid: false });
+    assert.equal(post2.title, 'Leah');
   });
 
   it('Model.max(attribute)', async () => {
