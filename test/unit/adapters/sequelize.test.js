@@ -383,4 +383,17 @@ describe('=> Sequelize adapter', () => {
     const result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
   });
+
+  it('model.isNewRecord', async() => {
+    const book = await Book.create({ name: 'Book of Cain', price: 10 });
+    assert.equal(book.isNewRecord, false);
+    const book1 = Book.build({ name: 'Book New', price: 10 });
+    assert.equal(book1.isNewRecord, true);
+    await book1.save();
+    assert.equal(book1.isNewRecord, false);
+    const book2 = Book.build({ name: 'Book New', price: 10 });
+    assert.equal(book2.isNewRecord, true);
+    await book2.upsert();
+    assert.equal(book2.isNewRecord, false);
+  })
 });
