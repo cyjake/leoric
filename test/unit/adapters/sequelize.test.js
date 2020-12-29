@@ -66,6 +66,43 @@ describe('=> Sequelize adapter', () => {
     assert.equal(count, 1);
   });
 
+  it('Model.aggregate(attribute, aggregateFunction, { paranoid: false })', async () => {
+    const books = await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+      await Book.create({ name: 'Book of Cain', price: 30 }),
+    ]);
+
+    const count = await Book.aggregate('*', 'count', {
+      where: {
+        price: { $gt: 10 },
+      },
+    });
+    assert.equal(count, 2);
+    await books[2].destroy();
+    const count1 = await Book.aggregate('*', 'count', {
+      where: {
+        price: { $gt: 10 },
+      },
+    });
+    assert.equal(count1, 1);
+    const count2 = await Book.aggregate('*', 'count', {
+      where: {
+        price: { $gt: 10 },
+      },
+      paranoid: false,
+    });
+    assert.equal(count2, 2);
+    await books[2].destroy({ force: true });
+    const count3 = await Book.aggregate('*', 'count', {
+      where: {
+        price: { $gt: 10 },
+      },
+      paranoid: false,
+    });
+    assert.equal(count3, 1);
+  });
+
   it('Model.build()', async () => {
     const book = Book.build({ name: 'Book of Cain', price: 10 });
     assert.ok(!book.id);
@@ -104,7 +141,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Post.count(), 2);
   });
 
-  it('Model.count({ where }, { paranoid: false })', async () => {
+  it('Model.count({ paranoid: false })', async () => {
     await Promise.all([
       Post.create({ title: 'By three they come' }),
       Post.create({ title: 'By three thy way opens' }),
@@ -112,7 +149,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Post.count(), 2);
     await Post.destroy({ where: { title: 'By three they come' } });
     assert.equal(await Post.count(), 1);
-    assert.equal(await Post.count({}, { paranoid: false }), 2);
+    assert.equal(await Post.count({ paranoid: false }), 2);
   });
 
   it('Model.count({ where })', async () => {
@@ -124,6 +161,35 @@ describe('=> Sequelize adapter', () => {
       where: { title: 'By three they come' },
     });
     assert.equal(result, 1);
+  });
+
+
+  it('Model.count({ where, paranoid: false })', async () => {
+    const books = await Promise.all([
+      Post.create({ title: 'By three they come' }),
+      Post.create({ title: 'By three thy way opens' }),
+    ]);
+    const result = await Post.count({
+      where: { title: 'By three they come' },
+    });
+    assert.equal(result, 1);
+    await books[0].destroy();
+    const result1 = await Post.count({
+      where: { title: 'By three they come' },
+    });
+    assert.equal(result1, 0);
+    const result2 = await Post.count({
+      where: { title: 'By three they come' },
+      paranoid: false,
+    });
+    assert.equal(result2, 1);
+
+    await books[0].destroy({ force: true });
+    const result3 = await Post.count({
+      where: { title: 'By three they come' },
+      paranoid: false,
+    });
+    assert.equal(result3, 0);
   });
 
   it('Model.create()', async () => {
@@ -202,7 +268,7 @@ describe('=> Sequelize adapter', () => {
     assert.throws(() => posts[0].content);
   });
 
-  it('Model.findAll(opt, { paranoid: false })', async () => {
+  it('Model.findAll(opt) with { paranoid: false }', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
       { title: 'Tyrael' },
@@ -222,7 +288,8 @@ describe('=> Sequelize adapter', () => {
 
     posts = await Post.findAll({
       order: [[ 'createdAt', 'desc' ]],
-    }, { paranoid: false });
+      paranoid: false,
+    });
     assert.equal(posts.length, 2);
     assert.equal(posts[0].title, 'Tyrael');
     assert.equal(posts[1].title, 'Leah');
@@ -231,21 +298,24 @@ describe('=> Sequelize adapter', () => {
       order: [[ 'createdAt', 'desc' ]],
       offset: 1,
       limit: 2,
-    },  { paranoid: false });
+      paranoid: false
+    });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
 
     posts = await Post.findAll({
       order: [[ 'createdAt', 'desc' ]],
       limit: 1,
-    },  { paranoid: false });
+      paranoid: false,
+    });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Tyrael');
 
     posts = await Post.findAll({
       attributes: [ 'title' ],
       where: { title: 'Leah' },
-    },  { paranoid: false });
+      paranoid: false,
+    });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
     assert.throws(() => posts[0].content);
@@ -309,7 +379,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(count, 1);
   });
 
-  it('Model.findAndCountAll(opt, { paranoid: false })', async () => {
+  it('Model.findAndCountAll(opt) with paranoid = false', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
       { title: 'Tyrael' },
@@ -317,14 +387,15 @@ describe('=> Sequelize adapter', () => {
     await Post.destroy({ title: 'Leah' });
     const post = await Post.findOne({ title: 'Leah' });
     assert(!post);
-    const post1 = await Post.findOne({ title: 'Leah' }, { paranoid: false });
+    const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
     assert.equal(post1.title, 'Leah');
 
     const { rows, count } = await Post.findAndCountAll({
       where: {
         title: { $like: '%ea%' },
       },
-    }, { paranoid: false });
+      paranoid: false,
+    });
     assert.equal(rows.length, 1);
     assert.equal(count, 1);
   });
@@ -356,7 +427,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Post.findOne(undefined), null);
   });
 
-  it('Model.findOne(id, { paranoid: false })', async () => {
+  it('Model.findOne(id) with paranoid = false', async () => {
     const { id } = await Post.create({ title: 'Leah' });
 
     const post = await Post.findOne();
@@ -364,9 +435,14 @@ describe('=> Sequelize adapter', () => {
     await post.remove();
     const post1 = await Post.findOne();
     assert(!post1);
+    const post2 = await Post.findOne({ paranoid: false });
+    assert(post2);
 
-    const post2 = await Post.findOne({ id }, { paranoid: false });
-    assert.equal(post2.title, 'Leah');
+    const post3 = await Post.findOne({ where: { id }, paranoid: false });
+    assert.equal(post3.title, 'Leah');
+    await post3.destroy({ force: true });
+    const post4 = await Post.findOne({ where: { id }, paranoid: false });
+    assert(!post4);
   });
 
   it('Model.findByPk(pk)', async () => {
@@ -388,6 +464,9 @@ describe('=> Sequelize adapter', () => {
 
     const post2 = await Post.findByPk(id, { paranoid: false });
     assert.equal(post2.title, 'Leah');
+    await post2.destroy({ force: true });
+    const post3 = await Post.findOne({ where: { id }, paranoid: false });
+    assert(!post3);
   });
 
   it('Model.max(attribute)', async () => {
@@ -409,6 +488,19 @@ describe('=> Sequelize adapter', () => {
     assert.equal(max, 10);
   });
 
+  it('Model.max(attribute, { paranoid })', async () => {
+    const books = await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.max('price'), 20);
+    await books[0].destroy();
+    assert.equal(await Book.max('price'), 10);
+    assert.equal(await Book.max('price', { paranoid: false }), 20);
+    await books[0].destroy({ force: true });
+    assert.equal(await Book.max('price', { paranoid: false }), 10);
+  });
+
   it('Model.min(attribute)', async () => {
     await Promise.all([
       await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -426,6 +518,19 @@ describe('=> Sequelize adapter', () => {
       where: { name: 'Book of Tyrael' },
     });
     assert.equal(min, 20);
+  });
+
+  it('Model.max(attribute, { paranoid })', async () => {
+    const books = await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.min('price'), 10);
+    await books[1].destroy();
+    assert.equal(await Book.min('price'), 20);
+    assert.equal(await Book.min('price', { paranoid: false }), 10);
+    await books[1].destroy({ force: true });
+    assert.equal(await Book.min('price', { paranoid: false }), 20);
   });
 
   it('Model.sum(attribute)', async () => {
@@ -447,6 +552,22 @@ describe('=> Sequelize adapter', () => {
     assert.equal(sum, 10);
   });
 
+  it('Model.sum(attribute, { paranoid })', async () => {
+    const books = await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.sum('price'), 30);
+    await books[0].destroy();
+    assert.equal(await Book.sum('price'), 10);
+    assert.equal(await Book.sum('price', { paranoid: false }), 30);
+
+    await books[0].destroy({ force: true });
+    assert.equal(await Book.sum('price', { paranoid: false }), 10);
+
+  });
+
+
   it('Model.increment()', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
@@ -457,6 +578,27 @@ describe('=> Sequelize adapter', () => {
     await Book.increment({ price: 2 }, { where: { isbn } });
     await book.reload();
     assert.equal(book.price, 13);
+  });
+
+  it('Model.increment(, { paranoid })', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await Book.increment('price', { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 11);
+
+    await Book.increment({ price: 2 }, { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 13);
+
+    await book.destroy();
+    await Book.increment({ price: 2 }, { where: { isbn } });
+    await book.reload();
+    assert.equal(book.price, 13);
+    await Book.increment({ price: 2 }, { where: { isbn }, paranoid: false });
+    await book.reload();
+    assert.equal(book.price, 15);
+
   });
 
   it('model.decrement()', async () => {
@@ -482,6 +624,26 @@ describe('=> Sequelize adapter', () => {
     await book.reload();
     assert.equal(book.price, 13);
   });
+
+  it('model.increment(, { paranoid })', async () => {
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    await book.increment('price');
+    await book.reload();
+    assert.equal(book.price, 11);
+
+    await book.increment({ price: 2 });
+    await book.reload();
+    assert.equal(book.price, 13);
+    await book.destroy();
+    await book.increment({ price: 2 });
+    await book.reload();
+    assert.equal(book.price, 13);
+    await book.increment({ price: 2 }, { paranoid: false });
+    await book.reload();
+    assert.equal(book.price, 15);
+  });
+
 
   it('model.restore()', async () => {
     const post = await Post.create({ title: 'By three they come' });

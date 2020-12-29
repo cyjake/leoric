@@ -198,14 +198,14 @@ describe('=> Update', () => {
   it('increment', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).increment('price').toString(),
-      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 
   it('decrement', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).decrement('price').toString(),
-      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 });
