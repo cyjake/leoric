@@ -659,4 +659,20 @@ describe('=> Sequelize adapter', () => {
     const result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
   });
+
+  it('Model.update(, { paranoid })', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await Post.update({ title: 'By three thy way opens' }, { where: { title: 'By three they come' }});
+    const result = await Post.first;
+    assert.equal(result.title, 'By three thy way opens');
+    await post.destroy();
+    const res = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }});
+    assert.equal(res, 0);
+    const post1 = await Post.findByPk(post.id, { paranoid: false });
+    assert.equal(post1.title, 'By three thy way opens');
+    const res1 = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }, paranoid: false });
+    assert.equal(res1, 1);
+    const post2 = await Post.findByPk(post.id, { paranoid: false });
+    assert.equal(post2.title, 'By four thy way opens');
+  });
 });
