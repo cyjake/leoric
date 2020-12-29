@@ -28,7 +28,8 @@ CREATE TABLE `books` (
   `gmt_create` timestamp(3) NULL,
   `gmt_modified` timestamp(3) NULL,
   `name` varchar(1000) NOT NULL,
-  `price` decimal(10, 3) NOT NULL
+  `price` decimal(10, 3) NOT NULL,
+  `gmt_deleted` timestamp(3) NULL
 );
 
 DROP TABLE IF EXISTS `comments`;

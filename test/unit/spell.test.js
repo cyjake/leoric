@@ -198,14 +198,31 @@ describe('=> Update', () => {
   it('increment', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).increment('price').toString(),
-      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 
   it('decrement', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).decrement('price').toString(),
-      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 });
+
+describe('=> Delete', () => {
+  it('where object condition', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' } }).toString();
+    assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL$/.test(sqlString));
+  });
+
+  it('force delete', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' } }, true).toString();
+    assert.equal(sqlString, "DELETE FROM `articles` WHERE `title` LIKE '%Post%'");
+  });
+
+  it('set deletedAt', function() {
+    const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
+    assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
+  });
+})
