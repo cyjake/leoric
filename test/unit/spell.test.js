@@ -111,6 +111,18 @@ describe('=> Select', function() {
 
       assert.equal(
         Post.where({
+          title: {
+            $or: [
+              null,
+              'Diablo',
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` IS NULL OR `title` = 'Diablo') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
           $or: {
             title: 'Leah',
             content: { $like: '%Leah%' },
@@ -145,6 +157,20 @@ describe('=> Select', function() {
           }
         }).toSqlString(),
         "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              {
+                $ne: 'Leah'
+              },
+              null
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` != 'Leah' OR `title` IS NULL) AND `gmt_deleted` IS NULL"
       );
     });
 
@@ -198,6 +224,20 @@ describe('=> Select', function() {
         }).toSqlString(),
         "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
       );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $and: [
+              null,
+              {
+                $ne: 'Leah'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` IS NULL AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
+      );
     });
 
     it('not', () => {
@@ -212,6 +252,19 @@ describe('=> Select', function() {
         }).toSqlString(),
         "SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` = 2)) AND `gmt_deleted` IS NULL"
       );
+
+      assert.equal(
+        Post.where({
+          is_private: {
+            $not: [
+              null,
+              2
+            ]
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (NOT (`is_private` IS NULL AND `is_private` = 2)) AND `gmt_deleted` IS NULL"
+      );
+
       assert.equal(
         Post.where({
           is_private: {

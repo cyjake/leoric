@@ -276,6 +276,13 @@ describe('=> Query $op', function() {
       ]
     }});
     assert(posts.length === 3);
+    const posts1 = await Post.find({ title: {
+      $or: [
+        'Diablo',
+        null
+      ]
+    }});
+    assert(posts1.length === 2);
   });
 
   it('.find $not', async() => {
