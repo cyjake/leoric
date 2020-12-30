@@ -169,9 +169,10 @@ describe('=> Query', function() {
 describe('=> Query $op', function() {
   before(async function() {
     await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2012, 4, 15) });
-    await Post.create({ id: 2, title: 'Diablo' });
+    await Post.create({ id: 2, title: 'Diablo', is_private: 1 });
     await Post.create({ id: 99, title: 'Leah' });
     await Post.create({ id: 100, title: 'Deckard Cain' });
+    await Post.create({ id: 101, title: 'Diablo', is_private: -1 });
   });
 
   after(async function() {
@@ -256,6 +257,60 @@ describe('=> Query $op', function() {
     const post = await Post.findOne({ id: { $gt: 90, $lt: 100 } });
     assert(post.id > 90 && post.id < 100);
   });
+
+  it('.find $and', async() => {
+    const posts = await Post.find({ id: {
+      $and: [
+        { $gte: 1 },
+        { $lte: 2 },
+      ]
+    }});
+    assert(posts.length === 2);
+  });
+
+  it('.find $or', async() => {
+    const posts = await Post.find({ title: {
+      $or: [
+        'Diablo',
+        { $like: "%New%" },
+      ]
+    }});
+    assert(posts.length === 3);
+  });
+
+  it('.find $not', async() => {
+    const posts = await Post.find({ id: {
+      $not: [
+        99,
+        { $gte: 1 },
+      ]
+    }});
+    assert(posts.length === 4);
+  });
+
+  it('.find mix logical query', async() => {
+    const posts = await Post.find({
+      id: {
+        $not: [
+          100,
+          { $lte: 99 },
+        ]
+      },
+      title: {
+        $or: [
+          'Diablo',
+          { $like: "%New%" },
+        ]
+      },
+      is_private: {
+        $and: [
+          { $lte: 1 },
+          { $gte: -2 }
+        ]
+      }
+    });
+    assert(posts.length === 3);
+  })
 
   it('.find mixed $op', async function() {
     const post = await Post.findOne({ id: { $gt: 90, $lt: 100 } }).where('deletedAt != NULL or updatedAt != NULL');
