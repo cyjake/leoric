@@ -447,7 +447,14 @@ describe('model.init with getterMethods and setterMethods', () => {
     setterMethods: {
       specDesc(value) {
         if (value) this.setDataValue('desc', value.toUpperCase());
-      }
+      },
+      nickname(value) {
+        if (value === 'Zeus') {
+          this.attribute('nickname', 'V');
+        } else {
+          this.attribute('nickname', value);
+        }
+      },
     }
   });
 
@@ -465,12 +472,14 @@ describe('model.init with getterMethods and setterMethods', () => {
     await User.remove({}, true);
   });
 
-  it('should work', async () => {
+  it.only('should work', async () => {
     const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
     user.specDesc = 'hello';
     assert.equal(user.desc, 'HELLO');
     assert.equal(user.specDesc, 'HELLO');
     assert.equal(user.NICKNAME, 'TESTY');
     assert.equal(user.nickname, 'testy');
+    await user.update({ nickname: 'Zeus' });
+    assert.equal(user.nickname, 'V');
   })
 });
