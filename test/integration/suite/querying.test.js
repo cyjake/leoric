@@ -305,7 +305,7 @@ describe('=> Query $op', function() {
       is_private: {
         $and: [
           { $lte: 1 },
-          { $gte: -2 }
+          { $gte: 0 }
         ]
       }
     });
