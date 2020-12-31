@@ -26,6 +26,9 @@ describe('validator', () => {
     },
     meta: {
       type: DataTypes.JSON,
+      validate: {
+        hhh: true,
+      }
     },
     status: {
       type: DataTypes.INTEGER,
@@ -142,5 +145,18 @@ describe('validator', () => {
       desc: '222'
     });
     assert(user);
+  });
+
+  it('should be a valid validator', async () => {
+    await assert.rejects(async () => {
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        status: 1,
+        meta: {
+          a: 1
+        }
+      });
+    }, /Invalid validator function: hhh/);
   });
 });
