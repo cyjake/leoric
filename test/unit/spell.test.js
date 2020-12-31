@@ -250,7 +250,7 @@ describe('=> Select', function() {
             ]
           }
         }).toSqlString(),
-        'SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` = 2)) AND `gmt_deleted` IS NULL'
+        'SELECT * FROM `articles` WHERE (NOT IN (1,2)) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
@@ -262,7 +262,7 @@ describe('=> Select', function() {
             ]
           }
         }).toSqlString(),
-        'SELECT * FROM `articles` WHERE (NOT (`is_private` IS NULL AND `is_private` = 2)) AND `gmt_deleted` IS NULL'
+        'SELECT * FROM `articles` WHERE (NOT IN (NULL,2)) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
