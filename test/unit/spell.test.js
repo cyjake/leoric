@@ -225,4 +225,4 @@ describe('=> Delete', () => {
     const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
   });
-})
+});
