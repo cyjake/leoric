@@ -205,6 +205,20 @@ describe('=> Accessors', function() {
     expect(user.nickname).to.eql('V');
     expect(user1.nickname).to.eql('G');
   })
+
+  it('Bone.init(attrs, opts, descriptors) should work with setter and getter', async () => {
+    await User.remove({}, true);
+    const user = await User.create({
+      email: 'adin1@par.com',
+      nickname: 'Zeus',
+      status: 1,
+    });
+    expect(user.status).to.eql(1);
+    expect(user.raw.status).to.equal(-1);
+    await user.update({ status: 2 });
+    expect(user.status).to.eql(2);
+    expect(user.raw.status).to.equal(0);
+  });
 });
 
 describe('=> Integration', function() {

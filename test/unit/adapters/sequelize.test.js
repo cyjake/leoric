@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const crypto = require('crypto');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
 
 describe('=> Sequelize adapter', () => {
@@ -729,7 +730,30 @@ describe('model.init with getterMethods and setterMethods', () => {
     },
     desc: {
       type: DataTypes.STRING,
+    },
+    fingerprint: {
+      type: DataTypes.TEXT,
     }
+  }
+
+  const algorithm = 'aes-256-ctr';
+  const password = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
+  const iv = 'iceiceiceiceicei';
+
+  function encrypt(text){
+    if (!text) return null;
+    const cipher = crypto.createCipheriv(algorithm, password, iv)
+    let crypted = cipher.update(text,'utf8','hex')
+    crypted += cipher.final('hex');
+    return crypted;
+  }
+
+  function decrypt(text){
+    if (!text) return null;
+    const decipher = crypto.createCipheriv(algorithm, password, iv)
+    let dec = decipher.update(text,'hex','utf8')
+    dec += decipher.final('utf8');
+    return dec;
   }
 
   const Spine = sequelize(Bone);
@@ -745,6 +769,9 @@ describe('model.init with getterMethods and setterMethods', () => {
       },
       specDesc() {
         return this.desc;
+      },
+      fingerprint() {
+        return decrypt(this.getDataValue('fingerprint'));
       }
     },
     setterMethods: {
@@ -758,6 +785,9 @@ describe('model.init with getterMethods and setterMethods', () => {
           this.attribute('nickname', value);
         }
       },
+      fingerprint(value) {
+        this.attribute('fingerprint', encrypt(value));
+      }
     }
   });
 
@@ -775,7 +805,7 @@ describe('model.init with getterMethods and setterMethods', () => {
     await User.remove({}, true);
   });
 
-  it.only('should work', async () => {
+  it('should work', async () => {
     const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
     user.specDesc = 'hello';
     assert.equal(user.desc, 'HELLO');
@@ -784,5 +814,14 @@ describe('model.init with getterMethods and setterMethods', () => {
     assert.equal(user.nickname, 'testy');
     await user.update({ nickname: 'Zeus' });
     assert.equal(user.nickname, 'V');
+  });
+
+  it('should work with custom en/decrypt setter getter', async () => {
+    const user = await User.create({ nickname: 'Old Hunter', email: 'oh@hunter.com', fingerprint: 'Monster Hunter World' });
+    assert.equal(user.fingerprint, 'Monster Hunter World');
+    assert.equal(user.raw.fingerprint, encrypt('Monster Hunter World'));
+    await user.update({ fingerprint: 'Bloodborne' });
+    assert.equal(user.fingerprint, 'Bloodborne');
+    assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
   })
 });
