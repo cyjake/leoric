@@ -95,6 +95,237 @@ describe('=> Select', function() {
     );
   });
 
+  describe('multiple logical query conditions within one column', () => {
+    it('or', () => {
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              'Leah',
+              'Diablo',
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` = 'Diablo') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              null,
+              'Diablo',
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` IS NULL OR `title` = 'Diablo') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          $or: {
+            title: 'Leah',
+            content: { $like: '%Leah%' },
+          },
+        }).toString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `content` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              'Leah',
+              {
+                $like: '%Leah%'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              'Leah',
+              {
+                $ne: 'Leah'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              {
+                $ne: 'Leah'
+              },
+              null
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` != 'Leah' OR `title` IS NULL) AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it('and', () => {
+      assert.equal(
+        Post.where({
+          title: {
+            $and: [
+              'Leah',
+              'Diablo',
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` = 'Diablo') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          $and: {
+            title: 'Leah',
+            content: { $like: '%Leah%' },
+          },
+        }).toString(),
+        "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `content` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $and: [
+              'Leah',
+              {
+                $like: '%Leah%'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $and: [
+              'Leah',
+              {
+                $ne: 'Leah'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.where({
+          title: {
+            $and: [
+              null,
+              {
+                $ne: 'Leah'
+              },
+            ],
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` IS NULL AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it('not', () => {
+      assert.equal(
+        Post.where({
+          is_private: {
+            $not: [
+              1,
+              2
+            ]
+          }
+        }).toSqlString(),
+        'SELECT * FROM `articles` WHERE (NOT IN (1,2)) AND `gmt_deleted` IS NULL'
+      );
+
+      assert.equal(
+        Post.where({
+          is_private: {
+            $not: [
+              null,
+              2
+            ]
+          }
+        }).toSqlString(),
+        'SELECT * FROM `articles` WHERE (NOT IN (NULL,2)) AND `gmt_deleted` IS NULL'
+      );
+
+      assert.equal(
+        Post.where({
+          is_private: {
+            $not: [
+              1,
+              { $lte: 6 }
+            ]
+          }
+        }).toSqlString(),
+        'SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` <= 6)) AND `gmt_deleted` IS NULL'
+      );
+    });
+
+    it('mix', () => {
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              'Leah',
+              {
+                $ne: 'Leah'
+              },
+            ],
+          },
+          is_private: {
+            $and: [
+              { $gte: 1 },
+              { $lte: 6 }
+            ]
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND (`is_private` >= 1 AND `is_private` <= 6) AND `gmt_deleted` IS NULL"
+      );
+      assert.equal(
+        Post.where({
+          title: {
+            $or: [
+              'Leah',
+              {
+                $ne: 'Leah'
+              },
+            ],
+          },
+          is_private: {
+            $and: [
+              { $gte: 1 },
+              { $lte: 6 }
+            ],
+          },
+          author_id: {
+            $not: [
+              100,
+              { $lte: 2 }
+            ]
+          }
+        }).toSqlString(),
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND (`is_private` >= 1 AND `is_private` <= 6) AND (NOT (`author_id` = 100 AND `author_id` <= 2)) AND `gmt_deleted` IS NULL"
+      );
+    });
+  });
+
   it('where string conditions', function() {
     assert.equal(
       Post.where('title like ?', '%Post%').toString(),
@@ -198,14 +429,14 @@ describe('=> Update', () => {
   it('increment', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).increment('price').toString(),
-      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` + 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 
   it('decrement', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).decrement('price').toString(),
-      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950'
+      'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
 });
@@ -225,4 +456,4 @@ describe('=> Delete', () => {
     const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
   });
-})
+});
