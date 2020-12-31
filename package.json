@@ -37,7 +37,8 @@
     "debug": "^3.1.0",
     "pluralize": "^7.0.0",
     "sqlstring": "^2.3.0",
-    "strftime": "^0.10.0"
+    "strftime": "^0.10.0",
+    "validator": "^13.5.2"
   },
   "devDependencies": {
     "@cara/minami": "^1.2.3",
