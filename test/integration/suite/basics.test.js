@@ -182,7 +182,7 @@ describe('=> Accessors', function() {
       status: 1,
     });
     expect(user.isValid).to.eql(false);
-  })
+  });
 
   it('Bone.init(attrs, opts, descriptors) should work with setter', async () => {
     await User.remove({}, true);
@@ -204,7 +204,7 @@ describe('=> Accessors', function() {
     });
     expect(user.nickname).to.eql('V');
     expect(user1.nickname).to.eql('G');
-  })
+  });
 });
 
 describe('=> Integration', function() {
@@ -694,10 +694,10 @@ describe('=> Bulk', () => {
         nickname: 'JJ2',
         status: 2
       }
-    ])
+    ]);
     assert.equal(await User.count(), 2);
     const users = await User.find();
     expect(users[0].status, 1);
     expect(users[1].status, 2);
-  })
+  });
 });

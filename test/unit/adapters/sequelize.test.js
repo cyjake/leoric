@@ -698,5 +698,5 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book2.isNewRecord, true);
     await book2.upsert();
     assert.equal(book2.isNewRecord, false);
-  })
+  });
 });

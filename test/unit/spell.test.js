@@ -250,7 +250,7 @@ describe('=> Select', function() {
             ]
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` = 2)) AND `gmt_deleted` IS NULL"
+        'SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` = 2)) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
@@ -262,7 +262,7 @@ describe('=> Select', function() {
             ]
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (NOT (`is_private` IS NULL AND `is_private` = 2)) AND `gmt_deleted` IS NULL"
+        'SELECT * FROM `articles` WHERE (NOT (`is_private` IS NULL AND `is_private` = 2)) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
@@ -274,9 +274,9 @@ describe('=> Select', function() {
             ]
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` <= 6)) AND `gmt_deleted` IS NULL"
+        'SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` <= 6)) AND `gmt_deleted` IS NULL'
       );
-    })
+    });
 
     it('mix', () => {
       assert.equal(
@@ -323,8 +323,8 @@ describe('=> Select', function() {
         }).toSqlString(),
         "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND (`is_private` >= 1 AND `is_private` <= 6) AND (NOT (`author_id` = 100 AND `author_id` <= 2)) AND `gmt_deleted` IS NULL"
       );
-    })
-  })
+    });
+  });
 
   it('where string conditions', function() {
     assert.equal(
@@ -456,4 +456,4 @@ describe('=> Delete', () => {
     const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
   });
-})
+});

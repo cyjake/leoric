@@ -272,7 +272,7 @@ describe('=> Query $op', function() {
     const posts = await Post.find({ title: {
       $or: [
         'Diablo',
-        { $like: "%New%" },
+        { $like: '%New%' },
       ]
     }});
     assert(posts.length === 3);
@@ -306,7 +306,7 @@ describe('=> Query $op', function() {
       title: {
         $or: [
           'Diablo',
-          { $like: "%New%" },
+          { $like: '%New%' },
         ]
       },
       is_private: {
@@ -317,7 +317,7 @@ describe('=> Query $op', function() {
       }
     });
     assert(posts.length === 3);
-  })
+  });
 
   it('.find mixed $op', async function() {
     const post = await Post.findOne({ id: { $gt: 90, $lt: 100 } }).where('deletedAt != NULL or updatedAt != NULL');
