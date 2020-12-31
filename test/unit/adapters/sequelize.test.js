@@ -683,6 +683,8 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.changed(), [ 'title', 'content' ]);
     await post.update();
     assert.deepEqual(post.changed(), [ 'title', 'content' ]);
+  });
+
   it('model.update(, { paranoid })', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.update({ title: 'By three thy way opens' });
