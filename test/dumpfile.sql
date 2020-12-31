@@ -28,7 +28,8 @@ CREATE TABLE `books` (
   `gmt_create` timestamp(3) NULL,
   `gmt_modified` timestamp(3) NULL,
   `name` varchar(1000) NOT NULL,
-  `price` decimal(10, 3) NOT NULL
+  `price` decimal(10, 3) NOT NULL,
+  `gmt_deleted` timestamp(3) NULL
 );
 
 DROP TABLE IF EXISTS `comments`;
@@ -77,5 +78,7 @@ CREATE TABLE `users` (
   `email` varchar(256) NOT NULL UNIQUE,
   `nickname` varchar(256) NOT NULL,
   `meta` text,
-  `status` int NOT NULL DEFAULT 1
+  `status` int NOT NULL DEFAULT 1,
+  `fingerprint` text,
+  `desc` text
 );

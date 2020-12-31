@@ -107,7 +107,16 @@ class Realm {
 
   define(name, attributes, opts = {}, descriptors = {}) {
     const { Bone } = this;
-    const Model = class extends Bone {};
+    const Model = class extends Bone {
+      // export Model: instance.Model.name
+      get Model() {
+        return Model;
+      }
+      // export Model: class.Model.name
+      static get Model() {
+        return Model;
+      }
+    };
     Object.defineProperty(Model, 'name', { value: name });
     Model.init(attributes, opts, descriptors);
     Bone.models[name] = Model;
