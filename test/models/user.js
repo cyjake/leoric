@@ -9,7 +9,7 @@ const formatter = {
     }
     return value;
   }
-}
+};
 class User extends Bone {
   constructor(opts) {
     super(opts);
@@ -62,6 +62,6 @@ User.init({
     const status = this.attribute('status');
     return status + 2;
   }
-})
+});
 
 module.exports = User;

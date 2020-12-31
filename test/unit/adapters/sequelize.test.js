@@ -39,7 +39,7 @@ describe('=> Sequelize adapter', () => {
 
   after(() => {
     Bone.driver = null;
-  })
+  });
 
   it('Model.aggregate()', async () => {
     await Promise.all([
@@ -703,7 +703,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book2.isNewRecord, true);
     await book2.upsert();
     assert.equal(book2.isNewRecord, false);
-  })
+  });
 });
 
 describe('model.init with getterMethods and setterMethods', () => {
@@ -734,7 +734,7 @@ describe('model.init with getterMethods and setterMethods', () => {
     fingerprint: {
       type: DataTypes.TEXT,
     }
-  }
+  };
 
   const algorithm = 'aes-256-ctr';
   const password = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
@@ -742,16 +742,16 @@ describe('model.init with getterMethods and setterMethods', () => {
 
   function encrypt(text){
     if (!text) return null;
-    const cipher = crypto.createCipheriv(algorithm, password, iv)
-    let crypted = cipher.update(text,'utf8','hex')
+    const cipher = crypto.createCipheriv(algorithm, password, iv);
+    let crypted = cipher.update(text,'utf8','hex');
     crypted += cipher.final('hex');
     return crypted;
   }
 
   function decrypt(text){
     if (!text) return null;
-    const decipher = crypto.createCipheriv(algorithm, password, iv)
-    let dec = decipher.update(text,'hex','utf8')
+    const decipher = crypto.createCipheriv(algorithm, password, iv);
+    let dec = decipher.update(text,'hex','utf8');
     dec += decipher.final('utf8');
     return dec;
   }
@@ -823,5 +823,5 @@ describe('model.init with getterMethods and setterMethods', () => {
     await user.update({ fingerprint: 'Bloodborne' });
     assert.equal(user.fingerprint, 'Bloodborne');
     assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
-  })
+  });
 });
