@@ -14,7 +14,7 @@ describe('validator', () => {
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true
+        isEmail: true,
       }
     },
     nickname: {
@@ -45,13 +45,14 @@ describe('validator', () => {
     desc: {
       type: DataTypes.STRING,
       validate: {
+        notNull: true,
         isValid() {
-          if (this.desc.length < 2) {
+          if (this.desc && this.desc.length < 2) {
             throw new Error('Invalid desc');
           }
         },
         lengthMax(value) {
-          if (value.length >= 10) {
+          if (value && value.length >= 10) {
             return false;
           }
         }
@@ -59,6 +60,9 @@ describe('validator', () => {
     },
     fingerprint: {
       type: DataTypes.TEXT,
+      validate: {
+        contains: 'finger',
+      }
     }
   };
 
@@ -74,8 +78,11 @@ describe('validator', () => {
     });
   });
 
-  after(async () => {
+  afterEach(async () => {
     await User.remove({}, true);
+  });
+
+  after(async () => {
     Bone.driver = null;
   });
 
@@ -95,6 +102,21 @@ describe('validator', () => {
         nickname: 1
       });
     }, /Validation isNumeric:false on nickname failed/);
+    const user = await User.create({
+      email: 'a@e.com',
+      nickname: 'sss'
+    });
+    assert(user);
+  });
+
+  it('notNull', async () => {
+    await assert.rejects(async () => {
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        desc: null,
+      });
+    }, /Validation notNull on desc failed/);
     const user = await User.create({
       email: 'a@e.com',
       nickname: 'sss'
@@ -143,6 +165,22 @@ describe('validator', () => {
       nickname: 'sss1',
       status: 1,
       desc: '222'
+    });
+    assert(user);
+  });
+
+  it('contains', async () => {
+    await assert.rejects(async () => {
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        fingerprint: 'aaa'
+      });
+    }, /Validation contains on fingerprint failed/);
+    const user = await User.create({
+      email: 'a1@e.com',
+      nickname: 'sss1',
+      fingerprint: 'fingerprint:1'
     });
     assert(user);
   });
