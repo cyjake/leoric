@@ -149,7 +149,7 @@ describe('validator', () => {
         status: 1,
         desc: '2sjhhhsajhhsss'
       });
-    }, /Validation on desc failed/);
+    }, /Validation lengthMax on desc failed/);
 
     await assert.rejects(async () => {
       await User.create({
