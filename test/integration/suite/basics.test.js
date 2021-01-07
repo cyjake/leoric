@@ -112,6 +112,116 @@ describe('=> Attributes', function() {
     await post.reload();
     assert.equal(post.title, 'Tyrael');
   });
+
+  it('Bone.previousChanged(key): raw VS rawPrevious', async function () {
+    const post = new Post({ title: 'Untitled' });
+    expect(post.createdAt).to.not.be.ok();
+    // should return false before persisting
+    expect(post.previousChanged('createdAt')).to.be(false);
+    post.createdAt = new Date();
+    await post.save();
+    // should return false after first persisting
+    expect(post.previousChanged('createdAt')).to.be(false);
+    post.createdAt = new Date();
+    await post.save();
+    // should return true after updating
+    expect(post.previousChanged('createdAt')).to.be(true);
+  });
+
+  it('Bone.previousChanged(): raw VS rawPrevious', async function () {
+    const post = new Post({ title: 'Untitled' });
+    expect(post.createdAt).to.not.be.ok();
+    assert.deepEqual(post.previousChanged(), false);
+    post.createdAt = new Date();
+    await post.save();
+    // should return false after first persist
+    assert.equal(post.previousChanged(), false);
+    post.createdAt = new Date();
+    await post.save();
+    // should return updated attributes' name after updating
+    assert.deepEqual(post.previousChanged(), ['createdAt']);
+    post.title = 'monster hunter';
+    post.createdAt = new Date();
+    await post.save();
+    // should return updated attributes' name after updating
+    assert.deepEqual(post.previousChanged(), ['createdAt', 'title']);
+  });
+
+  it('Bone.previousChanges(key): raw VS rawPrevious', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.previousChanges('title'), {});
+    await post.save();
+    assert.deepEqual(post.previousChanges('title'), {});
+    post.title = 'MHW';
+    await post.save();
+    assert.deepEqual(post.previousChanges('title'), { title: [ 'Untitled', 'MHW' ] });
+  });
+
+  it('Bone.previousChanges(): raw VS rawPrevious', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.previousChanges(), {});
+    await post.save();
+    assert.deepEqual(post.previousChanges(), {});
+    post.title = 'MHW';
+    await post.save();
+    assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ] });
+  });
+
+  it('Bone.changes(key): raw VS rawSaved', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.changes('title'), {});
+    post.title = 'MHW';
+    assert.deepEqual(post.changes('title'), {});
+    await post.save();
+    assert.deepEqual(post.changes('title'), {});
+    post.title = 'Bloodborne';
+    assert.deepEqual(post.changes('title'), { title: [ 'MHW', 'Bloodborne' ] });
+    await post.save();
+    assert.deepEqual(post.changes('title'), {});
+  });
+
+  it('Bone.changes(): raw VS rawSaved', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.changes(), {});
+    post.title = 'MHW';
+    post.content = 'Iceborne';
+    assert.deepEqual(post.changes(), {});
+    await post.save();
+    assert.deepEqual(post.changes(), {});
+    post.title = 'Bloodborne';
+    post.content = 'Nightmare';
+    assert.deepEqual(post.changes(), { title: [ 'MHW', 'Bloodborne' ], content: [ 'Iceborne', 'Nightmare' ] });
+    await post.save();
+    assert.deepEqual(post.changes(), {});
+  });
+
+  it('Bone.attributeChanges(key): raw VS rawSaved', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.attributeChanges('title'), {});
+    post.title = 'MHW';
+    assert.deepEqual(post.attributeChanges('title'), {});
+    await post.save();
+    assert.deepEqual(post.attributeChanges('title'), {});
+    post.title = 'Bloodborne';
+    assert.deepEqual(post.attributeChanges('title'), { title: [ 'MHW', 'Bloodborne' ] });
+    await post.save();
+    assert.deepEqual(post.attributeChanges('title'), {});
+  });
+
+  it('Bone.attributeChanges(): raw VS rawSaved', async function () {
+    const post = new Post({ title: 'Untitled' });
+    assert.deepEqual(post.attributeChanges(), {});
+    post.title = 'MHW';
+    post.content = 'Iceborne';
+    assert.deepEqual(post.attributeChanges(), {});
+    await post.save();
+    assert.deepEqual(post.attributeChanges(), {});
+    post.title = 'Bloodborne';
+    post.content = 'Nightmare';
+    assert.deepEqual(post.changes(), { title: [ 'MHW', 'Bloodborne' ], content: [ 'Iceborne', 'Nightmare' ] });
+    await post.save();
+    assert.deepEqual(post.attributeChanges(), {});
+  });
 });
 
 // Attribute get/set
