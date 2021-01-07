@@ -11,7 +11,7 @@ const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 
 describe('=> Attributes', function() {
-  before(async function() {
+  beforeEach(async function() {
     await Post.remove({}, true);
     await Post.create({
       title: 'New Post',
@@ -20,7 +20,7 @@ describe('=> Attributes', function() {
     });
   });
 
-  after(async function() {
+  afterEach(async function () {
     await Post.remove({}, true);
   });
 
