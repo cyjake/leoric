@@ -114,37 +114,37 @@ describe('=> Attributes', function() {
   });
 
   it('Bone.previousChanged(key): raw VS rawPrevious', async function () {
-    const post = new Post({ title: 'Untitled' });
+    const post = new Post({ title: 'Untitled', extra: 'hello' });
     expect(post.createdAt).to.not.be.ok();
     // should return false before persisting
-    expect(post.previousChanged('createdAt')).to.be(false);
-    post.createdAt = new Date();
+    expect(post.previousChanged('extra')).to.be(false);
+    post.extra = 'hello1';
     await post.save();
     // should return false after first persisting
-    expect(post.previousChanged('createdAt')).to.be(false);
-    post.createdAt = new Date();
+    expect(post.previousChanged('extra')).to.be(false);
+    post.extra = 'hello2';
     await post.save();
     // should return true after updating
-    expect(post.previousChanged('createdAt')).to.be(true);
+    expect(post.previousChanged('extra')).to.be(true);
   });
 
   it('Bone.previousChanged(): raw VS rawPrevious', async function () {
-    const post = new Post({ title: 'Untitled' });
+    const post = new Post({ title: 'Unknown', extra: 'hello' });
     expect(post.createdAt).to.not.be.ok();
     assert.deepEqual(post.previousChanged(), false);
-    post.createdAt = new Date();
+    post.extra = 'hello1';
     await post.save();
     // should return false after first persist
     assert.equal(post.previousChanged(), false);
-    post.createdAt = new Date();
+    post.extra = 'hello2';
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged(), ['createdAt']);
+    assert.deepEqual(post.previousChanged(), ['extra']);
     post.title = 'monster hunter';
-    post.createdAt = new Date();
+    post.extra = 'hello3';
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged(), ['createdAt', 'title']);
+    assert.deepEqual(post.previousChanged(), [ 'title', 'extra' ]);
   });
 
   it('Bone.previousChanges(key): raw VS rawPrevious', async function () {
