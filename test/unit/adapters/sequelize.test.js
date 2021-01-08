@@ -710,6 +710,27 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post2.title, 'By four thy way opens');
   });
 
+  it('model.changed(key)', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.equal(post.changed('title'), true);
+    assert.equal(post.previousChanged('title'), true);
+    await post.update();
+    assert.equal(post.changed('title'), false);
+    assert.equal(post.previousChanged('title'), true);
+    assert.equal(post.previous('title'), 'By three they come');
+  });
+
+  it('model.changed()', async () => {
+    const post = await Post.create({ title: 'By three they come', content: 'ssss' });
+    post.title = 'Hello there';
+    assert.deepEqual(post.changed(), [ 'title' ]);
+    post.content = 'a';
+    assert.deepEqual(post.changed(), [ 'title', 'content' ]);
+    await post.update();
+    assert.deepEqual(post.previousChanged(), [ 'title', 'content' ]);
+  });
+
   it('model.isNewRecord', async() => {
     const book = await Book.create({ name: 'Book of Cain', price: 10 });
     assert.equal(book.isNewRecord, false);
