@@ -169,10 +169,10 @@ describe('=> Query', function() {
 describe('=> Query $op', function() {
   before(async function() {
     await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2012, 4, 15) });
-    await Post.create({ id: 2, title: 'Diablo', is_private: 1 });
+    await Post.create({ id: 2, title: 'Diablo', isPrivate: true });
     await Post.create({ id: 99, title: 'Leah' });
     await Post.create({ id: 100, title: 'Deckard Cain' });
-    await Post.create({ id: 101, title: 'Diablo', is_private: -1 });
+    await Post.create({ id: 101, title: 'Diablo', isPrivate: false });
   });
 
   after(async function() {
@@ -715,7 +715,7 @@ describe('=> Sharding', function() {
 
   it('should throw if sharding key is defined but set to null when UPDATE', async function() {
     await assert.rejects(async () => {
-      await Like.update({ userId: 1 }, { userId: null });
+      await Like.update({ userId: 1 }, { userId: null }, { validate: false });
     }, /sharding key/i);
   });
 
