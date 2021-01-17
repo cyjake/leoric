@@ -103,6 +103,7 @@ describe('=> Attributes', function() {
     Post.renameAttribute('thumbnail', 'thumb');
     const post2 = await Post.findOne({ thumb: { $ne: null } });
     expect(post2.thumb).to.be.ok();
+    expect(post2.attribute('thumb').name, 'thumb');
   });
 
   it('bone.reload()', async function() {

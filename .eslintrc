@@ -18,6 +18,7 @@
     "no-underscore-dangle": 0,
     "no-use-before-define": [2, "nofunc"],
     "no-unused-vars": [2, { "vars": "all", "args": "none" }],
-    "keyword-spacing": "error"
+    "keyword-spacing": "error",
+    "eol-last": "error"
   }
 }

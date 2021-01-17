@@ -80,5 +80,6 @@ CREATE TABLE `users` (
   `meta` text,
   `status` int NOT NULL DEFAULT 1,
   `fingerprint` text,
-  `desc` text
+  `desc` text,
+  `level` decimal(10, 3) NOT NULL DEFAULT 1
 );
