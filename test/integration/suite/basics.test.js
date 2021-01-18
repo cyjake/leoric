@@ -170,9 +170,9 @@ describe('=> Attributes', function() {
 
   it('Bone.changes(key): raw VS rawSaved', async function () {
     const post = new Post({ title: 'Untitled' });
-    assert.deepEqual(post.changes('title'), {});
+    assert.deepEqual(post.changes('title'), { title: [ null, 'Untitled' ] });
     post.title = 'MHW';
-    assert.deepEqual(post.changes('title'), {});
+    assert.deepEqual(post.changes('title'), { title: [ null, 'MHW' ] });
     await post.save();
     assert.deepEqual(post.changes('title'), {});
     post.title = 'Bloodborne';
@@ -183,15 +183,21 @@ describe('=> Attributes', function() {
 
   it('Bone.changes(): raw VS rawSaved', async function () {
     const post = new Post({ title: 'Untitled' });
-    assert.deepEqual(post.changes(), {});
+    assert.deepEqual(post.changes(), { title: [ null, 'Untitled' ] });
     post.title = 'MHW';
     post.content = 'Iceborne';
-    assert.deepEqual(post.changes(), {});
+    assert.deepEqual(post.changes(), {
+      title: [ null, 'MHW' ],
+      content: [ null, 'Iceborne' ],
+    });
     await post.save();
     assert.deepEqual(post.changes(), {});
     post.title = 'Bloodborne';
     post.content = 'Nightmare';
-    assert.deepEqual(post.changes(), { title: [ 'MHW', 'Bloodborne' ], content: [ 'Iceborne', 'Nightmare' ] });
+    assert.deepEqual(post.changes(), {
+      title: [ 'MHW', 'Bloodborne' ],
+      content: [ 'Iceborne', 'Nightmare' ],
+    });
     await post.save();
     assert.deepEqual(post.changes(), {});
   });
