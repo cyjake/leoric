@@ -99,6 +99,26 @@ describe('=> parse functions', function() {
           { type: 'func', name: 'uuid', args: [] } ] }
     );
   });
+
+  it('parse FIELD(id, 1, 2, 3)', function() {
+    assert.deepEqual(
+      parseExpr('FIELD(id, 1, 2, 3)'),
+      { type: 'func', name: 'field', args:
+        [ { type: 'id', value: 'id' },
+          { type: 'literal', value: 1 },
+          { type: 'literal', value: 2 },
+          { type: 'literal', value: 3 } ] }
+    );
+  });
+
+  it("parse FIND_IN_SET(id, '1,2,3')", function() {
+    assert.deepEqual(
+      parseExpr("FIND_IN_SET(id, '1,2,3')"),
+      { type: 'func', name: 'find_in_set', args:
+        [ { type: 'id', value: 'id' },
+          { type: 'literal', value: '1,2,3' } ] }
+    );
+  });
 });
 
 describe('=> parse modifier', function() {

@@ -423,6 +423,20 @@ describe('=> Select', function() {
       "SELECT IFNULL(`title`, 'foo') AS `title` FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `title` DESC"
     );
   });
+
+  it('order by field()', function() {
+    assert.equal(
+      Post.order('field(id, 1, 2, 3)').toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY FIELD(`id`, 1, 2, 3)'
+    );
+  });
+
+  it('order by find_in_set()', function() {
+    assert.equal(
+      Post.order("find_in_set(id, '1,2,3')").toString(),
+      "SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY FIND_IN_SET(`id`, '1,2,3')"
+    );
+  })
 });
 
 describe('=> Update', () => {
