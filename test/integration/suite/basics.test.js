@@ -313,7 +313,7 @@ describe('=> Accessors', function() {
     expect(user.status).to.eql(1);
     expect(user.raw.status).to.equal(-1);
     await user.update({ status: 2 });
-    //set status(value = 0) {
+    // set status(value = 0) {
     //   this.attribute('status', value - 2);
     // },
     //  get status() {
