@@ -140,12 +140,12 @@ describe('=> Attributes', function() {
     post.extra = 'hello2';
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged(), ['extra']);
+    assert.deepEqual(post.previousChanged().sort(), ['extra', 'updatedAt']);
     post.title = 'monster hunter';
     post.extra = 'hello3';
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title' ]);
+    assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title', 'updatedAt' ]);
   });
 
   it('Bone.previousChanges(key): raw VS rawPrevious', async function () {
@@ -164,8 +164,9 @@ describe('=> Attributes', function() {
     await post.save();
     assert.deepEqual(post.previousChanges(), {});
     post.title = 'MHW';
+    const prevUpdatedAt = post.updatedAt;
     await post.save();
-    assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ] });
+    assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
   });
 
   it('Bone.changes(key): raw VS rawSaved', async function () {
@@ -306,6 +307,13 @@ describe('=> Accessors', function() {
     expect(user.status).to.eql(1);
     expect(user.raw.status).to.equal(-1);
     await user.update({ status: 2 });
+    //set status(value = 0) {
+    //   this.attribute('status', value - 2);
+    // },
+    //  get status() {
+    //   const status = this.attribute('status');
+    //   return status + 2;
+    // }
     expect(user.status).to.eql(2);
     expect(user.raw.status).to.equal(0);
   });
