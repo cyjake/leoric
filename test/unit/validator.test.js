@@ -113,8 +113,10 @@ describe('validator', () => {
     it('notNull', async () => {
       const user = new User({
         email: 'a@e.com',
-        nickname: null,
+        nickname: 'sss',
       });
+      await user.save();
+      user.nickname = null;
       await assert.rejects(async () => {
         await user.save();
       }, /Validation notNull on nickname failed/);
