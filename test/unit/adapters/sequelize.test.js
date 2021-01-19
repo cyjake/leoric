@@ -868,6 +868,15 @@ describe('model.init with getterMethods and setterMethods', () => {
     assert.equal(user.fingerprint, 'Bloodborne');
     assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
   });
+
+  it('should work while init', async () => {
+    const user = await User.create({
+      nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1, specDesc: 'hello'
+    });
+    assert.equal(user.desc, 'HELLO');
+    assert.equal(user.specDesc, 'HELLO');
+  });
+
 });
 
 describe('validator should work', () => {
