@@ -947,6 +947,25 @@ describe('validator should work', () => {
         fingerprint: 'aaa',
       }, { validate: false });
       assert(user);
+      assert(user.email);
+      assert(user.nickname);
+      assert(user.fingerprint);
+    });
+
+
+    it('build validate should work', async () => {
+      const user = User.build({
+        email: 'a@e.com',
+        nickname: 'sss',
+      });
+      assert(user);
+      assert(user.email);
+      assert(user.nickname);
+
+      await user.save();
+      assert(user.id);
+      assert(user.email);
+      assert(user.nickname);
     });
   });
 

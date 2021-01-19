@@ -108,6 +108,8 @@ describe('validator', () => {
         nickname: 'sss'
       });
       assert(user);
+      assert(user.email);
+      assert(user.nickname);
     });
 
     it('notNull', async () => {
