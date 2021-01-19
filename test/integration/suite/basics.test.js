@@ -355,8 +355,9 @@ describe('=> Integration', function() {
 
   it('bone.toJSON() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
+    console.log(post);
     const result = post.toJSON();
-    expect(result).to.eql({ title: 'New Post' });
+    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
   });
 
   it('bone.toJSON() prefers getter properties over bone.attribute(name)', async function() {
@@ -377,7 +378,7 @@ describe('=> Integration', function() {
   it('bone.toObject() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
     const result = post.toObject();
-    expect(result).to.eql({ title: 'New Post' });
+    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
   });
 
   // the major difference between `bone.toJSON()` and `bone.toObject()`
@@ -386,7 +387,9 @@ describe('=> Integration', function() {
     assert(!post.toJSON().hasOwnProperty('content'));
     assert(post.toObject().hasOwnProperty('content'));
     assert.equal(post.toObject().content, null);
-    assert.deepEqual(Object.keys(post.toObject()), Object.keys(Post.attributes));
+    const keys = Object.keys(Post.attributes);
+    keys.push('slug');
+    assert.deepEqual(Object.keys(post.toObject()).sort(), keys.sort());
   });
 
   // the other difference between `bone.toJSON()` and `bone.toObject()`

@@ -798,7 +798,12 @@ describe('model.init with getterMethods and setterMethods', () => {
 
   const Spine = sequelize(Bone);
 
-  class User extends Spine {}
+  class User extends Spine {
+
+    get i () {
+      return 's';
+    }
+  }
   User.init(attributes, {
     getterMethods: {
       nickname() {
@@ -872,6 +877,7 @@ describe('model.init with getterMethods and setterMethods', () => {
   it('toJSON and toObject should work', async () => {
     const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
     user.specDesc = 'hello';
+    assert.equal(user.i, 's');
     assert.equal(user.desc, 'HELLO');
     assert.equal(user.specDesc, 'HELLO');
     assert.equal(user.NICKNAME, 'TESTY');
