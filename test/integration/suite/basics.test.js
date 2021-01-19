@@ -171,6 +171,7 @@ describe('=> Attributes', function() {
     assert.deepEqual(post.previousChanges(), {});
     post.title = 'MHW';
     const prevUpdatedAt = post.updatedAt;
+    await sleep(10);
     await post.save();
     assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
   });
