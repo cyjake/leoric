@@ -10,6 +10,10 @@ const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe('=> Attributes', function() {
   beforeEach(async function() {
     await Post.remove({}, true);
@@ -138,11 +142,13 @@ describe('=> Attributes', function() {
     // should return false after first persist
     assert.equal(post.previousChanged(), false);
     post.extra = 'hello2';
+    await sleep(10);
     await post.save();
     // should return updated attributes' name after updating
     assert.deepEqual(post.previousChanged().sort(), ['extra', 'updatedAt']);
     post.title = 'monster hunter';
     post.extra = 'hello3';
+    await sleep(10);
     await post.save();
     // should return updated attributes' name after updating
     assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title', 'updatedAt' ]);
