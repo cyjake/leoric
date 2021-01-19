@@ -869,7 +869,7 @@ describe('model.init with getterMethods and setterMethods', () => {
     assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
   });
 
-  it('should work while init', async () => {
+  it('should accept arbitrary properties', async () => {
     const user = await User.create({
       nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1, specDesc: 'hello'
     });
