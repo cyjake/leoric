@@ -355,7 +355,6 @@ describe('=> Integration', function() {
 
   it('bone.toJSON() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
-    console.log(post);
     const result = post.toJSON();
     expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
   });
