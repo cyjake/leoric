@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const crypto = require('crypto');
+const { it } = require('mocha');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
 
 describe('=> Sequelize adapter', () => {
@@ -675,6 +676,24 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post.previous('title'), 'By three they come');
   });
 
+  it('model.previous(key)', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.equal(post.previous('title'), 'By three they come');
+    await post.update();
+    assert.equal(post.previous('title'), 'By three they come');
+  });
+
+  it('model.previous()', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    post.content = 'a';
+    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    await post.update();
+    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+  });
+
   it('model.update(, { paranoid })', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.update({ title: 'By three thy way opens' });
@@ -700,6 +719,27 @@ describe('=> Sequelize adapter', () => {
     assert.equal(res1, 1);
     const post2 = await Post.findByPk(post.id, { paranoid: false });
     assert.equal(post2.title, 'By four thy way opens');
+  });
+
+  it('model.changed(key)', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.equal(post.changed('title'), true);
+    assert.equal(post.previousChanged('title'), true);
+    await post.update();
+    assert.equal(post.changed('title'), false);
+    assert.equal(post.previousChanged('title'), true);
+    assert.equal(post.previous('title'), 'By three they come');
+  });
+
+  it('model.changed()', async () => {
+    const post = await Post.create({ title: 'By three they come', content: 'ssss' });
+    post.title = 'Hello there';
+    assert.deepEqual(post.changed(), [ 'title' ]);
+    post.content = 'a';
+    assert.deepEqual(post.changed(), [ 'title', 'content' ]);
+    await post.update();
+    assert.deepEqual(post.previousChanged(), [ 'title', 'content' ]);
   });
 
   it('model.isNewRecord', async() => {
@@ -743,7 +783,7 @@ describe('model.init with getterMethods and setterMethods', () => {
     },
     fingerprint: {
       type: DataTypes.TEXT,
-    }
+    },
   };
 
   const algorithm = 'aes-256-ctr';
@@ -815,6 +855,10 @@ describe('model.init with getterMethods and setterMethods', () => {
     await User.remove({}, true);
   });
 
+  after(() => {
+    Bone.driver = null;
+  });
+
   it('should work', async () => {
     const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
     user.specDesc = 'hello';
@@ -833,5 +877,255 @@ describe('model.init with getterMethods and setterMethods', () => {
     await user.update({ fingerprint: 'Bloodborne' });
     assert.equal(user.fingerprint, 'Bloodborne');
     assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
+  });
+
+  it('should accept arbitrary properties', async () => {
+    const user = await User.create({
+      nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1, specDesc: 'hello'
+    });
+    assert.equal(user.desc, 'HELLO');
+    assert.equal(user.specDesc, 'HELLO');
+  });
+
+});
+
+describe('validator should work', () => {
+  const Spine = sequelize(Bone);
+
+  const attributes = {
+    id: DataTypes.BIGINT,
+    gmt_create: DataTypes.DATE,
+    gmt_deleted: DataTypes.DATE,
+    email: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+      unique: true,
+    },
+    nickname: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
+    fingerprint: {
+      type: DataTypes.TEXT,
+      validate: {
+        contains: 'finger',
+      }
+    },
+    level: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      validate: {
+        max: 10,
+        min: 1,
+      }
+    }
+  };
+
+  class User extends Spine {}
+  User.init(attributes);
+
+
+  before(async function() {
+    await connect({
+      Model: Spine,
+      models: [ User ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
+    });
+  });
+
+  afterEach(async () => {
+    await User.remove({}, true);
+  });
+
+  after(async () => {
+    Bone.driver = null;
+  });
+
+  describe('build', () => {
+    it('build should work', async () => {
+      await assert.rejects(async () => {
+        User.build({
+          email: 'a@e.com',
+          nickname: 'sss',
+          fingerprint: 'aaa'
+        });
+      }, /Validation contains on fingerprint failed/);
+    });
+
+    it('build skip validate should work', async () => {
+      const user = User.build({
+        email: 'a@e.com',
+        nickname: 'sss',
+        fingerprint: 'aaa',
+      }, { validate: false });
+      assert(user);
+    });
+  });
+
+  describe('decrement(instance only)', () => {
+    it('decrement should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 1,
+      });
+
+      await assert.rejects(async () => {
+        await user.decrement([ 'level' ]);
+      }, /Validation min on level failed/);
+
+      await assert.rejects(async () => {
+        await user.decrement('level');
+      }, /Validation min on level failed/);
+
+      await assert.rejects(async () => {
+        await user.decrement({ level: 10 });
+      }, /Validation min on level failed/);
+    });
+
+    it('decrement skip validate should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 1,
+      });
+
+      await user.decrement([ 'level' ], { validate: false });
+
+      assert(user.level, 0);
+    });
+  });
+
+  describe('increment(instance only)', () => {
+    it('increment should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await assert.rejects(async () => {
+        await user.increment([ 'level' ]);
+      }, /Validation max on level failed/);
+
+      await assert.rejects(async () => {
+        await user.increment('level');
+      }, /Validation max on level failed/);
+
+      await assert.rejects(async () => {
+        await user.increment({ level: 10 });
+      }, /Validation max on level failed/);
+
+    });
+
+    it('increment skip validate should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await user.increment([ 'level' ], { validate: false });
+
+      assert(user.level, 11);
+    });
+  });
+
+  describe('update', () => {
+    it('update(instance) should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await assert.rejects(async () => {
+        await user.update({ level: 11 });
+      }, /Validation max on level failed/);
+    });
+
+    it('update(instance) skip validate should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await user.update({ level: 11 }, { validate: false });
+      await user.reload();
+      assert.equal(user.level, 11);
+    });
+
+    it('update(class) should work', async () => {
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await assert.rejects(async () => {
+        await User.update({ level: 11 }, { where: { email: 'a@e.com' } });
+      }, /Validation max on level failed/);
+    });
+
+    it('update(class) skip validate should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await User.update({ level: 11 }, { where: { email: 'a@e.com' }, validate: false });
+      await user.reload();
+      assert.equal(user.level, 11);
+    });
+  });
+
+  describe('upsert', () => {
+    it('should work', async () => {
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await assert.rejects(async () => {
+        await User.upsert({
+          email: 'a@e.com',
+          nickname: 'sss',
+          level: 11,
+        });
+      }, /Validation max on level failed/);
+
+    });
+
+    it('skip validate should work', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 10,
+      });
+
+      await User.upsert({
+        email: 'a@e.com',
+        nickname: 'sss',
+        level: 11,
+      }, { validate: false });
+
+      assert(user);
+
+      const users = await User.findAll();
+      assert.equal(users.length, 1);
+      assert.equal(users[0].id, user.id);
+      await user.reload();
+      assert.equal(users[0].level, user.level);
+    });
   });
 });

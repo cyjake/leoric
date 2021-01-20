@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const dayjs = require('dayjs');
 const AbstractDriver = require('../../../../lib/drivers/abstract');
 
 describe('=> AbstractDriver', function() {
@@ -25,5 +26,10 @@ describe('=> AbstractDriver', function() {
 
     const string = driver.uncast('string', String);
     assert.equal(string, 'string');
+  });
+
+  it('driver.uncast(dayjs, Date)', async function() {
+    const date = driver.uncast(dayjs(), Date);
+    assert.ok(date instanceof Date);
   });
 });
