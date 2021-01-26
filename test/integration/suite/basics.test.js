@@ -10,6 +10,10 @@ const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe('=> Attributes', function() {
   beforeEach(async function() {
     await Post.remove({}, true);
@@ -138,14 +142,16 @@ describe('=> Attributes', function() {
     // should return false after first persist
     assert.equal(post.previousChanged(), false);
     post.extra = 'hello2';
+    await sleep(10);
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged(), ['extra']);
+    assert.deepEqual(post.previousChanged().sort(), ['extra', 'updatedAt']);
     post.title = 'monster hunter';
     post.extra = 'hello3';
+    await sleep(10);
     await post.save();
     // should return updated attributes' name after updating
-    assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title' ]);
+    assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title', 'updatedAt' ]);
   });
 
   it('Bone.previousChanges(key): raw VS rawPrevious', async function () {
@@ -164,8 +170,10 @@ describe('=> Attributes', function() {
     await post.save();
     assert.deepEqual(post.previousChanges(), {});
     post.title = 'MHW';
+    const prevUpdatedAt = post.updatedAt;
+    await sleep(10);
     await post.save();
-    assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ] });
+    assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
   });
 
   it('Bone.changes(key): raw VS rawSaved', async function () {
@@ -306,6 +314,13 @@ describe('=> Accessors', function() {
     expect(user.status).to.eql(1);
     expect(user.raw.status).to.equal(-1);
     await user.update({ status: 2 });
+    // set status(value = 0) {
+    //   this.attribute('status', value - 2);
+    // },
+    //  get status() {
+    //   const status = this.attribute('status');
+    //   return status + 2;
+    // }
     expect(user.status).to.eql(2);
     expect(user.raw.status).to.equal(0);
   });
@@ -356,7 +371,7 @@ describe('=> Integration', function() {
   it('bone.toJSON() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
     const result = post.toJSON();
-    expect(result).to.eql({ title: 'New Post' });
+    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
   });
 
   it('bone.toJSON() prefers getter properties over bone.attribute(name)', async function() {
@@ -377,7 +392,7 @@ describe('=> Integration', function() {
   it('bone.toObject() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
     const result = post.toObject();
-    expect(result).to.eql({ title: 'New Post' });
+    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
   });
 
   // the major difference between `bone.toJSON()` and `bone.toObject()`
@@ -386,7 +401,9 @@ describe('=> Integration', function() {
     assert(!post.toJSON().hasOwnProperty('content'));
     assert(post.toObject().hasOwnProperty('content'));
     assert.equal(post.toObject().content, null);
-    assert.deepEqual(Object.keys(post.toObject()), Object.keys(Post.attributes));
+    const keys = Object.keys(Post.attributes);
+    keys.push('slug');
+    assert.deepEqual(Object.keys(post.toObject()).sort(), keys.sort());
   });
 
   // the other difference between `bone.toJSON()` and `bone.toObject()`

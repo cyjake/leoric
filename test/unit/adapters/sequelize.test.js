@@ -808,7 +808,12 @@ describe('model.init with getterMethods and setterMethods', () => {
 
   const Spine = sequelize(Bone);
 
-  class User extends Spine {}
+  class User extends Spine {
+
+    get i () {
+      return 's';
+    }
+  }
   User.init(attributes, {
     getterMethods: {
       nickname() {
@@ -877,6 +882,24 @@ describe('model.init with getterMethods and setterMethods', () => {
     await user.update({ fingerprint: 'Bloodborne' });
     assert.equal(user.fingerprint, 'Bloodborne');
     assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
+  });
+
+  it('toJSON and toObject should work', async () => {
+    const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+    user.specDesc = 'hello';
+    assert.equal(user.i, 's');
+    assert.equal(user.desc, 'HELLO');
+    assert.equal(user.specDesc, 'HELLO');
+    assert.equal(user.NICKNAME, 'TESTY');
+    assert.equal(user.nickname, 'testy');
+    const objStr = JSON.stringify(user);
+    assert(objStr.includes('NICKNAME'));
+    const revertObj = JSON.parse(objStr);
+    assert.equal(revertObj.NICKNAME, 'TESTY');
+    const json = user.toJSON();
+    assert.equal(json.NICKNAME, 'TESTY');
+    const obj = user.toObject();
+    assert.equal(obj.NICKNAME, 'TESTY');
   });
 
   it('should accept arbitrary properties', async () => {
@@ -966,6 +989,25 @@ describe('validator should work', () => {
         fingerprint: 'aaa',
       }, { validate: false });
       assert(user);
+      assert(user.email);
+      assert(user.nickname);
+      assert(user.fingerprint);
+    });
+
+
+    it('build validate should work', async () => {
+      const user = User.build({
+        email: 'a@e.com',
+        nickname: 'sss',
+      });
+      assert(user);
+      assert(user.email);
+      assert(user.nickname);
+
+      await user.save();
+      assert(user.id);
+      assert(user.email);
+      assert(user.nickname);
     });
   });
 

@@ -108,13 +108,17 @@ describe('validator', () => {
         nickname: 'sss'
       });
       assert(user);
+      assert(user.email);
+      assert(user.nickname);
     });
 
     it('notNull', async () => {
       const user = new User({
         email: 'a@e.com',
-        nickname: null,
+        nickname: 'sss',
       });
+      await user.save();
+      user.nickname = null;
       await assert.rejects(async () => {
         await user.save();
       }, /Validation notNull on nickname failed/);
@@ -233,11 +237,13 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
+        fingerprint: 'finger111'
       });
       await user.create();
       await assert.rejects(async () => {
         await User.update({ email: 'a@e.com', }, { fingerprint: 'aaa' });
       }, /Validation contains on fingerprint failed/);
+      assert.equal(user.fingerprint, 'finger111');
     });
 
     it('update(class) skip validate should work', async () => {
@@ -255,11 +261,14 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
+        fingerprint: 'finger111'
       });
       await user.create();
       await assert.rejects(async () => {
         await user.update({ fingerprint: 'aaa' });
       }, /Validation contains on fingerprint failed/);
+      // fingerprint should not be assigned to 'aaa'
+      assert.equal(user.fingerprint, 'finger111');
     });
 
     it('update(instance) skip validate should work', async () => {
