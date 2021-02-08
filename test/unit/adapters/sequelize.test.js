@@ -680,8 +680,9 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
     post.content = 'a';
     assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    const prevUpdatedAt = post.updatedAt;
     await post.update();
-    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: prevUpdatedAt, createdAt: post.createdAt });
   });
 
   it('model.update(, { paranoid })', async () => {
@@ -729,7 +730,7 @@ describe('=> Sequelize adapter', () => {
     post.content = 'a';
     assert.deepEqual(post.changed(), [ 'title', 'content' ]);
     await post.update();
-    assert.deepEqual(post.previousChanged(), [ 'title', 'content' ]);
+    assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
   });
 
   it('model.isNewRecord', async() => {
@@ -836,6 +837,12 @@ describe('model.init with getterMethods and setterMethods', () => {
     }
   });
 
+  // multiple implement
+  class UU extends User {
+    get j () {
+      return 'j';
+    }
+  }
 
   before(async () => {
     await connect({
@@ -890,6 +897,15 @@ describe('model.init with getterMethods and setterMethods', () => {
     assert.equal(json.NICKNAME, 'TESTY');
     const obj = user.toObject();
     assert.equal(obj.NICKNAME, 'TESTY');
+
+    const uu = await UU.create({ nickname: 'testy', email: 'a@a1.com', meta: { foo: 1, bar: 'baz'}, status: 1, desc: 'sssssq11' });
+    const json1 = uu.toJSON();
+    assert.equal(json1.NICKNAME, 'TESTY');
+    assert.equal(json1.desc, uu.desc);
+    assert.equal(json1.specDesc, uu.desc);
+    assert.equal(json1.j, uu.j);
+    assert.equal(json1.i, uu.i);
+
   });
 
   it('should accept arbitrary properties', async () => {
