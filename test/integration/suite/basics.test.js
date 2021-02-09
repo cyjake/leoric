@@ -139,7 +139,7 @@ describe('=> Attributes', function() {
     assert.deepEqual(post.previousChanged(), false);
     post.extra = 'hello1';
     await post.save();
-    // should return false after first persist
+    // isPrivate has default value in DSL
     assert.equal(post.previousChanged(), false);
     post.extra = 'hello2';
     await sleep(10);

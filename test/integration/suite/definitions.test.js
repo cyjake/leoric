@@ -66,10 +66,9 @@ describe('=> Table definitions', () => {
     await Bone.driver.changeColumn('notes', 'title', {
       type: STRING,
       allowNull: false,
-      defaultValue: null,
     });
     await checkDefinitions('notes', {
-      title: { dataType: 'varchar', allowNull: false, defaultValue: null },
+      title: { dataType: 'varchar', allowNull: false },
     });
   });
 
@@ -83,7 +82,7 @@ describe('=> Table definitions', () => {
     await checkDefinitions('notes', {
       title: null,
       body: { dataType: 'text' },
-     });
+    });
   });
 
   it('should be able to rename column', async () => {
