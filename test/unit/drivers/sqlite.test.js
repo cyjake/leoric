@@ -51,7 +51,9 @@ describe('=> SQLite driver', () => {
     assert.ok(schemaInfo.articles);
     const columns = schemaInfo.articles;
     const props = [
-      'columnName', 'columnType', 'dataType', 'defaultValue', 'allowNull',
+      'columnName', 'columnType', 'dataType',
+      // 'defaultValue',
+      'allowNull',
     ];
     for (const column of columns) {
       for (const prop of props) assert.ok(column.hasOwnProperty(prop));
