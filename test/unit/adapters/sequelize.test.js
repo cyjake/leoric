@@ -837,13 +837,6 @@ describe('model.init with getterMethods and setterMethods', () => {
     }
   });
 
-  // multiple implement
-  class UU extends User {
-    get j () {
-      return 'j';
-    }
-  }
-
   before(async () => {
     await connect({
       Model: Spine,
@@ -898,13 +891,26 @@ describe('model.init with getterMethods and setterMethods', () => {
     const obj = user.toObject();
     assert.equal(obj.NICKNAME, 'TESTY');
 
-    const uu = await UU.create({ nickname: 'testy', email: 'a@a1.com', meta: { foo: 1, bar: 'baz'}, status: 1, desc: 'sssssq11' });
-    const json1 = uu.toJSON();
+    // multiple implement
+    class CustomUser extends User {
+      get j () {
+        return 'j';
+      }
+    }
+
+    const customUser = await CustomUser.create({ nickname: 'testy', email: 'a@a1.com', meta: { foo: 1, bar: 'baz'}, status: 1, desc: 'sssssq11' });
+    const json1 = customUser.toJSON();
     assert.equal(json1.NICKNAME, 'TESTY');
-    assert.equal(json1.desc, uu.desc);
-    assert.equal(json1.specDesc, uu.desc);
-    assert.equal(json1.j, uu.j);
-    assert.equal(json1.i, uu.i);
+    assert.equal(json1.desc, customUser.desc);
+    assert.equal(json1.specDesc, customUser.desc);
+    assert.equal(json1.j, customUser.j);
+    assert.equal(json1.i, customUser.i);
+    const obj1 = customUser.toObject();
+    assert.equal(obj1.NICKNAME, 'TESTY');
+    assert.equal(obj1.desc, customUser.desc);
+    assert.equal(obj1.specDesc, customUser.desc);
+    assert.equal(obj1.j, customUser.j);
+    assert.equal(obj1.i, customUser.i);
 
   });
 

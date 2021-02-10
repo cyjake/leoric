@@ -312,7 +312,7 @@ describe('=> Accessors', function() {
       status: 1,
     });
     expect(user.status).to.eql(1);
-    expect(user.raw.status).to.equal(-1);
+    expect(user.getRaw('status')).to.equal(-1);
     await user.update({ status: 2 });
     // set status(value = 0) {
     //   this.attribute('status', value - 2);
@@ -322,7 +322,7 @@ describe('=> Accessors', function() {
     //   return status + 2;
     // }
     expect(user.status).to.eql(2);
-    expect(user.raw.status).to.equal(0);
+    expect(user.getRaw('status')).to.equal(0);
   });
 });
 
@@ -419,6 +419,21 @@ describe('=> Integration', function() {
     const { comments } = post.toObject();
     assert(comments.every(comment => !(comment instanceof Collection)));
     assert.deepEqual(Object.keys(comments[0]), Object.keys(Comment.attributes));
+  });
+
+  it('bone.toJSON() and bone.toObject() should work when multiple extends', async () => {
+    // multiple implement
+    class CustomPost extends Post {
+      get customProperty () {
+        return 'customProperty';
+      }
+    }
+    const post = await CustomPost.findOne({ title: 'New Post' });
+    const json = post.toJSON();
+    assert.equal(json.customProperty, 'customProperty');
+    const obj = post.toObject();
+    assert.equal(obj.customProperty, 'customProperty');
+
   });
 });
 
