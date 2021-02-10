@@ -49,7 +49,9 @@ describe('=> MySQL driver', () => {
     assert.ok(schemaInfo.articles);
     const columns = schemaInfo.articles;
     const props = [
-      'columnName', 'columnType', 'dataType', 'defaultValue', 'allowNull',
+      'columnName', 'columnType', 'dataType',
+      // 'defaultValue',
+      'allowNull',
       'primaryKey', 'unique',
     ];
     for (const column of columns) {
