@@ -674,9 +674,8 @@ describe('=> Update', function() {
 
   it('bone.upsert() should return affectedRows', async function() {
     const post = new Post({ title: 'New Post', isPrivate: 0 });
-    await post.save();
     // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
-    assert.equal(await post.upsert(), 0);
+    assert.equal(await post.upsert(), 1);
     post.title = 'Skeleton King';
     // to pass sql analyse of database
     post.createdAt = new Date();
