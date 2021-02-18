@@ -760,6 +760,6 @@ describe('=> Arithmetic Operators', function() {
     const evenPosts = await Post.find('id % 2 - 1 = -1');
     oddPosts.forEach(post => assert.equal(post.id % 2, 1));
     evenPosts.forEach(post => assert.equal(post.id % 2, 0));
-    assert.deepEqual(oddPosts.concat(evenPosts), await Post.all);
+    assert.deepEqual(oddPosts.concat(evenPosts).sort((a, b) => a.id - b.id), (await Post.all).sort((a, b) => a.id - b .id));
   });
 });
