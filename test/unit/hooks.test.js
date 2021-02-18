@@ -314,6 +314,8 @@ describe('hooks', function() {
     it('upsert', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert.equal(user.email, 'h@h.com');
+      user.nickname = 'hell';
+      user.status = 2;
       user.email = 'ho@y.com';
       await user.upsert();
       assert.equal(user.email, 'ho@y.com');
@@ -327,8 +329,8 @@ describe('hooks', function() {
         id: user.id,
       });
       assert.equal(updatedUser.email, 'ho@y.com');
-      assert.equal(updatedUser.status, 1);
-      assert.equal(updatedUser.nickname, 'tim');
+      assert.equal(updatedUser.status, 2);
+      assert.equal(updatedUser.nickname, 'hell');
     });
 
     it('upsert skip hooks', async() => {
@@ -336,16 +338,18 @@ describe('hooks', function() {
       assert.equal(user.email, 'h@h.com');
       assert.equal(user.nickname, 'tim');
       user.email = 'ho@y.com';
+      user.nickname = 'hell';
+      user.status = 2;
       await user.upsert({ hooks: false });
       assert.equal(user.email, 'ho@y.com');
-      assert.equal(user.status, 1);
+      assert.equal(user.status, 2);
       assert(!user.desc);
       const updatedUser = await User.findOne({
         id: user.id,
       });
       assert.equal(updatedUser.email, 'ho@y.com');
-      assert.equal(updatedUser.status, 1);
-      assert.equal(updatedUser.nickname, 'tim');
+      assert.equal(updatedUser.status, 2);
+      assert.equal(updatedUser.nickname, 'hell');
 
       assert(!beforeProbe);
       assert(!afterProbe);
