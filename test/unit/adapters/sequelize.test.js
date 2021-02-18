@@ -680,8 +680,9 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
     post.content = 'a';
     assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    const prevUpdatedAt = post.updatedAt;
     await post.update();
-    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: prevUpdatedAt, createdAt: post.createdAt });
   });
 
   it('model.update(, { paranoid })', async () => {
@@ -729,7 +730,7 @@ describe('=> Sequelize adapter', () => {
     post.content = 'a';
     assert.deepEqual(post.changed(), [ 'title', 'content' ]);
     await post.update();
-    assert.deepEqual(post.previousChanged(), [ 'title', 'content' ]);
+    assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
   });
 
   it('model.isNewRecord', async() => {
@@ -836,7 +837,6 @@ describe('model.init with getterMethods and setterMethods', () => {
     }
   });
 
-
   before(async () => {
     await connect({
       Model: Spine,
@@ -890,6 +890,28 @@ describe('model.init with getterMethods and setterMethods', () => {
     assert.equal(json.NICKNAME, 'TESTY');
     const obj = user.toObject();
     assert.equal(obj.NICKNAME, 'TESTY');
+
+    // multiple implement
+    class CustomUser extends User {
+      get j () {
+        return 'j';
+      }
+    }
+
+    const customUser = await CustomUser.create({ nickname: 'testy', email: 'a@a1.com', meta: { foo: 1, bar: 'baz'}, status: 1, desc: 'sssssq11' });
+    const json1 = customUser.toJSON();
+    assert.equal(json1.NICKNAME, 'TESTY');
+    assert.equal(json1.desc, customUser.desc);
+    assert.equal(json1.specDesc, customUser.desc);
+    assert.equal(json1.j, customUser.j);
+    assert.equal(json1.i, customUser.i);
+    const obj1 = customUser.toObject();
+    assert.equal(obj1.NICKNAME, 'TESTY');
+    assert.equal(obj1.desc, customUser.desc);
+    assert.equal(obj1.specDesc, customUser.desc);
+    assert.equal(obj1.j, customUser.j);
+    assert.equal(obj1.i, customUser.i);
+
   });
 
   it('should accept arbitrary properties', async () => {
@@ -1093,6 +1115,14 @@ describe('validator should work', () => {
       await user.update({ level: 11 }, { validate: false });
       await user.reload();
       assert.equal(user.level, 11);
+      await user.update({ level: 12 }, { validate: false, fields: [ 'status' ] });
+      await user.reload();
+      assert.equal(user.level, 11);
+      // defaultValue
+      assert.equal(user.status, 1);
+      await user.update({ status: 0 }, { validate: false, fields: [ 'status' ] });
+      await user.reload();
+      assert.equal(user.status, 0);
     });
 
     it('update(class) should work', async () => {
