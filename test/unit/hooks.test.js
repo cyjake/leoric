@@ -33,7 +33,7 @@ const attributes = {
 describe('hooks', function() {
   const Spine = sequelize(Bone);
 
-  describe('create', async () => {
+  describe('create', async() => {
     class User extends Bone {
       constructor(opts) {
         super(opts);
@@ -53,7 +53,7 @@ describe('hooks', function() {
       }
     });
 
-    beforeEach(async () => {
+    beforeEach(async() => {
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -62,25 +62,25 @@ describe('hooks', function() {
       });
     });
 
-    afterEach(async () => {
+    afterEach(async() => {
       await User.remove({}, true);
       Bone.driver = null;
     });
 
-    it('create', async () => {
+    it('create', async() => {
       const user = await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'hello@yo.com');
       assert(user.meta.foo === 1);
       assert(user.status === 10);
     });
 
-    it('create skip hooks', async () => {
-      assert.rejects(async () => {
+    it('create skip hooks', async() => {
+      assert.rejects(async() => {
         await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
       });
     }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
 
-  })
+  });
 
   describe('update', () => {
     class User extends Bone {
@@ -103,7 +103,7 @@ describe('hooks', function() {
       }
     });
 
-    beforeEach(async () => {
+    beforeEach(async() => {
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -112,12 +112,12 @@ describe('hooks', function() {
       });
     });
 
-    afterEach(async () => {
+    afterEach(async() => {
       await User.remove({}, true);
       Bone.driver = null;
     });
 
-    it('update', async () => {
+    it('update', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -128,7 +128,7 @@ describe('hooks', function() {
       assert.equal(user.status, 11);
     });
 
-    it('update skip hooks', async () => {
+    it('update skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -139,7 +139,7 @@ describe('hooks', function() {
       assert.equal(user.status, 1);
     });
 
-    it('static update', async () => {
+    it('static update', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -154,7 +154,7 @@ describe('hooks', function() {
       assert.equal(updatedUser.nickname, 'Jimmy');
     });
 
-    it('static update skip hooks', async () => {
+    it('static update skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -169,7 +169,7 @@ describe('hooks', function() {
       assert.equal(updatedUser.nickname, 'Jimmy');
       assert.equal(user.status, 1);
     });
-  })
+  });
 
   describe('remove', () => {
     class User extends Bone {
@@ -197,7 +197,7 @@ describe('hooks', function() {
       }
     });
 
-    beforeEach(async () => {
+    beforeEach(async() => {
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -206,14 +206,14 @@ describe('hooks', function() {
       });
     });
 
-    afterEach(async () => {
+    afterEach(async() => {
       await User.remove({}, true);
       Bone.driver = null;
       beforeProbe = null;
       afterProbe = null;
     });
 
-    it('remove', async () => {
+    it('remove', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -229,7 +229,7 @@ describe('hooks', function() {
 
     });
 
-    it('remove skip hooks', async () => {
+    it('remove skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -240,7 +240,7 @@ describe('hooks', function() {
       assert(!afterProbe);
     });
 
-    it('static remove', async () => {
+    it('static remove', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -255,7 +255,7 @@ describe('hooks', function() {
       assert(afterProbe === 'after');
     });
 
-    it('static remove skip hooks', async () => {
+    it('static remove skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -269,7 +269,7 @@ describe('hooks', function() {
       assert(!beforeProbe);
       assert(!afterProbe);
     });
-  })
+  });
 
   describe('upsert', () => {
     class User extends Bone {
@@ -295,7 +295,7 @@ describe('hooks', function() {
       }
     });
 
-    beforeEach(async () => {
+    beforeEach(async() => {
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -304,14 +304,14 @@ describe('hooks', function() {
       });
     });
 
-    afterEach(async () => {
+    afterEach(async() => {
       await User.remove({}, true);
       Bone.driver = null;
       beforeProbe = null;
       afterProbe = null;
     });
 
-    it('upsert', async () => {
+    it('upsert', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert.equal(user.email, 'h@h.com');
       user.email = 'ho@y.com';
@@ -331,7 +331,7 @@ describe('hooks', function() {
       assert.equal(updatedUser.nickname, 'tim');
     });
 
-    it('upsert skip hooks', async () => {
+    it('upsert skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert.equal(user.email, 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -350,7 +350,7 @@ describe('hooks', function() {
       assert(!beforeProbe);
       assert(!afterProbe);
     });
-  })
+  });
 
   describe('destroy', () => {
     class User extends Spine {
@@ -378,7 +378,7 @@ describe('hooks', function() {
       }
     });
 
-    beforeEach(async () => {
+    beforeEach(async() => {
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -387,14 +387,14 @@ describe('hooks', function() {
       });
     });
 
-    afterEach(async () => {
+    afterEach(async() => {
       await User.remove({}, true);
       Bone.driver = null;
       beforeProbe = null;
       afterProbe = null;
     });
 
-    it('destroy', async () => {
+    it('destroy', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -408,7 +408,7 @@ describe('hooks', function() {
 
     });
 
-    it('destroy skip hooks', async () => {
+    it('destroy skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -419,7 +419,7 @@ describe('hooks', function() {
       assert(!afterProbe);
     });
 
-    it('static destroy', async () => {
+    it('static destroy', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -432,7 +432,7 @@ describe('hooks', function() {
       assert(afterProbe === 'after');
     });
 
-    it('static destroy skip hooks', async () => {
+    it('static destroy skip hooks', async() => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
@@ -444,7 +444,7 @@ describe('hooks', function() {
       assert(!beforeProbe);
       assert(!afterProbe);
     });
-  })
+  });
 
   describe('addHooks', () => {
 
@@ -456,7 +456,7 @@ describe('hooks', function() {
       }
       User.init(attributes);
 
-      beforeEach(async () => {
+      beforeEach(async() => {
         await connect({
           port: process.env.MYSQL_PORT,
           user: 'root',
@@ -465,7 +465,7 @@ describe('hooks', function() {
         });
       });
 
-      afterEach(async () => {
+      afterEach(async() => {
         await User.remove({}, true);
         Bone.driver = null;
       });
@@ -474,7 +474,7 @@ describe('hooks', function() {
         let beforeProbe;
         User.addHook('beforeCreate', 'test', (obj) => {
           beforeProbe = 'before';
-          obj.email = 'ji@i.com'
+          obj.email = 'ji@i.com';
         });
         let afterProbe;
         User.addHook('afterCreate', 'test', (obj) => {
@@ -497,7 +497,7 @@ describe('hooks', function() {
         let beforeProbe;
         User.addHook('beforeUpdate', 'test', (obj) => {
           beforeProbe = 'before';
-          obj.email = 'hello@i.com'
+          obj.email = 'hello@i.com';
         });
         let afterProbe;
         User.addHook('afterUpdate', (obj) => {
@@ -566,7 +566,7 @@ describe('hooks', function() {
         assert.equal(afterProbe, null);
       });
 
-      it('upsert hooks', async () => {
+      it('upsert hooks', async() => {
         let beforeProbe;
         User.addHook('beforeUpsert', 'test', (obj) => {
           beforeProbe = 'before';
@@ -660,7 +660,7 @@ describe('hooks', function() {
         }
       });
 
-      beforeEach(async () => {
+      beforeEach(async() => {
         await connect({
           port: process.env.MYSQL_PORT,
           user: 'root',
@@ -669,7 +669,7 @@ describe('hooks', function() {
         });
       });
 
-      afterEach(async () => {
+      afterEach(async() => {
         await User.remove({}, true);
         Bone.driver = null;
         beforeProbe = null;
@@ -694,6 +694,6 @@ describe('hooks', function() {
         assert.equal(innerProbe, null);
 
       });
-    })
+    });
   });
 });
