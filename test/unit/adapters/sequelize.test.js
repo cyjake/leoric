@@ -1115,6 +1115,14 @@ describe('validator should work', () => {
       await user.update({ level: 11 }, { validate: false });
       await user.reload();
       assert.equal(user.level, 11);
+      await user.update({ level: 12 }, { validate: false, fields: [ 'status' ] });
+      await user.reload();
+      assert.equal(user.level, 11);
+      // defaultValue
+      assert.equal(user.status, 1);
+      await user.update({ status: 0 }, { validate: false, fields: [ 'status' ] });
+      await user.reload();
+      assert.equal(user.status, 0);
     });
 
     it('update(class) should work', async () => {
