@@ -28,7 +28,7 @@ const attributes = {
   desc: {
     type: DataTypes.STRING,
   }
-}
+};
 
 describe('hooks', function() {
   const Spine = sequelize(Bone);
