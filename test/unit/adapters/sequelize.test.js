@@ -743,7 +743,7 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
   });
 
-  it('model.isNewRecord', async() => {
+  it('model.isNewRecord', async () => {
     const book = await Book.create({ name: 'Book of Cain', price: 10 });
     assert.equal(book.isNewRecord, false);
     const book1 = Book.build({ name: 'Book New', price: 10 });

@@ -78,17 +78,17 @@ describe('validator', () => {
     });
   });
 
-  afterEach(async() => {
+  afterEach(async () => {
     await User.remove({}, true);
   });
 
-  after(async() => {
+  after(async () => {
     Bone.driver = null;
   });
 
   describe('rule', () => {
-    it('is** true', async() => {
-      await assert.rejects(async() => {
+    it('is** true', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'sss',
           nickname: 's',
@@ -96,8 +96,8 @@ describe('validator', () => {
       }, /Validation isEmail on email failed/);
     });
 
-    it('is** false', async() => {
-      await assert.rejects(async() => {
+    it('is** false', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 1
@@ -112,20 +112,20 @@ describe('validator', () => {
       assert(user.nickname);
     });
 
-    it('notNull', async() => {
+    it('notNull', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
       });
       await user.save();
       user.nickname = null;
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await user.save();
       }, /Validation notNull on nickname failed/);
     });
 
-    it('allowNull', async() => {
-      await assert.rejects(async() => {
+    it('allowNull', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -134,8 +134,8 @@ describe('validator', () => {
       }, /Validation notNull on desc failed/);
     });
 
-    it('multiple validator and custom msg', async() => {
-      await assert.rejects(async() => {
+    it('multiple validator and custom msg', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -151,8 +151,8 @@ describe('validator', () => {
       assert(user);
     });
 
-    it('custom validator', async() => {
-      await assert.rejects(async() => {
+    it('custom validator', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -161,7 +161,7 @@ describe('validator', () => {
         });
       }, /Validation lengthMax on desc failed/);
 
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -179,8 +179,8 @@ describe('validator', () => {
       assert(user);
     });
 
-    it('contains', async() => {
-      await assert.rejects(async() => {
+    it('contains', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -195,8 +195,8 @@ describe('validator', () => {
       assert(user);
     });
 
-    it('should be a valid validator', async() => {
-      await assert.rejects(async() => {
+    it('should be a valid validator', async () => {
+      await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
@@ -210,18 +210,18 @@ describe('validator', () => {
   });
 
   describe('create', () => {
-    it('create(instance) should work', async() => {
+    it('create(instance) should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
         fingerprint: 'aaa'
       });
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await user.create();
       }, /Validation contains on fingerprint failed/);
     });
 
-    it('create(instance) skip validate should work', async() => {
+    it('create(instance) skip validate should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
@@ -233,20 +233,20 @@ describe('validator', () => {
   });
 
   describe('update', () => {
-    it('update(class) should work', async() => {
+    it('update(class) should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
         fingerprint: 'finger111'
       });
       await user.create();
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await User.update({ email: 'a@e.com', }, { fingerprint: 'aaa' });
       }, /Validation contains on fingerprint failed/);
       assert.equal(user.fingerprint, 'finger111');
     });
 
-    it('update(class) skip validate should work', async() => {
+    it('update(class) skip validate should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
@@ -257,21 +257,21 @@ describe('validator', () => {
       assert.equal(user1.fingerprint, 'aaa');
     });
 
-    it('update(instance) should work', async() => {
+    it('update(instance) should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
         fingerprint: 'finger111'
       });
       await user.create();
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await user.update({ fingerprint: 'aaa' });
       }, /Validation contains on fingerprint failed/);
       // fingerprint should not be assigned to 'aaa'
       assert.equal(user.fingerprint, 'finger111');
     });
 
-    it('update(instance) skip validate should work', async() => {
+    it('update(instance) skip validate should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
@@ -285,18 +285,18 @@ describe('validator', () => {
   });
 
   describe('save', () => {
-    it('save should work', async() => {
+    it('save should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
         fingerprint: 'aaa'
       });
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await user.save();
       }, /Validation contains on fingerprint failed/);
     });
 
-    it('save with validate = false should work', async() => {
+    it('save with validate = false should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
@@ -310,18 +310,18 @@ describe('validator', () => {
   });
 
   describe('upsert', () => {
-    it('upsert should work', async() => {
+    it('upsert should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
         fingerprint: 'aaa'
       });
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await user.upsert();
       }, /Validation contains on fingerprint failed/);
     });
 
-    it('upsert with validate = false should work', async() => {
+    it('upsert with validate = false should work', async () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
@@ -336,7 +336,7 @@ describe('validator', () => {
 
   describe('bulkCreate', () => {
 
-    it('bulkCreate should work', async() => {
+    it('bulkCreate should work', async () => {
       let i = 0;
       const users = [];
       while (i < 10) {
@@ -348,12 +348,12 @@ describe('validator', () => {
         i ++;
       }
 
-      await assert.rejects(async() => {
+      await assert.rejects(async () => {
         await User.bulkCreate(users);
       }, /Validation contains on fingerprint failed/);
     });
 
-    it('bulkCreate skip validate should work', async() => {
+    it('bulkCreate skip validate should work', async () => {
       let i = 0;
       const users = [];
       while (i < 10) {
