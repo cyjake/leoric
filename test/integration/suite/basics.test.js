@@ -52,8 +52,21 @@ describe('=> Attributes', function() {
 
   it('bone.attribute(unset attribute, value)', async function() {
     const post = await Post.first.select('title');
-  expect(() => post.attribute('thumb', 'foo')).to.not.throwException();
+    expect(() => post.attribute('thumb', 'foo')).to.not.throwException();
     expect(post.attribute('thumb')).to.eql('foo');
+  });
+
+  it('bone.hasAttribute(key) should work', async function() {
+    const post = await Post.first.select('title');
+    expect(post.hasAttribute('thumb')).to.be(true);
+    expect(post.hasAttribute('NotExist')).to.be(false);
+    expect(post.hasAttribute()).to.be(false);
+  });
+
+  it('Bone.hasAttribute(key) should work', async function() {
+    expect(Post.hasAttribute('thumb')).to.be(true);
+    expect(Post.hasAttribute('NotExist')).to.be(false);
+    expect(Post.hasAttribute()).to.be(false);
   });
 
   it('bone.attributeWas(name) should be undefined when initialized', async function() {
@@ -79,6 +92,11 @@ describe('=> Attributes', function() {
   it('bone.attributeChanged(name) should be false when first fetched', async function() {
     const post = await Post.findOne({});
     expect(post.attributeChanged('createdAt')).to.be(false);
+  });
+
+  it('bone.attributeChanged(name) should be false when name is not exist', async function() {
+    const post = await Post.findOne({});
+    expect(post.attributeChanged('notExist')).to.be(false);
   });
 
   it('bone.attributeChanged(name) should behave consistently on special types such as object', async function() {
@@ -131,6 +149,9 @@ describe('=> Attributes', function() {
     await post.save();
     // should return true after updating
     expect(post.previousChanged('extra')).to.be(true);
+    // should return false if key not existed
+    expect(post.previousChanged('notExisted')).to.be(false);
+
   });
 
   it('Bone.previousChanged(): raw VS rawPrevious', async function () {
@@ -162,6 +183,8 @@ describe('=> Attributes', function() {
     post.title = 'MHW';
     await post.save();
     assert.deepEqual(post.previousChanges('title'), { title: [ 'Untitled', 'MHW' ] });
+    // should return {} if key not existed
+    assert.deepEqual(post.previousChanges('notExisted'), {});
   });
 
   it('Bone.previousChanges(): raw VS rawPrevious', async function () {
@@ -187,6 +210,8 @@ describe('=> Attributes', function() {
     assert.deepEqual(post.changes('title'), { title: [ 'MHW', 'Bloodborne' ] });
     await post.save();
     assert.deepEqual(post.changes('title'), {});
+    // should return {} if key not existed
+    assert.deepEqual(post.changes('notExisted'), {});
   });
 
   it('Bone.changes(): raw VS rawSaved', async function () {
