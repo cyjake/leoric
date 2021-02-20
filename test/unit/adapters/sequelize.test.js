@@ -744,6 +744,8 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book2.isNewRecord, true);
     await book2.upsert();
     assert.equal(book2.isNewRecord, false);
+    const book3 = Book.build({ name: 'Book of Outland', }, { isNewRecord: false });
+    assert.equal(book3.isNewRecord, false);
   });
 });
 
@@ -868,10 +870,10 @@ describe('model.init with getterMethods and setterMethods', () => {
   it('should work with custom en/decrypt setter getter', async () => {
     const user = await User.create({ nickname: 'Old Hunter', email: 'oh@hunter.com', fingerprint: 'Monster Hunter World' });
     assert.equal(user.fingerprint, 'Monster Hunter World');
-    assert.equal(user.raw.fingerprint, encrypt('Monster Hunter World'));
+    assert.equal(user.getRaw('fingerprint'), encrypt('Monster Hunter World'));
     await user.update({ fingerprint: 'Bloodborne' });
     assert.equal(user.fingerprint, 'Bloodborne');
-    assert.equal(user.raw.fingerprint, encrypt('Bloodborne'));
+    assert.equal(user.getRaw('fingerprint'), encrypt('Bloodborne'));
   });
 
   it('toJSON and toObject should work', async () => {
@@ -953,7 +955,7 @@ describe('validator should work', () => {
     },
     level: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      defaultValue: 1,
       validate: {
         max: 10,
         min: 1,
