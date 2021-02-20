@@ -1,4 +1,5 @@
 {
+  "parser": "babel-eslint",
   "parserOptions": {
     "sourceType": "script",
     "ecmaVersion": 2020

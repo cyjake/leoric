@@ -67,3 +67,7 @@ Currently, Leoric doesn't provide a way to do database migrations. There are two
 There is a third way, which is the very reason Leoric has yet to implement migrations, which is that the database can be designed through a third-party service. It can be an ER designer, a GUI software for MySQL, or a MySQL-compliant database in the cloud.
 
 But I'm sure we'll get to that.
+
+## Compatibility
+* nodejs < v12: leoric@`1.2.0`
+* nodejs >= v12: leoric@`latest`
