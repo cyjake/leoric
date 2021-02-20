@@ -183,7 +183,7 @@ describe('=> Attributes', function() {
     post.title = 'MHW';
     await post.save();
     assert.deepEqual(post.previousChanges('title'), { title: [ 'Untitled', 'MHW' ] });
-    // should return {} if key not existed
+    // should return {} if key does not existed
     assert.deepEqual(post.previousChanges('notExisted'), {});
   });
 
@@ -210,7 +210,7 @@ describe('=> Attributes', function() {
     assert.deepEqual(post.changes('title'), { title: [ 'MHW', 'Bloodborne' ] });
     await post.save();
     assert.deepEqual(post.changes('title'), {});
-    // should return {} if key not existed
+    // should return {} if key does not existed
     assert.deepEqual(post.changes('notExisted'), {});
   });
 
