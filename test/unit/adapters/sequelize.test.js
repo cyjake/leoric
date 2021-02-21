@@ -666,6 +666,16 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result.title, 'By three thy way opens');
   });
 
+  it('model.changed(key)', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    post.title = 'Hello there';
+    assert.equal(post.changed('title'), true);
+    await post.update();
+    assert.equal(post.changed('title'), true);
+    assert.equal(post.attributeChanged('title'), false);
+    assert.equal(post.previous('title'), 'By three they come');
+  });
+
   it('model.previous(key)', async () => {
     const post = await Post.create({ title: 'By three they come' });
     post.title = 'Hello there';
@@ -733,7 +743,7 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
   });
 
-  it('model.isNewRecord', async() => {
+  it('model.isNewRecord', async () => {
     const book = await Book.create({ name: 'Book of Cain', price: 10 });
     assert.equal(book.isNewRecord, false);
     const book1 = Book.build({ name: 'Book New', price: 10 });

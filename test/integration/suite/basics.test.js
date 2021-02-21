@@ -698,7 +698,7 @@ describe('=> Update', function() {
   });
 
   it('bone.upsert() should return affectedRows', async function() {
-    const post = new Post({ title: 'New Post' });
+    const post = new Post({ title: 'New Post', isPrivate: 0 });
     // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
     assert.equal(await post.upsert(), 1);
     post.title = 'Skeleton King';
