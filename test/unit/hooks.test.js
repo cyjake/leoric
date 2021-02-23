@@ -378,6 +378,12 @@ describe('hooks', function() {
             obj.status = 11;
           }
           afterProbe = 'after';
+        },
+        beforeBulkDestroy() {
+          beforeProbe = 'before';
+        },
+        afterBulkDestroy() {
+          afterProbe = 'after';
         }
       }
     });
@@ -604,6 +610,42 @@ describe('hooks', function() {
         assert.equal(afterProbe, null);
       });
 
+      it('bulkDestroy hooks', async () => {
+        let beforeProbe;
+        User.addHook('beforeBulkDestroy', 'test', (obj) => {
+          beforeProbe = 'before';
+        });
+        let afterProbe;
+        User.addHook('afterBulkDestroy', 'test', (obj) => {
+          afterProbe = 'after';
+        });
+
+        await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+        await User.destroy({
+          where: {
+            nickname: 'tim'
+          }
+        });
+
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+
+        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+
+        // skip hook should work
+        beforeProbe = null;
+        afterProbe = null;
+
+        await User.destroy({
+          where: {
+            nickname: 'tim1'
+          }
+        }, { hooks: false });
+
+        assert.equal(beforeProbe, null);
+        assert.equal(afterProbe, null);
+      });
+
       it('destroy hooks', async () => {
         let beforeProbe;
         User.addHook('beforeDestroy', 'test', (obj) => {
@@ -614,12 +656,8 @@ describe('hooks', function() {
           afterProbe = 'after';
         });
 
-        await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
-        await User.destroy({
-          where: {
-            nickname: 'tim'
-          }
-        });
+        const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+        await user.destroy();
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
 
