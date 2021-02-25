@@ -571,7 +571,8 @@ describe('=> Group / Join / Subqueries', function() {
 });
 
 describe('=> Calculations', function() {
-  before(async function() {
+  beforeEach(async function() {
+    await Book.remove({}, true);
     await Promise.all([
       Book.create({ isbn: 9780596006624, name: 'Hackers and Painters', price: 22.95 }),
       Book.create({ isbn: 9780881792065, name: 'The Elements of Typographic Style', price: 29.95 }),
