@@ -422,7 +422,7 @@ describe('hooks', function() {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
-      await user.destroy(true, { hooks: false });
+      await user.destroy({ force: true, hooks: false });
       assert.equal(user.email, 'h@h.com');
       assert.equal(user.status, 1);
       assert(!beforeProbe);
@@ -434,7 +434,9 @@ describe('hooks', function() {
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
       await User.destroy({
-        id: user.id,
+        where: {
+          id: user.id,
+        }
       });
       const updatedUser = await User.findOne(user.id);
       assert(!updatedUser);
@@ -447,8 +449,11 @@ describe('hooks', function() {
       assert(user.email === 'h@h.com');
       assert.equal(user.nickname, 'tim');
       await User.destroy({
-        id: user.id,
-      }, { hooks: false });
+        where: {
+          id: user.id,
+        },
+        hooks: false,
+      });
       const updatedUser = await User.findOne(user.id);
       assert(!updatedUser);
       assert(!beforeProbe);
@@ -639,8 +644,9 @@ describe('hooks', function() {
         await User.destroy({
           where: {
             nickname: 'tim1'
-          }
-        }, { hooks: false });
+          },
+          hooks: false,
+        });
 
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
