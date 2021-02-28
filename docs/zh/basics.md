@@ -273,11 +273,11 @@ await Shop.remove({ name: 'Barracks' }, true)
 ```js
 const shop = await Shop.find({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
-await shop.remove(true)
-// UPDATE shops SET deleted_at = NOW() WHERE id = 1;
+await shop.remove()
+// UPDATE shops SET deleted_at = NOW() WHERE id = 1
 
 await Shop.remove({ name: 'Barracks' })
-// UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks';
+// UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks'
 ```
 
 如果 `Shop` 数据模型没有 `deletedAt` 属性，而 `model.remove()`、`Model.remove()` 方法并没有传递 `true`，Leoric 将抛出异常。

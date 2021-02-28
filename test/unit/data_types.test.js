@@ -45,3 +45,9 @@ describe('=> Data Types', () => {
     assert.equal(new JSONB().dataType, 'jsonb');
   });
 });
+
+describe('findType()', () => {
+  it('longtext => TEXT', () => {
+    assert.strictEqual(DataTypes.findType('longtext'), TEXT);
+  });
+});

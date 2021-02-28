@@ -272,11 +272,11 @@ Therefore, if `deletedAt` were present in `Shop` model:
 ```js
 const shop = await Shop.find({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
-await shop.remove(true)
-// UPDATE shops SET deleted_at = NOW() WHERE id = 1;
+await shop.remove()
+// UPDATE shops SET deleted_at = NOW() WHERE id = 1
 
 await Shop.remove({ name: 'Barracks' })
-// UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks';
+// UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks'
 ```
 
 If `deletedAt` were absent in `Shop` model, calling either `model.remove()` or `Model.remove()` without passing `true` throws an Error.
