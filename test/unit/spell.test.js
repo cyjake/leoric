@@ -436,7 +436,45 @@ describe('=> Select', function() {
       Post.order("find_in_set(id, '1,2,3')").toString(),
       "SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY FIND_IN_SET(`id`, '1,2,3')"
     );
-  })
+  });
+
+  it('where conditions with array', () => {
+    assert.equal(
+      Post.where({ id: [ 1, 2, 3 ] }).toString(),
+      'SELECT * FROM `articles` WHERE `id` IN (1, 2, 3) AND `gmt_deleted` IS NULL'
+    );
+    // empty array
+    assert.equal(
+      Post.where({ id: [ ] }).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL'
+    );
+  });
+
+  it('order by string with multiple condition', () => {
+    assert.equal(
+      Post.order('id asc, gmt_created desc').toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
+    );
+  });
+
+  it('order by array', () => {
+    assert.equal(
+      Post.order(['id', 'asc']).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`'
+    );
+  });
+
+  it('order by array with multiple condition', () => {
+    assert.equal(
+      Post.order([['id', 'asc'], ['gmt_created', 'desc']]).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
+    );
+
+    assert.equal(
+      Post.order(['id asc', 'gmt_created desc']).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
+    );
+  });
 });
 
 describe('=> Update', () => {
