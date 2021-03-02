@@ -456,25 +456,6 @@ describe('=> Select', function() {
       'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
     );
   });
-
-  it('order by array', () => {
-    assert.equal(
-      Post.order(['id', 'asc']).toString(),
-      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`'
-    );
-  });
-
-  it('order by array with multiple condition', () => {
-    assert.equal(
-      Post.order([['id', 'asc'], ['gmt_created', 'desc']]).toString(),
-      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
-    );
-
-    assert.equal(
-      Post.order(['id asc', 'gmt_created desc']).toString(),
-      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
-    );
-  });
 });
 
 describe('=> Update', () => {
