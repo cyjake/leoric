@@ -272,6 +272,36 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
     assert.throws(() => posts[0].content);
+
+    // empty id array
+    posts = await Post.findAll({
+      where: {
+        id: [],
+      }
+    });
+    assert.equal(posts.length, 2);
+
+    posts = await Post.findAll({
+      order: 'createdAt desc, id desc',
+      limit: 1,
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Tyrael');
+
+    posts = await Post.findAll({
+      order: ['createdAt desc', 'id desc'],
+      limit: 1,
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Tyrael');
+
+    posts = await Post.findAll({
+      order: [['createdAt', 'desc'], ['id', 'desc']],
+      limit: 1,
+    });
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'Tyrael');
+
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
