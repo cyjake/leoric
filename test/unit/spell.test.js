@@ -579,7 +579,7 @@ describe('=> raw sql', () => {
     });
 
     describe('postgres upsert', function () {
-      class PostgresPost extends Bone {
+      class MyPost extends Bone {
         static get table() {
           return 'articles';
         }
@@ -592,14 +592,14 @@ describe('=> raw sql', () => {
           port: process.env.POSTGRES_PORT,
           user: process.env.POSTGRES_USER || '',
           database: 'leoric',
-          models: [ PostgresPost ],
+          models: [ MyPost ],
           Bone: Bone,
         });
       });
 
       it('upsert', function() {
         assert.equal(
-          new PostgresPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
           'INSERT INTO "articles" ("id", "gmt_create", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id" = 1, "gmt_modified" = CURRENT_TIMESTAMP(), "title" = \'New Post\' RETURNING "id"'
         );
       });
@@ -611,7 +611,7 @@ describe('=> raw sql', () => {
     });
 
     describe('sqlite upsert', function () {
-      class PostgresPost extends Bone {
+      class MyPost extends Bone {
         static get table() {
           return 'articles';
         }
@@ -621,14 +621,14 @@ describe('=> raw sql', () => {
         await connect({
           dialect: 'sqlite',
           database: '/tmp/leoric.sqlite3',
-          models: [ PostgresPost ],
+          models: [ MyPost ],
           Bone: Bone,
         });
       });
 
       it('upsert', function() {
         assert.equal(
-          new PostgresPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
           'INSERT INTO "articles" ("id", "gmt_create", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id" = 1, "gmt_modified" = CURRENT_TIMESTAMP(), "title" = \'New Post\''
         );
       });

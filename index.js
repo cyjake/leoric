@@ -159,10 +159,10 @@ class Realm {
   /**
    * raw sql object
    * @static
-   * @param {String} sql
+   * @param {string} sql
    * @returns {
-   *  __raw: Boolean,
-   *  value: String,
+   *  __raw: boolean,
+   *  value: string,
    *  type: 'raw'
    * }
    * @memberof Realm
