@@ -8,6 +8,8 @@ const Post = require('../models/post');
 const TagMap = require('../models/tagMap');
 const Comment = require('../models/comment');
 const Book = require('../models/book');
+const User = require('../models/user');
+const Realm = require('../..');
 
 before(async function() {
   await connect({
@@ -488,5 +490,153 @@ describe('=> Delete', () => {
   it('set deletedAt', function() {
     const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
+  });
+});
+
+describe('=> raw sql', () => {
+  it('update', function() {
+    assert.equal(
+      User.update({ id: 1 }, { level: Realm.raw('level + 1') }).toString(),
+      'UPDATE `users` SET `level` = level + 1 WHERE `id` = 1'
+    );
+
+    assert.equal(
+      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')") }).toString(),
+      "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw') WHERE `id` = 1"
+    );
+
+    assert.equal(
+      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')") }).toString(),
+      "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw') WHERE `id` = 1"
+    );
+
+    assert.equal(
+      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')"), level: Realm.raw('level + 1') }).toString(),
+      "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw'), `level` = level + 1 WHERE `id` = 1"
+    );
+  });
+
+  it('create', function() {
+    assert.equal(
+      Post.create({ title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).toString(),
+      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES (CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 'New Post')"
+    );
+  });
+
+
+  it('select sub raw query', function() {
+    assert.equal(
+      Post.where({
+        author_id: {
+          $in: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand())')
+        }
+      }).toString(),
+      'SELECT * FROM `articles` WHERE `author_id` IN (SELECT id FROM `users` WHERE level > 10 ORDER BY rand()) AND `gmt_deleted` IS NULL'
+    );
+
+    assert.equal(
+      Post.where({
+        author_id: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
+      }).toString(),
+      'SELECT * FROM `articles` WHERE `author_id` = (SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1) AND `gmt_deleted` IS NULL'
+    );
+
+    assert.equal(
+      Post.where({
+        author_id: {
+          $gt: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
+        }
+      }).toString(),
+      'SELECT * FROM `articles` WHERE `author_id` > (SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1) AND `gmt_deleted` IS NULL'
+    );
+  });
+
+  it('order', function() {
+    assert.equal(
+      Post.order(Realm.raw("find_in_set(id, '1,2,3')")).toString(),
+      "SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY find_in_set(id, '1,2,3')"
+    );
+    assert.equal(
+      User.order(Realm.raw('rand()')).toString(),
+      'SELECT * FROM `users` ORDER BY rand()'
+    );
+  });
+
+  it('delete', function () {
+    assert.equal(
+      User.remove({ deletedAt: Realm.raw('CURRENT_TIMESTAMP()') }).toString(),
+      'DELETE FROM `users` WHERE `deletedAt` = CURRENT_TIMESTAMP()'
+    );
+  });
+
+  describe('upsert', function () {
+
+    it('mysql upsert', function() {
+      assert.equal(
+        new Post({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+        "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `id`, `title`) VALUES (CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 1, 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_modified` = CURRENT_TIMESTAMP(), `title` = 'New Post'"
+      );
+    });
+
+    describe('postgres upsert', function () {
+      class MyPost extends Bone {
+        static get table() {
+          return 'articles';
+        }
+      }
+      before(async function() {
+        Bone.driver = null;
+        await connect({
+          dialect: 'postgres',
+          host: process.env.POSTGRES_HOST || '127.0.0.1',
+          port: process.env.POSTGRES_PORT,
+          user: process.env.POSTGRES_USER || '',
+          database: 'leoric',
+          models: [ MyPost ],
+          Bone: Bone,
+        });
+      });
+
+      it('upsert', function() {
+        assert.equal(
+          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+          'INSERT INTO "articles" ("id", "gmt_create", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id" = 1, "gmt_modified" = CURRENT_TIMESTAMP(), "title" = \'New Post\' RETURNING "id"'
+        );
+      });
+
+      after(() => {
+        Bone.driver = null;
+      });
+
+    });
+
+    describe('sqlite upsert', function () {
+      class MyPost extends Bone {
+        static get table() {
+          return 'articles';
+        }
+      }
+      before(async function() {
+        Bone.driver = null;
+        await connect({
+          dialect: 'sqlite',
+          database: '/tmp/leoric.sqlite3',
+          models: [ MyPost ],
+          Bone: Bone,
+        });
+      });
+
+      it('upsert', function() {
+        assert.equal(
+          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+          'INSERT INTO "articles" ("id", "gmt_create", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id" = 1, "gmt_modified" = CURRENT_TIMESTAMP(), "title" = \'New Post\''
+        );
+      });
+
+      after(() => {
+        Bone.driver = null;
+      });
+    });
+
   });
 });

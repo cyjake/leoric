@@ -155,6 +155,33 @@ class Realm {
   async transaction(callback) {
     return await this.Bone.transaction(callback);
   }
+
+  /**
+   * raw sql object
+   * @static
+   * @param {string} sql
+   * @returns {
+   *  __raw: boolean,
+   *  value: string,
+   *  type: 'raw'
+   * }
+   * @memberof Realm
+   */
+  static raw(sql) {
+    if (typeof sql !== 'string') {
+      throw new TypeError('sql must be a string');
+    }
+    return {
+      __raw: true,
+      value: sql,
+      type: 'raw',
+    };
+  }
+
+  // instance.raw
+  raw(sql) {
+    return Realm.raw(sql);
+  }
 }
 
 /**

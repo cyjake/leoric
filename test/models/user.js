@@ -43,6 +43,11 @@ User.init({
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 1,
+  },
+  level: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
   }
 }, {}, {
   get isValid() {
