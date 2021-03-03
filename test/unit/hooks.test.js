@@ -509,13 +509,14 @@ describe('hooks', function() {
       });
 
       it('update hooks', async () => {
+        // class.update or bulkUpdate
         let beforeProbe;
-        User.addHook('beforeUpdate', 'test', (obj) => {
+        User.addHook('beforeBulkUpdate', 'test', (obj) => {
           beforeProbe = 'before';
-          obj.email = 'hello@i.com';
+          obj.email = 'hellobulk@i.com';
         });
         let afterProbe;
-        User.addHook('afterUpdate', (obj) => {
+        User.addHook('afterBulkUpdate', 'test', (obj) => {
           afterProbe = 'after';
         });
         const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
@@ -526,8 +527,9 @@ describe('hooks', function() {
             id: user.id,
           }
         });
-        const updatedUser = await User.findOne(user.id);
-        assert.equal(updatedUser.email, 'hello@i.com');
+
+        let updatedUser = await User.findOne(user.id);
+        assert.equal(updatedUser.email, 'hellobulk@i.com');
         assert.equal(updatedUser.nickname, 'jim');
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
@@ -539,17 +541,51 @@ describe('hooks', function() {
         }, {
           where: {
             id: user.id,
-          }
-        }, { hooks: false });
-        const updatedUser1 = await User.findOne(user.id);
+          },
+          hooks: false
+        });
 
-        assert.equal(updatedUser1.email, 'hello@i.com');
-        assert.equal(updatedUser1.nickname, 'jim1');
+        updatedUser = await User.findOne(user.id);
+
+        assert.equal(updatedUser.email, 'hellobulk@i.com');
+        assert.equal(updatedUser.nickname, 'jim1');
+        assert.equal(beforeProbe, null);
+        assert.equal(afterProbe, null);
+
+        // instance.update
+        beforeProbe = null;
+        afterProbe = null;
+        User.addHook('beforeUpdate', 'test', (obj) => {
+          beforeProbe = 'before';
+          obj.email = 'hello@i.com';
+        });
+
+        User.addHook('afterUpdate', (obj) => {
+          afterProbe = 'after';
+        });
+
+        const user2 = await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+        await user2.update({ nickname: 'jim2'});
+        updatedUser = await User.findOne(user2.id);
+
+        assert.equal(updatedUser.email, 'hello@i.com');
+        assert.equal(updatedUser.nickname, 'jim2');
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+
+        // skip hook should work
+        beforeProbe = null;
+        afterProbe = null;
+        await user2.update({ nickname: 'jim3'}, { hooks: false });
+        updatedUser = await User.findOne(user2.id);
+        assert.equal(updatedUser.email, 'hello@i.com');
+        assert.equal(updatedUser.nickname, 'jim3');
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
       });
 
-      it('remove hooks', async () => {
+      it.only('remove hooks', async () => {
         let beforeProbe;
         User.addHook('beforeRemove', 'test', (obj) => {
           beforeProbe = 'before';
