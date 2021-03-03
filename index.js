@@ -177,6 +177,11 @@ class Realm {
       type: 'raw',
     };
   }
+
+  // instance.raw
+  raw(sql) {
+    return Realm.raw(sql);
+  }
 }
 
 /**
