@@ -39,6 +39,10 @@ describe('hooks', function() {
         super(opts);
       }
     }
+
+    let beforeProbe = null;
+    let afterProbe = null;
+
     User.init(attributes, {
       hooks: {
         beforeCreate(obj) {
@@ -47,8 +51,13 @@ describe('hooks', function() {
           }
         },
         afterCreate(obj){
-          console.log(obj);
           obj.status = 10;
+        },
+        beforeBulkCreate() {
+          beforeProbe = 'before';
+        },
+        afterBulkCreate() {
+          afterProbe = 'after';
         }
       }
     });
@@ -79,6 +88,45 @@ describe('hooks', function() {
         await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
       });
     }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
+
+    describe('bulkCreate', () => {
+
+      it('bulkCreate should work', async () => {
+        const users = [{
+          email: 'a@e.com',
+          nickname: 'sss',
+        }];
+
+        beforeProbe = null;
+        afterProbe = null;
+
+        await User.bulkCreate(users);
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+
+        await User.remove({}, true);
+        beforeProbe = null;
+        afterProbe = null;
+        await User.bulkCreate(users, { hooks: false });
+        assert.equal(beforeProbe, null);
+        assert.equal(afterProbe, null);
+
+        await User.remove({}, true);
+
+        // individualHooks
+        const users1 = [{
+          nickname: 'sss',
+        }];
+        await User.bulkCreate(users1, { individualHooks: true });
+        const user = await User.first;
+
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+        assert.equal(user.email, 'hello@yo.com');
+        assert.equal(user.nickname, 'sss');
+
+      });
+    });
 
   });
 
@@ -469,14 +517,21 @@ describe('hooks', function() {
           super(opts);
         }
       }
+
       User.init(attributes);
+
+      class Post extends Spine {
+        static get table() {
+          return 'articles';
+        }
+      }
 
       beforeEach(async () => {
         await connect({
           port: process.env.MYSQL_PORT,
           user: 'root',
           database: 'leoric',
-          models: [ User ],
+          models: [ User, Post ],
         });
       });
 
@@ -509,13 +564,67 @@ describe('hooks', function() {
       });
 
       it('update hooks', async () => {
+        // class.update
         let beforeProbe;
+        let afterProbe;
+
         User.addHook('beforeUpdate', 'test', (obj) => {
           beforeProbe = 'before';
           obj.email = 'hello@i.com';
         });
-        let afterProbe;
+
         User.addHook('afterUpdate', (obj) => {
+          afterProbe = 'after';
+        });
+
+        const user = await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+        await user.update({ nickname: 'jim2'});
+        let updatedUser = await User.findOne(user.id);
+
+        assert.equal(updatedUser.email, 'hello@i.com');
+        assert.equal(updatedUser.nickname, 'jim2');
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+
+        // skip hook should work
+        beforeProbe = null;
+        afterProbe = null;
+        await user.update({ nickname: 'jim3'}, { hooks: false });
+        updatedUser = await User.findOne(user.id);
+        assert.equal(updatedUser.email, 'hello@i.com');
+        assert.equal(updatedUser.nickname, 'jim3');
+        assert.equal(beforeProbe, null);
+        assert.equal(afterProbe, null);
+
+        beforeProbe = null;
+        afterProbe = null;
+        // individualHooks = true
+        await User.update({
+          nickname: 'jim4',
+        }, {
+          where: {
+            nickname: 'jim3',
+          },
+          individualHooks: true,
+        });
+
+        updatedUser = await User.findOne(user.id);
+
+        assert.equal(updatedUser.nickname, 'jim4');
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+      });
+
+      it('bulkUpdate hooks', async () => {
+        // class.update or bulkUpdate
+        let beforeProbe;
+        User.addHook('beforeBulkUpdate', 'test', (obj) => {
+          beforeProbe = 'before';
+          obj.email = 'hellobulk@i.com';
+        });
+        let afterProbe;
+        User.addHook('afterBulkUpdate', 'test', (obj) => {
           afterProbe = 'after';
         });
         const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
@@ -526,8 +635,9 @@ describe('hooks', function() {
             id: user.id,
           }
         });
-        const updatedUser = await User.findOne(user.id);
-        assert.equal(updatedUser.email, 'hello@i.com');
+
+        let updatedUser = await User.findOne(user.id);
+        assert.equal(updatedUser.email, 'hellobulk@i.com');
         assert.equal(updatedUser.nickname, 'jim');
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
@@ -539,15 +649,18 @@ describe('hooks', function() {
         }, {
           where: {
             id: user.id,
-          }
-        }, { hooks: false });
-        const updatedUser1 = await User.findOne(user.id);
+          },
+          hooks: false
+        });
 
-        assert.equal(updatedUser1.email, 'hello@i.com');
-        assert.equal(updatedUser1.nickname, 'jim1');
+        updatedUser = await User.findOne(user.id);
+
+        assert.equal(updatedUser.email, 'hellobulk@i.com');
+        assert.equal(updatedUser.nickname, 'jim1');
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
       });
+
 
       it('remove hooks', async () => {
         let beforeProbe;
@@ -654,31 +767,71 @@ describe('hooks', function() {
 
       it('destroy hooks', async () => {
         let beforeProbe;
+
         User.addHook('beforeDestroy', 'test', (obj) => {
           beforeProbe = 'before';
         });
+
         let afterProbe;
+
         User.addHook('afterDestroy', 'test', (obj) => {
           afterProbe = 'after';
         });
 
-        const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+        let user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
         await user.destroy();
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
 
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
-        await User.destroy({
-          where: {
-            nickname: 'tim1'
-          }
-        });
-
         // skip hook should work
         beforeProbe = null;
         afterProbe = null;
+        user = await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+        await user.destroy({ hooks: false });
+
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
+
+        // individualHooks = true
+        beforeProbe = null;
+        afterProbe = null;
+
+        await User.create({ nickname: 'tim2', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
+
+        await User.destroy({
+          where: {
+            nickname: 'tim2',
+          },
+          individualHooks: true,
+        });
+
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
+
+        beforeProbe = null;
+        afterProbe = null;
+
+        Post.addHook('beforeDestroy', 'test', (obj) => {
+          beforeProbe = 'before';
+        });
+
+        Post.addHook('afterDestroy', 'test', (obj) => {
+          afterProbe = 'after';
+        });
+
+
+        await Post.create({ title: 'Gettysburg Address' }, { hooks: false });
+
+        await Post.destroy({
+          where: {
+            title: 'Gettysburg Address',
+          },
+          individualHooks: true,
+          paranoid: false
+        });
+
+        assert.equal(beforeProbe, 'before');
+        assert.equal(afterProbe, 'after');
       });
     });
 
