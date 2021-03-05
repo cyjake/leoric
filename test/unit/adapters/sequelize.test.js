@@ -5,6 +5,35 @@ const crypto = require('crypto');
 const { it } = require('mocha');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
 
+const userAttributes = {
+  id: DataTypes.BIGINT,
+  gmt_create: DataTypes.DATE,
+  gmt_deleted: DataTypes.DATE,
+  email: {
+    type: DataTypes.STRING(256),
+    allowNull: false,
+    unique: true,
+  },
+  nickname: {
+    type: DataTypes.STRING(256),
+    allowNull: false,
+  },
+  meta: {
+    type: DataTypes.JSON,
+  },
+  status: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
+  },
+  desc: {
+    type: DataTypes.STRING,
+  },
+  fingerprint: {
+    type: DataTypes.TEXT,
+  },
+};
+
 describe('=> Sequelize adapter', () => {
   const Spine = sequelize(Bone);
 
@@ -787,37 +816,169 @@ describe('=> Sequelize adapter', () => {
     const book3 = Book.build({ name: 'Book of Outland', }, { isNewRecord: false });
     assert.equal(book3.isNewRecord, false);
   });
+
+  it('Model.truncate', async () => {
+    assert.equal(
+      Post.truncate().toString(),
+      'DELETE FROM "articles"'
+    );
+  });
+});
+
+describe('Model scope', () => {
+  const Spine = sequelize(Bone);
+  class Post extends Spine {
+    static get table() {
+      return 'articles';
+    }
+  };
+
+  class User extends Spine {
+    static get table() {
+      return 'users';
+    }
+  };
+
+  User.init(userAttributes, {
+    defaultScope: {
+      where: {
+        status: 1,
+      }
+    },
+    scopes: {
+      gmail: {
+        where: {
+          email: {
+            $like: '%gmail%'
+          }
+        }
+      },
+      custom: (order, limit, level) => {
+        return {
+          where: {
+            level,
+          },
+          order,
+          limit,
+        };
+      }
+    }
+  });
+
+  before(async () => {
+    await connect({
+      Model: Spine,
+      dialect: 'sqlite',
+      database: '/tmp/leoric.sqlite3',
+      models: [ Post, User ],
+    });
+  });
+
+  beforeEach(async () => {
+    await Post.remove({}, true);
+  });
+
+  after(() => {
+    Bone.driver = null;
+  });
+
+  it('addScope and scope should work', () => {
+    class MyPost extends Post {};
+    // object
+    MyPost.addScope('NioH', {
+      where: {
+        type: 1
+      }
+    });
+
+    assert.equal(
+      MyPost.scope('NioH').where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL'
+    );
+
+    MyPost.addScope('MHW', {
+      where: {
+        type: 1
+      },
+      order: 'id desc',
+      limit: 1
+    });
+    assert.equal(
+      MyPost.scope('MHW').where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL ORDER BY "id" DESC LIMIT 1'
+    );
+
+    // function
+    MyPost.addScope('IceBorne', (type, limit) => ({
+      where: {
+        type
+      },
+      limit
+    }));
+    assert.equal(
+      MyPost.scope('IceBorne', 2, 4).where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 2 AND "gmt_deleted" IS NULL LIMIT 4'
+    );
+
+    // unscoped
+    assert.equal(
+      MyPost.scope('MHW').unscoped().where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL'
+    );
+
+    // function should work
+    const randNum = Math.floor(Math.random() * 100);
+    assert.equal(
+      MyPost.scope(() => {
+        return {
+          where: {
+            type: randNum
+          }
+        };
+      }).where({ title: 'New Post' }).toString(),
+      `SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = ${randNum} AND "gmt_deleted" IS NULL`
+    );
+
+    // array should work
+    const scopes = [{
+      where: {
+        id: 1,
+      },
+    }, {
+      where: {
+        author_id: 1
+      }
+    }];
+    assert.equal(
+      MyPost.scope(scopes).where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "id" = 1 AND "author_id" = 1 AND "gmt_deleted" IS NULL'
+    );
+  });
+
+  it('init should work', async () => {
+    assert.equal(
+      User.where({ nickname: 'OldHunter' }).toString(),
+      'SELECT * FROM "users" WHERE "nickname" = \'OldHunter\' AND "status" = 1'
+    );
+
+    assert.equal(
+      User.unscoped().where({ nickname: 'OldHunter' }).toString(),
+      'SELECT * FROM "users" WHERE "nickname" = \'OldHunter\''
+    );
+
+    assert.equal(
+      User.scope('gmail').where({ nickname: 'OldHunter' }).toString(),
+      'SELECT * FROM "users" WHERE "nickname" = \'OldHunter\' AND "email" LIKE \'%gmail%\''
+    );
+
+    assert.equal(
+      User.scope('custom', 'id asc', 2, 10).where({ nickname: 'OldHunter' }).toString(),
+      'SELECT * FROM "users" WHERE "nickname" = \'OldHunter\' AND "level" = 10 ORDER BY "id" LIMIT 2'
+    );
+  });
 });
 
 describe('model.init with getterMethods and setterMethods', () => {
-  const attributes = {
-    id: DataTypes.BIGINT,
-    gmt_create: DataTypes.DATE,
-    gmt_deleted: DataTypes.DATE,
-    email: {
-      type: DataTypes.STRING(256),
-      allowNull: false,
-      unique: true,
-    },
-    nickname: {
-      type: DataTypes.STRING(256),
-      allowNull: false,
-    },
-    meta: {
-      type: DataTypes.JSON,
-    },
-    status: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-    },
-    desc: {
-      type: DataTypes.STRING,
-    },
-    fingerprint: {
-      type: DataTypes.TEXT,
-    },
-  };
 
   const algorithm = 'aes-256-ctr';
   const password = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
@@ -842,12 +1003,11 @@ describe('model.init with getterMethods and setterMethods', () => {
   const Spine = sequelize(Bone);
 
   class User extends Spine {
-
     get i () {
       return 's';
     }
   }
-  User.init(attributes, {
+  User.init(userAttributes, {
     getterMethods: {
       nickname() {
         return this.getDataValue('nickname');

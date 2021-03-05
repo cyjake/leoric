@@ -65,6 +65,13 @@ describe('=> Select', function() {
     );
   });
 
+  it('unparanoid', function() {
+    assert.equal(
+      Post.where({ title: { $like: '%Post%' } }).unparanoid.toString(),
+      "SELECT * FROM `articles` WHERE `title` LIKE '%Post%'"
+    );
+  });
+
   it('where object condition with logical operator', () => {
     assert.equal(
       Post.where({
