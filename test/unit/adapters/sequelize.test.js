@@ -939,6 +939,19 @@ describe('Model scope', () => {
       `SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = ${randNum} AND "gmt_deleted" IS NULL`
     );
 
+    assert.equal(
+      MyPost.scope((type, order, limit) => {
+        return {
+          where: {
+            type
+          },
+          order,
+          limit
+        };
+      }, 1, 'title desc', 10).where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL ORDER BY "title" DESC LIMIT 10'
+    );
+
     // array should work
     const scopes = [{
       where: {
