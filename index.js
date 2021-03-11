@@ -11,6 +11,7 @@ const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
 const Spell = require('./lib/spell');
+const Hint = require('./lib/hint');
 
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
@@ -201,6 +202,6 @@ const connect = async function connect(opts = {}) {
 };
 
 Object.assign(Realm.prototype, migrations, { DataTypes });
-Object.assign(Realm, { connect, Bone, Collection, DataTypes, sequelize });
+Object.assign(Realm, { connect, Bone, Collection, DataTypes, sequelize, ...Hint });
 
 module.exports = Realm;
