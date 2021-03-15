@@ -754,7 +754,7 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: prevUpdatedAt, createdAt: post.createdAt });
   });
 
-  it('model.update(, { paranoid })', async () => {
+  it('model.update(values, { paranoid })', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.update({ title: 'By three thy way opens' });
     const result = await Post.first;
@@ -765,7 +765,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result1.title, 'By four thy way opens');
   });
 
-  it('Model.update(, { paranoid })', async () => {
+  it('Model.update(values, { paranoid })', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await Post.update({ title: 'By three thy way opens' }, { where: { title: 'By three they come' }});
     const result = await Post.first;
@@ -817,11 +817,15 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book3.isNewRecord, false);
   });
 
-  it('Model.truncate', async () => {
-    assert.equal(
-      Post.truncate().toString(),
-      'DELETE FROM "articles"'
-    );
+  it('Model.truncate()', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.count(), 2);
+
+    await Book.truncate();
+    assert.equal(await Book.count(), 0);
   });
 });
 
