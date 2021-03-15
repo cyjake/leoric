@@ -226,3 +226,26 @@ describe('=> Bone.drop()', () => {
     await checkDefinitions('temp', null);
   });
 });
+
+describe('=> Bone.truncate()', () => {
+  beforeEach(async () => {
+    await Bone.driver.dropTable('temp');
+  });
+
+  it('should be able to drop table', async () => {
+    class Temp extends Bone {};
+    Temp.init({
+      id: INTEGER,
+      foo: STRING,
+    }, { tableName: 'temp' });
+
+    await Temp.sync();
+    assert.equal(await Temp.count(), 0);
+
+    await Temp.create({ foo: 'bazinga' });
+    assert.equal(await Temp.count(), 1);
+
+    await Temp.truncate();
+    assert.equal(await Temp.count(), 0);
+  });
+});

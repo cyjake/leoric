@@ -61,4 +61,17 @@ describe('=> MySQL driver', () => {
     assert.equal(definition.primaryKey, true);
     assert.equal(definition.unique, true);
   });
+
+  it('driver.truncateTable(table', async () => {
+    const { BIGINT, STRING } = driver.DataTypes;
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+      title: { type: STRING, allowNull: false },
+    });
+    await driver.query(`INSERT INTO notes (id, title) VALUES (42, 'Untitled')`);
+    assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 1);
+    await driver.truncateTable('notes');
+    assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
+  });
 });

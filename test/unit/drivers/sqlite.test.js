@@ -3,11 +3,10 @@
 const assert = require('assert').strict;
 const strftime = require('strftime');
 
-const { DataTypes } = require('../../..');
 const { heresql } = require('../../../lib/utils/string');
 const SqliteDriver = require('../../../lib/drivers/sqlite');
 
-const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = DataTypes;
+const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = SqliteDriver.prototype.DataTypes;
 
 const options = {
   database: '/tmp/leoric.sqlite3',
@@ -66,6 +65,18 @@ describe('=> SQLite driver', () => {
       id: { type: BIGINT, primaryKey: true, autoIncrement: true },
       public: { type: INTEGER },
     });
+  });
+
+  it('driver.truncateTable(table', async () => {
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+      title: { type: STRING, allowNull: false },
+    });
+    await driver.query(`INSERT INTO notes (id, title) VALUES (42, 'Untitled')`);
+    assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 1);
+    await driver.truncateTable('notes');
+    assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
   });
 });
 
