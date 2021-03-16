@@ -108,7 +108,7 @@ describe('MySQL', async () => {
               new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
               new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
               new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE, INDEX_HINT_USE_TYPE.ORDER_BY),
+              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE, INDEX_HINT_USE_TYPE.ORDER_BY), // USE INDEX FOR ** ()
               new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
               new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
               new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
@@ -160,8 +160,12 @@ describe('MySQL', async () => {
           {
             hints: [
               new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), //
+              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), // unique
+              {
+                type: INDEX_HINT_TYPE.FORCE,
+                value: 'idx_title',
+              },
               new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
               new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
               new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
