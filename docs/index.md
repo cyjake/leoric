@@ -231,7 +231,9 @@ GROUP BY genre
   <tr>
   <td>
 {% highlight js %}
-Post.find({ id: TagMap.select('targetId').where({ tagId: 1 }) })
+Post.find({
+  id: TagMap.select('targetId').where({ tagId: 1 }),
+})
 {% endhighlight %}
     </td>
     <td>
@@ -300,5 +302,9 @@ LEFT JOIN tags
 For detailed informations, please check out following guides accordingly:
 
 1. [Basics]({{ '/basics' | relative_url }})
-2. [Associations]({{ '/associations' | relative_url }})
-3. [Query Interfaces]({{ '/querying' | relative_url }})
+2. [Migrations]({{ '/migrations' | relative_url }})
+3. [Validations]({{ '/validations' | relative_url }})
+4. [Associations]({{ '/associations' | relative_url }})
+5. [Query Interfaces]({{ '/querying' | relative_url }})
+6. [Hooks]({{ '/hooks' | relative_url }})
+7. [Sequelize Adapter]({{ '/sequelize' | relative_url }})

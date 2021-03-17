@@ -3,7 +3,7 @@ layout: zh
 title: 基础
 ---
 
-本手册意在向大家介绍 Leoric。读完本文后，你将了解：
+本文主要向大家介绍 Leoric 基础概念。读完本文后，你将了解如下内容：
 
 - 对象关系映射（Object Relational Mapping）和 Leoric 是什么, 以及怎么用；
 - 如何使用 Leoric 的数据模型来操作关系数据库中存储的数据.
@@ -31,7 +31,7 @@ Leoric 应当具备的能力是：
 
 ## 约定大于配置
 
-一般而言，出于明确性考虑，配置是较约定要更受欢迎一些的。不过，如果你理解 Leoric 所采用的约定方式，你将在保留明确性的同时，仅需少量、甚至不用配置即可完成一个数据模型的定义。
+一般而言，配置比约定要更加一目了然，也更经常被使用。但约定风格也有它的优势，如果你的表结构风格遵循 Leoric 的约定，几乎不需要写多少配置就可以编写数据模型。
 
 ### 命名约定
 
@@ -89,7 +89,27 @@ const { Bone } = require('leoric')
 class Shop extends Bone {}
 ```
 
-声明完毕之后，`Shop` 数据模型就可以用了：
+如果不希望使用第三方工具专门管理表结构，也可以直接让 Leoric 来完成这部分工作。在数据模型中声明模型的属性名，使用数据模型前同步到数据库即可：
+
+```js
+const { Bone, Realm } = require('leoric');
+const { BIGINT, STRING } = Bone.DataTypes;
+
+// define Shop
+class Shop extends Bone {
+  static attributes = {
+    id: { type: BIGINT, primaryKey: true },
+    name: { type: STRING },
+  }
+}
+
+// connecting Shop to shops table in database
+const realm = new Realm({ host: 'localhost', models: [ Shop ] });
+// synchronize model attributes to table
+await realm.sync();
+```
+
+然后就可以用 `Shop` 数据模型操作数据了：
 
 ```js
 const shop = new Shop({ name: 'Horadric Cube' })
@@ -130,26 +150,49 @@ class Shop extends Bone {
 
 ## 连接数据模型和数据库
 
-数据模型需要与数据库连接方可使用。使用 `connect()` 方法连接数据模型和数据库时，Leoric 会从表结构信息表中读取结构信息，更新对应数据模型的属性定义，并记录结构信息到 `Model.schema`、`Model.attributes`、以及 `Model.columns` 属性（后两者其实是 getter 属性，基于 `Model.schema` 动态计算）。
+数据模型需要和数据库连接方可使用，推荐使用如下方式：
 
 ```js
-const { connect } = require('leoric')
-
-async function() {
-  // 连接数据模型到数据库
-  await connect({
-    host: 'example.com',
-    port: 3306,
-    user: 'john',
-    password: 'doe',
-    db: 'tmall',
-    models: [Shop]
-  })
-
-  // 直接传入数据模型所在的路径
-  await connect({ ...opts, path: '/path/to/models' })
-})
+const Realm = require('leoric');
+const realm = new Realm({
+  dialect: 'mysql',
+  host: 'localhost',
+  models: '/path/to/models',
+});
+await realm.sync();
 ```
+
+`realm.sync()` 会根据数据模型中定义的字段信息 `Model.attributes` 自动执行表结构变更，确保数据库中的表结构和数据模型中的一致。在应用数据比较大或者应用表结构变更比较频繁且剧烈的情况下，一般不推荐使用。
+
+后者这种情况比较适合仅连接数据库，使用 Leoric 的表结构变更功能来手动维护数据库中的表结构：
+
+```js
+const Realm = require('leoric');
+const realm = new Realm(...);
+await realm.connect();
+```
+
+v0.x 版本过来的用户，仍然可以选择使用 `connect()` 直接连接数据库：
+
+
+```js
+const { connect } = require('leoric');
+
+// 连接数据模型到数据库
+await connect({
+  host: 'example.com',
+  port: 3306,
+  user: 'john',
+  password: 'doe',
+  db: 'tmall',
+  models: [Shop]
+});
+
+// 直接传入数据模型所在的路径
+await connect({ ...opts, path: '/path/to/models' });
+```
+
+当然，如果是使用 Egg 开发 Web 应用，更加推荐直接用 egg-orm 插件。
 
 ## 读取与写入数据
 
@@ -161,18 +204,16 @@ async function() {
 - 以及使用 `model.save()` 方法持久化当前实例上的改动。
 
 ```js
-async function() {
-  // 插入一条店铺记录
-  await Shop.create({ name: 'Barracks' })
+// 插入一条店铺记录
+await Shop.create({ name: 'Barracks' });
 
-  // 查找店铺记录并更新
-  const shop = await Shop.findOne({ name: 'Barracks' })
-  shop.name = 'Horadric Cube'
-  await shop.save()
+// 查找店铺记录并更新
+const shop = await Shop.findOne({ name: 'Barracks' });
+shop.name = 'Horadric Cube';
+await shop.save();
 
-  // 移除记录
-  await Shop.remove({ name: 'Horadric Cube' })
-})
+// 移除记录
+await Shop.remove({ name: 'Horadric Cube' });
 ```
 
 ### 创建

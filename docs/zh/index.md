@@ -2,7 +2,11 @@
 layout: zh
 ---
 
-Leoric 是一个 Node.js 的关系对象映射库（ORM），使用 Leoric 操作数据库的方式大致如下：
+Leoric 是一个 Node.js 的关系对象映射库（ORM）
+
+## 基本功能
+
+使用 Leoric 操作数据库的方式大致如下：
 
 ```js
 const { Bone, connect } = require('leoric')
@@ -33,6 +37,42 @@ async function() {
   // => Post { id: 1, title: 'New Post', ...,
   //           comments: [ Comment { id, content }, ... ] }
 }
+```
+
+推荐阅读[基本功能](./basics)一文了解更多有关模型声明和数据操作的介绍。除了基础功能，Leoric 还支持[表结构变更](./migrations)、[数据校验](./validations)、[钩子](./hooks)、[关联关系](./associations)、以及[高级查询](querying)。
+
+## 在 Web 开发框架中使用
+
+Leoric 支持在 Koa、Express、Egg 等 Node.js 社区常见的 Web 开发框架中使用，特别推荐 Egg 开发者使用 egg-orm 插件：
+
+```javascript
+/* config/plugin.js */
+exports.orm = {
+  enable: true,
+  package: 'egg-orm',
+};
+
+/* config/config.default.js */
+exports.orm = {
+  client: 'mysql',
+  database: 'temp',
+  host: 'localhost',
+};
+```
+
+通过 `ctx.orm` 使用 `app/model` 下定义的数据模型，例如 `ctx.orm.User`：
+
+```javascript
+// app/controller/home.js
+const { Controller } = require('egg');
+module.exports = class HomeController extends Controller {
+  async index() {
+    const users = await ctx.orm.User.find({
+      corpId: ctx.orm.Corp.findOne({ name: 'alipay' }),
+    });
+    ctx.body = users;
+  }
+};
 ```
 
 ## 语法对照表
@@ -227,7 +267,9 @@ GROUP BY genre
   <tr>
   <td>
 {% highlight js %}
-Post.find({ id: TagMap.select('targetId').where({ tagId: 1 }) })
+Post.find({
+  id: TagMap.select('targetId').where({ tagId: 1 }),
+})
 {% endhighlight %}
     </td>
     <td>
@@ -293,8 +335,12 @@ LEFT JOIN tags
 
 ## 上手指南
 
-有关 Leoric 的详细信息，请依次阅读如下文档：
+推荐依次阅读如下文档了解有关 Leoric 的详细信息
 
 1. [基础]({{ '/zh/basics' | relative_url }})
-2. [关联关系]({{ '/zh/associations' | relative_url }})
-3. [查询接口]({{ '/zh/querying' | relative_url }})
+2. [表结构变更]({{ '/zh/migrations' | relative_url }})
+3. [校验]({{ '/zh/validations' | relative_url }})
+4. [关联关系]({{ '/zh/associations' | relative_url }})
+5. [查询接口]({{ '/zh/querying' | relative_url }})
+6. [钩子]({{ '/zh/hooks'}})
+7. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})

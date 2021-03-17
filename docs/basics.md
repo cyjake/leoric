@@ -72,15 +72,7 @@ When `Bone.remove({...})` is called on a Model with `deletedAt` present, Leoric 
 
 ## Authoring Models
 
-It's very easy to create Leoric models. Simply extend from the `Bone` class exported by Leoric:
-
-```js
-const { Bone } = require('leoric')
-
-class Shop extends Bone {}
-```
-
-Suppose the `shops` table structure looks like below:
+Suppose the `shops` table were created already:
 
 ```sql
 CREATE TABLE shops (
@@ -90,7 +82,35 @@ CREATE TABLE shops (
 );
 ```
 
-Following the table schema above, you would be able to write code like this:
+Simply extend from the `Bone` class exported by Leoric, have it connected to database, and you're all set:
+
+```js
+const { Bone } = require('leoric');
+class Shop extends Bone {}
+await connect({ host: 'localhost', models: [ Shop ]});
+```
+
+It is possible to manage schema with Leoric as well. By defining attributes when authring models, Leoric learns what the model needs and will have the schema migrated when necessary:
+
+```js
+const { Bone, Realm } = require('leoric');
+const { BIGINT, STRING } = Bone.DataTypes;
+
+// define Shop
+class Shop extends Bone {
+  static attributes = {
+    id: { type: BIGINT, primaryKey: true },
+    name: { type: STRING },
+  }
+}
+
+// connecting Shop to shops table in database
+const realm = new Realm({ host: 'localhost', models: [ Shop ] });
+// synchronize model attributes to table
+await realm.sync();
+```
+
+Now we have got the models connected to and synchronized with database, we can start querying:
 
 ```js
 const shop = new Shop({ name: 'Horadric Cube' })
@@ -101,19 +121,19 @@ await Shop.create({ name: 'Horadric Cube' })
 
 ## Overriding the Naming Conventions
 
-Most of the conventional names and keys can be overridden by corresponding methods. You can specify `static get table()` to override the default table name:
+Most of the conventional names and keys can be overridden by corresponding methods. You can specify `static table` to override the default table name:
 
 ```js
 class Shop extends Bone {
-  static get table() { return 'stores' }
+  static table = 'stores'
 }
 ```
 
-It's also possible to override the the name of the primary key by specifying `static get primaryKey()`:
+It's also possible to override the the name of the primary key by specifying `static primaryKey`:
 
 ```js
 class Shop extends Bone {
-  static get primaryKey() { return 'shopId' }
+  static primaryKey = 'shopId'
 }
 ```
 
@@ -131,26 +151,48 @@ A lot of schema settings can be done within the `static describe()` method. We'l
 
 ## Connecting Models to Database
 
-Models need to be connected to database before use. When you `connect()` models to database, Leoric will try to load table schema information and update model metadata accordingly, namely the `Model.schema`, `Model.attributes`, and `Model.columns` properties (the latter two are just getter properties which rely on `Model.schema`).
+Models need to be connected to database before use, which can be connected in the following way:
 
 ```js
-const { connect } = require('leoric')
-
-async function() {
-  // connect models to the database
-  await connect({
-    host: 'example.com',
-    port: 3306,
-    user: 'john',
-    password: 'doe',
-    db: 'tmall',
-    models: [Shop]
-  })
-
-  // connect models by passing the path of the containing directory
-  await connect({ ...opts, path: '/path/to/models' })
-})
+const Realm = require('leoric');
+const realm = new Realm({
+  dialect: 'mysql',
+  host: 'localhost',
+  models: '/path/to/models',
+});
+await realm.sync();
 ```
+
+`realm.sync()` not only connects models to database, but also tries to synchronize `Model.attributes` in each model back to database structure automatically to make sure consistency between each other. If your application data changes a log, this practice is not recommended.
+
+Intead, it is recommended only connecting to database but not to synchronize to it. Please use the [migration]({ '/migrations' | relative_url }) feature to change database structure.
+
+```js
+const Realm = require('leoric');
+const realm = new Realm(...);
+await realm.connect();
+```
+
+For those who started using Leoric since v0.x, we can still `connect()` to database directly.
+
+
+```js
+const { connect } = require('leoric');
+
+await connect({
+  host: 'example.com',
+  port: 3306,
+  user: 'john',
+  password: 'doe',
+  db: 'tmall',
+  models: [Shop]
+});
+
+// or
+await connect({ ...opts, path: '/path/to/models' });
+```
+
+If developing web applications with Egg framework, it's highly recommended using [egg-orm](https://github.com/eggjs/egg-orm) plugin.
 
 ## Reading and Writing Data
 
