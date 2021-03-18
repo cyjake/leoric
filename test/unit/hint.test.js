@@ -26,9 +26,23 @@ describe('MySQL', async () => {
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date }, { hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
         "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
       );
+      assert.equal(
+        Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).optimizeHints('SET_VAR(foreign_key_checks=OFF)').toString(),
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
+      );
       // array
       assert.equal(
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date }, { hints: [ new Hint('SET_VAR(foreign_key_checks=OFF)'), new Hint('SET_VAR(sort_buffer_size = 16M)') ] }).toString(),
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
+      );
+
+      assert.equal(
+        Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).optimizeHints('SET_VAR(foreign_key_checks=OFF)', 'SET_VAR(sort_buffer_size = 16M)').toString(),
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
+      );
+
+      assert.equal(
+        Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).optimizeHints('SET_VAR(foreign_key_checks=OFF)').optimizeHints('SET_VAR(sort_buffer_size = 16M)').toString(),
         "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
       );
 
@@ -53,7 +67,17 @@ describe('MySQL', async () => {
       );
 
       assert.equal(
+        Post.find({ title: { $like: '%Post%' } }).optimizeHints('SET_VAR(foreign_key_checks=OFF)').toString(),
+        "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
         Post.find({ title: { $like: '%Post%' } }, { hints: [ new Hint('SET_VAR(foreign_key_checks=OFF)'), new Hint('MAX_EXECUTION_TIME(1000)') ] }).toString(),
+        "SELECT /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.find({ title: { $like: '%Post%' } }).optimizeHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)').toString(),
         "SELECT /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
       );
     });
@@ -100,21 +124,55 @@ describe('MySQL', async () => {
       );
 
       assert.equal(
-        Post.find({
-          title: { $like: '%Post%' } },
-          {
-            order: 'id',
-            hints: [
-              new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE, INDEX_HINT_USE_TYPE.ORDER_BY), // USE INDEX FOR ** ()
-              new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
-            ]
-          }).toString(),
+        Post.find({ title: { $like: '%Post%' } }, {
+          order: 'id asc',
+          hints: [
+            new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE, INDEX_HINT_USE_TYPE.ORDER_BY), // USE INDEX FOR ** ()
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
+          ]
+        }).toString(),
+        "SELECT * FROM `articles` FORCE INDEX (idx_id,idx_title) FORCE INDEX FOR ORDER BY (idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL ORDER BY `id`"
+      );
+
+      assert.equal(
+        Post.find({ title: { $like: '%Post%' } }, { order: 'id asc' })
+          .forceIndex('idx_id', 'idx_title')
+          .forceIndex('idx_title')
+          .forceIndex({ value: 'idx_title', useFor: 'ORDER BY' })
+          .ignoreIndex('idx_hle', 'idx_hle1')
+          .ignoreIndex('idx_hle')
+          .useIndex('idx_hle2')
+          .toString(),
+          "SELECT * FROM `articles` FORCE INDEX (idx_id,idx_title) FORCE INDEX FOR ORDER BY (idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL ORDER BY `id`"
+      );
+      // mixing
+      assert.equal(
+        Post.find({ title: { $like: '%Post%' } }, {
+          order: 'id asc',
+          hints: [
+            new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE, INDEX_HINT_USE_TYPE.ORDER_BY), // USE INDEX FOR ** ()
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
+          ]
+        })
+        .forceIndex('idx_id', 'idx_title')
+        .forceIndex('idx_title')
+        .forceIndex({ value: 'idx_title', useFor: 'ORDER BY' })
+        .ignoreIndex('idx_hle', 'idx_hle1')
+        .ignoreIndex('idx_hle')
+        .useIndex('idx_hle2')
+        .toString(),
         "SELECT * FROM `articles` FORCE INDEX (idx_id,idx_title) FORCE INDEX FOR ORDER BY (idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL ORDER BY `id`"
       );
     });
@@ -154,25 +212,32 @@ describe('MySQL', async () => {
       );
 
       assert.equal(
-        Post.update({
-          title: { $like: '%Post%' } },
-          { title: 'hello', updatedAt: date },
-          {
-            hints: [
-              new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), //
-              new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), // unique
-              {
-                type: INDEX_HINT_TYPE.FORCE,
-                value: 'idx_title',
-              },
-              new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-              new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
-            ]
-          }).toString(),
-          "UPDATE `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+        Post.update({ title: { $like: '%Post%' } }, { title: 'hello', updatedAt: date },{
+          hints: [
+            new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), //
+            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE), // unique
+            {
+              type: INDEX_HINT_TYPE.FORCE,
+              value: 'idx_title',
+            },
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+            new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
+          ]
+        }).toString(),
+        "UPDATE `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+      );
+
+      assert.equal(
+        Post.update({ title: { $like: '%Post%' } }, { title: 'hello', updatedAt: date })
+          .forceIndex('idx_id', 'idx_title', 'idx_title')
+          .forceIndex('idx_title')
+          .ignoreIndex('idx_hle', 'idx_hle1')
+          .useIndex('idx_hle2')
+          .toString(),
+        "UPDATE `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
       );
     });
   });
@@ -181,24 +246,31 @@ describe('MySQL', async () => {
     const date = new Date(2017, 11, 12);
 
     assert.equal(
-      Post.update({
-        title: { $like: '%Post%' } },
-        { title: 'hello', updatedAt: date },
-        {
-          hints: [
-            new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
-            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-            new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
-            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-            new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
-            new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
-            new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
-            new Hint('SET_VAR(foreign_key_checks=OFF)'),
-            new Hint('MAX_EXECUTION_TIME(1000)')
-          ]
-        }).toString(),
-        "UPDATE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
-      );
+      Post.update({title: { $like: '%Post%' } }, { title: 'hello', updatedAt: date },{
+        hints: [
+          new IndexHint('idx_id', INDEX_HINT_TYPE.FORCE),
+          new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+          new IndexHint('idx_title', INDEX_HINT_TYPE.FORCE),
+          new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+          new IndexHint('idx_hle1', INDEX_HINT_TYPE.IGNORE),
+          new IndexHint('idx_hle', INDEX_HINT_TYPE.IGNORE),
+          new IndexHint('idx_hle2', INDEX_HINT_TYPE.USE),
+          new Hint('SET_VAR(foreign_key_checks=OFF)'),
+          new Hint('MAX_EXECUTION_TIME(1000)')
+        ]
+      }).toString(),
+      "UPDATE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.update({title: { $like: '%Post%' } }, { title: 'hello', updatedAt: date })
+      .optimizeHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)')
+      .forceIndex('idx_id', 'idx_title')
+      .ignoreIndex('idx_hle', 'idx_hle1')
+      .useIndex('idx_hle2')
+      .toString(),
+      "UPDATE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+    );
   });
 })
 
