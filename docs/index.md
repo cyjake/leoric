@@ -39,6 +39,41 @@ async function() {
 }
 ```
 
+## Use in Web Frameworks
+
+Leoric can be used in many web frameworkds from Node.js community. If you are developing with egg framework, it is highly recommended using the egg-orm plugin:
+
+```javascript
+/* config/plugin.js */
+exports.orm = {
+  enable: true,
+  package: 'egg-orm',
+};
+
+/* config/config.default.js */
+exports.orm = {
+  client: 'mysql',
+  database: 'temp',
+  host: 'localhost',
+  models: 'app/model',
+};
+```
+
+The models defined in `app/model` will be accessible from `ctx.orm`, such as `ctx.orm.User`:
+
+```javascript
+// app/controller/home.js
+const { Controller } = require('egg');
+module.exports = class HomeController extends Controller {
+  async index() {
+    const users = await ctx.orm.User.find({
+      corpId: ctx.orm.Corp.findOne({ name: 'alipay' }),
+    });
+    ctx.body = users;
+  }
+};
+```
+
 ## Syntax Table
 
 <table class="syntax-table">
@@ -308,3 +343,23 @@ For detailed informations, please check out following guides accordingly:
 5. [Query Interfaces]({{ '/querying' | relative_url }})
 6. [Hooks]({{ '/hooks' | relative_url }})
 7. [Sequelize Adapter]({{ '/sequelize' | relative_url }})
+
+## Contributing
+
+There are many ways in which you can participate in the project, for example:
+
+- [Submit bugs and feature requests](https://github.com/cyjake/leoric/issues), and help us verify as they are checked in
+- [Review source code changes](https://github.com/cyjake/leoric/pulls)
+- Review the [documentation]({{ '/' | relative_url }}) and make pull requests for anything from typo to new content
+
+If you are interested in fixing issues and contributing directly to the code base, please see the document [How to Contribute]({{ '/contributing/guides' | relative_url }}), which covers the following:
+
+- The development workflow, including debugging and running tests
+- Coding guidelines
+- Submitting pull requests
+- Contributing to translations
+
+## Related Projects
+
+If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin.
+

@@ -1,45 +1,48 @@
 # Contributing Guides
 
-## How to get started
+Welcome, and thank you for your interest in contributing to Leoric!
 
-Three steps:
+There are many ways in which you can contribute, beyond writing code. The goal of this document is to provide a bird's-eye overview of how you can get involved.
 
-1. Install databases we intend to support, namely MySQL, PostgreSQL, and SQLite
-2. Install `node_modules` (which might take long)
-3. Happy hacking
+## Reporting Issues
 
-### Preparing environment
+Have you identified a reproducible problem? Have a feature request? We want to hear about it! Here's how you can make reporting your issue as effective as possible.
 
-```bash
-$ brew install mysql postgres sqlite
-$ brew service start mysql
-$ brew service start postgres
-```
+### Look For an Existing Issue
 
-### Running tests
+If you find your issue already exists, make relevant comments and add your reaction. Use a reaction in place of a "+1" comment:
 
-```bash
-$ npm install
-# run all the tests in test/unit directory
-$ npm test unit
-# run all the tests in test/integration directory
-$ npm test integration
-# skip pretest task
-$ npm run test-local
-```
+- 👍 - upvote
+- 👎 - downvote
 
-To be more specific, we can filter test files and cases:
+If no such issue were found, create a new issue using the guidelines below.
 
-```bash
-$ npm run test-local -- test/unit/test.connect.js --grep "should work"
-```
+### Writing Good Bug Reports and Features Requests
 
-It is recommended that we start with unit tests first, such as:
+Please include the following with each issue:
 
-```bash
-$ npm run test-local -- test/unit/adapters/test.sequelize.js
-```
+- Version of Leoric
+- Version of your database
+- Version of your node
+- Your operating system
+- Reproducible steps (1... 2... 3...) that cause the issue
+- What was expected, versus what you actually get
+- A code snippet that demonstractes the issue or a link to a code repository the developers can pull down to recreate the issue locally
 
-## How the code is organized
+### Final Checklist
 
-TODO
+Please remember to do the following:
+
+- [ ] Search the issue repository to ensure your report isn't duplicated
+- [ ] Describe the environment that runs leoric, database, Node.js, etc.
+- [ ] Simplify your code around the issue to better isolate the problem
+
+Don't feel bad if the developers can't reproduce the issue right away. They will simply ask for more information!
+
+## Contributing Fixes
+
+If you are interested in writing code to fix issues, please see [How to Contribute](https://www.cyj.me/leoric/contributing/guides) in the documentations.
+
+# Thank You!
+
+Your contributions to open source, large or small, make this project possible. Thank you for taking the time to contribute.

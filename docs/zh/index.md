@@ -344,3 +344,22 @@ LEFT JOIN tags
 5. [查询接口]({{ '/zh/querying' | relative_url }})
 6. [钩子]({{ '/zh/hooks'}})
 7. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
+
+## 参与贡献
+
+有许多种参与贡献的方式，比如：
+
+- [提交问题反括或者功能需求](https://github.com/cyjake/leoric/issues)，并帮助我们验收相关改动
+- [参与评审代码合并请求](https://github.com/cyjake/leoric/pulls)
+- 审校[帮助文档]({{ '/' | relative_url }}) ，并勘误错别字或者编写新内容
+
+如果有兴趣贡献代码修复已知问题，参考我们的[如何贡献代码]({{ '/contributing/guides' | relative_url }})一文，大致包含如下内容：
+
+- 介绍 Leoric 的开发工作流，包含如何调试、如何运行测试
+- 代码风格指引
+- 如何提交合并请求
+- 文档翻译
+
+## 关联项目
+
+使用 [egg framework](https://eggjs.org/) 的开发者，不妨通过 [egg-orm](https://github.com/eggjs/egg-orm) 插件来使用 Leoric。

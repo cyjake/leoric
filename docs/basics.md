@@ -192,7 +192,7 @@ await connect({
 await connect({ ...opts, path: '/path/to/models' });
 ```
 
-If developing web applications with Egg framework, it's highly recommended using [egg-orm](https://github.com/eggjs/egg-orm) plugin.
+If developing web applications with Egg framework, it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin.
 
 ## Reading and Writing Data
 
