@@ -129,7 +129,7 @@ class Realm {
 
     let models;
     if (dir) {
-      models = Array.isArray(dir) ? dir  : (await findModels(dir));
+      models = Array.isArray(dir) ? dir : (await findModels(dir));
     } else {
       models = Object.values(this.models);
     }
