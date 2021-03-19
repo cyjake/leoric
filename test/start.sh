@@ -14,7 +14,7 @@ function run {
 function unit {
   # recursive glob nor available in bash 3
   # - https://unix.stackexchange.com/questions/49913/recursive-glob
-  for file in $(ls test/unit/{,drivers/,drivers/*/,adapters/,adapters/*/}*.test.js); do
+  for file in $(ls test/unit/{,drivers/,drivers/*/,adapters/}*.test.js); do
     run ${file};
   done
 }
