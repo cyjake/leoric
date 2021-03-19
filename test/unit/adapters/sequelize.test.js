@@ -4,6 +4,7 @@ const assert = require('assert').strict;
 const crypto = require('crypto');
 const { it } = require('mocha');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
+const { IndexHint, Hint, INDEX_HINT_TYPE, INDEX_HINT_USE_TYPE, HINT_TYPE } = require('../../../lib/hint');
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -1410,3 +1411,49 @@ describe('validator should work', () => {
     });
   });
 });
+
+describe('hint', () => {
+  const Spine = sequelize(Bone);
+
+  class Post extends Spine {
+    static get table() {
+      return 'articles';
+    }
+  };
+
+  before(async function() {
+    await connect({
+      Model: Spine,
+      models: [ Post ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
+    });
+  });
+
+  after(async () => {
+    Bone.driver = null;
+  });
+
+  it('findOne', () => {
+    assert.equal(
+      Post.findOne({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
+      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+    );
+  })
+
+  it('findByPk', () => {
+    assert.equal(
+      Post.findByPk(1, { hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
+      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+    );
+  });
+
+  it('findAll', () => {
+    assert.equal(
+      Post.findAll({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
+      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL"
+    );
+  });
+})
+

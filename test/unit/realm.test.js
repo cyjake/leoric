@@ -100,15 +100,16 @@ describe('=> Realm', () => {
     await realm.connect();
     // clean all prev data in users
     await realm.query('TRUNCATE TABLE users');
-    assert.rejects(async () => {
+    await assert.rejects(async () => {
       await realm.transaction(function *({ connection }) {
-        const sql = 'INSERT INTO users (gmt_create, email, nickname) VALUES (?, ?, ?)';
-        yield realm.query(sql, [ new Date(), email, 'Thor' ], { connection });
-        yield realm.query(sql, [ new Date(), email, 'Loki' ], { connection });
-      }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
-    });
+        const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+        yield realm.query(sql, [ new Date(), email, 'Thor', 1 ], { connection });
+        yield realm.query(sql, [ new Date(), email, 'Loki', 1 ], { connection });
+      }); // rollback
+    }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`);
     const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
     assert(rows.length === 0);
+    assert(queries.includes('ROLLBACK'));
   });
 
   it('realm.transaction async callback should work', async () => {
@@ -127,14 +128,15 @@ describe('=> Realm', () => {
     await realm.connect();
     // clean all prev data in users
     await realm.query('TRUNCATE TABLE users');
-    assert.rejects(async () => {
+    await assert.rejects(async () => {
       await realm.transaction(async ({ connection }) => {
-        const sql = 'INSERT INTO users (gmt_create, email, nickname) VALUES (?, ?, ?)';
-        await realm.query(sql, [ new Date(), email, 'Thor' ], { connection });
-        await realm.query(sql, [ new Date(), email, 'Loki' ], { connection });
-      }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`); // rollback
-    });
+        const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+        await realm.query(sql, [ new Date(), email, 'Thor', 1 ], { connection });
+        await realm.query(sql, [ new Date(), email, 'Loki', 1 ], { connection });
+      }); // rollback
+    }, `Error: ER_DUP_ENTRY: Duplicate entry '${email}' for key 'users.email'`);
     const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
     assert(rows.length === 0);
+    assert(queries.includes('ROLLBACK'));
   });
 });

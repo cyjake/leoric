@@ -644,6 +644,5 @@ describe('=> raw sql', () => {
         Bone.driver = null;
       });
     });
-
   });
 });
