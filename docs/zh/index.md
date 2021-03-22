@@ -342,7 +342,7 @@ LEFT JOIN tags
 3. [校验]({{ '/zh/validations' | relative_url }})
 4. [关联关系]({{ '/zh/associations' | relative_url }})
 5. [查询接口]({{ '/zh/querying' | relative_url }})
-6. [钩子]({{ '/zh/hooks'}})
+6. [钩子]({{ '/zh/hooks' | relative_url }})
 7. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
 
 ## 参与贡献
