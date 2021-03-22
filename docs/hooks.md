@@ -28,12 +28,12 @@ Realm.define('User', attrs, {
     beforeCreate: () => {},
     afterUpdate: () => {}
   }
-}})
+});
 ```
 
 
 ## Available Hooks：
-> `Model.method` means hook call by Model class,  `Instance.method` means hook call by Model's instance, the arguments of hooks are slightly different for different calling methods
+> `Model.method` means hook call by Model class,  `instance.method` means hook call by Model's instance, the arguments of hooks are slightly different for different calling methods
 
 ### create
 `create` supports:
@@ -41,8 +41,8 @@ Realm.define('User', attrs, {
 // create hooks, args are create function's arguments
 Model.beforeCreate(args) // function's context is the instance to be created
 Model.afterCreate(instance, createResult) // createResult is create function's returns
-Instance.beforeCreate(args)
-Instance.afterCreate(instance, createResult) // function's context is the instance to be created
+instance.beforeCreate(args)
+instance.afterCreate(instance, createResult) // function's context is the instance to be created
 ```
 **It should be noted that the function context of the hooks of `create` are the instance to be created.**
 ### bulkCreate
@@ -64,8 +64,8 @@ instance.afterUpdate(instance, updateResult) // function's context is the instan
 ### save
 `save` supports：
 ```javascript
-Instance.beforeSave(options)
-Instance.afterSave(instance, options)
+instance.beforeSave(options)
+instance.afterSave(instance, options)
 ```
 Note that calling `save` may trigger the other functions' hooks (such as `create`, `update` or `upsert`).
 
@@ -73,21 +73,19 @@ Note that calling `save` may trigger the other functions' hooks (such as `create
 - The `upsert` hook function fires when the instance is not persistent and the primary key has been set
 - When the instance is persistent, the hook function of `upsert` will be triggered
 
-
 ### upsert
 `upsert` supports:
 ```javascript
-Instance.beforeUpsert(opts) // function's context is the instance
-Instance.bafterUpsert(instance, upsertResult)
-
+instance.beforeUpsert(opts) // function's context is the instance
+instance.bafterUpsert(instance, upsertResult)
 ```
 ### remove
 `remove` supports:
 ```javascript
 Model.beforeRemove(args)
 Model.afterRemove(removeResult, Model)
-Instance.beforeRemove(args)
-Instance.afterRemove(instance, removeResult)
+instance.beforeRemove(args)
+instance.afterRemove(instance, removeResult)
 ```
 
 ## Table of hooks
@@ -96,8 +94,8 @@ Instance.afterRemove(instance, removeResult)
 // create hooks
 Model.beforeCreate(args)
 Model.afterCreate(instance, createResult)
-Instance.beforeCreate(args)
-Instance.afterCreate(instance, createResult)
+instance.beforeCreate(args)
+instance.afterCreate(instance, createResult)
 
 // bulkCreate hooks
 Model.beforeBulkCreate(records, queryOptions)
@@ -110,19 +108,16 @@ instance.beforeUpdate(args)
 instance.afterUpdate(instance, updateResult)
 
 // save hooks
-Instance.beforeSave(options)
-Instance.afterSave(instance, options)
+instance.beforeSave(options)
+instance.afterSave(instance, options)
 
 // upsert hooks
-Instance.beforeUpsert(opts)
-Instance.bafterUpsert(instance, upsertResult)
+instance.beforeUpsert(opts)
+instance.bafterUpsert(instance, upsertResult)
 
 // remove hooks
 Model.beforeRemove(args)
 Model.afterRemove(removeResult, Model)
-Instance.beforeRemove(args)
-Instance.afterRemove(instance, removeResult)
-
+instance.beforeRemove(args)
+instance.afterRemove(instance, removeResult)
 ```
-
-
