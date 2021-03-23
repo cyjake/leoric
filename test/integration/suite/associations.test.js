@@ -156,9 +156,9 @@ describe('scattered associations', function() {
 
   it('should return duplicated records', async function() {
     const posts = await Post.all.with('comments');
-    assert.deepEqual(Array.from(posts[0].comments, comment => comment.content), [
+    assert.deepEqual(Array.from(posts[0].comments, comment => comment.content).sort(), [
       'Abandon your foolish request!',
       "Now you'll join them"
-    ]);
+    ].sort());
   });
 });

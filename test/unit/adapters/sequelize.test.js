@@ -1455,5 +1455,4 @@ describe('hint', () => {
       "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL"
     );
   });
-})
-
+});
