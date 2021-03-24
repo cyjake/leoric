@@ -2,9 +2,11 @@
 
 const assert = require('assert').strict;
 const crypto = require('crypto');
-const { it } = require('mocha');
+const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
 const { Hint } = require('../../../lib/hint');
+const { logger } = require('../../../lib/utils');
+
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -265,6 +267,11 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
 
+    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
+        throw new Error(message);
+      }
+    );
+
     let posts = await Post.findAll({
       where: {
         title: { $like: '%ea%' },
@@ -332,6 +339,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Tyrael');
 
+    stub.restore();
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -339,6 +347,11 @@ describe('=> Sequelize adapter', () => {
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
+
+    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
+        throw new Error(message);
+      }
+    );
 
     let posts = await Post.findAll({
       where: {
@@ -385,6 +398,8 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
     assert.throws(() => posts[0].content);
+
+    stub.restore();
   });
 
   it('Model.findAll({ order })', async () => {
@@ -1468,21 +1483,21 @@ describe('hint', () => {
   it('findOne', () => {
     assert.equal(
       Post.findOne({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
     );
-  })
+  });
 
   it('findByPk', () => {
     assert.equal(
       Post.findByPk(1, { hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
     );
   });
 
   it('findAll', () => {
     assert.equal(
       Post.findAll({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL'
     );
   });
 });
