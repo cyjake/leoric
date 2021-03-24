@@ -159,6 +159,6 @@ describe('scattered associations', function() {
     assert.deepEqual(Array.from(posts[0].comments, comment => comment.content).sort(), [
       'Abandon your foolish request!',
       "Now you'll join them"
-    ].sort());
+    ]);
   });
 });
