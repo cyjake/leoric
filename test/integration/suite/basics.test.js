@@ -463,20 +463,20 @@ describe('=> Integration', function() {
     assert.deepEqual(Object.keys(comments[0]), Object.keys(Comment.attributes));
   });
 
-  it('bone.toJSON() and bone.toObject() should work when multiple extends', async () => {
-    // multiple implement
-    class CustomPost extends Post {
-      get customProperty () {
-        return 'customProperty';
-      }
-    }
-    const post = await CustomPost.findOne({ title: 'New Post' });
-    const json = post.toJSON();
-    assert.equal(json.customProperty, 'customProperty');
-    const obj = post.toObject();
-    assert.equal(obj.customProperty, 'customProperty');
+  // it('bone.toJSON() and bone.toObject() should work when multiple extends', async () => {
+  //   // multiple implement
+  //   class CustomPost extends Post {
+  //     get customProperty () {
+  //       return 'customProperty';
+  //     }
+  //   }
+  //   const post = await CustomPost.findOne({ title: 'New Post' });
+  //   const json = post.toJSON();
+  //   assert.equal(json.customProperty, 'customProperty');
+  //   const obj = post.toObject();
+  //   assert.equal(obj.customProperty, 'customProperty');
 
-  });
+  // });
 });
 
 describe('=> Type casting', function() {
