@@ -139,4 +139,38 @@ describe('=> Realm', () => {
     assert(rows.length === 0);
     assert(queries.includes('ROLLBACK'));
   });
+
+  describe('realm.escape', () => {
+
+    it('MySQL', async() => {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.connect();
+      assert(realm.escape('sss') === '\'sss\'');
+    });
+
+    it('postgres', async () => {
+      const realm = new Realm({
+        dialect: 'postgres',
+        host: process.env.POSTGRES_HOST || '127.0.0.1',
+        port: process.env.POSTGRES_PORT,
+        user: process.env.POSTGRES_USER || '',
+        database: 'leoric',
+      });
+      await realm.connect();
+      assert(realm.escape('sss') === '\'sss\'');
+    });
+
+    it('sqlite', async () => {
+      const realm = new Realm({
+        dialect: 'sqlite',
+        database: '/tmp/leoric.sqlite3',
+      });
+      await realm.connect();
+      assert(realm.escape('sss') === '\'sss\'');
+    });
+  });
 });

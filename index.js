@@ -183,6 +183,15 @@ class Realm {
   raw(sql) {
     return Realm.raw(sql);
   }
+  /**
+   * escape value
+   * @param {string} value
+   * @returns
+   * @memberof Realm
+   */
+  escape(value) {
+    return this.driver.escape(value);
+  }
 }
 
 /**
