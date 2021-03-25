@@ -1158,15 +1158,10 @@ describe('model.init with getterMethods and setterMethods', () => {
     const json = user.toJSON();
     assert.equal(json.NICKNAME, 'TEST');
     assert(!json.dataValues);
-    const exceptJson = user.toJSON(['NICKNAME']);
-    assert(!exceptJson.NICKNAME);
 
     const obj = user.toObject();
     assert.equal(obj.NICKNAME, 'TEST');
     assert(!obj.dataValues);
-
-    const exceptObj = user.toObject(['NICKNAME']);
-    assert(!exceptObj.NICKNAME);
   });
 
   it('should accept arbitrary properties', async () => {
