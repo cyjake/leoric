@@ -310,13 +310,13 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts[0].title, 'Leah');
     assert.throws(() => posts[0].content);
 
-    // empty id array
+    // empty id array should be NULL
     posts = await Post.findAll({
       where: {
         id: [],
       }
     });
-    assert.equal(posts.length, 2);
+    assert.equal(posts.length, 0);
 
     posts = await Post.findAll({
       order: 'createdAt desc, id desc',
@@ -458,6 +458,18 @@ describe('=> Sequelize adapter', () => {
     });
     assert.equal(rows.length, 1);
     assert.equal(count, 1);
+
+    // with limit
+    const { rows: rows1, count: count1 } = await Post.findAndCountAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+      offset: 1,
+      limit: 2,
+    });
+
+    assert.equal(rows1.length, 0);
+    assert.equal(count1, 1);
   });
 
   it('Model.findAndCountAll(opt) with paranoid = false', async () => {
