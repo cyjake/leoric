@@ -455,7 +455,14 @@ describe('=> Select', function() {
     // empty array
     assert.equal(
       Post.where({ id: [ ] }).toString(),
-      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL'
+      'SELECT * FROM `articles` WHERE `id` IN (NULL) AND `gmt_deleted` IS NULL'
+    );
+
+    assert.equal(
+      Post.where({ id: {
+        $in: [ ],
+      }}).toString(),
+      'SELECT * FROM `articles` WHERE `id` IN (NULL) AND `gmt_deleted` IS NULL'
     );
   });
 
