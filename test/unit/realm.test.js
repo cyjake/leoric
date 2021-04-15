@@ -172,7 +172,7 @@ describe('=> Realm', () => {
       assert(rows.length === 0);
       assert(queries.includes('ROLLBACK'));
     });
-  
+
     it('realm.transaction async callback should work', async () => {
       const queries = [];
       const email = 'lighting@valhalla.ne';
@@ -235,6 +235,7 @@ describe('=> Realm', () => {
       User.init(attributes);
 
       before(async () => {
+        Bone.driver = null;
         await connect({
           port: process.env.MYSQL_PORT,
           user: 'root',
