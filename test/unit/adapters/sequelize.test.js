@@ -2,9 +2,11 @@
 
 const assert = require('assert').strict;
 const crypto = require('crypto');
-const { it } = require('mocha');
+const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
-const { IndexHint, Hint, INDEX_HINT_TYPE, INDEX_HINT_USE_TYPE, HINT_TYPE } = require('../../../lib/hint');
+const { Hint } = require('../../../lib/hint');
+const { logger } = require('../../../lib/utils');
+
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -265,6 +267,11 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
 
+    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
+        throw new Error(message);
+      }
+    );
+
     let posts = await Post.findAll({
       where: {
         title: { $like: '%ea%' },
@@ -332,6 +339,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Tyrael');
 
+    stub.restore();
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -339,6 +347,11 @@ describe('=> Sequelize adapter', () => {
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
+
+    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
+        throw new Error(message);
+      }
+    );
 
     let posts = await Post.findAll({
       where: {
@@ -385,6 +398,8 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
     assert.throws(() => posts[0].content);
+
+    stub.restore();
   });
 
   it('Model.findAll({ order })', async () => {
@@ -840,6 +855,24 @@ describe('=> Sequelize adapter', () => {
     await Book.truncate();
     assert.equal(await Book.count(), 0);
   });
+
+  it('instance.dataValues', async () => {
+    const post = Post.instantiate({
+      title: 'By three they come', content: 'content'
+    });
+    const dataValues = post.dataValues;
+    assert(dataValues);
+    assert(dataValues.title === 'By three they come');
+
+  });
+
+  it('get unset attribute should not throw error', async () => {
+    const post = Post.instantiate({
+      title: 'By three they come', content: 'content'
+    });
+    const extra = post.getDataValue('extra');
+    assert(!extra);
+  });
 });
 
 describe('Model scope', () => {
@@ -1107,43 +1140,28 @@ describe('model.init with getterMethods and setterMethods', () => {
   });
 
   it('toJSON and toObject should work', async () => {
-    const user = await User.create({ nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+    const user = await User.create({ nickname: 'test', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
     user.specDesc = 'hello';
     assert.equal(user.i, 's');
     assert.equal(user.desc, 'HELLO');
     assert.equal(user.specDesc, 'HELLO');
-    assert.equal(user.NICKNAME, 'TESTY');
-    assert.equal(user.nickname, 'testy');
+    assert.equal(user.NICKNAME, 'TEST');
+    assert.equal(user.nickname, 'test');
+    assert.equal(user.dataValues.nickname, 'test');
     const objStr = JSON.stringify(user);
     assert(objStr.includes('NICKNAME'));
+    assert(!objStr.includes('dataValues'));
+
     const revertObj = JSON.parse(objStr);
-    assert.equal(revertObj.NICKNAME, 'TESTY');
+    assert.equal(revertObj.NICKNAME, 'TEST');
+    assert(!revertObj.dataValues);
     const json = user.toJSON();
-    assert.equal(json.NICKNAME, 'TESTY');
+    assert.equal(json.NICKNAME, 'TEST');
+    assert(!json.dataValues);
+
     const obj = user.toObject();
-    assert.equal(obj.NICKNAME, 'TESTY');
-
-    // multiple implement
-    class CustomUser extends User {
-      get j () {
-        return 'j';
-      }
-    }
-
-    const customUser = await CustomUser.create({ nickname: 'testy', email: 'a@a1.com', meta: { foo: 1, bar: 'baz'}, status: 1, desc: 'sssssq11' });
-    const json1 = customUser.toJSON();
-    assert.equal(json1.NICKNAME, 'TESTY');
-    assert.equal(json1.desc, customUser.desc);
-    assert.equal(json1.specDesc, customUser.desc);
-    assert.equal(json1.j, customUser.j);
-    assert.equal(json1.i, customUser.i);
-    const obj1 = customUser.toObject();
-    assert.equal(obj1.NICKNAME, 'TESTY');
-    assert.equal(obj1.desc, customUser.desc);
-    assert.equal(obj1.specDesc, customUser.desc);
-    assert.equal(obj1.j, customUser.j);
-    assert.equal(obj1.i, customUser.i);
-
+    assert.equal(obj.NICKNAME, 'TEST');
+    assert(!obj.dataValues);
   });
 
   it('should accept arbitrary properties', async () => {
@@ -1450,22 +1468,21 @@ describe('hint', () => {
   it('findOne', () => {
     assert.equal(
       Post.findOne({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
     );
-  })
+  });
 
   it('findByPk', () => {
     assert.equal(
       Post.findByPk(1, { hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
     );
   });
 
   it('findAll', () => {
     assert.equal(
       Post.findAll({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
-      "SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL"
+      'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL'
     );
   });
-})
-
+});
