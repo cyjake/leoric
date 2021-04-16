@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "1.3.0",
+  "version": "1.4.0-alpha.1",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "index.d.ts",
@@ -28,7 +28,10 @@
     "query builder",
     "sqlite"
   ],
-  "author": "cyjake (http://cyj.me)",
+  "maintainers": [
+    "cyjake (http://cyj.me)",
+    "jimmydaddy <heyjimmygo@gmail.com>"
+  ],
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">= 12.0.0"

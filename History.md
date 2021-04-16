@@ -1,3 +1,13 @@
+1.4.0 / 2020-04-??
+==================
+
+  * feat: support multiple order rules in one single string or one-dimensional array (#92)
+  * feat: `realm.raw('SELECT ...')` and `Model.raw('SELECT ...')`
+  * feat: `Model.truncate()` now uses TRUNCATE if possible
+  * feat: `Model.find().optimizerHints('SET_VAR(foreign_key_checks=OFF)')`
+  * fix: make sure connection is passed around in all queries carried out within transaction
+  * docs: migrations, validations, hooks, and sequelize adapter
+
 1.3.0 / 2020-03-01
 ==================
 
