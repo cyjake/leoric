@@ -155,7 +155,7 @@ describe('MySQL', async () => {
       assert.equal(
         Post.remove({ title: { $like: '%Post%' } }, true , { hints: [ new Hint('SET_VAR(foreign_key_checks=OFF)'), new Hint('MAX_EXECUTION_TIME(1000)') ] }).toString(),
         "DELETE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ FROM `articles` WHERE `title` LIKE '%Post%'"
-      )
+      );
     });
 
   });
@@ -329,7 +329,7 @@ describe('MySQL', async () => {
       "UPDATE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
     );
   });
-})
+});
 
 
 

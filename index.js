@@ -10,7 +10,6 @@ const { findDriver } = require('./lib/drivers');
 const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
-const Spell = require('./lib/spell');
 const Hint = require('./lib/hint');
 
 async function findModels(dir) {

@@ -25,7 +25,10 @@ class User extends Bone {
 
 // test init
 User.init({
-  id: DataTypes.BIGINT,
+  id: {
+    primaryKey: true,
+    type: DataTypes.BIGINT
+  },
   gmt_create: DataTypes.DATE,
   email: {
     type: DataTypes.STRING(256),
