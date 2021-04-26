@@ -93,21 +93,123 @@ describe('=> Realm', () => {
     assert.equal(queries[0], 'SELECT 1');
   });
 
-  it('realm.query should work', async () => {
-    const queries = [];
-    const realm = new Realm({
-      port: process.env.MYSQL_PORT,
-      user: 'root',
-      database: 'leoric',
-      logger: {
-        logQuery(sql) {
-          queries.push(sql);
-        }
+  describe('realm.query', async () => {
+
+    class Post extends Bone {
+      static get table() {
+        return 'articles';
       }
+    }
+
+    class User extends Bone {}
+    User.init(attributes);
+
+    afterEach(async () => {
+      await Post.truncate();
+      await User.truncate();
     });
-    await realm.connect();
-    await realm.query('SELECT 1');
-    assert.equal(queries[0], 'SELECT 1');
+
+    it('realm.query should work', async () => {
+      const queries = [];
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        },
+        models: [ User, Post ],
+        Bone,
+      });
+      await realm.connect();
+      await realm.query('SELECT 1');
+      assert.equal(queries[1], 'SELECT 1');
+    });
+
+    it('realm.query bind to Model should work with mysql ', async () => {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ User, Post ],
+        Bone,
+      });
+
+      await realm.connect();
+      const createdAt = new Date();
+      const post = await Post.create({ title: 'title', authorId: 1, createdAt });
+      const { rows } = await realm.query('SELECT * FROM articles', [], { model: Post });
+      assert(rows.length === 1);
+      assert(rows[0] instanceof Post);
+      assert(post.authorId === rows[0].authorId);
+
+      // work with join table
+      const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
+      const { rows: rows1 } = await realm.query('SELECT Post.*, users.nickname as authorName FROM articles as Post LEFT JOIN users ON users.id = Post.author_id', [], { model: Post });
+      assert(rows1.length === 1);
+      assert(rows1[0] instanceof Post);
+      assert(post.authorId === rows1[0].authorId);
+      assert(user.nickname === rows1[0].authorName);
+    });
+
+    it('realm.query bind to Model should work with postgres', async () => {
+      const realm = new Realm({
+        dialect: 'postgres',
+        host: process.env.POSTGRES_HOST || '127.0.0.1',
+        port: process.env.POSTGRES_PORT,
+        user: process.env.POSTGRES_USER || '',
+        database: 'leoric',
+        models: [ User, Post ],
+        Bone,
+      });
+
+      await realm.connect();
+
+      const createdAt = new Date();
+      const post = await Post.create({ title: 'title', authorId: 1, createdAt });
+      const { rows } = await realm.query('SELECT * FROM articles', [], { model: Post });
+      assert(rows.length === 1);
+      assert(rows[0] instanceof Post);
+      assert(post.authorId === rows[0].authorId);
+
+      // work with join table
+      const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
+      const { rows: rows1 } = await realm.query('SELECT Post.*, users.nickname as authorName FROM articles as Post LEFT JOIN users ON users.id = Post.author_id', [], { model: Post });
+      assert(rows1.length === 1);
+      assert(rows1[0] instanceof Post);
+      assert(post.authorId === rows1[0].authorId);
+      // postgres cant use camelCase alias in raw query
+      assert(user.nickname === rows1[0].authorname);
+    });
+
+    it('realm.query bind to Model should work with sqlite3', async () => {
+
+      const realm = new Realm({
+        dialect: 'sqlite',
+        database: '/tmp/leoric.sqlite3',
+        models: [ Post, User ],
+        Bone,
+      });
+
+      await realm.connect();
+
+      const createdAt = new Date();
+      const user = await User.create({ nickname: 'userName', status: 1, email: 'aaa@h.com' });
+      const post = await Post.create({ title: 'title', authorId: user.id, createdAt });
+      const { rows } = await realm.query('SELECT * FROM articles', [], { model: Post });
+      assert(rows.length === 1);
+      assert(rows[0] instanceof Post);
+      assert(post.authorId === rows[0].authorId);
+
+      // work with join table
+      const { rows: rows1 } = await realm.query('SELECT Post.*, users.nickname as authorName FROM articles as Post LEFT JOIN users ON users.id = Post.author_id', [], { model: Post });
+      assert(rows1.length === 1);
+      assert(rows1[0] instanceof Post);
+      assert(post.authorId === rows1[0].authorId);
+      assert(user.nickname === rows1[0].authorName);
+    });
   });
 
   describe('realm.escape', () => {
