@@ -163,22 +163,12 @@ class Realm {
     const { rows, fields, ...others } = await this.driver.query(query, values, opts);
     let results = [];
     if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
-      const { attributes } = opts.model;
-      const aliasMap = {};
-
-      // get aliasMap for quick assigning
-      for (const attrKey in attributes) {
-        aliasMap[attributes[attrKey].columnName] = attributes[attrKey].name;
-      }
+      const { attributeMap } = opts.model;
 
       for (const data of rows) {
-        const extraData = {}; // extra data (JOIN TABLE OR column as name)
-        for (const key in data) {
-          if (!aliasMap[key]) extraData[key] = data[key];
-        }
         const instance = opts.model.instantiate(data);
-        for (const key in extraData) {
-          instance[key] = extraData[key];
+        for (const key in data) {
+          if (!attributeMap.hasOwnProperty(key)) instance[key] = data[key];
         }
         results.push(instance);
       }
