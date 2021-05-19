@@ -37,14 +37,7 @@ $ npm run test -- test/unit/test.connect.js --grep "should work"
 
 ## Working on Documentations
 
-The documentations of Leoric is served with Github Pages, which requries Jekyll to build. [It is recommend](https://www.moncefbelyamani.com/the-definitive-guide-to-installing-ruby-gems-on-a-mac/) installing latest Ruby with HomeBrew:
-
-```bash
-$ brew install ruby
-$ echo 'export PATH="/usr/local/opt/ruby/bin:$PATH"' >> ~/.zshrc
-$ cd docs
-$ bundle install
-```
+The Leoric documentation is served with Github Pages, which requries Jekyll to build. See the [Jekyll on macOS](https://jekyllrb.com/docs/installation/macos/) instructions, refer to the guide [Install Ruby on Mac](https://mac.install.guide/ruby/index.html), or use Moncef Belyamani's [Ruby setup scripts](https://www.moncefbelyamani.com/ruby-script/). If you only intend to use Jekyll, you can [install Ruby with Homebrew](https://mac.install.guide/ruby/13.html) without a version manager. After Ruby is installed, follow instructions to [install Jekyll](https://jekyllrb.com/docs/installation/macos/#install-jekyll).
 
 If your network struggles to connect to https://rubygems.org, consider changing the Ruby Gems source in `docs/Gemfile`:
 
