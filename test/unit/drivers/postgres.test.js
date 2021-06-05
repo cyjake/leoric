@@ -88,12 +88,12 @@ describe('=> PostgreSQL driver', () => {
       id: { type: BIGINT, allowNull: false, primaryKey: true },
       title: { type: STRING, allowNull: false },
     });
-    await driver.query('INSERT INTO notes (title) VALUES (\'Untitled\')');
+    await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     // postgres client doesn't convert data types by default
     assert.equal((await driver.query('SELECT count(*) FROM notes')).rows[0].count, '1');
     await driver.truncateTable('notes');
     assert.equal((await driver.query('SELECT count(*) FROM notes')).rows[0].count, '0');
-    await driver.query('INSERT INTO notes (title) VALUES (\'Untitled\')');
+    await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     assert.equal((await driver.query('SELECT id FROM notes')).rows[0].id, '2');
   });
 
@@ -104,11 +104,11 @@ describe('=> PostgreSQL driver', () => {
       id: { type: BIGINT, allowNull: false, primaryKey: true },
       title: { type: STRING, allowNull: false },
     });
-    await driver.query('INSERT INTO notes (title) VALUES (\'Untitled\')');
+    await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     assert.equal((await driver.query('SELECT count(*) FROM notes')).rows[0].count, '1');
     await driver.truncateTable('notes', { restartIdentity: true });
     assert.equal((await driver.query('SELECT count(*) FROM notes')).rows[0].count, '0');
-    await driver.query('INSERT INTO notes (title) VALUES (\'Untitled\')');
+    await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     assert.equal((await driver.query('SELECT id FROM notes')).rows[0].id, '1');
   });
 });
