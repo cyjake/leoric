@@ -14,7 +14,9 @@
     "pretest": "./test/prepare.sh",
     "test": "./test/start.sh",
     "test-local": "./test/start.sh",
-    "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls"
+    "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint ./",
+    "lint:fix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
@@ -56,6 +58,6 @@
     "nyc": "^5.6.0",
     "pg": "^8.5.1",
     "sinon": "^10.0.0",
-    "sqlite3": "^4.1.1"
+    "sqlite3": "^4.2.0"
   }
 }
