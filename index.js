@@ -10,7 +10,6 @@ const { findDriver } = require('./lib/drivers');
 const migrations = require('./lib/migrations');
 const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
-const Spell = require('./lib/spell');
 const Hint = require('./lib/hint');
 
 async function findModels(dir) {
@@ -149,8 +148,35 @@ class Realm {
     }
   }
 
-  query(query, values, opts = {}) {
-    return this.driver.query(query, values, opts);
+  /**
+   *
+   * raw query
+   * @param {string} query
+   * @param {Array<any>} values
+   * @param {Connection} opts.connection specific connection of this query, may used in a transaction
+   * @param {Bone} opts.model target model to inject values
+   * @returns
+   * @memberof Realm
+   */
+  async query(query, values, opts = {}) {
+    const { rows, fields, ...others } = await this.driver.query(query, values, opts);
+    let results = [];
+    if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
+      const { attributeMap } = opts.model;
+
+      for (const data of rows) {
+        const instance = opts.model.instantiate(data);
+        for (const key in data) {
+          if (!attributeMap.hasOwnProperty(key)) instance[key] = data[key];
+        }
+        results.push(instance);
+      }
+    }
+    return {
+      rows: results.length? results : rows,
+      fields,
+      ...others
+    };
   }
 
   async transaction(callback) {

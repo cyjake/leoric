@@ -878,4 +878,105 @@ describe('=> Bulk', () => {
     expect(users[0].status, 1);
     expect(users[1].status, 2);
   });
+
+  it('Bone.bulkCreate() should work with updateOnDuplicate', async () => {
+    await Post.bulkCreate([
+      { id: 1, title: 'Tyrael' },
+      { id: 2, title: 'Leah' },
+    ]);
+
+    assert.equal(await Post.count(), 2);
+    let p1 = await Post.findOne({ id: 1 });
+    assert.equal(p1.title, 'Tyrael');
+    let p2 = await Post.findOne({ id: 2 });
+    assert.equal(p2.title, 'Leah');
+
+    await Post.bulkCreate([
+      { id: 1, title: 'Tyrael1' },
+      { id: 2, title: 'Leah1' },
+    ], {
+      updateOnDuplicate: true
+    });
+
+    assert.equal(await Post.count(), 2);
+    p1 = await Post.findOne({ id: 1 });
+    assert.equal(p1.title, 'Tyrael1');
+    p2 = await Post.findOne({ id: 2 });
+    assert.equal(p2.title, 'Leah1');
+  });
+
+  it('Bone.bulkCreate() should work with updateOnDuplicate keys', async () => {
+    await User.bulkCreate([
+      { nickname: 'Tyrael', email: 'hello@h1.com', status: 1 },
+      { nickname: 'Leah', email: 'hello1@h1.com', status: 1 },
+    ]);
+
+    assert.equal(await User.count(), 2);
+    let p1 = await User.findOne({ email: 'hello@h1.com' });
+    assert.equal(p1.nickname, 'Tyrael');
+    let p2 = await User.findOne({ email: 'hello1@h1.com' });
+    assert.equal(p2.nickname, 'Leah');
+
+    await User.bulkCreate([
+      { nickname: 'Tyrael1', email: 'hello@h1.com', status: 1 },
+      { nickname: 'Leah1', email: 'hello1@h1.com', status: 1 },
+    ], {
+      updateOnDuplicate: [ 'nickname', 'status' ]
+    });
+
+    assert.equal(await User.count(), 2);
+    p1 = await User.findOne({ email: 'hello@h1.com' });
+    assert.equal(p1.nickname, 'Tyrael1');
+    p2 = await User.findOne({ email: 'hello1@h1.com' });
+    assert.equal(p2.nickname, 'Leah1');
+
+    await User.bulkCreate([
+      { nickname: 'Tyrael2', email: 'hello2@h1.com', status: 1 },
+      { nickname: 'Leah2', email: 'hello3@h1.com', status: 1 },
+    ], {
+      updateOnDuplicate: [ 'nickname', 'status' ]
+    });
+
+    assert.equal(await User.count(), 4);
+    if (User.driver.type !== 'mysql') {
+      await User.bulkCreate([
+        { nickname: 'Tyrael2', email: 'hello4@h1.com', status: 1 },
+        { nickname: 'Leah2', email: 'hello5@h1.com', status: 1 },
+      ], {
+        updateOnDuplicate: [ 'nickname', 'status' ],
+        uniqueKeys: [ 'id' ]
+      });
+      assert.equal(await User.count(), 6);
+    }
+  });
+
+  it('Bone.bulkCreate() should work with updateOnDuplicate keys alias', async () => {
+    await Post.bulkCreate([
+      { id: 1, title: 'Tyrael', authorId: 1 },
+      { id: 2, title: 'Leah', authorId: 1 },
+    ]);
+
+    assert.equal(await Post.count(), 2);
+    let p1 = await Post.findOne({ id: 1 });
+    assert.equal(p1.title, 'Tyrael');
+    let p2 = await Post.findOne({ id: 2 });
+    assert.equal(p2.title, 'Leah');
+
+    await Post.bulkCreate([
+      { id: 1, title: 'Tyrael1', authorId: 3 },
+      { id: 2, title: 'Leah1', authorId: 4 },
+    ], {
+      updateOnDuplicate: [ 'authorId' ]
+    });
+
+    assert.equal(await Post.count(), 2);
+    p1 = await Post.findOne({ id: 1 });
+    assert.equal(p1.title, 'Tyrael');
+    assert.equal(p1.authorId, 3);
+
+    p2 = await Post.findOne({ id: 2 });
+    assert.equal(p2.title, 'Leah');
+    assert.equal(p2.authorId, 4);
+
+  });
 });

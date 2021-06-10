@@ -1,3 +1,17 @@
+1.4.0 / 2020-06-??
+==================
+
+  * feat: `realm.raw('SELECT ...')` and `Model.raw('SELECT ...')` (#94)
+  * feat: support multiple order rules in one single string or one-dimensional array (#92)
+  * feat: `Model.truncate()` now uses TRUNCATE if possible
+  * feat: `Model.find().optimizerHints('SET_VAR(foreign_key_checks=OFF)')`
+  * fix: batch upsert (#108)
+  * fix: make sure connection is passed around in all queries carried out within transaction (#105)
+  * fix: update, sequelize mode get API, destroy compitable (#104)
+  * docs: revise instructions for installing Jekyll (#111)
+  * docs: migrations, validations, hooks, and sequelize adapter (#103)
+  * docs: contributing guides
+
 1.3.0 / 2020-03-01
 ==================
 
