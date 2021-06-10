@@ -873,6 +873,14 @@ describe('=> Sequelize adapter', () => {
     const extra = post.getDataValue('extra');
     assert(!extra);
   });
+
+  it('instance.setDataValue', async () => {
+    const book = await Book.create({ name: 'Book of Tyrael', price: 20 });
+    book.setDataValue('name', 'Book1');
+    assert(book.name === 'Book1');
+    book.setDataValue('hello', 'hello');
+    assert(book.hello === 'hello');
+  });
 });
 
 describe('Model scope', () => {
