@@ -351,9 +351,9 @@ LEFT JOIN tags
 
 - [提交问题反括或者功能需求](https://github.com/cyjake/leoric/issues)，并帮助我们验收相关改动
 - [参与评审代码合并请求](https://github.com/cyjake/leoric/pulls)
-- 审校[帮助文档]({{ '/' | relative_url }}) ，并勘误错别字或者编写新内容
+- 审校[帮助文档]({{ '/zh' | relative_url }}) ，并勘误错别字或者编写新内容
 
-如果有兴趣贡献代码修复已知问题，参考我们的[如何贡献代码]({{ '/contributing/guides' | relative_url }})一文，大致包含如下内容：
+如果有兴趣贡献代码修复已知问题，参考我们的[如何贡献代码]({{ '/zh/contributing/guides' | relative_url }})一文，大致包含如下内容：
 
 - 介绍 Leoric 的开发工作流，包含如何调试、如何运行测试
 - 代码风格指引

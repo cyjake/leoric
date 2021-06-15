@@ -12,6 +12,25 @@ const sequelize = require('./lib/adapters/sequelize');
 const { camelCase } = require('./lib/utils/string');
 const Hint = require('./lib/hint');
 
+/**
+ * @typedef {Object} RawSql
+ * @property {boolean} __raw
+ * @property {string} value
+ * @property {string} type
+ */
+
+/**
+ *
+ * @typedef {Object} QueryResult
+ * @property {Array} rows
+ * @property {Array} fields
+ */
+
+/**
+ * find models in directory
+ * @param {string} dir
+ * @returns {Array.<Bone>}
+ */
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
     throw new Error(`Unexpected dir (${dir})`);
@@ -149,13 +168,12 @@ class Realm {
   }
 
   /**
-   *
    * raw query
    * @param {string} query
    * @param {Array<any>} values
    * @param {Connection} opts.connection specific connection of this query, may used in a transaction
    * @param {Bone} opts.model target model to inject values
-   * @returns
+   * @returns {QueryResult}
    * @memberof Realm
    */
   async query(query, values, opts = {}) {
@@ -187,11 +205,7 @@ class Realm {
    * raw sql object
    * @static
    * @param {string} sql
-   * @returns {
-   *  __raw: boolean,
-   *  value: string,
-   *  type: 'raw'
-   * }
+   * @returns {RawSql}
    * @memberof Realm
    */
   static raw(sql) {
@@ -212,7 +226,7 @@ class Realm {
   /**
    * escape value
    * @param {string} value
-   * @returns
+   * @returns {string} escaped value
    * @memberof Realm
    */
   escape(value) {

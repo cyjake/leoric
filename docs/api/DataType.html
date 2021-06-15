@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>lib/bone - Documentation</title>
+    <title>DataType - Documentation</title>
     <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -23,7 +23,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">lib/bone</h1>
+    <h1 class="page-title">DataType</h1>
     
 
     
@@ -35,8 +35,9 @@
 
 <header>
     
-        
-            
+        <h2>
+        DataType
+        </h2>
         
     
 </header>
@@ -45,12 +46,13 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>The Bone to extend models from. This module consists of helper methods like <code>capitalize</code>, and the class <a href="Bone.html"><code>Bone</code></a>.</p></div>
-        
-
-        
-            
 <div class="section-method">
+
+    
+
+    <h4 class="name" id="DataType"><span class="type-signature"></span>new DataType<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
 
 
 
@@ -115,9 +117,18 @@
 
 
 
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>const { STRING, INTEGER, BIGINT, DATE, BOOLEAN } = app.model;
+class User = app.model.define('User', {
+  login: STRING,
+});</code></pre>
+
 </div>
 
-        
+</div>
+
     
     </div>
 
@@ -133,166 +144,6 @@
 
     
 
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="~copyValues"><span class="type-signature">(inner) </span>copyValues<span class="signature">(values)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>copy values for validation</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>values</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Object</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>copied values</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-
-        
     
 
     

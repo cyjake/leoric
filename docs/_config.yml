@@ -16,7 +16,6 @@
 title: Leoric
 description: > # this means to ignore newlines until "baseurl:"
   An object-relational mapping for Node.js which is heavily influenced by Active Record.
-baseurl: "/leoric" # the subpath of your site, e.g. /blog
 
 # Build settings
 kramdown:

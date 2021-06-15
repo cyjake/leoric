@@ -64,11 +64,11 @@ Configuration file: leoric/docs/_config.yml
    GitHub Metadata: No GitHub API authentication could be found. Some fields may be missing or have incorrect data.
                     done in 3.73 seconds.
  Auto-regeneration: enabled for 'leoric/docs'
-    Server address: http://127.0.0.1:4000/leoric/
+    Server address: http://127.0.0.1:4000/
   Server running... press ctrl-c to stop.
 ```
 
-The documentation will be available at <http://localhost:4000/leoric/>.
+The documentation will be available at <http://localhost:4000/>.
 
 ## How the code is organized
 
