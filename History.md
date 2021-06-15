@@ -8,6 +8,7 @@
   * fix: batch upsert (#108)
   * fix: make sure connection is passed around in all queries carried out within transaction (#105)
   * fix: update, sequelize mode get API, destroy compitable (#104)
+  * fix: `setDataValue` in sequelize adapter should not check prop name strictly
   * docs: revise instructions for installing Jekyll (#111)
   * docs: migrations, validations, hooks, and sequelize adapter (#103)
   * docs: contributing guides
