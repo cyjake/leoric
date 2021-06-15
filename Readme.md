@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/cyjake/leoric.svg)](https://travis-ci.org/cyjake/leoric)
 [![Coverage Status](https://coveralls.io/repos/github/cyjake/leoric/badge.svg?branch=master)](https://coveralls.io/github/cyjake/leoric?branch=master)
 
-Leoric is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](https://www.cyj.me/leoric) for detail.
+Leoric is an object-relational mapping for Node.js, which is heavily influenced by Active Record of Ruby on Rails. See the [documentation](https://leoric.js.org) for detail.
 
 ## Usage
 
@@ -71,7 +71,7 @@ await realm.sync();
 | `Post.update({ id: 42 }, { title: 'Skeleton King' })` | `UPDATE posts SET title = 'Skeleton King' WHERE id = 42` |
 | `Post.remove({ id: 42 })`               | `DELETE FROM posts WHERE id = 42`                  |
 
-A more detailed syntax table may be found at the [documentation](https://www.cyj.me/leoric/#syntax-table) site.
+A more detailed syntax table may be found at the [documentation](https://leoric.js.org/#syntax-table) site.
 
 ## Contributing
 
@@ -79,9 +79,9 @@ There are many ways in which you can participate in the project, for example:
 
 - [Submit bugs and feature requests](https://github.com/cyjake/leoric/issues), and help us verify as they are checked in
 - [Review source code changes](https://github.com/cyjake/leoric/pulls)
-- Review the [documentation](https://www.cyj.me/leoric) and make pull requests for anything from typo to new content
+- Review the [documentation](https://leoric.js.org) and make pull requests for anything from typo to new content
 
-If you are interested in fixing issues and contributing directly to the code base, please see the document [How to Contribute](https://www.cyj.me/leoric/contributing/guides), which covers the following:
+If you are interested in fixing issues and contributing directly to the code base, please see the document [How to Contribute](https://leoric.js.org/contributing/guides), which covers the following:
 
 - The development workflow, including debugging and running tests
 - Coding guidelines

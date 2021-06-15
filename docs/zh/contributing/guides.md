@@ -41,7 +41,7 @@ $ npm run test -- test/unit/test.connect.js --grep "should work"
 
 ## 编写帮助文档
 
-Leoric 的帮助文档使用 Github Pages 服务，后者依赖 Jekyll 构建。对 macOS 用户而言，[社区比较推荐](https://www.moncefbelyamani.com/the-definitive-guide-to-installing-ruby-gems-on-a-mac/)使用 HomeBrew 安装 Ruby：
+Leoric 的帮助文档使用 Github Pages 服务，后者依赖 Jekyll 构建。Jekyll 是一个使用 Ruby 编写的静态站点生成工具，具体安装方式参考[macOS 安装 Ruby](https://mac.install.guide/ruby/index.html)，或者参考 Moncef Belyamani 的 [Ruby 安装脚本](https://www.moncefbelyamani.com/ruby-script/)。如果你只想要安装 Jekyll，也可以[使用 HomeBrew 安装 Ruby](https://mac.install.guide/ruby/13.html)，然后再[安装 Jekyll](https://jekyllrb.com/docs/installation/macos/) 即可：
 
 ```bash
 $ brew install ruby
@@ -75,11 +75,11 @@ Configuration file: leoric/docs/_config.yml
    GitHub Metadata: No GitHub API authentication could be found. Some fields may be missing or have incorrect data.
                     done in 3.73 seconds.
  Auto-regeneration: enabled for 'leoric/docs'
-    Server address: http://127.0.0.1:4000/leoric/
+    Server address: http://127.0.0.1:4000/
   Server running... press ctrl-c to stop.
 ```
 
-访问 <http://localhost:4000/leoric/> 即可。
+访问 <http://localhost:4000/> 即可。
 
 ## 代码是如何组织的
 
