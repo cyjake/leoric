@@ -977,6 +977,14 @@ describe('=> Bulk', () => {
     p2 = await Post.findOne({ id: 2 });
     assert.equal(p2.title, 'Leah');
     assert.equal(p2.authorId, 4);
+  });
 
+  it('Bone.bulkCreate() should ignore non attributes', async function() {
+    await assert.doesNotReject(async function() {
+      await Post.bulkCreate([
+        { id: 1, title: 'Tyrael', authorId: 1, missingKey: 'my precious' },
+        { id: 2, title: 'Leah', authorId: 1 },
+      ]);
+    });
   });
 });
