@@ -5,6 +5,7 @@
   * feat: support multiple order rules in one single string or one-dimensional array (#92)
   * feat: `Model.truncate()` now uses TRUNCATE if possible
   * feat: `Model.find().optimizerHints('SET_VAR(foreign_key_checks=OFF)')`
+  * fix: Bone.bulkCreate() should not throw when called with non attribute (#117)
   * fix: batch upsert (#108)
   * fix: make sure connection is passed around in all queries carried out within transaction (#105)
   * fix: update, sequelize mode get API, destroy compitable (#104)
