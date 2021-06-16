@@ -13,7 +13,12 @@
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "pretest": "./test/prepare.sh",
     "test": "./test/start.sh",
-    "test-local": "./test/start.sh",
+    "test:local": "./test/start.sh",
+    "test:unit": "./test/start.sh unit",
+    "test:mysql": "./test/start.sh test/integration/mysql.test.js",
+    "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
+    "test:postgres": "./test/start.sh test/integration/postgres.test.js",
+    "test:sqlite": "./test/start.sh test/integration/sqlite.test.js",
     "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint ./",
     "lint:fix": "eslint . --fix"
