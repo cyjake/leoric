@@ -2,11 +2,7 @@
 layout: zh
 ---
 
-Leoric 是一个 Node.js 的关系对象映射库（ORM）
-
-## 基本功能
-
-使用 Leoric 操作数据库的方式大致如下：
+Leoric 是一个 Node.js 的关系对象映射库（ORM），使用 Leoric 操作数据库的方式大致如下：
 
 ```js
 const { Bone, connect } = require('leoric')
@@ -39,7 +35,7 @@ async function() {
 }
 ```
 
-推荐阅读[基本功能](./basics)一文了解更多有关模型声明和数据操作的介绍。除了基础功能，Leoric 还支持[表结构变更](./migrations)、[数据校验](./validations)、[钩子](./hooks)、[关联关系](./associations)、以及[高级查询](querying)。
+推荐阅读[基本功能](./basics)一文了解更多有关模型声明和数据操作的介绍。除了基础功能，Leoric 还支持[表结构变更](./migrations)、[数据校验](./validations)、[钩子](./hooks)、[关联关系](./associations)、以及[高级查询](./querying)。
 
 ## 在 Web 开发框架中使用
 
@@ -60,15 +56,15 @@ exports.orm = {
 };
 ```
 
-通过 `ctx.orm` 使用 `app/model` 下定义的数据模型，例如 `ctx.orm.User`：
+通过 `ctx.model` 使用 `app/model` 下定义的数据模型，例如 `ctx.model.User`：
 
 ```javascript
 // app/controller/home.js
 const { Controller } = require('egg');
 module.exports = class HomeController extends Controller {
   async index() {
-    const users = await ctx.orm.User.find({
-      corpId: ctx.orm.Corp.findOne({ name: 'alipay' }),
+    const users = await ctx.model.User.find({
+      corpId: ctx.model.Corp.findOne({ name: 'alipay' }),
     });
     ctx.body = users;
   }

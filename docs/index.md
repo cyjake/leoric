@@ -39,6 +39,8 @@ async function() {
 }
 ```
 
+本站点提供[中文版本]({{ '/zh' | relative_url }})，猛戳左边了解更多。
+
 ## Use in Web Frameworks
 
 Leoric can be used in many web frameworkds from Node.js community. If you are developing with egg framework, it is highly recommended using the egg-orm plugin:
@@ -59,15 +61,15 @@ exports.orm = {
 };
 ```
 
-The models defined in `app/model` will be accessible from `ctx.orm`, such as `ctx.orm.User`:
+The models defined in `app/model` will be accessible from `ctx.model`, such as `ctx.model.User`:
 
 ```javascript
 // app/controller/home.js
 const { Controller } = require('egg');
 module.exports = class HomeController extends Controller {
   async index() {
-    const users = await ctx.orm.User.find({
-      corpId: ctx.orm.Corp.findOne({ name: 'alipay' }),
+    const users = await ctx.model.User.find({
+      corpId: ctx.model.Corp.findOne({ name: 'alipay' }),
     });
     ctx.body = users;
   }
