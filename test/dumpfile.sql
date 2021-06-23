@@ -59,7 +59,8 @@ CREATE TABLE `tags` (
   `gmt_modified` timestamp(3) NULL,
   `name` varchar(255) NOT NULL,
   `type` smallint(8) NOT NULL,
-  `gmt_deleted` timestamp(3) NULL
+  `gmt_deleted` timestamp(3) NULL,
+  `uuid` varchar(100) NOT NULL UNIQUE
 );
 
 DROP TABLE IF EXISTS `likes`;

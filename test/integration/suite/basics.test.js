@@ -11,6 +11,7 @@ const Comment = require('../../models/comment');
 const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
+const Tag = require('../../models/tag');
 const { logger } = require('../../../lib/utils');
 
 function sleep(ms) {
@@ -626,6 +627,7 @@ describe('=> Update', function() {
   beforeEach(async function() {
     await Post.remove({}, true);
     await User.remove({}, true);
+    await Tag.remove({}, true);
   });
 
   it('Bone.update(where, values)', async function() {
@@ -709,40 +711,92 @@ describe('=> Update', function() {
     assert.deepEqual(await post.save(), post);
   });
 
-  it('bone.upsert() should skip if called directly with no attributes changed', async function() {
-    const post = await Post.create({ title: 'New Post' });
-    assert.equal(await post.upsert(), 0);
-  });
+  describe('upsert', () => {
+    describe('instance.upsert', () => {
+      it('bone.upsert() should skip if called directly with no attributes changed', async function() {
+        const post = await Post.create({ title: 'New Post' });
+        assert.equal(await post.upsert(), 0);
+      });
+    
+      it('bone.upsert() should return affectedRows', async function() {
+        const post = new Post({ title: 'New Post', isPrivate: 0 });
+        // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
+        assert.equal(await post.upsert(), 1);
+        post.title = 'Skeleton King';
+        // to pass sql analyse of database
+        post.createdAt = new Date();
+        // INSERT ... UPDATE returns 2 if the UPDATE branch were chosen in MySQL database
+        assert.equal(await post.upsert(), Post.driver.type === 'mysql' ? 2 : 1);
+      });
+    
+      it('bone.upsert() should not override existing primary key', async function() {
+        const { id } = await Post.create({ title: 'New Post' });
+        const post = new Post({ id, title: 'New Post 2' });
+        await post.upsert();
+        assert.equal(post.id, id);
+        assert.equal(post.title, 'New Post 2');
+      });
+    
+      it('bone.upsert() should not touch created_at if update', async () => {
+        const { id, createdAt } = await Post.create({ title: 'Leah' });
+        const post = new Post({ id, title: 'Cain' });
+        await post.upsert();
+        assert.equal(post.id, id);
+        assert.equal(post.title, 'Cain');
+        // upsert does not reload timestamps by default
+        await post.reload();
+        assert.deepEqual(post.createdAt, createdAt);
+      });    
+    });
 
-  it('bone.upsert() should return affectedRows', async function() {
-    const post = new Post({ title: 'New Post', isPrivate: 0 });
-    // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
-    assert.equal(await post.upsert(), 1);
-    post.title = 'Skeleton King';
-    // to pass sql analyse of database
-    post.createdAt = new Date();
-    // INSERT ... UPDATE returns 2 if the UPDATE branch were chosen in MySQL database
-    assert.equal(await post.upsert(), Post.driver.type === 'mysql' ? 2 : 1);
-  });
+    describe('Bone.upsert', () => {
+      it('Bone.upsert() should skip if called directly with no attributes changed', async function() {
+        const tag = await Tag.create({ name: 'Sekiro', type: 1 });
+        await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1 });
+        const count = await Tag.count();
+        assert.equal(count, 1);
+      });
+    
+      it('Bone.upsert() should return affectedRows', async function() {
+        const tag = await Tag.create({ name: 'Sekiro', type: 1 });
+        // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
+        const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1 });
+        const count = await Tag.count();
+        assert.equal(count, 1);
+        await tag.reload();
+        assert.equal(tag.name, 'Bloodborne');
+        assert.equal(res, Tag.driver.type === 'mysql' ? 2 : 1);
+      });
+    
+      it('Bone.upsert() should not touch created_at if update', async () => {
+        const tag = await Tag.create({ name: 'Sekiro', type: 1 });
+        const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1 });
+        assert.equal(res, Tag.driver.type === 'mysql' ? 2 : 1);
 
-  it('bone.upsert() should not override existing primary key', async function() {
-    const { id } = await Post.create({ title: 'New Post' });
-    const post = new Post({ id, title: 'New Post 2' });
-    await post.upsert();
-    assert.equal(post.id, id);
-    assert.equal(post.title, 'New Post 2');
-  });
+        // upsert does not reload timestamps by default
+        await tag.reload();
+        assert.equal(tag.name, 'Bloodborne');
 
-  it('bone.upsert() should not touch created_at if update', async () => {
-    const { id, createdAt } = await Post.create({ title: 'Leah' });
-    const post = new Post({ id, title: 'Cain' });
-    await post.upsert();
-    assert.equal(post.id, id);
-    assert.equal(post.title, 'Cain');
-    // upsert does not reload timestamps by default
-    await post.reload();
-    assert.deepEqual(post.createdAt, createdAt);
+        assert.deepEqual(tag.created_at, tag.created_at);
+      });
+
+      it('Bone.upsert remove should work', async () => {
+        const tag = await Tag.create({ name: 'Sekiro', type: 1 });
+        assert(!tag.gmtDeleted);
+        await tag.remove();
+        await tag.reload();
+        assert(tag.gmtDeleted);
+        let count = await Tag.count();
+        assert.equal(count, 0);
+        const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1, gmtDeleted: null });
+        assert.equal(res, Tag.driver.type === 'mysql' ? 2 : 1);
+        count = await Tag.count();
+        assert.equal(count, 1);
+      });
+    });
   });
+  
+
 });
 
 describe('=> Remove', function() {

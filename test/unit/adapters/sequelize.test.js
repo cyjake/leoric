@@ -506,6 +506,19 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post2.title, 'Leah');
   });
 
+  it('Model.find()', async () => {
+    const posts = await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const post = await Post.find(posts[1].id);
+    assert.equal(post.title, 'Tyrael');
+
+    const post2 = await Post.find({ title: 'Leah' });
+    assert.equal(post2.title, 'Leah');
+  });
+
   it('Model.findOne(id)', async () => {
     const { id } = await Post.create({ title: 'Leah' });
 
@@ -1437,6 +1450,7 @@ describe('validator should work', () => {
         email: 'a@e.com',
         nickname: 'sss',
         level: 11,
+        status: 1,
       }, { validate: false });
 
       assert(user);
