@@ -618,6 +618,13 @@ describe('=> raw sql', () => {
         );
       });
 
+      it('upsert returning multiple columns', function() {
+        assert.equal(
+          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert({ returning: [ 'id', 'title' ] }).toString(),
+          'INSERT INTO "articles" ("id", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "gmt_modified"=EXCLUDED."gmt_modified", "title"=EXCLUDED."title" RETURNING "id", "title"'
+        );
+      });
+
       after(() => {
         Bone.driver = null;
       });
