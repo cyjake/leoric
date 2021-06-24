@@ -244,8 +244,7 @@ class Realm {
  */
 const connect = async function connect(opts = {}) {
   opts = { Bone, ...opts };
-  const { Bone: Spine } = opts;
-  if (Spine.driver) throw new Error('connected already');
+  if (opts.Bone.driver) throw new Error('connected already');
   const realm = new Realm(opts);
   return await realm.connect();
 };
