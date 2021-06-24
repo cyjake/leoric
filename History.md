@@ -1,4 +1,4 @@
-1.4.0 / 2020-06-??
+1.4.0 / 2020-06-24
 ==================
 
   * feat: `realm.raw('SELECT ...')` and `Model.raw('SELECT ...')` (#94)
@@ -10,6 +10,8 @@
   * fix: make sure connection is passed around in all queries carried out within transaction (#105)
   * fix: update, sequelize mode get API, destroy compitable (#104)
   * fix: `setDataValue` in sequelize adapter should not check prop name strictly
+  * refactor: spell_insert (#118)
+  * docs: about egg-orm & migrations (#119)
   * docs: revise instructions for installing Jekyll (#111)
   * docs: migrations, validations, hooks, and sequelize adapter (#103)
   * docs: contributing guides
