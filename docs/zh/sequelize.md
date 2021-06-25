@@ -16,6 +16,12 @@ await realm.sync();
 
 开启 Sequelize 适配器之后，数据模型的 API 将和 [Sequelize Model](https://sequelize.org/master/class/lib/model.js~Model.html) 基本保持一致，具体异同见下文。
 
+## 目录
+{:.no_toc}
+
+1. 目录
+{:toc}
+
 ## 读取与写入数据
 
 ### 脏检查

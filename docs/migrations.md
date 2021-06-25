@@ -4,6 +4,11 @@ layout: en
 
 Developers can use migrations to manage operations that changes table schema etc.
 
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
 ## What Is A Migration
 
 Take following migration for example:

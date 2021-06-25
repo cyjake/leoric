@@ -163,9 +163,9 @@ const realm = new Realm({
 await realm.sync();
 ```
 
-`realm.sync()` not only connects models to database, but also tries to synchronize `Model.attributes` in each model back to database structure automatically to make sure consistency between each other. If your application data changes a log, this practice is not recommended.
+`realm.sync()` not only connects models to database, but also tries to synchronize `Model.attributes` in each model back to database structure automatically to make sure consistency between each other. If your application data changes a lot, this practice is not recommended.
 
-Intead, it is recommended only connecting to database but not to synchronize to it. Please use the [migration]({ '/migrations' | relative_url }) feature to change database structure.
+In that case, please use the [migrations]({{ '/migrations' | relative_url }}) to change database structure instead.
 
 ```js
 const Realm = require('leoric');

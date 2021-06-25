@@ -5,6 +5,12 @@ title: Setup Leoric in Egg Applications
 
 To reduce the effort to setup Leoric in Egg applications, a specific Egg plugin called [egg-orm](https://github.com/eggjs/egg-orm) is provided.
 
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
+
 ## Install
 
 ```bash
