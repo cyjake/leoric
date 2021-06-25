@@ -66,7 +66,6 @@
       li {
         list-style: none;
         padding-left: 0.25em;
-        white-space: nowrap;
       }
 
       a {
@@ -110,9 +109,11 @@
     // half the width of container-lg
     right: calc(50% + 506px);
     top: 26px;
-    min-width: 200px;
+    bottom: 24px;
+    width: 200px;
     background: none;
     border-bottom: none;
+    overflow-y: auto;
 
     .container-lg {
       padding-left: 0 !important;
@@ -130,6 +131,10 @@
       font-size: 2em;
       font-weight: bold;
       color: #FF7F61;
+
+      &:hover {
+        background-color: transparent;
+      }
     }
 
     a {
@@ -175,7 +180,7 @@
   #markdown-toc {
     position: fixed;
     left: calc(50% + 506px);
-    top: 92px;
+    top: 100px;
     bottom: 16px;
     overflow: auto;
   }
@@ -207,6 +212,7 @@
 
 @media(min-width: 1600px) {
   #header {
+    width: auto;
     min-width: 230px;
   }
 }

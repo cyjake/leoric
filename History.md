@@ -1,4 +1,10 @@
-1.4.0 / 2020-06-24
+1.4.1 / 2021-06-25
+==================
+
+  * refactor: simplify legacy timestamps support (#120)
+  * refactor: do not subclass Bone unless asked specifically (#120)
+
+1.4.0 / 2021-06-24
 ==================
 
   * feat: `realm.raw('SELECT ...')` and `Model.raw('SELECT ...')` (#94)
@@ -16,7 +22,7 @@
   * docs: migrations, validations, hooks, and sequelize adapter (#103)
   * docs: contributing guides
 
-1.3.0 / 2020-03-01
+1.3.0 / 2021-03-01
 ==================
 
   * feat: hook support
