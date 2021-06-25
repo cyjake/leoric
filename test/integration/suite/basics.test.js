@@ -717,7 +717,7 @@ describe('=> Update', function() {
         const post = await Post.create({ title: 'New Post' });
         assert.equal(await post.upsert(), 0);
       });
-    
+
       it('bone.upsert() should return affectedRows', async function() {
         const post = new Post({ title: 'New Post', isPrivate: 0 });
         // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
@@ -728,7 +728,7 @@ describe('=> Update', function() {
         // INSERT ... UPDATE returns 2 if the UPDATE branch were chosen in MySQL database
         assert.equal(await post.upsert(), Post.driver.type === 'mysql' ? 2 : 1);
       });
-    
+
       it('bone.upsert() should not override existing primary key', async function() {
         const { id } = await Post.create({ title: 'New Post' });
         const post = new Post({ id, title: 'New Post 2' });
@@ -736,7 +736,7 @@ describe('=> Update', function() {
         assert.equal(post.id, id);
         assert.equal(post.title, 'New Post 2');
       });
-    
+
       it('bone.upsert() should not touch created_at if update', async () => {
         const { id, createdAt } = await Post.create({ title: 'Leah' });
         const post = new Post({ id, title: 'Cain' });
@@ -746,7 +746,7 @@ describe('=> Update', function() {
         // upsert does not reload timestamps by default
         await post.reload();
         assert.deepEqual(post.createdAt, createdAt);
-      });    
+      });
     });
 
     describe('Bone.upsert', () => {
@@ -756,7 +756,7 @@ describe('=> Update', function() {
         const count = await Tag.count();
         assert.equal(count, 1);
       });
-    
+
       it('Bone.upsert() should return affectedRows', async function() {
         const tag = await Tag.create({ name: 'Sekiro', type: 1 });
         // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
@@ -767,7 +767,7 @@ describe('=> Update', function() {
         assert.equal(tag.name, 'Bloodborne');
         assert.equal(res, Tag.driver.type === 'mysql' ? 2 : 1);
       });
-    
+
       it('Bone.upsert() should not touch created_at if update', async () => {
         const tag = await Tag.create({ name: 'Sekiro', type: 1 });
         const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1 });
@@ -782,20 +782,20 @@ describe('=> Update', function() {
 
       it('Bone.upsert remove should work', async () => {
         const tag = await Tag.create({ name: 'Sekiro', type: 1 });
-        assert(!tag.gmtDeleted);
+        assert(!tag.deletedAt);
         await tag.remove();
         await tag.reload();
-        assert(tag.gmtDeleted);
+        assert(tag.deletedAt);
         let count = await Tag.count();
         assert.equal(count, 0);
-        const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1, gmtDeleted: null });
+        const res = await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1, deletedAt: null });
         assert.equal(res, Tag.driver.type === 'mysql' ? 2 : 1);
         count = await Tag.count();
         assert.equal(count, 1);
       });
     });
   });
-  
+
 
 });
 

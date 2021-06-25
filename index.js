@@ -49,19 +49,13 @@ async function findModels(dir) {
   return models;
 }
 
-const LEGACY_TIMESTAMP_MAP = {
-  gmtCreate: 'createdAt',
-  gmtModified: 'updatedAt',
-  gmtDeleted: 'deletedAt',
-};
-
 function initAttributes(model, columns) {
   const attributes = {};
 
   for (const columnInfo of columns) {
     const { columnName, dataType } = columnInfo;
     const name = columnName == '_id' ? columnName : camelCase(columnName);
-    attributes[ LEGACY_TIMESTAMP_MAP[name] || name ] = {
+    attributes[name] = {
       ...columnInfo,
       type: model.driver.DataTypes.findType(dataType),
     };
@@ -88,8 +82,8 @@ async function loadModels(Bone, models, opts) {
 }
 
 function createSpine(opts) {
-  if (opts.Bone) return opts.Bone;
   if (opts.sequelize) return sequelize(Bone);
+  if (opts.subclass !== true) return Bone;
   return class Spine extends Bone {};
 }
 
@@ -103,8 +97,7 @@ class Realm {
     const Spine = createSpine(opts);
     const models = {};
 
-    // test/integration/suite/migrations.js currently depends on this behavior
-    const driver = opts.driver || new (findDriver(dialect))({
+    const driver = new (findDriver(dialect))({
       client,
       database,
       ...restOpts
@@ -243,8 +236,7 @@ class Realm {
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
 const connect = async function connect(opts = {}) {
-  opts = { Bone, ...opts };
-  if (opts.Bone.driver) throw new Error('connected already');
+  if (Bone.driver) throw new Error('connected already');
   const realm = new Realm(opts);
   return await realm.connect();
 };

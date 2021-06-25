@@ -24,9 +24,9 @@ Tag.init({
     primaryKey: true,
     type: DataTypes.BIGINT
   },
-  gmtCreate: DataTypes.DATE,
-  gmtModified: DataTypes.DATE,
-  gmtDeleted: DataTypes.DATE,
+  createdAt: { type: DataTypes.DATE, columnName: 'gmt_create' },
+  updatedAt: { type: DataTypes.DATE, columnName: 'gmt_modified' },
+  deletedAt: { type: DataTypes.DATE, columnName: 'gmt_deleted' },
   type:  DataTypes.INT,
   name: DataTypes.STRING,
   uuid: {

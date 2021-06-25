@@ -44,7 +44,7 @@ describe('=> Insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).toString(),
-      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES ('2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000', 'New Post')"
+      "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
     );
   });
 
@@ -52,7 +52,7 @@ describe('=> Insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
-      "INSERT INTO `articles` (`gmt_modified`, `id`, `title`) VALUES ('2017-12-12 00:00:00.000', 1, 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_modified`=VALUES(`gmt_modified`), `id`=VALUES(`id`), `title`=VALUES(`title`)"
+      "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
 });
@@ -533,7 +533,7 @@ describe('=> raw sql', () => {
   it('create', function() {
     assert.equal(
       Post.create({ title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).toString(),
-      "INSERT INTO `articles` (`gmt_create`, `gmt_modified`, `title`) VALUES (CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 'New Post')"
+      "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"
     );
   });
 
@@ -588,7 +588,7 @@ describe('=> raw sql', () => {
     it('mysql upsert', function() {
       assert.equal(
         new Post({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-        "INSERT INTO `articles` (`gmt_modified`, `id`, `title`) VALUES (CURRENT_TIMESTAMP(), 1, 'New Post') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `gmt_modified`=VALUES(`gmt_modified`), `id`=VALUES(`id`), `title`=VALUES(`title`)"
+        "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
       );
     });
 
@@ -614,14 +614,14 @@ describe('=> raw sql', () => {
       it('upsert', function() {
         assert.equal(
           new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-          'INSERT INTO "articles" ("id", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "gmt_modified"=EXCLUDED."gmt_modified", "title"=EXCLUDED."title" RETURNING "id"'
+          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified" RETURNING "id"'
         );
       });
 
       it('upsert returning multiple columns', function() {
         assert.equal(
           new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert({ returning: [ 'id', 'title' ] }).toString(),
-          'INSERT INTO "articles" ("id", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "gmt_modified"=EXCLUDED."gmt_modified", "title"=EXCLUDED."title" RETURNING "id", "title"'
+          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified" RETURNING "id", "title"'
         );
       });
 
@@ -650,7 +650,7 @@ describe('=> raw sql', () => {
       it('upsert', function() {
         assert.equal(
           new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-          'INSERT INTO "articles" ("id", "gmt_modified", "title") VALUES (1, CURRENT_TIMESTAMP(), \'New Post\') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "gmt_modified"=EXCLUDED."gmt_modified", "title"=EXCLUDED."title"'
+          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified"'
         );
       });
 

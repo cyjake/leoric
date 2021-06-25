@@ -37,12 +37,12 @@ describe('=> Realm', () => {
     assert.ok(DataTypes);
   });
 
-  it('should subclass Bone unless specified by user', async () => {
-    const realm = new Realm();
-    assert.ok(realm.Bone.prototype instanceof Bone);
-
-    const arda = new Realm({ Bone });
+  it('should not subclass Bone unless asked specifically', async () => {
+    const arda = new Realm();
     assert.equal(arda.Bone, Bone);
+
+    const realm = new Realm({ subclass: true });
+    assert.ok(realm.Bone.prototype instanceof Bone);
   });
 
   it('should subclass with sequelize api if opts.sequelize', async () => {
@@ -121,7 +121,6 @@ describe('=> Realm', () => {
           }
         },
         models: [ User, Post ],
-        Bone,
       });
       await realm.connect();
       await realm.query('SELECT 1');
@@ -134,7 +133,6 @@ describe('=> Realm', () => {
         user: 'root',
         database: 'leoric',
         models: [ User, Post ],
-        Bone,
       });
 
       await realm.connect();
@@ -162,7 +160,6 @@ describe('=> Realm', () => {
         user: process.env.POSTGRES_USER || '',
         database: 'leoric',
         models: [ User, Post ],
-        Bone,
       });
 
       await realm.connect();
@@ -190,7 +187,6 @@ describe('=> Realm', () => {
         dialect: 'sqlite',
         database: '/tmp/leoric.sqlite3',
         models: [ Post, User ],
-        Bone,
       });
 
       await realm.connect();

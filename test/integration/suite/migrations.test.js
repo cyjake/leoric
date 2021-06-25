@@ -41,8 +41,8 @@ describe('=> Migrations', async () => {
   let realm;
 
   before(() => {
-    // use existing driver from entries, such as test/integration/test.mysql.js
-    realm = new Realm({ driver: Bone.driver, migrations });
+    // use existing options, such as test/integration/test.mysql.js
+    realm = new Realm({ ...Bone.options, migrations });
   });
 
   beforeEach(async () => {

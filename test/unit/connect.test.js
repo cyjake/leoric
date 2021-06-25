@@ -30,10 +30,11 @@ describe('connect', function() {
     }, /connected already/i);
   });
 
-  it('connect with specified Bone', async function() {
-    const Spine = await connect({ Bone: class extends Bone {} });
+  it('connect with subclass', async function() {
+    const Spine = await connect({ subclass: true });
     assert.ok(Spine.prototype instanceof Bone);
     assert.ok(Spine.models);
+    assert.equal(Bone.driver, null);
   });
 
   it('connect models passed in opts.models (init with primaryKey)', async function() {
