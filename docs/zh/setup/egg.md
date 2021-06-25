@@ -5,6 +5,12 @@ title: 在 Egg 应用中使用 Leoric
 
 我们为 Egg 准备了专门的插件 [egg-orm](https://github.com/eggjs/egg-orm)，使用 egg-orm 即可快速搞定 Egg 应用中的数据模型定义以及消费。
 
+## 目录
+{:.no_toc}
+
+1. 目录
+{:toc}
+
 ## 安装
 
 ```bash

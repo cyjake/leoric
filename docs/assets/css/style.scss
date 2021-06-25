@@ -57,7 +57,6 @@
       position: absolute;
       top: 100%;
       right: -0.5em;
-      min-width: 140px;
       text-align: right;
       background: #f0f0f0;
       border: 1px solid #e0e0e0;
@@ -66,7 +65,8 @@
 
       li {
         list-style: none;
-        padding-left: 0;
+        padding-left: 0.25em;
+        white-space: nowrap;
       }
 
       a {
@@ -104,7 +104,86 @@
   }
 }
 
-@media(min-width: 1000px) {
+@media(min-width: 1400px) {
+  #header {
+    position: fixed;
+    // half the width of container-lg
+    right: calc(50% + 506px);
+    top: 26px;
+    min-width: 200px;
+    background: none;
+    border-bottom: none;
+
+    .container-lg {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    a.logo {
+      background: url(/favicon.ico) no-repeat 32px 8px;
+      background-size: 40px;
+      display: block;
+      height: 56px;
+      padding-left: 84px;
+      padding-top: 6px;
+      margin-bottom: 12px;
+      font-size: 2em;
+      font-weight: bold;
+      color: #FF7F61;
+    }
+
+    a {
+      padding: 6px 12px 6px 32px;
+
+      &:hover {
+        background-color: #f0f0f0;
+        text-decoration: none;
+      }
+    }
+
+    nav {
+      float: none;
+
+      .nav-item {
+        display: block;
+        padding: 0;
+      }
+
+      .dropdown-trigger:hover:after {
+        display: none;
+      }
+
+      .dropdown-list {
+        display: block;
+        text-align: left;
+        background: none;
+        padding: 0;
+        position: static;
+        border: none;
+
+        li {
+          padding-left: 0;
+
+          a {
+            padding: 6px 12px 6px 60px;
+          }
+        }
+      }
+    }
+  }
+
+  #markdown-toc {
+    position: fixed;
+    left: calc(50% + 506px);
+    top: 92px;
+    bottom: 16px;
+    overflow: auto;
+  }
+
+  .no_toc {
+    display: none;
+  }
+
   .belongs-to-erd,
   .has-many-erd,
   .has-one-erd {
@@ -123,5 +202,11 @@
 
   .syntax-table .highlight {
     width: 462px;
+  }
+}
+
+@media(min-width: 1600px) {
+  #header {
+    min-width: 230px;
   }
 }

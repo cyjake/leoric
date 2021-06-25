@@ -1,5 +1,6 @@
 ---
 layout: en
+title: Intro
 ---
 
 Leoric is an object-relational mapping library for Node.js, with which you can manipulate database like this:
@@ -40,6 +41,12 @@ async function() {
 ```
 
 本站点提供[中文版本]({{ '/zh' | relative_url }})，猛戳左边了解更多。
+
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
 
 ## Use in Web Frameworks
 

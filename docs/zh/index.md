@@ -1,5 +1,6 @@
 ---
 layout: zh
+title: 简介
 ---
 
 Leoric 是一个 Node.js 的关系对象映射库（ORM），使用 Leoric 操作数据库的方式大致如下：
@@ -35,7 +36,11 @@ async function() {
 }
 ```
 
-推荐阅读[基本功能](./basics)一文了解更多有关模型声明和数据操作的介绍。除了基础功能，Leoric 还支持[表结构变更](./migrations)、[数据校验](./validations)、[钩子](./hooks)、[关联关系](./associations)、以及[高级查询](./querying)。
+## 目录
+{:.no_toc}
+
+1. 目录
+{:toc}
 
 ## 在 Web 开发框架中使用
 

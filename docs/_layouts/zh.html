@@ -11,7 +11,7 @@ layout: default
           <a href="{{ '/zh' | relative_url }}">首页</a>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/zh/basics' | relative_url }}">上手指南</a>
+          <a href="{{ '/zh/basics' | relative_url }}">帮助手册</a>
           <ul class="dropdown-list">
             <li><a href="{{ '/zh/basics' | relative_url }}">基础</a></li>
             <li><a href="{{ '/zh/migrations' | relative_url }}">迁移任务</a></li>
@@ -22,11 +22,15 @@ layout: default
             <li><a href="{{ '/zh/sequelize' | relative_url }}">Sequelize 适配器</a></li>
           </ul>
         </li>
+        <li class="nav-item dropdown-trigger">
+          <a href="{{ '/zh/setup' | relative_url }}">快速配置</a>
+          <ul class="dropdown-list">
+            <li><a href="{{ 'zh/setup/egg' | relative_url }}">Egg 应用配置</a></li>
+            <li><a href="{{ 'zh/setup/express' | relative_url }}">[wip] Express 应用配置</a></li>
+          </ul>
+        </li>
         <li class="nav-item">
           <a href="{{ '/api' | relative_url }}">API</a>
-        </li>
-        <li class="nav-item dropdown-trigger">
-          <a href="https://github.com/cyjake/leoric/releases">发布日志</a>
         </li>
         <li class="nav-item dropdown-trigger">
           <a href="{{ '/' | relative_url }}">English</a>
