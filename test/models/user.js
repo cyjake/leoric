@@ -51,7 +51,13 @@ User.init({
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 1,
-  }
+  },
+  sex: {
+    type: DataTypes.STRING,
+  },
+  birthday: {
+    type: DataTypes.DATE,
+  },
 }, {}, {
   get isValid() {
     return this.status !== 1;
