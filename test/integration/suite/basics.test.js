@@ -12,7 +12,7 @@ const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 const Tag = require('../../models/tag');
-const { logger } = require('../../../lib/utils');
+const { logger } = require('../../../src/utils');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -169,7 +169,6 @@ describe('=> Attributes', function() {
     expect(post.previousChanged('extra')).to.be(true);
     // should return false if key not existed
     expect(post.previousChanged('notExisted')).to.be(false);
-
   });
 
   it('Bone.previousChanged(): raw VS rawPrevious', async function () {
@@ -310,6 +309,10 @@ describe('=> Accessors', function() {
   it('Bone.primaryColumn should be Bone.primaryKey in snake_case', function() {
     expect(Post.primaryColumn).to.eql('id');
     expect(Book.primaryColumn).to.eql('isbn');
+  });
+
+  it('Bone.pool should be an alias of Bone.driver.pool', function() {
+    assert.equal(Post.pool, Post.driver.pool);
   });
 
   it('Bone.init(attrs, opts, descriptors) should work', async () => {

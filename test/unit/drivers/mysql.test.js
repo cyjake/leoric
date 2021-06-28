@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const MysqlDriver = require('../../../lib/drivers/mysql');
+const MysqlDriver = require('../../../src/drivers/mysql');
 
 const database = 'leoric';
 const options = {

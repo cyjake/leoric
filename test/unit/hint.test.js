@@ -6,7 +6,7 @@ const path = require('path');
 const { connect } = require('../..');
 const Post = require('../models/post');
 
-const { Hint, IndexHint, INDEX_HINT_TYPE, INDEX_HINT_SCOPE } = require('../../lib/hint');
+const { Hint, IndexHint, INDEX_HINT_TYPE, INDEX_HINT_SCOPE } = require('../../src/hint');
 
 describe('Hint', () => {
   it('text= should strip comment syntax', () => {

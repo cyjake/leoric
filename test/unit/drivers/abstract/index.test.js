@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
-const AbstractDriver = require('../../../../lib/drivers/abstract');
+const AbstractDriver = require('../../../../src/drivers/abstract');
 
 describe('=> AbstractDriver', function() {
   let driver;

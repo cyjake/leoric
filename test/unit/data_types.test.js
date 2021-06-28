@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const DataTypes = require('../../lib/data_types');
+const DataTypes = require('../../src/data_types');
 const {
   STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB
 } = DataTypes;

@@ -356,10 +356,16 @@ class Bone {
   }
 
   /**
+   * Get previous attribute changes. Please be noted that {@link Bone#changes} is about the changes made after the record is saved, and {@link Bone#previousChanges} only returns the changes made before the record was previously saved.
+   *
+   *     previousChanges ➡️ [saved] ➡️ changes ➡️ [current]
    *
    * @param {string?} name
    * @returns {string | Array<string>} changed attribute(s)' name that compare(s) to previous persisted value(s): {@link Bone.raw} compares to {@link Bone.rawPrevious}
    * @memberof Bone
+   * @example
+   * bone.previousChanges('a');  // => { a: [ 1, 2 ] }
+   * bone.previousChanges();     // => { a: [ 1, 2 ], b: [ true, false ] }
    */
   previousChanged(name) {
     const result = Object.keys(this.previousChanges(name));
@@ -396,6 +402,9 @@ class Bone {
    * @param {string?} name
    * @returns {Object.<string, Array>} changed attributes comparing current values {@link Bone.raw} against persisted values {@link Bone.rawSaved}
    * @memberof Bone
+   * @example
+   * bone.changes('a');  // => { a: [ 1, 2 ] }
+   * bone.changes();     // => { a: [ 1, 2 ], b: [ true, false ] }
    */
   changes(name) {
     if (name != null) {
@@ -423,6 +432,9 @@ class Bone {
    * @param {string} name
    * @returns {boolean | Array<string>} changed or not | attribute name array
    * @memberof Bone
+   * @example
+   * bone.changed('a');  // true
+   * bone.changed();     // [ 'a', 'b' ]
    */
   changed(name) {
     const result = Object.keys(this.changes(name));
@@ -931,6 +943,13 @@ class Bone {
   }
 
   /**
+   * get the connection pool of the driver
+   */
+  static get pool() {
+    return this.driver && this.driver.pool;
+  }
+
+  /**
    * Get the column name from the attribute name
    * @private
    * @param   {string} name
@@ -941,7 +960,6 @@ class Bone {
       return this.attributes[name].columnName;
     }
     return name;
-
   }
 
   /**
@@ -973,7 +991,6 @@ class Bone {
         enumerable: true,
         configurable: true,
       }, Object.getOwnPropertyDescriptor(this.prototype, newName)));
-
     }
   }
 

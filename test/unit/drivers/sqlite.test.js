@@ -3,8 +3,8 @@
 const assert = require('assert').strict;
 const strftime = require('strftime');
 
-const { heresql } = require('../../../lib/utils/string');
-const SqliteDriver = require('../../../lib/drivers/sqlite');
+const { heresql } = require('../../../src/utils/string');
+const SqliteDriver = require('../../../src/drivers/sqlite');
 
 const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = SqliteDriver.prototype.DataTypes;
 

@@ -1,5 +1,3 @@
-import { Schema } from "inspector";
-
 interface ExprIdentifier {
   type: 'id';
   value: string;
@@ -105,8 +103,6 @@ declare class Spell {
   toString(): string;
 }
 
-type Pool = Object;
-
 type Literal = null | boolean | number | string | Date
 
 type OperatorCondition = {
@@ -141,6 +137,48 @@ interface RelateOptions {
   foreignKey?: string;
 }
 
+interface QueryOptions {
+  validate: boolean,
+  individualHooks: boolean,
+}
+
+interface Connection {
+  /**
+   * MySQL
+   */
+   query(
+    query: string,
+    values: Array<Literal>,
+    callback: (err: Error|null, results: Array<Object>, fields: Array<string>) => void
+  ): void;
+}
+
+declare class Pool implements Connection {
+  getConnection(): Connection;
+}
+
+declare class Driver {
+  /**
+   * The type of driver, currently there are mysql, sqlite, and postgres
+   */
+  type: string;
+
+  /**
+   * The database current driver is using.
+   */
+  database: string;
+
+  /**
+   * The connection pool of the driver.
+   */
+  pool: Pool;
+
+  /**
+   * Grab a connection and query the database
+   */
+  query(sql: string, values: Array<Literal>): ResultSet;
+}
+
 type ResultSet = Attributes[] | { [qualifier: string]: Attributes }[]
 
 declare class Collection<Bone> extends Array<Bone> {
@@ -156,6 +194,11 @@ declare class Bone {
    * The connection pool of the specified client, with few `Leoric_` prefixed methods extended to eliminate client differences.
    */
   static pool: Pool;
+
+  /**
+   * The driver that powers the model
+   */
+  static driver: Driver;
 
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`
@@ -220,7 +263,12 @@ declare class Bone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create(attributes: Attributes): Promise<Bone>;
+  static create(attributes: Attributes, opts?: QueryOptions): Promise<Bone>;
+
+  /**
+   * Batch INSERT
+   */
+  static bulkCreate(records: Array<Object<string, Literal>>, opts?: QueryOptions): Promise<Array<Bone>>;
 
   /**
    * SELECT rows
@@ -343,22 +391,33 @@ declare class Bone {
   static remove(whereConditions: WhereConditions, forceDelete?: boolean): Spell & Promise<number>;
 
   /**
-   * Grabs a connection and starts a transaction process. Notice that `GeneratorFunction` is expected instead of other function types because Leoric needs to interfere the asynchronous process within that function by passing the grabbed connection around before the queries are actually performed.
+   * Grabs a connection and starts a transaction process. Both GeneratorFunction and AsyncFunction are acceptable. If GeneratorFunction is used, the connection of the transaction process will be passed around automatically.
    * @example
    * Bone.transaction(function* () {
    *   const bone = yield Bone.create({ foo: 1 })
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
-   * })
+   * });
    */
   static transaction(callback: GeneratorFunction): Promise<void>;
+  static transaction(callback: AsyncFunction): Promise<void>;
+
+  /**
+   * DROP the table
+   */
+  static drop(): Promise<void>;
+
+  /**
+   * TRUNCATE table to clear records.
+   */
+  static truncate(): Promise<void>;
 
   constructor(attributes: Attributes);
 
   /**
    * Get or set attribute value. Getting the value of unset attribute gives an error.
    * @example
-   * bone.attribute('foo')     // => 1
-   * bone.attribute('foo', 2)  // => bone
+   * bone.attribute('foo');     // => 1
+   * bone.attribute('foo', 2);  // => bone
    */
   attribute(name: string, value: Literal): void;
   attribute(name: string): Literal;
@@ -372,10 +431,32 @@ declare class Bone {
 
   /**
    * See if attribute has been changed or not.
+   * @deprecated {@link Bone#changed} is preferred
    * @example
    * bone.attributeChanged('foo')
    */
   attributeChanged(name: string): boolean;
+
+  /**
+   * Get changed attributes or check if given attribute is changed or not
+   */
+  changed(name: string): boolean;
+  changed(): Array<string>;
+
+  /**
+   * Get attribute changes
+   */
+  changes(name: string): Object<string, Array>;
+  changes(): Object<string, Array>;
+
+  /**
+   * See if attribute was changed previously or not.
+   */
+  previousChanged(name: string): boolean;
+  previousChanged(): Array<string>;
+
+  previousChanges(name: string): boolean;
+  previousChanges(): Array<string>;
 
   /**
    * Persist changes of current record to database. If current record has never been saved before, an INSERT query is performed. If the primary key was set and is not changed since, an UPDATE query is performed. If the primary key is changed, an INSERT ... UPDATE query is performed instead.

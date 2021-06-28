@@ -4,8 +4,8 @@ const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
-const { Hint } = require('../../../lib/hint');
-const { logger } = require('../../../lib/utils');
+const { Hint } = require('../../../src/hint');
+const { logger } = require('../../../src/utils');
 
 
 const userAttributes = {
