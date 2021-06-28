@@ -87,7 +87,7 @@ describe('=> Data types (mysql)', function() {
     assert.equal(strftime('%Y-%m-%d', user.birthday), '2021-06-26');
   });
 
-  it('DATE', async function() {
+  it('CHAR', async function() {
     assert.ok(User.attributes.hasOwnProperty('birthday'));
     const user = await User.create({
       nickname: 'Tyrael',
