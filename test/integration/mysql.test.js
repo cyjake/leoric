@@ -76,7 +76,7 @@ describe('=> Data types (mysql)', function() {
     assert.equal(post.wordCount, 10);
   });
 
-  it('CHAR', async function() {
+  it('DATE', async function() {
     assert.ok(User.attributes.hasOwnProperty('sex'));
     const user = await User.create({
       nickname: 'Tyrael',
