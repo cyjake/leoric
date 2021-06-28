@@ -66,7 +66,7 @@ describe('=> Data types (mysql)', function() {
     assert.equal(post.summary, 'By three thy way opens');
   });
 
-  it('MEDIUMINIT', async function() {
+  it('MEDIUMINT', async function() {
     assert.ok(Post.attributes.hasOwnProperty('wordCount'));
     const post = await Post.create({
       title: 'By three they come',
