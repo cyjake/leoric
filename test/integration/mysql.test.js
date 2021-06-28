@@ -57,7 +57,9 @@ describe('=> Data types (mysql)', function() {
   });
 
   it('MEDIUMTEXT', async function() {
-    assert.ok(Post.attributes.hasOwnProperty('summary'));
+    assert.ok(Post.attributes.summary);
+    assert.equal(Post.attributes.summary.jsType, String);
+
     const post = await Post.create({
       title: 'By three they come',
       summary: 'By three thy way opens',
@@ -67,7 +69,9 @@ describe('=> Data types (mysql)', function() {
   });
 
   it('MEDIUMINT', async function() {
-    assert.ok(Post.attributes.hasOwnProperty('wordCount'));
+    assert.ok(Post.attributes.wordCount);
+    assert.equal(Post.attributes.wordCount.jsType, Number);
+
     const post = await Post.create({
       title: 'By three they come',
       wordCount: 10,
@@ -77,10 +81,12 @@ describe('=> Data types (mysql)', function() {
   });
 
   it('DATE', async function() {
-    assert.ok(User.attributes.hasOwnProperty('sex'));
+    assert.ok(User.attributes.birthday);
+    assert.equal(User.attributes.birthday.jsType, Date);
+
     const user = await User.create({
       nickname: 'Tyrael',
-      email: 'tyrael@crater',
+      email: 'tyrael@arreat.crater',
       birthday: new Date(2021, 5, 26),
       sex: 'M',
     });
@@ -88,10 +94,12 @@ describe('=> Data types (mysql)', function() {
   });
 
   it('CHAR', async function() {
-    assert.ok(User.attributes.hasOwnProperty('birthday'));
+    assert.ok(User.attributes.sex);
+    assert.equal(User.attributes.sex.jsType, String);
+
     const user = await User.create({
       nickname: 'Tyrael',
-      email: 'tyrael@crater',
+      email: 'tyrael@arreat.crater',
       birthday: new Date(2021, 5, 26),
       sex: 'M',
     });
