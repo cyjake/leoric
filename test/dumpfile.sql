@@ -9,7 +9,9 @@ CREATE TABLE `articles` (
   `extra` text,
   `thumb` varchar(1000) DEFAULT NULL,
   `author_id` bigint(20) DEFAULT NULL,
-  `is_private` tinyint(1) DEFAULT 0
+  `is_private` tinyint(1) DEFAULT 0,
+  `summary` text,
+  `word_count` int DEFAULT 0
 );
 
 DROP TABLE IF EXISTS `attachments`;
@@ -82,5 +84,7 @@ CREATE TABLE `users` (
   `status` int NOT NULL,
   `fingerprint` text,
   `desc` text,
-  `level` decimal(10, 3) NOT NULL DEFAULT 1
+  `level` decimal(10, 3) NOT NULL DEFAULT 1,
+  `birthday` date,
+  `sex` char
 );

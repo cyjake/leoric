@@ -28,7 +28,7 @@ before(() => {
 });
 
 after(() => {
-  stub.restore();
+  if (stub) stub.restore();
 });
 
 describe('=> Attributes', function() {

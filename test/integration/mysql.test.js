@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
+const strftime = require('strftime');
 
 const { connect } = require('../..');
 
@@ -43,5 +44,65 @@ describe('=> Date functions (mysql)', function() {
       { count: 2, 'MONTH(`gmt_create`)': 5 },
       { count: 1, 'MONTH(`gmt_create`)': 11 }
     ]);
+  });
+});
+
+describe('=> Data types (mysql)', function() {
+  const Post = require('../models/post');
+  const User = require('../models/user');
+
+  afterEach(async function() {
+    await Post.truncate();
+    await User.truncate();
+  });
+
+  it('MEDIUMTEXT', async function() {
+    assert.ok(Post.attributes.summary);
+    assert.equal(Post.attributes.summary.jsType, String);
+
+    const post = await Post.create({
+      title: 'By three they come',
+      summary: 'By three thy way opens',
+    });
+    assert.ok(post);
+    assert.equal(post.summary, 'By three thy way opens');
+  });
+
+  it('MEDIUMINT', async function() {
+    assert.ok(Post.attributes.wordCount);
+    assert.equal(Post.attributes.wordCount.jsType, Number);
+
+    const post = await Post.create({
+      title: 'By three they come',
+      wordCount: 10,
+    });
+    assert.ok(post);
+    assert.equal(post.wordCount, 10);
+  });
+
+  it('DATE', async function() {
+    assert.ok(User.attributes.birthday);
+    assert.equal(User.attributes.birthday.jsType, Date);
+
+    const user = await User.create({
+      nickname: 'Tyrael',
+      email: 'tyrael@arreat.crater',
+      birthday: new Date(2021, 5, 26),
+      sex: 'M',
+    });
+    assert.equal(strftime('%Y-%m-%d', user.birthday), '2021-06-26');
+  });
+
+  it('CHAR', async function() {
+    assert.ok(User.attributes.sex);
+    assert.equal(User.attributes.sex.jsType, String);
+
+    const user = await User.create({
+      nickname: 'Tyrael',
+      email: 'tyrael@arreat.crater',
+      birthday: new Date(2021, 5, 26),
+      sex: 'M',
+    });
+    assert.equal(user.sex, 'M');
   });
 });

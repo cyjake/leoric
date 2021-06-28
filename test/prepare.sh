@@ -10,6 +10,10 @@ cat <<EOF | mysql -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot
 CREATE DATABASE IF NOT EXISTS leoric;
 USE leoric;
 source test/dumpfile.sql;
+ALTER TABLE articles CHANGE COLUMN summary summary MEDIUMTEXT;
+ALTER TABLE articles CHANGE COLUMN word_count word_count MEDIUMINT DEFAULT 0;
+ALTER TABLE users CHANGE COLUMN birthday birthday DATE;
+ALTER TABLE users CHANGE COLUMN sex sex CHAR;
 EOF
 
 ##
