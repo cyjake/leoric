@@ -409,7 +409,7 @@ declare class Bone {
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
-  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
+  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opt?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Grabs a connection and starts a transaction process. Both GeneratorFunction and AsyncFunction are acceptable. If GeneratorFunction is used, the connection of the transaction process will be passed around automatically.
@@ -496,8 +496,10 @@ declare class Bone {
    * @example
    * bone.remove()      // => UPDATE ... SET deleted_at = now() WHERE ...
    * bone.remove(true)  // => DELETE FROM ... WHERE ...
+   * bone.remove(true, { hooks: false })
    */
-  remove(forceDelete?: boolean): number;
+  remove(forceDelete?: boolean): Spell & Promise<number>;
+  remove(forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
 
   /**
    * update or insert record.
@@ -526,13 +528,6 @@ declare class Bone {
    */
   reload(): Promise<Bone>;
 
-  /**
-   * delete row
-   * @param forceDelete force update
-   * @param opts query options
-   */
-  remove(forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
-  
   /**
    * restore data
    * @param opts query options
