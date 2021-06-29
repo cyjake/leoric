@@ -17,7 +17,7 @@ module.exports = class AbstractDriver {
    * Cast raw values from database to JavaScript types. When the raw packet is fetched from database, `Date`s and special numbers are transformed by drivers already. This method is used to cast said values to custom types set by {@link Bone.attribute}, such as `JSON`.
    * @private
    * @param {string|boolean} value
-   * @param {Object|Date|String|Boolean} type
+   * @param {Object|Date|string|Boolean} type
    * @returns {Object|Date|string|boolean}
    */
   cast(value, type) {

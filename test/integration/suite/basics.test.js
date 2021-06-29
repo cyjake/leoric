@@ -12,7 +12,7 @@ const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 const Tag = require('../../models/tag');
-const { logger } = require('../../../lib/utils');
+const { logger } = require('../../../src/utils');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -169,7 +169,6 @@ describe('=> Attributes', function() {
     expect(post.previousChanged('extra')).to.be(true);
     // should return false if key not existed
     expect(post.previousChanged('notExisted')).to.be(false);
-
   });
 
   it('Bone.previousChanged(): raw VS rawPrevious', async function () {
@@ -310,6 +309,10 @@ describe('=> Accessors', function() {
   it('Bone.primaryColumn should be Bone.primaryKey in snake_case', function() {
     expect(Post.primaryColumn).to.eql('id');
     expect(Book.primaryColumn).to.eql('isbn');
+  });
+
+  it('Bone.pool should be an alias of Bone.driver.pool', function() {
+    assert.equal(Post.pool, Post.driver.pool);
   });
 
   it('Bone.init(attrs, opts, descriptors) should work', async () => {
@@ -1042,3 +1045,48 @@ describe('=> Bulk', () => {
     });
   });
 });
+
+describe('=> restore', () => {
+  beforeEach(async () => {
+    await Post.remove({}, true);
+    await User.remove({}, true);
+  });
+
+  it('bone.restore()', async function() {
+    const post = await Post.create({ title: 'Elder Ring' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await post.restore();
+    assert.ok(await Post.first);
+    assert(!post.deletedAt);
+  });
+
+  it('Bone.restore()', async function() {
+    const post = await Post.create({ title: 'Gwyn, Lord of Cinder' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await Post.restore({ title: 'Gwyn, Lord of Cinder' });
+    assert.ok(await Post.first);
+  });
+
+  it('should not work with no paranoid attribute', async function() {
+    const gywn = await User.create({ nickname: 'Gywn', email: 'Lord@DK.com', status: 1 });
+    const yorshka = await  User.create({ nickname: 'Company Captain Yorshka', email: 'Captain@DK.com', status: 1 });
+    await gywn.remove();
+    await yorshka.remove();
+    assert(!await User.findOne({ nickname: 'Gywn' }));
+    await assert.rejects(async () => {
+      await gywn.restore();
+    }, /Model is not paranoid/);
+    assert(!await User.findOne({ nickname: 'Gywn' }));
+
+    await yorshka.remove();
+    assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
+    await assert.rejects(async () => {
+      await User.restore({ nickname: 'Company Captain Yorshka' });
+    }, /Model is not paranoid/);
+    assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
+  });
+})

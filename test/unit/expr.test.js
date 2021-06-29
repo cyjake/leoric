@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { parseExpr, parseExprList } = require('../../lib/expr');
+const { parseExpr, parseExprList } = require('../../src/expr');
 
 function assertExpr(str, ast) {
   assert.deepEqual(parseExpr(str), ast);

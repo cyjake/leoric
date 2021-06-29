@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const PostgresDriver = require('../../../lib/drivers/postgres');
+const PostgresDriver = require('../../../src/drivers/postgres');
 
 const database = 'leoric';
 const options = {

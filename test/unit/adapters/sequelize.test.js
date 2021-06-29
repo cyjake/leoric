@@ -4,8 +4,8 @@ const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes } = require('../../..');
-const { Hint } = require('../../../lib/hint');
-const { logger } = require('../../../lib/utils');
+const { Hint } = require('../../../src/hint');
+const { logger } = require('../../../src/utils');
 
 
 const userAttributes = {
@@ -707,6 +707,15 @@ describe('=> Sequelize adapter', () => {
 
   });
 
+  it('Model.restore()', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await Post.restore({ where: { title: 'By three they come' } });
+    assert.ok(await Post.first);
+  });
+
   it('model.decrement()', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
@@ -755,8 +764,10 @@ describe('=> Sequelize adapter', () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.remove();
     assert.equal(await Post.first, null);
+    assert(post.deletedAt);
     await post.restore();
     assert.ok(await Post.first);
+    assert(!post.deletedAt);
   });
 
   it('model.update()', async () => {

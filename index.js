@@ -3,14 +3,14 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const Bone = require('./lib/bone');
-const Collection = require('./lib/collection');
-const DataTypes = require('./lib/data_types');
-const { findDriver } = require('./lib/drivers');
-const migrations = require('./lib/migrations');
-const sequelize = require('./lib/adapters/sequelize');
-const { camelCase } = require('./lib/utils/string');
-const Hint = require('./lib/hint');
+const Bone = require('./src/bone');
+const Collection = require('./src/collection');
+const DataTypes = require('./src/data_types');
+const { findDriver } = require('./src/drivers');
+const migrations = require('./src/migrations');
+const sequelize = require('./src/adapters/sequelize');
+const { camelCase } = require('./src/utils/string');
+const Hint = require('./src/hint');
 
 /**
  * @typedef {Object} RawSql

@@ -356,10 +356,16 @@ class Bone {
   }
 
   /**
+   * Get previous attribute changes. Please be noted that {@link Bone#changes} is about the changes made after the record is saved, and {@link Bone#previousChanges} only returns the changes made before the record was previously saved.
+   *
+   *     previousChanges ➡️ [saved] ➡️ changes ➡️ [current]
    *
    * @param {string?} name
    * @returns {string | Array<string>} changed attribute(s)' name that compare(s) to previous persisted value(s): {@link Bone.raw} compares to {@link Bone.rawPrevious}
    * @memberof Bone
+   * @example
+   * bone.previousChanges('a');  // => { a: [ 1, 2 ] }
+   * bone.previousChanges();     // => { a: [ 1, 2 ], b: [ true, false ] }
    */
   previousChanged(name) {
     const result = Object.keys(this.previousChanges(name));
@@ -396,6 +402,9 @@ class Bone {
    * @param {string?} name
    * @returns {Object.<string, Array>} changed attributes comparing current values {@link Bone.raw} against persisted values {@link Bone.rawSaved}
    * @memberof Bone
+   * @example
+   * bone.changes('a');  // => { a: [ 1, 2 ] }
+   * bone.changes();     // => { a: [ 1, 2 ], b: [ true, false ] }
    */
   changes(name) {
     if (name != null) {
@@ -423,6 +432,9 @@ class Bone {
    * @param {string} name
    * @returns {boolean | Array<string>} changed or not | attribute name array
    * @memberof Bone
+   * @example
+   * bone.changed('a');  // true
+   * bone.changed();     // [ 'a', 'b' ]
    */
   changed(name) {
     const result = Object.keys(this.changes(name));
@@ -770,12 +782,23 @@ class Bone {
     return await Model.remove(condition, forceDelete, { hooks: false, ...opts });
   }
 
-  async restore() {
+  /**
+   * restore data
+   * @param {Object?} query options 
+   * @returns {Bone} instance
+   */
+  async restore(opts = {}) {
     const Model = this.constructor;
     const { primaryKey, shardingKey } = Model;
 
+    const { deletedAt } = Model.timestamps;
+
     if (this[primaryKey] == null) {
       throw new Error('instance is not persisted yet.');
+    }
+
+    if (deletedAt == null) {
+      throw new Error('Model is not paranoid');
     }
 
     const conditions = {
@@ -783,8 +806,22 @@ class Bone {
       deletedAt: { $ne: null },
     };
     if (shardingKey) conditions[shardingKey] = this[shardingKey];
+    await this.update({ deletedAt: null }, { ...opts, paranoid: false });
+    return this;
+  }
 
-    return await Bone.update.call(Model, conditions, { deletedAt: null }, { hooks: true });
+  /**
+   * restore rows
+   * @param {Object} conditions query conditions
+   * @param {Object?} opts query options
+   * @returns 
+   */
+  static restore(conditions, opts = {}) {
+    const { deletedAt } = this.timestamps;
+    if (deletedAt == null) {
+      throw new Error('Model is not paranoid');
+    }
+    return Bone.update.call(this, conditions, { deletedAt: null }, { ...opts, paranoid: false });
   }
 
   /**
@@ -931,6 +968,13 @@ class Bone {
   }
 
   /**
+   * get the connection pool of the driver
+   */
+  static get pool() {
+    return this.driver && this.driver.pool;
+  }
+
+  /**
    * Get the column name from the attribute name
    * @private
    * @param   {string} name
@@ -941,7 +985,6 @@ class Bone {
       return this.attributes[name].columnName;
     }
     return name;
-
   }
 
   /**
@@ -973,7 +1016,6 @@ class Bone {
         enumerable: true,
         configurable: true,
       }, Object.getOwnPropertyDescriptor(this.prototype, newName)));
-
     }
   }
 
@@ -1279,6 +1321,7 @@ class Bone {
    */
   static update(conditions, values = {}, options = {}) {
     const { attributes } = this;
+
     // values should be immutable
     const data = Object.assign({}, values);
     const { updatedAt, deletedAt } = this.timestamps;
@@ -1292,7 +1335,8 @@ class Bone {
       const instance = new this(validateData);
       instance._validateAttributes(validateData);
     }
-    const spell = new Spell(this, options).$where(conditions).$update(data);
+    let spell = new Spell(this, options).$where(conditions).$update(data);
+    if (options && options.paranoid === false) spell = spell.unparanoid;
     return spell.later(result => {
       return result.affectedRows;
     });

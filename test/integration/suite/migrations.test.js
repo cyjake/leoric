@@ -6,7 +6,7 @@ const path = require('path');
 const strftime = require('strftime');
 
 const Realm = require('../../..');
-const Logger = require('../../../lib/drivers/abstract/logger');
+const Logger = require('../../../src/drivers/abstract/logger');
 const { checkDefinitions } = require('../helpers');
 
 const { Bone } = Realm;

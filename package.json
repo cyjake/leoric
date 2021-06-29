@@ -3,11 +3,11 @@
   "version": "1.4.1",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts",
-    "lib"
+    "src",
+    "types"
   ],
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
@@ -51,8 +51,9 @@
     "validator": "^13.5.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@babel/eslint-parser": "^7.14.7",
     "@cara/minami": "^1.2.3",
-    "babel-eslint": "^10.1.0",
     "dayjs": "^1.10.3",
     "eslint": "^7.20.0",
     "expect.js": "^0.3.1",
