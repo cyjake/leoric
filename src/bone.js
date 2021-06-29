@@ -782,12 +782,23 @@ class Bone {
     return await Model.remove(condition, forceDelete, { hooks: false, ...opts });
   }
 
-  async restore() {
+  /**
+   * restore data
+   * @param {Object?} query options 
+   * @returns {Bone} instance
+   */
+  async restore(opts = {}) {
     const Model = this.constructor;
     const { primaryKey, shardingKey } = Model;
 
+    const { deletedAt } = Model.timestamps;
+
     if (this[primaryKey] == null) {
       throw new Error('instance is not persisted yet.');
+    }
+
+    if (deletedAt == null) {
+      throw new Error('Model is not paranoid');
     }
 
     const conditions = {
@@ -795,8 +806,22 @@ class Bone {
       deletedAt: { $ne: null },
     };
     if (shardingKey) conditions[shardingKey] = this[shardingKey];
+    await this.update({ deletedAt: null }, { ...opts, paranoid: false });
+    return this;
+  }
 
-    return await Bone.update.call(Model, conditions, { deletedAt: null }, { hooks: true });
+  /**
+   * restore rows
+   * @param {Object} conditions query conditions
+   * @param {Object?} opts query options
+   * @returns 
+   */
+  static restore(conditions, opts = {}) {
+    const { deletedAt } = this.timestamps;
+    if (deletedAt == null) {
+      throw new Error('Model is not paranoid');
+    }
+    return Bone.update.call(this, conditions, { deletedAt: null }, { ...opts, paranoid: false });
   }
 
   /**
@@ -1296,6 +1321,7 @@ class Bone {
    */
   static update(conditions, values = {}, options = {}) {
     const { attributes } = this;
+
     // values should be immutable
     const data = Object.assign({}, values);
     const { updatedAt, deletedAt } = this.timestamps;
@@ -1309,7 +1335,8 @@ class Bone {
       const instance = new this(validateData);
       instance._validateAttributes(validateData);
     }
-    const spell = new Spell(this, options).$where(conditions).$update(data);
+    let spell = new Spell(this, options).$where(conditions).$update(data);
+    if (options && options.paranoid === false) spell = spell.unparanoid;
     return spell.later(result => {
       return result.affectedRows;
     });

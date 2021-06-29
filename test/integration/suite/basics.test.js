@@ -1045,3 +1045,48 @@ describe('=> Bulk', () => {
     });
   });
 });
+
+describe('=> restore', () => {
+  beforeEach(async () => {
+    await Post.remove({}, true);
+    await User.remove({}, true);
+  });
+
+  it('bone.restore()', async function() {
+    const post = await Post.create({ title: 'Elder Ring' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await post.restore();
+    assert.ok(await Post.first);
+    assert(!post.deletedAt);
+  });
+
+  it('Bone.restore()', async function() {
+    const post = await Post.create({ title: 'Gwyn, Lord of Cinder' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await Post.restore({ title: 'Gwyn, Lord of Cinder' });
+    assert.ok(await Post.first);
+  });
+
+  it('should not work with no paranoid attribute', async function() {
+    const gywn = await User.create({ nickname: 'Gywn', email: 'Lord@DK.com', status: 1 });
+    const yorshka = await  User.create({ nickname: 'Company Captain Yorshka', email: 'Captain@DK.com', status: 1 });
+    await gywn.remove();
+    await yorshka.remove();
+    assert(!await User.findOne({ nickname: 'Gywn' }));
+    await assert.rejects(async () => {
+      await gywn.restore();
+    }, /Model is not paranoid/);
+    assert(!await User.findOne({ nickname: 'Gywn' }));
+
+    await yorshka.remove();
+    assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
+    await assert.rejects(async () => {
+      await User.restore({ nickname: 'Company Captain Yorshka' });
+    }, /Model is not paranoid/);
+    assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
+  });
+})

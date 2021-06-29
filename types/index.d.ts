@@ -138,15 +138,17 @@ interface RelateOptions {
 }
 
 interface QueryOptions {
-  validate: boolean,
-  individualHooks: boolean,
+  validate?: boolean,
+  individualHooks?: boolean,
+  hooks?: boolean,
+  paranoid?: boolean,
 }
 
 interface Connection {
   /**
    * MySQL
    */
-   query(
+  query(
     query: string,
     values: Array<Literal>,
     callback: (err: Error|null, results: Array<Object>, fields: Array<string>) => void
@@ -241,6 +243,16 @@ declare class Bone {
   static physicTables: string[];
 
   /**
+   * restore rows
+   * @example
+   * Bone.restore({ title: 'aaa' })
+   * Bone.restore({ title: 'aaa' }, { hooks: false })
+   * @param conditions query conditions
+   * @param opts query options
+   */
+  static restore(conditions: Object, opts?: QueryOptions): Spell & Promise<number>;
+
+  /**
    * Override attribute metadata
    * @example
    * Bone.attribute('foo', { type: JSON })
@@ -264,6 +276,15 @@ declare class Bone {
    * Bone.create({ foo: 1, bar: 'baz' })
    */
   static create(attributes: Attributes, opts?: QueryOptions): Promise<Bone>;
+
+  /**
+   * INSERT or UPDATE rows
+   * @example
+   * Bone.upsert(values, { hooks: false })
+   * @param values values
+   * @param opt query options
+   */
+  static upsert(values: Object, opt?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Batch INSERT
@@ -383,12 +404,12 @@ declare class Bone {
   /**
    * UPDATE rows.
    */
-  static update(whereConditions: WhereConditions): Spell & Promise<number>;
+  static update(whereConditions: WhereConditions, values?: Object, opts?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
-  static remove(whereConditions: WhereConditions, forceDelete?: boolean): Spell & Promise<number>;
+  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opt?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Grabs a connection and starts a transaction process. Both GeneratorFunction and AsyncFunction are acceptable. If GeneratorFunction is used, the connection of the transaction process will be passed around automatically.
@@ -466,16 +487,52 @@ declare class Bone {
    * new Bone({ foo: 1 }).save()                   // => INSERT
    * new Bone({ foo: 1, id: 1 }).save()            // => INSERT ... UPDATE
    * (await Bone.fist).attribute('foo', 2).save()  // => UPDATE
+   * new Bone({ foo: 1, id: 1 }).save({ hooks: false })            // => INSERT ... UPDATE
    */
-  save(): Promise<this>;
+  save(opts?: QueryOptions): Promise<this>;
 
   /**
    * Remove current record. If `deletedAt` attribute exists, then instead of DELETing records from database directly, the records will have their `deletedAt` attribute UPDATEd instead. To force `DELETE`, no matter the existence of `deletedAt` attribute, pass `true` as the argument.
    * @example
    * bone.remove()      // => UPDATE ... SET deleted_at = now() WHERE ...
    * bone.remove(true)  // => DELETE FROM ... WHERE ...
+   * bone.remove(true, { hooks: false })
    */
-  remove(forceDelete?: boolean): number;
+  remove(forceDelete?: boolean): Spell & Promise<number>;
+  remove(forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
+
+  /**
+   * update or insert record.
+   * @example
+   * bone.upsert() // INERT ... VALUES ON DUPLICATE KEY UPDATE ...
+   * bone.upsert({ hooks: false })
+   * @param opts queryOptions
+   */
+  upsert(opts?: QueryOptions): Spell & Promise<number>;
+
+  /**
+   * update rows
+   * @param changes data changes
+   * @param opts query options
+   */
+  update(changes: Object, opts?: QueryOptions): Spell & Promise<number>;
+
+  /**
+   * create instance
+   * @param opts query options
+   */
+  create(opts?: QueryOptions): Spell & Promise<Bone>;
+
+  /**
+   * reload instance
+   */
+  reload(): Promise<Bone>;
+
+  /**
+   * restore data
+   * @param opts query options
+   */
+  restore(opts?: QueryOptions): Promise<Bone>;
 }
 
 interface ConnectOptions {

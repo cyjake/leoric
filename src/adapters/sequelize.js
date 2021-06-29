@@ -435,7 +435,7 @@ module.exports = Bone => {
     }
 
     static restore(options = {}) {
-      return super.update(options.where || {}, { deletedAt: null }, options);
+      return super.restore(options.where || {}, options);
     }
 
     static schema() {
