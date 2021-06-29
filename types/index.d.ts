@@ -409,7 +409,7 @@ declare class Bone {
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
-  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opt?: QueryOptions): Spell & Promise<number>;
+  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Grabs a connection and starts a transaction process. Both GeneratorFunction and AsyncFunction are acceptable. If GeneratorFunction is used, the connection of the transaction process will be passed around automatically.
