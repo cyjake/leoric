@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
+const { Logger } = require('../../../..');
 const AbstractDriver = require('../../../../src/drivers/abstract');
 
 describe('=> AbstractDriver', function() {
@@ -31,5 +32,20 @@ describe('=> AbstractDriver', function() {
   it('driver.uncast(dayjs, Date)', async function() {
     const date = driver.uncast(dayjs(), Date);
     assert.ok(date instanceof Date);
+  });
+});
+
+describe('=> AbstractDriver#logger', function() {
+  it('should create logger by default', async function() {
+    const driver = new AbstractDriver();
+    assert.ok(driver.logger);
+    assert.ok(driver.logger instanceof Logger);
+  });
+
+  it('should accept custom logger', async function() {
+    class CustomLogger extends Logger {};
+    const driver = new AbstractDriver({ logger: new CustomLogger });
+    assert.ok(driver.logger);
+    assert.ok(driver.logger instanceof CustomLogger);
   });
 });

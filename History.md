@@ -1,3 +1,8 @@
+1.5.1 / 2021-06-30
+==================
+
+  * fix: export Logger and Spell to let users intercept lower level api calls
+
 1.5.0 / 2021-06-30
 ==================
 
