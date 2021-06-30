@@ -1,3 +1,10 @@
+1.5.0 / 2021-06-30
+==================
+
+  * feat: provide Bone.pool to be backward compatible with v0.x (#124)
+  * feat: complete bone/spine.restore and Bone API type definitions (#125)
+  * feat: support more data types (mediumtext, mediumint, char, date...) (#123)
+
 1.4.1 / 2021-06-25
 ==================
 
