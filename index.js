@@ -3,6 +3,8 @@
 const fs = require('fs').promises;
 const path = require('path');
 
+const Logger = require('./src/drivers/abstract/logger');
+const Spell = require('./src/spell');
 const Bone = require('./src/bone');
 const Collection = require('./src/collection');
 const DataTypes = require('./src/data_types');
@@ -242,6 +244,15 @@ const connect = async function connect(opts = {}) {
 };
 
 Object.assign(Realm.prototype, migrations, { DataTypes });
-Object.assign(Realm, { connect, Bone, Collection, DataTypes, sequelize, ...Hint });
+Object.assign(Realm, {
+  connect,
+  Bone,
+  Collection,
+  DataTypes,
+  Logger,
+  Spell,
+  sequelize,
+  ...Hint,
+});
 
 module.exports = Realm;

@@ -10,7 +10,8 @@ const Logger = require('./logger');
 
 module.exports = class AbstractDriver {
   constructor(opts = {}) {
-    this.logger = new Logger(opts.logger);
+    const { logger } = opts;
+    this.logger = logger instanceof Logger ? logger : new Logger(logger);
   }
 
   /**

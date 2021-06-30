@@ -54,5 +54,8 @@ module.exports = {
 
     return `ON DUPLICATE KEY UPDATE ${sets.join(', ')}`;
   },
-  formatReturning() { return ''; },
+
+  formatReturning() {
+    return '';
+  },
 };

@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Realm = require('../..');
-const { connect, Bone, DataTypes } = Realm;
+const { connect, Bone, DataTypes, Logger, Spell } = Realm;
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -35,6 +35,8 @@ describe('=> Realm', () => {
     assert.ok(connect);
     assert.ok(Bone);
     assert.ok(DataTypes);
+    assert.ok(Logger);
+    assert.ok(Spell);
   });
 
   it('should not subclass Bone unless asked specifically', async () => {
@@ -242,7 +244,7 @@ describe('=> Realm', () => {
     });
   });
 
-  describe('transaction', () => {
+  describe('realm.transaction', () => {
     it('realm.transaction generator callback should work', async () => {
       const queries = [];
       const email = 'lighting@valhalla.ne';

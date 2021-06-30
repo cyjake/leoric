@@ -200,7 +200,7 @@ function parseLogicalObjectCondition(name, value) {
 }
 
 /**
- * parse conditions in MongoDB style, which is quite polular in ORMs for JavaScript. See {@link module:lib/spell~OPERATOR_MAP} for supported `$op`s.
+ * parse conditions in MongoDB style, which is quite polular in ORMs for JavaScript. See {@link module:src/spell~OPERATOR_MAP} for supported `$op`s.
  * @example
  * { foo: null }
  * { foo: { $gt: new Date(2012, 4, 15) } }
@@ -280,10 +280,10 @@ function parseSelect(spell, ...names) {
 
 /**
  * Translate key-value pairs of attributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
- * @param {Spell} spell 
+ * @param {Spell} spell
  * @param {Object} obj - key-value pairs of attributes
  * @param {boolean} strict - check attribute exist or not
- * @returns 
+ * @returns
  */
 function formatValueSet(spell, obj, strict = true) {
   const { Model } = spell;
@@ -296,7 +296,7 @@ function formatValueSet(spell, obj, strict = true) {
         continue;
       }
     }
-    
+
     // raw sql don't need to uncast
     if (obj[name] && obj[name].__raw) {
       sets[name] = obj[name];
