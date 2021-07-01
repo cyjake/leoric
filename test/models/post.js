@@ -25,10 +25,15 @@ class Post extends Bone {
   }
 
   get slug() {
-    return this.title.replace(/([A-Z])([a-z])/, function(m, CHR, chr) {
-      return `-${CHR.toLowerCase()}${chr}`;
-    });
+    return this.title
+      .replace(/^([A-Z])/, (m, chr) => chr.toLowerCase())
+      .replace(/ ([A-Z])/g, (m, chr) => `-${chr.toLowerCase()}`);
   }
 }
+
+Object.defineProperty(Post.prototype, 'slug', {
+  ...Object.getOwnPropertyDescriptor(Post.prototype, 'slug'),
+  enumerable: true,
+});
 
 module.exports = Post;

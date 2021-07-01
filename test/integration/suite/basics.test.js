@@ -417,7 +417,7 @@ describe('=> Integration', function() {
   it('bone.toJSON() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
     const result = post.toJSON();
-    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
+    expect(result).to.eql({ title: 'New Post', slug: 'new-post' });
   });
 
   it('bone.toJSON() prefers getter properties over bone.attribute(name)', async function() {
@@ -438,7 +438,7 @@ describe('=> Integration', function() {
   it('bone.toObject() with missing attributes', async function() {
     const post = await Post.findOne({ title: 'New Post' }).select('title');
     const result = post.toObject();
-    expect(result).to.eql({ title: 'New Post', slug: '-new Post' });
+    expect(result).to.eql({ title: 'New Post', slug: 'new-post' });
   });
 
   // the major difference between `bone.toJSON()` and `bone.toObject()`
@@ -1089,4 +1089,4 @@ describe('=> restore', () => {
     }, /Model is not paranoid/);
     assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
   });
-})
+});
