@@ -13,7 +13,7 @@ const Collection = require('./collection');
 const Spell = require('./spell');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { setupHooks } = require('./setup_hooks');
-const { getPropertyNames, logger } = require('./utils/index');
+const { logger } = require('./utils/index');
 
 const LEGACY_TIMESTAMP_MAP = {
   gmtCreate: 'createdAt',
@@ -455,6 +455,8 @@ class Bone {
 
   /**
    * Gets called when `JSON.stringify(instance)` is invoked.
+   * {@link Bone#toJSON} might be called on descents of Bone that does not have attributes defined on them directly, hence for..in is preferred.
+   * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
    * @example
    * const post = await Post.first
    * post.toJSON()  // => { id: 1, ... }
@@ -463,8 +465,7 @@ class Bone {
   toJSON() {
     const obj = {};
 
-    const names = getPropertyNames(this);
-    for (const key of names) {
+    for (const key in this) {
       if (this.#rawUnset.has(key)) continue;
       if (typeof this[key] !== 'function') {
         const value = this[key];
@@ -479,6 +480,8 @@ class Bone {
 
   /**
    * This is the loyal twin of {@link Bone#toJSON} because when generating the result object, the raw values of attributes are used, instead of the values returned by custom getters (if any).
+   * {@link Bone#toObject} might be called on descents of Bone that does not have attributes defined on them directly, hence for..in is preferred.
+   * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
    * @example
    * const post = await Post.first
    * post.toObject()  // => { id: 1, ... }
@@ -487,14 +490,13 @@ class Bone {
   toObject() {
     const obj = {};
 
-    const names = getPropertyNames(this);
-    for (const key of names) {
+    for (const key in this) {
       if (this.#rawUnset.has(key)) continue;
       if (typeof this[key] !== 'function') {
         const value = this[key];
         obj[key] = value != null && typeof value.toObject === 'function'
-        ? value.toObject()
-        : value;
+          ? value.toObject()
+          : value;
       }
     }
     return obj;
@@ -784,7 +786,7 @@ class Bone {
 
   /**
    * restore data
-   * @param {Object?} query options 
+   * @param {Object?} query options
    * @returns {Bone} instance
    */
   async restore(opts = {}) {
@@ -814,7 +816,7 @@ class Bone {
    * restore rows
    * @param {Object} conditions query conditions
    * @param {Object?} opts query options
-   * @returns 
+   * @returns
    */
   static restore(conditions, opts = {}) {
     const { deletedAt } = this.timestamps;
@@ -1459,18 +1461,6 @@ class Bone {
         columnName: snakeCase(this.primaryKey),
       };
     }
-
-    const descriptors = Object.getOwnPropertyDescriptors(this.prototype);
-    const defaultDescriptors = {};
-    for (const key in descriptors) {
-      // getter and enumerable = false
-      if (descriptors[key].get && typeof descriptors[key].get === 'function' && !descriptors[key].enumerable) {
-        descriptors[key].enumerable = true;
-        defaultDescriptors[key] = descriptors[key];
-      }
-    }
-
-    Object.defineProperties(this.prototype, defaultDescriptors);
 
     const customDescriptors = Object.getOwnPropertyDescriptors(overrides);
     Object.defineProperties(this.prototype, customDescriptors);

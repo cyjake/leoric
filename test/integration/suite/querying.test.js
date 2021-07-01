@@ -374,22 +374,22 @@ describe('=> Select', function() {
 
   it('.select(...name)', async function() {
     const post = await Post.select('id', 'title').first;
-    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: '-new Post' });
+    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: 'new-post' });
   });
 
   it('.select(names[])', async function() {
     const post = await Post.select(['id', 'title']).first;
-    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: '-new Post' });
+    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: 'new-post' });
   });
 
   it('.select(name => filter(name))', async function() {
     const post = await Post.select(name => name == 'id' || name == 'title').first;
-    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: '-new Post' });
+    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: 'new-post' });
   });
 
   it('.select("...name")', async function() {
     const post = await Post.select('id, title').first;
-    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: '-new Post' });
+    expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: 'new-post' });
   });
 });
 
