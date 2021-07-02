@@ -1,7 +1,12 @@
+1.5.2 / 2021-07-02
+==================
+
+  * fix: leave the getter properties defined in class syntax as is (#127)
+
 1.5.1 / 2021-06-30
 ==================
 
-  * fix: export Logger and Spell to let users intercept lower level api calls
+  * fix: export Logger and Spell to let users intercept lower level api calls (#126)
 
 1.5.0 / 2021-06-30
 ==================
