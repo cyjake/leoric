@@ -1,5 +1,6 @@
 # Leoric
 
+[![Package Quality](https://packagequality.com/shield/leoric.svg)](https://packagequality.com/#?package=leoric)
 [![NPM Downloads](https://img.shields.io/npm/dm/leoric.svg?style=flat)](https://www.npmjs.com/package/leoric)
 [![NPM Version](http://img.shields.io/npm/v/leoric.svg?style=flat)](https://www.npmjs.com/package/leoric)
 [![Build Status](https://travis-ci.org/cyjake/leoric.svg)](https://travis-ci.org/cyjake/leoric)
