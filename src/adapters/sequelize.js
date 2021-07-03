@@ -314,7 +314,7 @@ module.exports = Bone => {
     }
 
     static find(options = {}) {
-      return this.findOne(options);
+      return this.findAll(options);
     }
 
     static async findAndCountAll(options = {}) {
