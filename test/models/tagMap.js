@@ -3,7 +3,7 @@
 const { Bone } = require('../..');
 
 class TagMap extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('post', {
       foreignKey: 'targetId',
       where: { targetType: 0 }

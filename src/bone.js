@@ -12,7 +12,7 @@ const DataTypes = require('./data_types');
 const Collection = require('./collection');
 const Spell = require('./spell');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
-const { setupHooks } = require('./setup_hooks');
+const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
 
 const LEGACY_TIMESTAMP_MAP = {
@@ -965,11 +965,15 @@ class Bone {
       tableAlias,
       synchronized: Object.keys(compare(attributes, columns)).length === 0,
     }));
+
+    for (const hookName of hookNames) {
+      if (this[hookName]) setupSingleHook(this, hookName, this[hookName]);
+    }
   }
 
   /**
    * Override this method to setup associations, rename attributes, etc.
-   * @deprecated use {@link Bone.didload} instead
+   * @deprecated use {@link Bone.initialize} instead
    * @example
    * class Post extends Bone {
    *   static describe() {
@@ -990,7 +994,7 @@ class Bone {
    *   }
    * }
    */
-  static didLoad() {}
+  static initialize() {}
 
   /**
    * The primary key of the model, in camelCase.
@@ -1472,6 +1476,7 @@ class Bone {
     const { hooks, tableName: table } = {
       underscored: true,
       tableName: this.table,
+      hooks: {},
       ...(this.options && this.options.define),
       ...opts,
     };
@@ -1479,8 +1484,12 @@ class Bone {
     const customDescriptors = Object.getOwnPropertyDescriptors(overrides);
     Object.defineProperties(this.prototype, customDescriptors);
 
-    Object.defineProperties(this, looseReadonly({ attributes, table }));
-    setupHooks(this, hooks);
+    const hookMethods = hookNames.reduce(function(result, key) {
+      const method = hooks[key];
+      if (typeof method === 'function') result[key] = method;
+      return result;
+    }, {});
+    Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
   }
 
   static async sync() {

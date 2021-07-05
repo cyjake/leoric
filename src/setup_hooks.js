@@ -117,6 +117,13 @@ const hookType = {
   AFTER: 'after',
 };
 
+const hookNames = hookableMethods.reduce(function(result, method) {
+  for (const prefix of Object.values(hookType)) {
+    result.push(prefix + method[0].toUpperCase() + method.slice(1));
+  }
+  return result;
+}, []);
+
 function addHook(target, hookName, func) {
   const { type, method } = getFnType(hookName);
   const sequelize = target.sequelize;
@@ -189,4 +196,5 @@ function setupSingleHook(target, hookName, func) {
 module.exports = {
   setupHooks,
   setupSingleHook,
+  hookNames,
 };

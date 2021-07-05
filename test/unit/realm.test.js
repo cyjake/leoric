@@ -328,213 +328,213 @@ describe('=> Realm', () => {
       assert(rows.length === 0);
       assert(queries.includes('ROLLBACK'));
     });
+  });
 
-    describe('integration with bone', () => {
-      class User extends Bone {}
+  describe('realm.transaction (CRUD)', () => {
+    class User extends Bone {}
 
-      User.init(attributes);
+    User.init(attributes);
 
-      before(async () => {
-        Bone.driver = null;
-        await connect({
-          port: process.env.MYSQL_PORT,
-          user: 'root',
-          database: 'leoric',
-          models: [ User ],
+    before(async () => {
+      Bone.driver = null;
+      await connect({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ User ],
+      });
+    });
+
+    afterEach(async () => {
+      await User.truncate();
+    });
+
+    it('should work with create', async () => {
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { connection });
+          await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { connection });
         });
-      });
+      }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h@h.com\' for key \'users.email\'');
+      const users = await User.find();
+      assert(users.length === 0);
+    });
 
-      afterEach(async () => {
-        await User.truncate();
-      });
+    it('should work with update', async () => {
+      const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
 
-      it('should work with create', async () => {
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { connection });
-            await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 }, { connection });
-          });
-        }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h@h.com\' for key \'users.email\'');
-        const users = await User.find();
-        assert(users.length === 0);
-      });
-
-      it('should work with update', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await User.update({ email: 'h@h.com' }, { email: 'h1@h.com' }, { connection });
-          });
-        }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h1@h.com\' for key \'users.email\'');
-
-        const userRes = await User.findOne({
-          nickname: 'tim'
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await User.update({ email: 'h@h.com' }, { email: 'h1@h.com' }, { connection });
         });
-        assert(userRes.email === 'h@h.com');
+      }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h1@h.com\' for key \'users.email\'');
 
-        await user1.reload();
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await user1.update({ email: 'h1@h.com' }, { connection });
-          });
-        }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h1@h.com\' for key \'users.email\'');
-
-        await user1.reload();
-
-        assert(user1.email === 'h@h.com');
-
+      const userRes = await User.findOne({
+        nickname: 'tim'
       });
+      assert(userRes.email === 'h@h.com');
 
-      it('should work with save', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await user1.reload();
 
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            user1.email = 'h22@h.com';
-            await user1.save({ connection });
-            throw new Error('lighting');
-          });
-        }, /lighting/);
-
-        await user1.reload();
-
-        assert(user1.email === 'h@h.com');
-      });
-
-      it('should work with remove', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await user1.remove({ connection });
-            throw new Error('lighting');
-          });
-        }, /lighting/);
-
-        await user1.reload();
-
-        assert(user1.email === 'h@h.com');
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await User.remove({ nickname: 'tim' } , true, { connection });
-            throw new Error('lighting');
-          });
-        }, /lighting/);
-
-      });
-
-      it('should work with upsert', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-
-        const user2 = new User({
-          nickname: 'tim2', email: 'h@h.com', status: 1
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await user1.update({ email: 'h1@h.com' }, { connection });
         });
+      }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h1@h.com\' for key \'users.email\'');
 
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await user2.upsert({ connection });
-            throw new Error('lighting');
-          });
-        }, /lighting/);
+      await user1.reload();
 
-        const userRes = await User.findOne({
-          nickname: 'tim2'
+      assert(user1.email === 'h@h.com');
+
+    });
+
+    it('should work with save', async () => {
+      const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          user1.email = 'h22@h.com';
+          await user1.save({ connection });
+          throw new Error('lighting');
         });
-        assert(!userRes);
+      }, /lighting/);
 
-        await user1.reload();
-        assert(user1.nickname==='tim');
+      await user1.reload();
+
+      assert(user1.email === 'h@h.com');
+    });
+
+    it('should work with remove', async () => {
+      const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await user1.remove({ connection });
+          throw new Error('lighting');
+        });
+      }, /lighting/);
+
+      await user1.reload();
+
+      assert(user1.email === 'h@h.com');
+
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await User.remove({ nickname: 'tim' } , true, { connection });
+          throw new Error('lighting');
+        });
+      }, /lighting/);
+
+    });
+
+    it('should work with upsert', async () => {
+      const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+      const user2 = new User({
+        nickname: 'tim2', email: 'h@h.com', status: 1
       });
 
-      it('should work with find', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
-            await user2.save({ connection });
-            const users = await User.find({
-              nickname: 'tim',
-            }, { connection });
-            if (users.length >= 2) {
-              throw new Error('duplicated nickname');
-            }
-          });
-        }, /duplicated nickname/);
-
-        let userRes = await User.findOne({
-          email: 'h2@h.com'
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await user2.upsert({ connection });
+          throw new Error('lighting');
         });
-        assert(!userRes);
+      }, /lighting/);
 
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
-            await user2.save({ connection });
-            const users = await User.find([ user1.id, user2.id ], { connection });
-            if (users.length >= 2 && users[0].nickname === 'tim' && users[1].nickname === 'tim') {
-              throw new Error('duplicated nickname');
-            }
-          });
-        }, /duplicated nickname/);
+      const userRes = await User.findOne({
+        nickname: 'tim2'
+      });
+      assert(!userRes);
 
-        userRes = await User.findOne({
-          email: 'h2@h.com'
+      await user1.reload();
+      assert(user1.nickname==='tim');
+    });
+
+    it('should work with find', async () => {
+      const user1 = await User.create({ nickname: 'tim', email: 'h@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await User.create({ nickname: 'tim1', email: 'h1@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
+          await user2.save({ connection });
+          const users = await User.find({
+            nickname: 'tim',
+          }, { connection });
+          if (users.length >= 2) {
+            throw new Error('duplicated nickname');
+          }
         });
-        assert(!userRes);
+      }, /duplicated nickname/);
+
+      let userRes = await User.findOne({
+        email: 'h2@h.com'
       });
+      assert(!userRes);
 
-      it('should work with bulkCreate', async () => {
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await User.bulkCreate([{
-              nickname: 'Thor',
-              email: 'lighting@valhalla.ne',
-              status: 1
-            }, {
-              nickname: 'Loki',
-              email: 'trick@valhalla.ne',
-              status: 1
-            }], { connection });
-            const users = await User.find({}, { connection });
-            if (users.length >= 2) {
-              throw new Error('too many');
-            }
-          });
-        }, /too many/);
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
+          await user2.save({ connection });
+          const users = await User.find([ user1.id, user2.id ], { connection });
+          if (users.length >= 2 && users[0].nickname === 'tim' && users[1].nickname === 'tim') {
+            throw new Error('duplicated nickname');
+          }
+        });
+      }, /duplicated nickname/);
 
-        let all = await User.all;
-        assert(all.length === 0);
-
-        await assert.rejects(async () => {
-          await Bone.transaction(async ({ connection }) => {
-            await User.bulkCreate([{
-              nickname: 'Thor',
-              email: 'lighting@valhalla.ne',
-              status: 1
-            }, {
-              nickname: 'Loki',
-              email: 'trick@valhalla.ne',
-              status: 1
-            }], { connection, individualHooks: true });
-            const users = await User.find({}, { connection });
-            if (users.length >= 2) {
-              throw new Error('too many');
-            }
-          });
-        }, /too many/);
-
-        all = await User.all;
-        assert(all.length === 0);
+      userRes = await User.findOne({
+        email: 'h2@h.com'
       });
+      assert(!userRes);
+    });
+
+    it('should work with bulkCreate', async () => {
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await User.bulkCreate([{
+            nickname: 'Thor',
+            email: 'lighting@valhalla.ne',
+            status: 1
+          }, {
+            nickname: 'Loki',
+            email: 'trick@valhalla.ne',
+            status: 1
+          }], { connection });
+          const users = await User.find({}, { connection });
+          if (users.length >= 2) {
+            throw new Error('too many');
+          }
+        });
+      }, /too many/);
+
+      let all = await User.all;
+      assert(all.length === 0);
+
+      await assert.rejects(async () => {
+        await Bone.transaction(async ({ connection }) => {
+          await User.bulkCreate([{
+            nickname: 'Thor',
+            email: 'lighting@valhalla.ne',
+            status: 1
+          }, {
+            nickname: 'Loki',
+            email: 'trick@valhalla.ne',
+            status: 1
+          }], { connection, individualHooks: true });
+          const users = await User.find({}, { connection });
+          if (users.length >= 2) {
+            throw new Error('too many');
+          }
+        });
+      }, /too many/);
+
+      all = await User.all;
+      assert(all.length === 0);
     });
   });
 });
