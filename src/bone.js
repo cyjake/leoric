@@ -913,12 +913,13 @@ class Bone {
         set(value) {
           this.attribute(name, value);
         },
-        enumerable: true,
-        configurable: true,
       }, Object.keys(descriptor || {}).reduce((result, key) => {
         if (descriptor[key] != null) result[key] = descriptor[key];
         return result;
-      }, {}));
+      }, {}), {
+        enumerable: true,
+        configurable: true,
+      });
     }
     Object.defineProperties(this.prototype, descriptors);
     Object.defineProperties(this, looseReadonly({

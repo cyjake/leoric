@@ -447,8 +447,7 @@ describe('=> Integration', function() {
     assert(!post.toJSON().hasOwnProperty('content'));
     assert(post.toObject().hasOwnProperty('content'));
     assert.equal(post.toObject().content, null);
-    const keys = Object.keys(Post.attributes);
-    keys.push('slug');
+    const keys = Object.keys(Post.attributes).concat('slug');
     assert.deepEqual(Object.keys(post.toObject()).sort(), keys.sort());
   });
 
