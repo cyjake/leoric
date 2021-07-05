@@ -766,7 +766,6 @@ class Bone {
     const { primaryKey, shardingKey, attributes, timestamps } = Model;
     const { deletedAt } = timestamps;
 
-
     if (this[primaryKey] == null) {
       throw new Error('instance is not persisted yet.');
     }
@@ -887,6 +886,27 @@ class Bone {
     Object.assign(this.attributes[name], { jsType });
   }
 
+  static normalize(attributes) {
+    for (const name in LEGACY_TIMESTAMP_MAP) {
+      const newName = LEGACY_TIMESTAMP_MAP[name];
+      if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
+        attributes[newName] = attributes[name];
+        delete attributes[name];
+      }
+    }
+
+    // if there is no primaryKey added, add it to attributes automatically
+    if (Object.values(attributes).every(attribute => !attribute.primaryKey)) {
+      attributes[this.primaryKey] = {
+        type: new DataTypes.BIGINT(),
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        columnName: snakeCase(this.primaryKey),
+      };
+    }
+  }
+
   /**
    * Generate attributes from column definitions.
    * @private
@@ -896,11 +916,23 @@ class Bone {
     const { Attribute } = this.driver;
     const { attributes, options } = this;
     const attributeMap = {};
+    const table = this.table || snakeCase(pluralize(this.name));
+    const aliasName = camelCase(pluralize(this.name || table));
 
+    this.normalize(attributes);
     for (const name of Object.keys(attributes)) {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
       attributes[name] = attribute;
+    }
+
+    const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
+    const timestamps = {};
+    for (const name of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
+      if (attributes.hasOwnProperty(name)) timestamps[name] = name;
+      if (attributes.hasOwnProperty(snakeCase(name))) {
+        timestamps[name] = snakeCase(name);
+      }
     }
 
     const descriptors = {};
@@ -922,15 +954,22 @@ class Bone {
       });
     }
     Object.defineProperties(this.prototype, descriptors);
+
     Object.defineProperties(this, looseReadonly({
+      timestamps,
+      table,
+      primaryKey,
       columns,
       attributeMap,
+      associations: [],
+      aliasName,
       synchronized: Object.keys(compare(attributes, columns)).length === 0,
     }));
   }
 
   /**
-   * Placeholder static method. Sub-classes of Bone can override this method to setup model informations such as associations, attribute renamings, etc.
+   * Override this method to setup associations, rename attributes, etc.
+   * @deprecated use {@link Bone.didload} instead
    * @example
    * class Post extends Bone {
    *   static describe() {
@@ -940,6 +979,19 @@ class Bone {
    * }
    */
   static describe() {}
+
+  /**
+   * Override this method to setup associations, rename attributes, etc.
+   * @deprecated
+   * @example
+   * class Post extends Bone {
+   *   static didLoad() {
+   *     this.belongsTo('author', { className: 'User' })
+   *     this.renameAttribute('content', 'body')
+   *   }
+   * }
+   */
+  static didLoad() {}
 
   /**
    * The primary key of the model, in camelCase.
@@ -1418,62 +1470,18 @@ class Bone {
   }
 
   static init(attributes = {}, opts = {}, overrides = {}) {
-    opts = {
+    const { hooks, tableName: table } = {
       underscored: true,
-      table: this.table || opts.tableName,
+      tableName: this.table,
       ...(this.options && this.options.define),
       ...opts,
     };
-    const table = opts.table || snakeCase(pluralize(this.name));
-    const aliasName = camelCase(pluralize(this.name || table));
-
-    for (const name in LEGACY_TIMESTAMP_MAP) {
-      const newName = LEGACY_TIMESTAMP_MAP[name];
-      if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
-        attributes[newName] = attributes[name];
-        delete attributes[name];
-      }
-    }
-
-    const timestamps = {};
-    for (const name of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
-      if (attributes.hasOwnProperty(name)) timestamps[name] = name;
-      if (attributes.hasOwnProperty(snakeCase(name))) {
-        timestamps[name] = snakeCase(name);
-      }
-    }
-
-    const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
-    if (primaryKey && primaryKey !== this.primaryKey) {
-      // redefine primaryKey getter
-      Object.defineProperty(this, 'primaryKey', {
-        value: primaryKey,
-        writable: false,
-        configurable: false,
-      });
-    }
-    // if there is no primaryKey added, add it to attributes automatically
-    if (!attributes[this.primaryKey]) {
-      attributes[this.primaryKey] = {
-        type: new DataTypes.BIGINT(),
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        columnName: snakeCase(this.primaryKey),
-      };
-    }
 
     const customDescriptors = Object.getOwnPropertyDescriptors(overrides);
     Object.defineProperties(this.prototype, customDescriptors);
 
-    Object.defineProperties(this, looseReadonly({
-      attributes,
-      table,
-      aliasName,
-      associations: [],
-      timestamps,
-    }));
-    setupHooks(this, opts.hooks);
+    Object.defineProperties(this, looseReadonly({ attributes, table }));
+    setupHooks(this, hooks);
   }
 
   static async sync() {

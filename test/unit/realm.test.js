@@ -454,15 +454,12 @@ describe('=> Realm', () => {
       });
 
       it('should work with find', async () => {
-        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-        await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
-
-        const user2 = new User({
-          nickname: 'tim', email: 'h2@h.com', status: 1
-        });
+        const user1 = await User.create({ nickname: 'tim', email: 'h@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
+        await User.create({ nickname: 'tim1', email: 'h1@h.com', meta: { foo: 1, bar: 'baz'}, status: 1 });
 
         await assert.rejects(async () => {
           await Bone.transaction(async ({ connection }) => {
+            const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
             await user2.save({ connection });
             const users = await User.find({
               nickname: 'tim',
@@ -478,11 +475,9 @@ describe('=> Realm', () => {
         });
         assert(!userRes);
 
-        // TODO How to rollback value assigning ?
-        user2.id = undefined;
-
         await assert.rejects(async () => {
           await Bone.transaction(async ({ connection }) => {
+            const user2 = new User({ nickname: 'tim', email: 'h2@h.com', status: 1 });
             await user2.save({ connection });
             const users = await User.find([ user1.id, user2.id ], { connection });
             if (users.length >= 2 && users[0].nickname === 'tim' && users[1].nickname === 'tim') {
