@@ -982,7 +982,6 @@ class Bone {
 
   /**
    * Override this method to setup associations, rename attributes, etc.
-   * @deprecated
    * @example
    * class Post extends Bone {
    *   static didLoad() {
