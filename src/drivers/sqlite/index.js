@@ -13,7 +13,7 @@ const spellbook = require('./spellbook');
 // => [ { users: { id, ... } } ]
 function nest(rows, fields, spell) {
   const { Model } = spell;
-  const { aliasName } = Model;
+  const { tableAlias } = Model;
   const results = [];
 
   for (const row of rows) {
@@ -23,7 +23,7 @@ function nest(rows, fields, spell) {
       const parts = key.split(':');
       const [qualifier, column] = qualified
         ? (parts.length > 1 ? parts : ['', key])
-        : [Model.attributeMap.hasOwnProperty(key) ? aliasName : '', key];
+        : [Model.attributeMap.hasOwnProperty(key) ? tableAlias : '', key];
       const obj = result[qualifier] || (result[qualifier] = {});
       obj[column] = row[key];
     }

@@ -90,13 +90,13 @@ function dispatch(spell, rows, fields) {
   }
 
   const results = new Collection();
-  const { aliasName, table, primaryColumn, primaryKey } = Model;
+  const { tableAlias, table, primaryColumn, primaryKey } = Model;
 
   for (const row of rows) {
     // If SQL contains subqueries, such as `SELECT * FROM (SELECT * FROM foo) AS bar`,
     // the table name of the columns in SQLite is the original table name instead of the alias.
     // Hence we need to fallback to original table name here.
-    const main = row[aliasName] || row[table];
+    const main = row[tableAlias] || row[table];
     let current = results.find(result => result[primaryKey] == main[primaryColumn]);
 
     if (!current) {
@@ -135,7 +135,7 @@ function dispatch(spell, rows, fields) {
 function convert(spell, rows, fields) {
   const results = [];
   const { joins } = spell;
-  const { table, aliasName } = spell.Model;
+  const { table, tableAlias } = spell.Model;
 
   // await Post.count()
   if (rows.length <= 1 && spell.columns.length === 1) {
@@ -151,12 +151,12 @@ function convert(spell, rows, fields) {
     for (let prop in row) {
       const data = row[prop];
       // mysql2 sometimes nests rows with table name instead of table alias
-      const qualifier = prop == table ? aliasName : prop;
+      const qualifier = prop == table ? tableAlias : prop;
       const obj = result[qualifier] || (result[qualifier] = {});
       if (qualifier == '') {
         Object.assign(obj, data);
       }
-      else if (qualifier in joins || qualifier == aliasName) {
+      else if (qualifier in joins || qualifier == tableAlias) {
         const { Model } = joins[qualifier] || spell;
         for (const columnName in data) {
           const definition = Model.attributeMap[columnName];

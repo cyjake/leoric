@@ -917,7 +917,7 @@ class Bone {
     const { attributes, options } = this;
     const attributeMap = {};
     const table = this.table || snakeCase(pluralize(this.name));
-    const aliasName = camelCase(pluralize(this.name || table));
+    const tableAlias = camelCase(pluralize(this.name || table));
 
     this.normalize(attributes);
     for (const name of Object.keys(attributes)) {
@@ -962,7 +962,7 @@ class Bone {
       columns,
       attributeMap,
       associations: [],
-      aliasName,
+      tableAlias,
       synchronized: Object.keys(compare(attributes, columns)).length === 0,
     }));
   }

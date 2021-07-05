@@ -391,7 +391,7 @@ function findAssociation(associations, opts) {
  * Parse associations into spell.joins
  * @param {Spell}  spell     - An instance of spell
  * @param {Model}  BaseModel - A subclass of Bone
- * @param {string} baseName  - Might be Model.aliasName, Model.table, or other names given by users
+ * @param {string} baseName  - Might be Model.tableAlias, Model.table, or other names given by users
  * @param {string} refName   - The name of the join target
  * @param {Object} opts      - Extra options such as { select, throughAssociation }
  */
@@ -959,10 +959,10 @@ class Spell {
     for (const qualifier of qualifiers) {
       if (isPlainObject(qualifier)) {
         for (const key in qualifier) {
-          joinAssociation(this, this.Model, this.Model.aliasName, key, qualifier[key]);
+          joinAssociation(this, this.Model, this.Model.tableAlias, key, qualifier[key]);
         }
       } else {
-        joinAssociation(this, this.Model, this.Model.aliasName, qualifier);
+        joinAssociation(this, this.Model, this.Model.tableAlias, qualifier);
       }
     }
     return this;
@@ -983,7 +983,7 @@ class Spell {
     if (typeof Model == 'string') {
       return this.$with(...arguments);
     }
-    const qualifier = Model.aliasName;
+    const qualifier = Model.tableAlias;
     const { joins } = this;
 
     if (qualifier in joins) {
