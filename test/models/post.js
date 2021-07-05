@@ -3,11 +3,9 @@
 const { Bone } = require('../..');
 
 class Post extends Bone {
-  static get table() {
-    return 'articles';
-  }
+  static table = 'articles';
 
-  static describe() {
+  static initialize() {
     this.hasOne('attachment', {
       foreignKey: 'postId'
     });

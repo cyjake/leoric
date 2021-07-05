@@ -141,11 +141,11 @@ describe('=> Bone.sync()', () => {
   it('should create table if not exists', async () => {
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
-    assert.equal(Note.table, 'notes');
     assert(!Note.synchronized);
 
     await Note.sync();
     assert(Note.synchronized);
+    assert.equal(Note.table, 'notes');
     await checkDefinitions('notes', {
       title: { dataType: 'varchar' },
     });

@@ -39,11 +39,12 @@ describe('connect', function() {
 
   it('connect models passed in opts.models (init with primaryKey)', async function() {
     const { STRING, BIGINT } = DataTypes;
-    class Book extends Bone {};
-    Book.init({
-      isbn: { type: BIGINT, primaryKey: true },
-      name: { type: STRING, allowNull: false },
-    });
+    class Book extends Bone {
+      static attributes = {
+        isbn: { type: BIGINT, primaryKey: true },
+        name: { type: STRING, allowNull: false },
+      }
+    }
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -59,13 +60,11 @@ describe('connect', function() {
   it('connect models passed in opts.models (define class with primaryKey)', async function() {
     const { STRING } = DataTypes;
     class Book extends Bone {
-      static get primaryKey() {
-        return 'isbn';
-      }
-    };
-    Book.init({
-      name: { type: STRING, allowNull: false },
-    });
+      static primaryKey = 'isbn';
+      static attributes = {
+        name: { type: STRING, allowNull: false },
+      };
+    }
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -101,5 +100,21 @@ describe('connect', function() {
     const user = await User.create({ email: 'hello@hh.com', nickname: 'testy', meta: { foo: 1, bar: 'baz'} });
     assert(user.email === 'hello@hh.com');
     assert(user.meta.foo === 1);
+  });
+
+  it('should call customized initialize code in model', async function() {
+    let initialized;
+    class User extends Bone {
+      static initialize() {
+        initialized = true;
+      }
+    }
+    await connect({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      models: [ User ],
+    });
+    assert(initialized);
   });
 });

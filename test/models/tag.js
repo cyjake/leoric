@@ -15,32 +15,27 @@ function uid() {
 }
 
 class Tag extends Bone {
-  static describe() {
-  }
-}
-
-Tag.init({
-  id: {
-    primaryKey: true,
-    type: DataTypes.BIGINT
-  },
-  createdAt: { type: DataTypes.DATE, columnName: 'gmt_create' },
-  updatedAt: { type: DataTypes.DATE, columnName: 'gmt_modified' },
-  deletedAt: { type: DataTypes.DATE, columnName: 'gmt_deleted' },
-  type:  DataTypes.INT,
-  name: DataTypes.STRING,
-  uuid: {
-    type: DataTypes.STRING,
-    unique: true,
-  }
-}, {
-  hooks: {
-    beforeCreate(obj) {
-      if (!obj.uuid) {
-        obj.uuid = uid();
-      }
+  static attributes = {
+    id: {
+      primaryKey: true,
+      type: DataTypes.BIGINT
+    },
+    createdAt: { type: DataTypes.DATE, columnName: 'gmt_create' },
+    updatedAt: { type: DataTypes.DATE, columnName: 'gmt_modified' },
+    deletedAt: { type: DataTypes.DATE, columnName: 'gmt_deleted' },
+    type:  DataTypes.INT,
+    name: DataTypes.STRING,
+    uuid: {
+      type: DataTypes.STRING,
+      unique: true,
     }
   }
-});
+
+  static beforeCreate(obj) {
+    if (!obj.uuid) {
+      obj.uuid = uid();
+    }
+  }
+}
 
 module.exports = Tag;

@@ -15,7 +15,7 @@ const { precedes, copyExpr, findExpr, walkExpr } = require('../../expr');
  */
 function findModel(spell, qualifiers) {
   const qualifier = qualifiers && qualifiers[0];
-  const Model = qualifier && qualifier != spell.Model.aliasName
+  const Model = qualifier && qualifier != spell.Model.tableAlias
     ? (spell.joins.hasOwnProperty(qualifier) ? spell.joins[qualifier].Model : null)
     : spell.Model;
   if (!Model) throw new Error(`Unabled to find model ${qualifiers}`);
@@ -362,7 +362,7 @@ function formatSelectWithoutJoin(spell) {
  */
 function createSubspell(spell) {
   const { Model, columns, joins, whereConditions, orders } = spell;
-  const baseName = Model.aliasName;
+  const baseName = Model.tableAlias;
   const subspell = spell.dup;
 
   subspell.columns = [];
@@ -424,7 +424,7 @@ function createSubspell(spell) {
  */
 function qualify(spell) {
   const { Model, columns, groups, whereConditions, havingConditions, orders } = spell;
-  const baseName = Model.aliasName;
+  const baseName = Model.tableAlias;
   const clarify = node => {
     if (node.type === 'id' && !node.qualifiers) {
       if (Model.attributes[node.value]) node.qualifiers = [baseName];
@@ -447,7 +447,7 @@ function qualify(spell) {
 function formatSelectExpr(spell, values) {
   const { Model, columns, joins, groups } = spell;
   const { escapeId } = Model.driver;
-  const baseName = Model.aliasName;
+  const baseName = Model.tableAlias;
   const selects = new Set();
   const map = {};
 
@@ -485,7 +485,7 @@ function formatSelectWithJoin(spell) {
 
   const { Model, whereConditions, groups, havingConditions, orders, rowCount, skip, joins } = spell;
   const { escapeId } = Model.driver;
-  const baseName = Model.aliasName;
+  const baseName = Model.tableAlias;
 
   const chunks = ['SELECT'];
   const values = [];
@@ -641,7 +641,7 @@ function formatInsert(spell) {
         attributes.push(Model.attributes[name]);
       }
     }
-    
+
     columns = attributes.map(entry => entry.columnName);
 
     for (const entry of sets) {
@@ -672,7 +672,7 @@ function formatInsert(spell) {
       }
     }
   }
-  
+
 
   const chunks = ['INSERT'];
 
@@ -800,7 +800,7 @@ function formatUpdateOnDuplicate(spell, columns) {
 }
 
 /**
- * @param {Spell} spell 
+ * @param {Spell} spell
  * @returns returning sql string
  */
 function formatReturning(spell) {

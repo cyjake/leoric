@@ -80,6 +80,7 @@ async function loadModels(Bone, models, opts) {
 
   for (const model of models) {
     model.describe();
+    model.initialize();
   }
 }
 

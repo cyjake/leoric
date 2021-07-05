@@ -9,15 +9,15 @@ function renameSelectExpr(spell) {
   for (const token of columns) {
     if (token.type == 'id') {
       if (!token.qualifiers && Model.attributes[token.value]) {
-        token.qualifiers = [Model.aliasName];
+        token.qualifiers = [Model.tableAlias];
       }
       whitelist.add(token.qualifiers[0]);
     }
   }
 
-  for (const qualifier of [Model.aliasName].concat(Object.keys(joins))) {
+  for (const qualifier of [Model.tableAlias].concat(Object.keys(joins))) {
     if (!whitelist.has(qualifier) && !groups.length > 0) {
-      const model = qualifier == Model.aliasName ? Model : joins[qualifier].Model;
+      const model = qualifier == Model.tableAlias ? Model : joins[qualifier].Model;
       for (const definition of model.columns) {
         const value = definition.columnName;
         columns.push({ type: 'id', qualifiers: [qualifier], value });

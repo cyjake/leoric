@@ -19,7 +19,7 @@ The attribute definition of the model can set whether the attribute can be `null
 const { Bone, DataTypes } = require('leoric');
 
 class User extends Bone {
-  static attributes {
+  static attributes = {
     id: { type: DataTypes.BIGINT, primaryKey: true },
     email: { type: DataTypes.STRING, allowNull: false },
     ...
@@ -39,13 +39,14 @@ User.create({ name: 'OldHunter' }); // throw LeoricValidateError('notNull'); ema
 ```
 
 ## unique
+
 You can set a unique constraint on a field using 'unique':
 
 ```javascript
 const { Bone, DataTypes } = require('leoric');
 
 class User extends Bone {
-  static attributes {
+  static attributes = {
     id: { type: DataTypes.BIGINT, primaryKey: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     ...
@@ -62,65 +63,78 @@ CREATE TABLE `users` (
 */
 ```
 ## Built-in validator
+
 In addition to validators included in [validator.js](https://github.com/validatorjs/validator.js) as built-in validators, leoric also provides the following built-in validators:
+
 ```javascript
-User.init({
-  var: {
-    type: ANYTYPE,
-    validate: {
-      notIn: [['MHW', 'Bloodborne']], // Not one of them
-      notNull: true, // Can't be NULL
-      isNull: true, // Must be NULL
-      min: 1988, // MinValue
-      max: 2077, // MaxValue
-      contains: 'Handsome', // Must contains 'Handsome'
-      notContains: 'Handsome', // Mustn't contain 'Handsome'
-      regex: /^iceborne/g, // Matching RegExp
-      notRegex: /^iceborne/g, // Not matching RegExp
-      is: /^iceborne/g, // Matching RegExp
-      notEmpty: true, // not allow empty string
+class User extends Bone {
+  static attributes = {
+    var: {
+      type: ANYTYPE,
+      validate: {
+        notIn: [['MHW', 'Bloodborne']], // Not one of them
+        notNull: true, // Can't be NULL
+        isNull: true, // Must be NULL
+        min: 1988, // MinValue
+        max: 2077, // MaxValue
+        contains: 'Handsome', // Must contains 'Handsome'
+        notContains: 'Handsome', // Mustn't contain 'Handsome'
+        regex: /^iceborne/g, // Matching RegExp
+        notRegex: /^iceborne/g, // Not matching RegExp
+        is: /^iceborne/g, // Matching RegExp
+        notEmpty: true, // not allow empty string
+      }
     }
   }
-});
+}
 ```
+
 ### Custom error message
+
 The built-in validator supports customize error messages instead of the default error messages of leoric.
+
 ```javascript
-User.init({
-  var: {
-    type: ANYTYPE,
-    validate: {
-      isIn: {
-        args: [ 'MHW', 'Bloodborne' ], // 'args' are the arguments of validator
-        msg: 'OH! WHAT HAVE YOU DONE?!' // `msg` is custom error message
-      },
-      notNull: {
-        args: true,
-        msg: 'OH! WHAT HAVE YOU DONE?!'
+class User extends Bone {
+  static attributes = {
+    var: {
+      type: ANYTYPE,
+      validate: {
+        isIn: {
+          args: [ 'MHW', 'Bloodborne' ], // 'args' are the arguments of validator
+          msg: 'OH! WHAT HAVE YOU DONE?!' // `msg` is custom error message
+        },
+        notNull: {
+          args: true,
+          msg: 'OH! WHAT HAVE YOU DONE?!'
+        }
       }
     }
   }
-})
+}
 ```
+
 ## Custom validators
-leoric supports set custom validators.
-You can throw an error or return `false` from the validator while the validation fails, and Leoric will take the next step based on the returns.
+
+leoric supports set custom validators. You can throw an error or return `false` from the validator while the validation fails, and Leoric will take the next step based on the returns.
+
 ```javascript
-User.init({
-desc: {
-  type: DataTypes.STRING,
-    validate: {
-      isValid() {
-        if (this.desc && this.desc.length < 2) { // you can access attribute's value by this
-          throw new Error('Invalid desc');
-        }
-      },
-      lengthMax(value) { // the first argument is the value of attribute
-        if (value && value.length >= 10) {
-          return false;
+class User extends Bone {
+  static attributes = {
+    desc: {
+    type: DataTypes.STRING,
+      validate: {
+        isValid() {
+          if (this.desc && this.desc.length < 2) { // you can access attribute's value by this
+            throw new Error('Invalid desc');
+          }
+        },
+        lengthMax(value) { // the first argument is the value of attribute
+          if (value && value.length >= 10) {
+            return false;
+          }
         }
       }
     }
   }
-})
+}
 ```

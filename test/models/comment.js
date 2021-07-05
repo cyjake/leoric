@@ -3,7 +3,7 @@
 const { Bone } = require('../..');
 
 class Comment extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('post', {
       foreignKey: 'articleId'
     });

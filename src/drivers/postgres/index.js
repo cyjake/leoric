@@ -58,7 +58,7 @@ function cast(value, field) {
  */
 function nest(rows, fields, spell) {
   const results = [];
-  const qualifiers = [ spell.Model.aliasName, ...Object.keys(spell.joins) ];
+  const qualifiers = [ spell.Model.tableAlias, ...Object.keys(spell.joins) ];
   let defaultTableIndex = 0;
 
   if (spell.groups.length > 0 && Object.keys(spell.joins).length > 0) {
