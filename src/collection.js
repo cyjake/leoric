@@ -134,15 +134,16 @@ function dispatch(spell, rows, fields) {
  */
 function convert(spell, rows, fields) {
   const results = [];
-  const { joins } = spell;
+  const { groups, joins, columns } = spell;
   const { table, tableAlias } = spell.Model;
 
   // await Post.count()
-  if (rows.length <= 1 && spell.columns.length === 1) {
-    const { type, value, args } = spell.columns[0];
+  if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
+    const { type, value, args } = columns[0];
     if (type === 'alias' && args && args[0].type === 'func') {
       const row = rows[0];
-      return row && row[''] && row[''][value] || 0;
+      const result = row && (row[''] || row[table]);
+      return result && result[value] || 0;
     }
   }
 
