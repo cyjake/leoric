@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "types/index.d.ts",
@@ -19,7 +19,7 @@
     "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
     "test:postgres": "./test/start.sh test/integration/postgres.test.js",
     "test:sqlite": "./test/start.sh test/integration/sqlite.test.js",
-    "coveralls": "./test/start.sh && nyc report --reporter=text-lcov | coveralls",
+    "coveralls": "nyc ./test/start.sh && nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint ./",
     "lint:fix": "eslint . --fix"
   },
@@ -61,9 +61,9 @@
     "mocha": "^8.2.1",
     "mysql": "^2.17.1",
     "mysql2": "^1.7.0",
-    "nyc": "^5.6.0",
+    "nyc": "^15.1.0",
     "pg": "^8.5.1",
     "sinon": "^10.0.0",
-    "sqlite3": "^4.2.0"
+    "sqlite3": "^5.0.2"
   }
 }

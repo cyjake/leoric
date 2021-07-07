@@ -1,3 +1,8 @@
+1.6.1 / 2021-07-07
+==================
+
+  * fix: collection convert should handle tddl results as well (#132)
+
 1.6.0 / 2021-07-06
 ==================
 
