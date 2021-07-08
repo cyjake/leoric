@@ -51,6 +51,7 @@ module.exports = class AbstractDriver {
    * @returns {boolean|number|string|Date}
    */
   uncast(value, type) {
+    if (value == null) return value;
     if (value != null && typeof value === 'object') {
       if (type === JSON && typeof value.toObject === 'function') {
         return JSON.stringify(value.toObject());
@@ -66,6 +67,8 @@ module.exports = class AbstractDriver {
     switch (type) {
       case JSON:
         return JSON.stringify(value);
+      case Date:
+        return value instanceof Date ? value : new Date(value);
       default:
         return value;
     }
