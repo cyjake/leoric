@@ -33,6 +33,12 @@ describe('=> AbstractDriver', function() {
     const date = driver.uncast(dayjs(), Date);
     assert.ok(date instanceof Date);
   });
+
+  it('driver.uncast(Date.now(), Date)', async function() {
+    const date = driver.uncast(1625743838518, Date);
+    assert.ok(date instanceof Date);
+    assert.equal(date.getFullYear(), 2021);
+  });
 });
 
 describe('=> AbstractDriver#logger', function() {
