@@ -126,6 +126,10 @@ module.exports = Bone => {
       return true;
     }
 
+    static get Instance() {
+      return this;
+    }
+
     /**
      * add scope see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-addScope
      *
