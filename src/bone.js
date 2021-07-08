@@ -935,9 +935,7 @@ class Bone {
       }
     }
 
-    const descriptors = {};
     for (const name in attributes) this.loadAttribute(name);
-    Object.defineProperties(this.prototype, descriptors);
 
     Object.defineProperties(this, looseReadonly({
       timestamps,
