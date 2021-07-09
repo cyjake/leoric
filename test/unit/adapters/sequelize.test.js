@@ -715,6 +715,44 @@ describe('=> Sequelize adapter', () => {
     assert.ok(await Post.first);
   });
 
+  it('Model.update(values, { paranoid })', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await Post.update({ title: 'By three thy way opens' }, { where: { title: 'By three they come' }});
+    const result = await Post.first;
+    assert.equal(result.title, 'By three thy way opens');
+    await post.destroy();
+    const res = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }, paranoid: true });
+    assert.equal(res, 0);
+    const post1 = await Post.findByPk(post.id, { paranoid: false });
+    assert.equal(post1.title, 'By three thy way opens');
+    const res1 = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }});
+    assert.equal(res1, 1);
+    const post2 = await Post.findByPk(post.id, { paranoid: false });
+    assert.equal(post2.title, 'By four thy way opens');
+  });
+
+  it('Model.truncate()', async () => {
+    await Promise.all([
+      await Book.create({ name: 'Book of Tyrael', price: 20 }),
+      await Book.create({ name: 'Book of Cain', price: 10 }),
+    ]);
+    assert.equal(await Book.count(), 2);
+
+    await Book.truncate();
+    assert.equal(await Book.count(), 0);
+  });
+
+  it('Model.Instance', async function() {
+    // sequelize models use Model.Instance.prototype to extend instance methods
+    assert.equal(Book.Instance, Book);
+  });
+
+  it('Model.describe()', async function() {
+    const { rows } = await Book.describe();
+    assert(rows);
+    assert(rows.find(row => row.name === 'isbn'));
+  });
+
   it('model.decrement()', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
@@ -815,22 +853,6 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result1.title, 'By four thy way opens');
   });
 
-  it('Model.update(values, { paranoid })', async () => {
-    const post = await Post.create({ title: 'By three they come' });
-    await Post.update({ title: 'By three thy way opens' }, { where: { title: 'By three they come' }});
-    const result = await Post.first;
-    assert.equal(result.title, 'By three thy way opens');
-    await post.destroy();
-    const res = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }, paranoid: true });
-    assert.equal(res, 0);
-    const post1 = await Post.findByPk(post.id, { paranoid: false });
-    assert.equal(post1.title, 'By three thy way opens');
-    const res1 = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }});
-    assert.equal(res1, 1);
-    const post2 = await Post.findByPk(post.id, { paranoid: false });
-    assert.equal(post2.title, 'By four thy way opens');
-  });
-
   it('model.changed(key)', async () => {
     const post = await Post.create({ title: 'By three they come' });
     post.title = 'Hello there';
@@ -867,22 +889,6 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book3.isNewRecord, false);
   });
 
-  it('Model.truncate()', async () => {
-    await Promise.all([
-      await Book.create({ name: 'Book of Tyrael', price: 20 }),
-      await Book.create({ name: 'Book of Cain', price: 10 }),
-    ]);
-    assert.equal(await Book.count(), 2);
-
-    await Book.truncate();
-    assert.equal(await Book.count(), 0);
-  });
-
-  it('Model.Instance', async function() {
-    // sequelize models use Model.Instance.prototype to extend instance methods
-    assert.equal(Book.Instance, Book);
-  });
-
   it('instance.dataValues', async () => {
     const post = Post.instantiate({
       title: 'By three they come', content: 'content'
@@ -890,7 +896,6 @@ describe('=> Sequelize adapter', () => {
     const dataValues = post.dataValues;
     assert(dataValues);
     assert(dataValues.title === 'By three they come');
-
   });
 
   it('get unset attribute should not throw error', async () => {
@@ -907,6 +912,12 @@ describe('=> Sequelize adapter', () => {
     assert(book.name === 'Book1');
     book.setDataValue('hello', 'hello');
     assert(book.hello === 'hello');
+  });
+
+  it('instance.Model', async function() {
+    const book = await Book.create({ name: 'Book of Tyrael', price: 20 });
+    assert.equal(book.Model, Book);
+    assert.equal(book.Model.name, 'Book');
   });
 });
 

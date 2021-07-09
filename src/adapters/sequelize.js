@@ -283,9 +283,10 @@ module.exports = Bone => {
       return spell;
     }
 
-    // static describe() {
-    //   throw new Error('unimplemented');
-    // }
+    static async describe() {
+      const { driver, physicTable: table } = this;
+      return await driver.describeTable(table);
+    }
 
     static async destroy(options = {}) {
       const { where, individualHooks, paranoid } = options;
@@ -514,6 +515,7 @@ module.exports = Bone => {
       // instance update don't need to be paranoid
       return spell.unparanoid;
     }
+
     // EXISTS
     // get isNewRecord() {}
 
@@ -664,6 +666,13 @@ module.exports = Bone => {
     where() {
       const { primaryKey } = this.constructor;
       return { [primaryKey]: this[primaryKey] };
+    }
+
+    /**
+     * An alias of instance constructor. Some legacy code access model name from instance with `this.Model.name`.
+     */
+    get Model() {
+      return this.constructor;
     }
 
     /**
