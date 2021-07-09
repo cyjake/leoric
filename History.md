@@ -1,3 +1,9 @@
+1.6.2 / 2021-07-09
+==================
+
+  * fix: convert datetime in seconds/milliseconds back to Date (#134)
+  * fix: renamed attribute should remain enumerable (#133)
+
 1.6.1 / 2021-07-07
 ==================
 
