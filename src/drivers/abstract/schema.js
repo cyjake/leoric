@@ -29,6 +29,11 @@ module.exports = {
     await this.query(chunks.join(' '));
   },
 
+  async describeTable(table) {
+    const { escapeId } = this;
+    await this.query(`DESCRIBE TABLE ${escapeId(table)}`);
+  },
+
   async addColumn(table, name, params) {
     const { escapeId, Attribute } = this;
     const attribute = new Attribute(name, params);
