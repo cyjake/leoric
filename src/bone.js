@@ -935,25 +935,7 @@ class Bone {
       }
     }
 
-    const descriptors = {};
-    for (const name in attributes) {
-      const descriptor = Object.getOwnPropertyDescriptor(this.prototype, name);
-      descriptors[name] = Object.assign({
-        get() {
-          return this.attribute(name);
-        },
-        set(value) {
-          this.attribute(name, value);
-        },
-      }, Object.keys(descriptor || {}).reduce((result, key) => {
-        if (descriptor[key] != null) result[key] = descriptor[key];
-        return result;
-      }, {}), {
-        enumerable: true,
-        configurable: true,
-      });
-    }
-    Object.defineProperties(this.prototype, descriptors);
+    for (const name in attributes) this.loadAttribute(name);
 
     Object.defineProperties(this, looseReadonly({
       timestamps,
@@ -1046,6 +1028,29 @@ class Bone {
   }
 
   /**
+   * Load attribute definition to merge default getter/setter and custom descriptor on prototype
+   * @param {string} name attribute name
+   */
+  static loadAttribute(name) {
+    const descriptor = Object.getOwnPropertyDescriptor(this.prototype, name);
+    const customDescriptor = Object.keys(descriptor || {}).reduce((result, key) => {
+      if (descriptor[key] != null) result[key] = descriptor[key];
+      return result;
+    }, {});
+    Object.defineProperty(this.prototype, name, {
+      get() {
+        return this.attribute(name);
+      },
+      set(value) {
+        return this.attribute(name, value);
+      },
+      ...customDescriptor,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+
+  /**
    * Rename attribute. Since Bone manages a separate set of names called attributes instead of using the raw columns, we can rename the attribute names, which is transformed from the column names by convention, to whatever name we fancy.
    * @param {string} originalName
    * @param {string} newName
@@ -1064,16 +1069,7 @@ class Bone {
       attributeMap[info.columnName] = info;
       delete attributes[originalName];
       Reflect.deleteProperty(this.prototype, originalName);
-      Object.defineProperty(this.prototype, newName, Object.assign({
-        get() {
-          return this.attribute(newName);
-        },
-        set(value) {
-          return this.attribute(newName, value);
-        },
-        enumerable: true,
-        configurable: true,
-      }, Object.getOwnPropertyDescriptor(this.prototype, newName)));
+      this.loadAttribute(newName);
     }
   }
 

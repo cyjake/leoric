@@ -201,7 +201,6 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result, 1);
   });
 
-
   it('Model.count({ where, paranoid: false })', async () => {
     const books = await Promise.all([
       Post.create({ title: 'By three they come' }),
@@ -759,7 +758,6 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.price, 15);
   });
 
-
   it('model.restore()', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.remove();
@@ -878,6 +876,11 @@ describe('=> Sequelize adapter', () => {
 
     await Book.truncate();
     assert.equal(await Book.count(), 0);
+  });
+
+  it('Model.Instance', async function() {
+    // sequelize models use Model.Instance.prototype to extend instance methods
+    assert.equal(Book.Instance, Book);
   });
 
   it('instance.dataValues', async () => {
