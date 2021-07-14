@@ -898,7 +898,7 @@ describe('=> Sequelize adapter', () => {
     assert(dataValues.title === 'By three they come');
   });
 
-  it('get unset attribute should not throw error', async () => {
+  it('instance.getDataValue(unset) should not throw error', async () => {
     const post = Post.instantiate({
       title: 'By three they come', content: 'content'
     });
@@ -1087,7 +1087,7 @@ describe('Model scope', () => {
   });
 });
 
-describe('model.init with getterMethods and setterMethods', () => {
+describe('Model.init with getterMethods and setterMethods', () => {
 
   const algorithm = 'aes-256-ctr';
   const password = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
@@ -1259,7 +1259,6 @@ describe('validator should work', () => {
 
   class User extends Spine {}
   User.init(attributes);
-
 
   before(async function() {
     await connect({
@@ -1489,7 +1488,7 @@ describe('validator should work', () => {
   });
 });
 
-describe('hint', () => {
+describe('Model.find({ hint })', () => {
   const Spine = sequelize(Bone);
 
   class Post extends Spine {
@@ -1531,5 +1530,37 @@ describe('hint', () => {
       Post.findAll({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
       'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL'
     );
+  });
+});
+
+describe('Transaction', function() {
+  const Spine = sequelize(Bone);
+
+  class User extends Spine {
+    static table = 'users'
+  }
+
+  before(async function() {
+    await connect({
+      Model: Spine,
+      models: [ User ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
+    });
+  });
+
+  it('should be able to manage transaction', async function() {
+    await assert.rejects(async function() {
+      await Spine.transaction(async function(transaction) {
+        await User.create({
+          email: 'justice@heaven.com',
+          nickname: 'Tyrael',
+          status: 1,
+        }, { transaction });
+        throw new Error('what could possibly go wrong?');
+      });
+    }, /go wrong/);
+    assert.equal(await User.count(), 0);
   });
 });
