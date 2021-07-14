@@ -1,3 +1,9 @@
+1.6.3 / 2021-07-14
+==================
+
+  * fix: transaction option passing in sequelize adapter (#136)
+  * fix: this.Model and proper Model.describe() (#135)
+
 1.6.2 / 2021-07-09
 ==================
 
