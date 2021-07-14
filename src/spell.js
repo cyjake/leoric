@@ -533,6 +533,7 @@ class Spell {
 
     this.laters = [];
 
+    // transaction options is passed around in opts.transaction in sequelize adapter
     Object.assign(this, {
       command: 'select',
       columns: [],
@@ -544,7 +545,7 @@ class Spell {
       joins: {},
       skip: 0,
       subqueryIndex: 0
-    }, opts);
+    }, opts.transaction, opts);
 
     const hints = [];
 
