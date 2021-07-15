@@ -11,7 +11,7 @@ const DataTypes = require('./src/data_types');
 const { findDriver } = require('./src/drivers');
 const migrations = require('./src/migrations');
 const sequelize = require('./src/adapters/sequelize');
-const { camelCase } = require('./src/utils/string');
+const { camelCase, heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 
 /**
@@ -253,6 +253,7 @@ Object.assign(Realm, {
   Logger,
   Spell,
   sequelize,
+  heresql,
   ...Hint,
 });
 

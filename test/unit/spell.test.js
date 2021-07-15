@@ -537,7 +537,6 @@ describe('=> raw sql', () => {
     );
   });
 
-
   it('select sub raw query', function() {
     assert.equal(
       Post.where({

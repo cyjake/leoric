@@ -436,9 +436,7 @@ function walkExpr(ast, fn) {
 function copyExpr(ast, fn) {
   ast = fn(ast) || ast;
   if (ast.args) {
-    for (let i = 0; i < ast.args.length; i++) {
-      ast.args[i] = copyExpr(ast.args[i], fn);
-    }
+    ast.args = ast.args.map(arg => copyExpr(arg, fn));
   }
   return ast;
 }
