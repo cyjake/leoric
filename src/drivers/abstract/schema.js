@@ -31,7 +31,7 @@ module.exports = {
 
   async describeTable(table) {
     const { escapeId } = this;
-    await this.query(`DESCRIBE TABLE ${escapeId(table)}`);
+    await this.query(`DESCRIBE ${escapeId(table)}`);
   },
 
   async addColumn(table, name, params) {
