@@ -399,7 +399,7 @@ function createSubspell(spell) {
       }
     });
     if (internal) {
-      const token = copyExpr(JSON.parse(JSON.stringify(condition)), ({ type, value }) => {
+      const token = copyExpr(condition, ({ type, value }) => {
         if (type === 'id') return { type, value };
       });
       subspell.whereConditions.unshift(token);

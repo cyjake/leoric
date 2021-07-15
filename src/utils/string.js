@@ -1,5 +1,7 @@
 'use strict';
 
+const heredoc = require('heredoc');
+
 /**
  * Convert the first charactor of the string from lowercase to uppercase.
  * @param {string} str
@@ -43,10 +45,11 @@ function snakeCase(str) {
 
 /**
  * Convert multiline SQL into single line for better logging
- * @param {string} text
+ * @param {string|Function} text
  * @returns {string}
  */
 function heresql(text) {
+  if (typeof text === 'function') text = heredoc(text);
   return text.trim().split('\n').map(line => line.trim()).join(' ');
 }
 
