@@ -1,45 +1,49 @@
 'use strict';
 
 const assert = require('assert').strict;
-const path = require('path');
 
-const { connect, Bone } = require('../..');
-const Post = require('../models/post');
-const TagMap = require('../models/tagMap');
-const Comment = require('../models/comment');
-const Book = require('../models/book');
-const User = require('../models/user');
-const Realm = require('../..');
+const { connect, raw, Bone } = require('../..');
 
-before(async function() {
-  await connect({
-    models: path.resolve(__dirname, '../models'),
-    database: 'leoric',
-    user: 'root',
-    port: process.env.MYSQL_PORT,
-  });
-});
+class Post extends Bone {
+  static table = 'articles'
+  static initialize() {
+    this.hasOne('attachment', { foreignKey: 'articleId' });
+  }
+}
+class TagMap extends Bone {}
+class Comment extends Bone {}
+class Book extends Bone {}
+class User extends Bone {}
+class Attachment extends Bone {}
 
 describe('=> Spell', function() {
+  before(async function() {
+    Bone.driver = null;
+    await connect({
+      models: [ Post, TagMap, Comment, Book, User, Attachment ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
+    });
+  });
+
   it('rejects query if not connected yet', async () => {
     class Note extends Bone {};
     await assert.rejects(async () => await Note.all);
   });
 
   it('supports error convention with nodeify', async () => {
-    const result = await new Promise((resolve, reject) => {
+    const post = await new Promise((resolve, reject) => {
       Post.create({ title: 'Gettysburg Address' }).nodeify((err, result) => {
         if (err) reject(err);
         else resolve(result);
       });
     });
-    assert.ok(result instanceof Post);
-    assert.ok(result.id);
-    assert.equal(result.title, 'Gettysburg Address');
+    assert.ok(post instanceof Post);
+    assert.ok(post.id);
+    assert.equal(post.title, 'Gettysburg Address');
   });
-});
 
-describe('=> Insert', function() {
   it('insert', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
@@ -55,9 +59,7 @@ describe('=> Insert', function() {
       "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
-});
 
-describe('=> Select', function() {
   it('where object condition', function() {
     assert.equal(
       Post.where({ title: { $like: '%Post%' } }).toString(),
@@ -472,9 +474,7 @@ describe('=> Select', function() {
       'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
     );
   });
-});
 
-describe('=> Update', () => {
   it('increment', () => {
     assert.equal(
       Book.where({ isbn: 9787550616950 }).increment('price').toString(),
@@ -488,10 +488,8 @@ describe('=> Update', () => {
       'UPDATE `books` SET `price` = `price` - 1 WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL'
     );
   });
-});
 
-describe('=> Delete', () => {
-  it('where object condition', function() {
+  it('delete where object condition', function() {
     const sqlString = Post.remove({ title: { $like: '%Post%' } }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL$/.test(sqlString));
   });
@@ -501,38 +499,36 @@ describe('=> Delete', () => {
     assert.equal(sqlString, "DELETE FROM `articles` WHERE `title` LIKE '%Post%'");
   });
 
-  it('set deletedAt', function() {
+  it('soft delete with custom timestamp', function() {
     const sqlString = Post.remove({ title: { $like: '%Post%' }, deletedAt: new Date() }).toString();
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
   });
-});
 
-describe('=> raw sql', () => {
-  it('update', function() {
+  it('update with raw sql', function() {
     assert.equal(
-      User.update({ id: 1 }, { level: Realm.raw('level + 1') }).toString(),
+      User.update({ id: 1 }, { level: raw('level + 1') }).toString(),
       'UPDATE `users` SET `level` = level + 1 WHERE `id` = 1'
     );
 
     assert.equal(
-      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')") }).toString(),
+      User.update({ id: 1 }, { nickname: raw("replace(nickname, 'gta', 'mhw')") }).toString(),
       "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw') WHERE `id` = 1"
     );
 
     assert.equal(
-      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')") }).toString(),
+      User.update({ id: 1 }, { nickname: raw("replace(nickname, 'gta', 'mhw')") }).toString(),
       "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw') WHERE `id` = 1"
     );
 
     assert.equal(
-      User.update({ id: 1 }, { nickname: Realm.raw("replace(nickname, 'gta', 'mhw')"), level: Realm.raw('level + 1') }).toString(),
+      User.update({ id: 1 }, { nickname: raw("replace(nickname, 'gta', 'mhw')"), level: raw('level + 1') }).toString(),
       "UPDATE `users` SET `nickname` = replace(nickname, 'gta', 'mhw'), `level` = level + 1 WHERE `id` = 1"
     );
   });
 
-  it('create', function() {
+  it('create with raw sql', function() {
     assert.equal(
-      Post.create({ title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).toString(),
+      Post.create({ title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).toString(),
       "INSERT INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"
     );
   });
@@ -541,7 +537,7 @@ describe('=> raw sql', () => {
     assert.equal(
       Post.where({
         author_id: {
-          $in: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand())')
+          $in: raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand())')
         }
       }).toString(),
       'SELECT * FROM `articles` WHERE `author_id` IN (SELECT id FROM `users` WHERE level > 10 ORDER BY rand()) AND `gmt_deleted` IS NULL'
@@ -549,7 +545,7 @@ describe('=> raw sql', () => {
 
     assert.equal(
       Post.where({
-        author_id: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
+        author_id: raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
       }).toString(),
       'SELECT * FROM `articles` WHERE `author_id` = (SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1) AND `gmt_deleted` IS NULL'
     );
@@ -557,105 +553,35 @@ describe('=> raw sql', () => {
     assert.equal(
       Post.where({
         author_id: {
-          $gt: Realm.raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
+          $gt: raw('(SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1)')
         }
       }).toString(),
       'SELECT * FROM `articles` WHERE `author_id` > (SELECT id FROM `users` WHERE level > 10 ORDER BY rand() LIMIT 1) AND `gmt_deleted` IS NULL'
     );
   });
 
-  it('order', function() {
+  it('order with raw sql', function() {
     assert.equal(
-      Post.order(Realm.raw("find_in_set(id, '1,2,3')")).toString(),
+      Post.order(raw("find_in_set(id, '1,2,3')")).toString(),
       "SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY find_in_set(id, '1,2,3')"
     );
     assert.equal(
-      User.order(Realm.raw('rand()')).toString(),
+      User.order(raw('rand()')).toString(),
       'SELECT * FROM `users` ORDER BY rand()'
     );
   });
 
-  it('delete', function () {
+  it('delete with raw sql', function () {
     assert.equal(
-      User.remove({ deletedAt: Realm.raw('CURRENT_TIMESTAMP()') }).toString(),
+      User.remove({ deletedAt: raw('CURRENT_TIMESTAMP()') }).toString(),
       'DELETE FROM `users` WHERE `deletedAt` = CURRENT_TIMESTAMP()'
     );
   });
 
-  describe('upsert', function () {
-
-    it('mysql upsert', function() {
-      assert.equal(
-        new Post({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-        "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
-      );
-    });
-
-    describe('postgres upsert', function () {
-      class MyPost extends Bone {
-        static get table() {
-          return 'articles';
-        }
-      }
-      before(async function() {
-        Bone.driver = null;
-        await connect({
-          dialect: 'postgres',
-          host: process.env.POSTGRES_HOST || '127.0.0.1',
-          port: process.env.POSTGRES_PORT,
-          user: process.env.POSTGRES_USER || '',
-          database: 'leoric',
-          models: [ MyPost ],
-          Bone: Bone,
-        });
-      });
-
-      it('upsert', function() {
-        assert.equal(
-          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified" RETURNING "id"'
-        );
-      });
-
-      it('upsert returning multiple columns', function() {
-        assert.equal(
-          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert({ returning: [ 'id', 'title' ] }).toString(),
-          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified" RETURNING "id", "title"'
-        );
-      });
-
-      after(() => {
-        Bone.driver = null;
-      });
-
-    });
-
-    describe('sqlite upsert', function () {
-      class MyPost extends Bone {
-        static get table() {
-          return 'articles';
-        }
-      }
-      before(async function() {
-        Bone.driver = null;
-        await connect({
-          dialect: 'sqlite',
-          database: '/tmp/leoric.sqlite3',
-          models: [ MyPost ],
-          Bone: Bone,
-        });
-      });
-
-      it('upsert', function() {
-        assert.equal(
-          new MyPost({ id: 1, title: 'New Post', createdAt: Realm.raw('CURRENT_TIMESTAMP()'), updatedAt: Realm.raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-          'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified"'
-        );
-      });
-
-      after(() => {
-        Bone.driver = null;
-      });
-    });
+  it('upsert with raw sql', function () {
+    assert.equal(
+      new Post({ id: 1, title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+      "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
   });
 });

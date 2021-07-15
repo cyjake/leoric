@@ -1,7 +1,8 @@
 'use strict';
 
+const assert = require('assert').strict;
 const path = require('path');
-const { connect, Bone } = require('../..');
+const { connect, raw, Bone } = require('../..');
 const { checkDefinitions } = require('./helpers');
 
 before(async function() {
@@ -51,5 +52,16 @@ describe('=> Table definitions (sqlite)', () => {
       id: { dataType: 'integer', primaryKey: true },
       public: { dataType: 'integer', primaryKey: false },
     });
+  });
+});
+
+describe('=> upsert', function () {
+  const Post = require('../models/post');
+
+  it('upsert', function() {
+    assert.equal(
+      new Post({ id: 1, title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
+      'INSERT INTO "articles" ("id", "title", "gmt_modified") VALUES (1, \'New Post\', CURRENT_TIMESTAMP()) ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "gmt_modified"=EXCLUDED."gmt_modified"'
+    );
   });
 });

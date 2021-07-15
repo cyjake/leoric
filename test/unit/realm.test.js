@@ -53,6 +53,14 @@ describe('=> Realm', () => {
     assert.ok(typeof Spine.prototype.setDataValue === 'function');
   });
 
+  it('should accept opts.Bone if it is subclass of Bone', async function() {
+    class Spine extends Bone {}
+    const realm = new Realm({ Bone: Spine });
+    assert.ok(realm.Bone);
+    assert.notEqual(realm.Bone, Bone);
+    assert.equal(realm.Bone, Spine);
+  });
+
   it('should rename opts.db to opts.database', async () => {
     const realm = new Realm({ db: 'leoric' });
     assert.equal(realm.options.database, 'leoric');

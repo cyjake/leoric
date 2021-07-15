@@ -28,16 +28,30 @@ $ npm install
 # 初始化表结构，运行所有测试
 $ npm run test
 # 仅运行单元测试
-$ npm test unit
+$ npm run test:unit
 # 仅运行集成测试
-$ npm test integration
+$ npm run test:integration
 ```
 
 还可以执行单个测试文件，或者使用 `--grep` 选项进一步限定执行范围：
 
 ```bash
 $ npm run test -- test/unit/test.connect.js --grep "should work"
+$ npm run test:unit -- --grep "=> Sequelize adapter"
+$ npm run test:mysql -- --grep "bone.toJSON()"
 ```
+
+如果 `--grep [pattern]` 不够直观，也可以随时改成用 `.only` 来指定用例：
+
+```js
+describe('=> Spell', function() {
+  it.only('supports error convention with nodeify', async function() {
+    // asserts
+  });
+});
+```
+
+提交代码之前记得将 `.only` 移除掉。
 
 ## 编写帮助文档
 

@@ -23,17 +23,33 @@ $ brew service start postgres
 
 ```bash
 $ npm install
+# prepare table schema, run all tests
+$ npm run test
 # run unit tests
-$ npm test unit
+$ npm run test:unit
 # run integration tests
-$ npm test integration
+$ npm run test:integration
 ```
 
 To be more specific, we can filter test files and cases:
 
 ```bash
 $ npm run test -- test/unit/test.connect.js --grep "should work"
+$ npm run test:unit --grep "=> Sequelize adapter"
+$ npm run test:mysql --grep "bone.toJSON()"
 ```
+
+If `--grep [pattern]` isn't specific enough, we can always insert `.only`:
+
+```js
+describe('=> Spell', function() {
+  it.only('supports error convention with nodeify', async function() {
+    // asserts
+  });
+});
+```
+
+Please remember to remove them before commit.
 
 ## Working on Documentations
 

@@ -7,7 +7,6 @@ const { Bone, connect, sequelize, DataTypes } = require('../../..');
 const { Hint } = require('../../../src/hint');
 const { logger } = require('../../../src/utils');
 
-
 const userAttributes = {
   id: DataTypes.BIGINT,
   gmt_create: DataTypes.DATE,

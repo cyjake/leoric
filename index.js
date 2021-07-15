@@ -66,16 +66,16 @@ function initAttributes(model, columns) {
   model.init(attributes);
 }
 
-async function loadModels(Bone, models, opts) {
+async function loadModels(Spine, models, opts) {
   const { database } = opts;
   const tables = models.map(model => model.physicTable);
-  const schemaInfo = await Bone.driver.querySchemaInfo(database, tables);
+  const schemaInfo = await Spine.driver.querySchemaInfo(database, tables);
 
   for (const model of models) {
     const columns = schemaInfo[model.physicTable];
     if (!model.attributes) initAttributes(model, columns);
     model.load(columns);
-    Bone.models[model.name] = model;
+    Spine.models[model.name] = model;
   }
 
   for (const model of models) {
@@ -85,6 +85,7 @@ async function loadModels(Bone, models, opts) {
 }
 
 function createSpine(opts) {
+  if (opts.Bone && opts.Bone.prototype instanceof Bone) return opts.Bone;
   if (opts.sequelize) return sequelize(Bone);
   if (opts.subclass !== true) return Bone;
   return class Spine extends Bone {};
@@ -121,25 +122,15 @@ class Realm {
   }
 
   define(name, attributes, opts = {}, descriptors = {}) {
-    const { Bone } = this;
-    const Model = class extends Bone {
-      // export Model: instance.Model.name
-      get Model() {
-        return Model;
-      }
-      // export Model: class.Model.name
-      static get Model() {
-        return Model;
-      }
+    const Model = class extends this.Bone {
+      static name = name;
     };
-    Object.defineProperty(Model, 'name', { value: name });
     Model.init(attributes, opts, descriptors);
     Bone.models[name] = Model;
     return Model;
   }
 
   async connect() {
-    const { Bone } = this;
     const { models: dir } = this.options;
 
     let models;
@@ -149,9 +140,11 @@ class Realm {
       models = Object.values(this.models);
     }
 
-    if (models.length > 0) await loadModels(Bone, models, this.options);
+    if (models.length > 0) {
+      await loadModels(this.Bone, models, this.options);
+    }
     this.connected = true;
-    return Bone;
+    return this.Bone;
   }
 
   async sync() {
@@ -238,8 +231,9 @@ class Realm {
  * @param {string|Bone[]} opts.models - an array of models
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
-const connect = async function connect(opts = {}) {
-  if (Bone.driver) throw new Error('connected already');
+const connect = async function connect(opts) {
+  opts = { Bone, ...opts };
+  if (opts.Bone.driver) throw new Error('connected already');
   const realm = new Realm(opts);
   return await realm.connect();
 };

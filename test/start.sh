@@ -4,9 +4,12 @@ args=
 
 function run {
   file=$1;
+  if [ "${args[0]}" = "${file}" ]; then
+    args=("${args[@]:1}");
+  fi
   echo "";
-  echo "> DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args}";
-  DEBUG=leoric mocha --exit --timeout 5000 ${file} ${args} || exit $?;
+  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --exit --timeout 5000 ${file}";
+  printf '"%s" ' "${args[@]}" | DEBUG=leoric xargs mocha --exit --timeout 5000 ${file} || exit $?;
 }
 
 ##
@@ -14,9 +17,7 @@ function run {
 function unit {
   # recursive glob nor available in bash 3
   # - https://unix.stackexchange.com/questions/49913/recursive-glob
-  for file in $(ls test/unit/{,drivers/,drivers/*/,adapters/}*.test.js); do
-    run ${file};
-  done
+  run "$(ls test/unit/{,drivers/,drivers/*/,adapters/}*.test.js)";
 }
 
 ##
@@ -27,15 +28,15 @@ function integration {
 
 case $1 in
   unit)
-    args="${@:2}"
+    args=("${@:2}")
     unit
     ;;
   integration)
-    args="${@:2}"
+    args=("${@:2}")
     integration
     ;;
   *.js)
-    args="${@:1}"
+    args=("${@:1}")
     run $1
     ;;
   *)

@@ -63,6 +63,7 @@ describe('hooks', function() {
     });
 
     beforeEach(async () => {
+      Bone.driver = null;
       await connect({
         port: process.env.MYSQL_PORT,
         user: 'root',

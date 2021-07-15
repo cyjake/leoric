@@ -23,8 +23,7 @@ let stub;
 before(() => {
   stub = sinon.stub(logger, 'warn').callsFake((message) => {
     throw new Error(message);
-    }
-  );
+  });
 });
 
 after(() => {

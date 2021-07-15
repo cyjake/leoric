@@ -937,11 +937,11 @@ class Spell {
     this.$having(conditions, ...values);
     const { havingConditions } = this;
     const len = havingConditions.length;
-    const condition = havingConditions.slice(1, len - 1).reduce((result, condition) => {
+    const combined = havingConditions.slice(1, len - 1).reduce((result, condition) => {
       return { type: 'op', name: 'and', args: [result, condition] };
     }, havingConditions[0]);
     this.havingConditions = [
-      { type: 'op', name: 'or', args: [condition, havingConditions[len - 1]] }
+      { type: 'op', name: 'or', args: [combined, havingConditions[len - 1]] }
     ];
     return this;
   }
