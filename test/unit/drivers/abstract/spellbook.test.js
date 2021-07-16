@@ -13,6 +13,7 @@ describe('=> Spellbook', function() {
   }
 
   before(async function() {
+    Bone.driver = null;
     await connect({
       models: [ User, Post ],
       database: 'leoric',

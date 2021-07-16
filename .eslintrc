@@ -20,6 +20,7 @@
     "no-underscore-dangle": 0,
     "no-use-before-define": [2, "nofunc"],
     "no-unused-vars": [2, { "vars": "all", "args": "none", "ignoreRestSiblings": true }],
+    "no-shadow": 2,
     "keyword-spacing": "error",
     "eol-last": "error"
   }

@@ -37,6 +37,22 @@ describe('connect', function() {
     assert.equal(Bone.driver, null);
   });
 
+  it('connect with custom Bone', async function() {
+    class Spine extends Bone {}
+    class Book extends Spine {}
+    await connect({
+      port: process.env.MYSQL_PORT,
+      user: 'root',
+      database: 'leoric',
+      Bone: Spine,
+      models: [ Book ],
+    });
+    assert.equal(Bone.driver, null);
+    assert.equal(Book.driver, Spine.driver);
+    assert.ok(Spine.driver);
+    assert.ok(Book.synchronized);
+  });
+
   it('connect models passed in opts.models (init with primaryKey)', async function() {
     const { STRING, BIGINT } = DataTypes;
     class Book extends Bone {
@@ -78,7 +94,7 @@ describe('connect', function() {
   });
 
   it('initialize model attributes if not defined in model itself', async () => {
-    const Book = require('../models/book');
+    class Book extends Bone {}
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',

@@ -1,10 +1,8 @@
 'use strict';
 
 const assert = require('assert').strict;
-const path = require('path');
 
-const { connect } = require('../..');
-const Post = require('../models/post');
+const { connect, Bone } = require('../..');
 
 const { Hint, IndexHint, INDEX_HINT_TYPE, INDEX_HINT_SCOPE } = require('../../src/hint');
 
@@ -49,9 +47,14 @@ describe('IndexHint', () => {
 });
 
 describe('MySQL', async () => {
+  class Post extends Bone {
+    static table = 'articles'
+  }
+
   before(async function() {
+    Bone.driver = null;
     await connect({
-      models: path.resolve(__dirname, '../models'),
+      models: [ Post ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,

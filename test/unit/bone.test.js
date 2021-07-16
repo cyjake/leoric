@@ -7,6 +7,7 @@ const { BIGINT, STRING, DATE } = DataTypes;
 
 describe('=> Bone', function() {
   before(async function() {
+    Bone.driver = null;
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',

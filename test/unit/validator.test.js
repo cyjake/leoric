@@ -70,6 +70,7 @@ describe('validator', () => {
   User.init(attributes);
 
   before(async function() {
+    Bone.driver = null;
     await connect({
       models: [ User ],
       database: 'leoric',
