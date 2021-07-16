@@ -126,7 +126,7 @@ class Realm {
       static name = name;
     };
     Model.init(attributes, opts, descriptors);
-    Bone.models[name] = Model;
+    this.Bone.models[name] = Model;
     return Model;
   }
 
