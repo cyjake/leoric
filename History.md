@@ -1,3 +1,10 @@
+1.6.4 / 2021-07-16
+==================
+
+  * refactor: connect({ Bone }) still necessary (#139)
+  * fix: formatting select join with subqueries should not tamper the subquery itself (#138)
+  * fix: describe table with more compatible syntax (#137)
+
 1.6.3 / 2021-07-14
 ==================
 
