@@ -552,6 +552,7 @@ describe('=> Realm', () => {
         port: process.env.MYSQL_PORT,
         user: 'root',
         database: 'leoric',
+        Bone: class extends Bone {},
       });
 
       const User = realm.define('User', {
@@ -583,6 +584,7 @@ describe('=> Realm', () => {
       });
 
       assert(realm.Bone.models.User);
-    })
-  })
+      assert(realm.Bone.models.User === User);
+    });
+  });
 });
