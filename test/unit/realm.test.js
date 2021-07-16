@@ -545,4 +545,44 @@ describe('=> Realm', () => {
       assert(all.length === 0);
     });
   });
+
+  describe('realm.define', () => {
+    it('should work', async () => {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+
+      const User = realm.define('User', {
+        id: DataTypes.BIGINT,
+        gmt_create: DataTypes.DATE,
+        gmt_deleted: DataTypes.DATE,
+        email: {
+          type: DataTypes.STRING(256),
+          allowNull: false,
+          unique: true,
+        },
+        nickname: {
+          type: DataTypes.STRING(256),
+          allowNull: false,
+        },
+        meta: {
+          type: DataTypes.JSON,
+        },
+        status: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 1,
+        },
+        desc: {
+          type: DataTypes.STRING,
+        },
+        birthday: DataTypes.DATE,
+        sex: DataTypes.STRING,
+      });
+
+      assert(realm.Bone.models.User);
+    })
+  })
 });
