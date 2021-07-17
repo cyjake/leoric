@@ -45,7 +45,11 @@ describe('=> Sequelize adapter', () => {
     }
 
     set name(value) {
-      this.attribute('name', value == 'Book of Eli' ? 'Book of Tyrael' : value);
+      this.setDataValue('name', value == 'Book of Eli' ? 'Book of Tyrael' : value);
+    }
+
+    get slug() {
+      return this.getDataValue('name').replace(/[^a-z]/gi, '-').toLowerCase();
     }
   };
 
@@ -57,7 +61,7 @@ describe('=> Sequelize adapter', () => {
 
   before(async () => {
     await connect({
-      Model: Spine,
+      Bone: Spine,
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
       models: [ Book, Post ],
@@ -418,7 +422,21 @@ describe('=> Sequelize adapter', () => {
     assert.ok(posts[1].createdAt > posts[2].createdAt);
   });
 
-  it('Model.findAll({ order }) malformed', async () => {
+  it('Mode.findAll({ order: [] })', async function() {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    const posts = await Post.findAll({
+      order: [ 'title', 'desc' ],
+    });
+    assert.equal(posts.length, 2);
+    assert.equal(posts[0].title, 'Tyrael');
+    assert.equal(posts[1].title, 'Leah');
+  });
+
+  it('Model.findAll({ order: <malformed> })', async () => {
     const posts = await Post.findAll({
       order: [ null ],
     });
@@ -573,6 +591,66 @@ describe('=> Sequelize adapter', () => {
     assert(!post3);
   });
 
+  it('Model.findOrBuild()', async function() {
+    const { id } = await Post.create({ title: 'Leah' });
+    const [ post, isNewRecord ] = await Post.findOrBuild({
+      where: { title: 'Leah' },
+    });
+    assert.equal(post.id, id);
+    assert.equal(isNewRecord, false);
+  });
+
+  it('Model.findOrBuild({ defaults })', async function() {
+    const { id } = await Post.create({ title: 'Leah' });
+    const [ post, isNewRecord ] = await Post.findOrBuild({
+      where: { title: 'Tyrael' },
+    });
+    assert.notEqual(post.id, id);
+    assert.equal(post.id, null);
+    assert.equal(isNewRecord, true);
+  });
+
+  it('Model.findOrCreate()', async function() {
+    const { id } = await Post.create({ title: 'Leah' });
+    const [ post, isNewRecord ] = await Post.findOrCreate({
+      where: { title: 'Leah' },
+    });
+    assert.equal(post.id, id);
+    assert.equal(isNewRecord, false);
+  });
+
+  it('Model.findOrCreate({ defaults })', async function() {
+    const { id } = await Post.create({ title: 'Leah' });
+    const [ post, isNewRecord ] = await Post.findOrCreate({
+      where: { title: 'Tyrael' },
+      defaults: { content: 'I am Justice itself!' },
+    });
+    assert.notEqual(post.id, id);
+    assert.notEqual(post.id, null);
+    assert.equal(post.title, 'Tyrael');
+    assert.equal(post.content, 'I am Justice itself!');
+    assert.equal(isNewRecord, true);
+    assert.equal(await Post.count(), 2);
+  });
+
+  it('Model.findCreateFind()', async function() {
+    const result = await Promise.all([
+      Post.create({ id: 1, title: 'Leah' }),
+      Post.findCreateFind({
+        where: { id: 1 },
+        defaults: { id: 1, title: 'Tyrael' },
+      }),
+    ]);
+    assert.equal(result[0].id, 1);
+    assert.equal(result[1].id, 1);
+    assert.equal(result[1].title, 'Leah');
+  });
+
+  it('Model.getTableName()', async function() {
+    assert.equal(Post.getTableName(), 'articles');
+    assert.equal(Book.getTableName(), 'books');
+  });
+
   it('Model.max(attribute)', async () => {
     await Promise.all([
       await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -702,7 +780,20 @@ describe('=> Sequelize adapter', () => {
     await Book.increment({ price: 2 }, { where: { isbn }, paranoid: false });
     await book.reload();
     assert.equal(book.price, 15);
+  });
 
+  it('Model.removeAttribute()', async function() {
+    const Model = sequelize(Bone);
+    class User extends Model {};
+    await connect({
+      Bone: Model,
+      models: [ User ],
+      dialect: 'sqlite',
+      database: '/tmp/leoric.sqlite3',
+    });
+    assert(User.attributes.birthday);
+    User.removeAttribute('birthday');
+    assert(User.attributes.birthday == null);
   });
 
   it('Model.restore()', async () => {
@@ -913,6 +1004,42 @@ describe('=> Sequelize adapter', () => {
     assert(book.hello === 'hello');
   });
 
+  it('instance.get(name)', async function() {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    // went through getter
+    assert.equal(book.get('slug'), 'book-of-cain');
+    assert.equal(book.getDataValue('name'), 'Book of Cain');
+    assert.ok(book.getDataValue('slug') == null);
+  });
+
+  it('instance.get()', async function() {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    const result = book.get();
+    assert.equal(result.name, 'Book of Cain');
+    assert.equal(result.price, 42);
+  });
+
+  it('instance.set(name)', async function() {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    assert.equal(book.name, 'Book of Cain');
+    book.set('name', 'Book of Eli');
+    assert.equal(book.name, 'Book of Tyrael');
+    book.setDataValue('name', 'Book of Eli');
+    assert.equal(book.name, 'Book of Eli');
+  });
+
+  it('instance.isSoftDeleted()', async function() {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    assert.equal(book.isSoftDeleted(), false);
+    await book.destroy();
+    assert.equal(book.isSoftDeleted(), true);
+  });
+
+  it('instance.where()', async function() {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    assert(book.where());
+  });
+
   it('instance.Model', async function() {
     const book = await Book.create({ name: 'Book of Tyrael', price: 20 });
     assert.equal(book.Model, Book);
@@ -962,7 +1089,7 @@ describe('Model scope', () => {
 
   before(async () => {
     await connect({
-      Model: Spine,
+      Bone: Spine,
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
       models: [ Post, User ],

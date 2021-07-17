@@ -16,23 +16,18 @@ function translateOptions(spell, options) {
     if (typeof order === 'string') {
       spell.$order(order);
     } else if (Array.isArray(order) && order.length) {
-      const isMultiple = order.some(item=> Array.isArray(item));
-      if (isMultiple) {
+      if (order.some(item => Array.isArray(item))) {
         // [['created_at', 'asc'], ['id', 'desc']]
-        order.map(cond => {
-          if (cond.length && cond[0]) {
-            spell.$order(cond[0], cond[1] || '');
-          }
-        });
+        for (const pair of order) {
+          if (pair[0]) spell.$order(pair[0], pair[1] || '');
+        }
       } else if (order.some((item) => /^(.+?)\s+(asc|desc)$/i.test(item))) {
-        // ['created desc', 'id asc']
-        order.map(cond => {
-          if (cond) {
-            spell.$order(cond);
-          }
-        });
+        // ['created_at desc', 'id asc']
+        for (const pair of order) {
+          if (pair) spell.$order(pair);
+        }
       } else if (order.length && order[0]) {
-        // ['created', 'asc']
+        // ['created_at', 'asc']
         spell.$order(order[0], order[1] || '');
       }
     }
@@ -432,11 +427,10 @@ module.exports = Bone => {
     }
 
     static removeAttribute(name) {
-      const { definition, schema, schemaMap } = this;
-      const columnInfo = schema[name];
-      delete schema[name];
-      delete schemaMap[columnInfo.columnName];
-      delete definition[name];
+      const { attributes, attributeMap } = this;
+      const columnInfo = attributes[name];
+      delete attributes[name];
+      delete attributeMap[columnInfo.columnName];
     }
 
     static restore(options = {}) {
