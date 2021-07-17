@@ -1,5 +1,6 @@
 node_modules
 tmp
+coverage
 .nyc_output
 docs/Gemfile.lock
 package-lock.json

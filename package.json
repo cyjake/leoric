@@ -20,7 +20,7 @@
     "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
     "test:postgres": "./test/start.sh test/integration/postgres.test.js",
     "test:sqlite": "./test/start.sh test/integration/sqlite.test.js",
-    "coveralls": "nyc ./test/start.sh && nyc report --reporter=text-lcov | coveralls",
+    "test:coverage": "nyc ./test/start.sh && nyc report --reporter=lcov",
     "lint": "eslint ./",
     "lint:fix": "eslint . --fix"
   },

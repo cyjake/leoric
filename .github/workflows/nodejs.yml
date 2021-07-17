@@ -36,18 +36,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: Install PostgreSQL client & SQLite
       run: |
         sudo apt-get install -y postgresql-client sqlite3 libsqlite3-dev
+
     - name: npm install, build, and test
       run: |
         npm install
+        npm install coveralls
         npm run build --if-present
-        npm test
+        npm run pretest
+        npm run test:coverage
       env:
         CI: true
         # use localhost for the host here because we are running the job on the VM.
@@ -57,3 +62,9 @@ jobs:
         POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
         MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
         MYSQL_ROOT_PASSWORD: password
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ${{ github.workspace }}/coverage/lcov.info
