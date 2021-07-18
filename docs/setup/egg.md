@@ -1,9 +1,9 @@
 ---
 layout: en
-title: Setup Leoric in Egg Applications
+title: Setup with Egg / Chair / Midway
 ---
 
-To reduce the effort to setup Leoric in Egg applications, a specific Egg plugin called [egg-orm](https://github.com/eggjs/egg-orm) is provided.
+To reduce the effort to setup Leoric in Egg applications, a specific Egg plugin called [egg-orm](https://github.com/eggjs/egg-orm) is provided. Those frameworks that are built on top of Egg, such as Chair and [Midway](https://midwayjs.org/), can all be supported with [egg-orm](https://github.com/eggjs/egg-orm) as well.
 
 ## Table of Contents
 {:.no_toc}
@@ -38,6 +38,25 @@ module.exports = function(app) {
   }, {
     tableName: 'users',
   });
+}
+```
+
+Or even better, define models in `app/model` with `class` syntax like below:
+
+```js
+// app/model/user.js
+module.exports = function(app) {
+  const { Bone } = app.model;
+  const { STRING } = app.model.DataTypes;
+
+  return class User extends Bone {
+    static table = 'users'
+    static attributes = {
+      name: STRING,
+      password: STRING,
+      avatar: STRING(2048),
+    }
+  };
 }
 ```
 

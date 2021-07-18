@@ -15,7 +15,7 @@ title: 数据校验
 
 模型的属性定义可以设置该属性是否可为空，在进行模型同步时会根据设置条件生成相应的数据表字段属性特征( `NOT NULL` 或者 `NULL` )，且模型实例属性设值时不符合空值检查时会抛出错误
 
-```javascript
+```js
 const { Bone, DataTypes } = require('leoric');
 
 class User extends Bone {
@@ -42,7 +42,7 @@ User.create({ name: 'OldHunter' }); // throw LeoricValidateError('notNull'); ema
 
 可通过 `unique` 设置字段的唯一约束
 
-```javascript
+```js
 const { Bone, DataTypes } = require('leoric');
 
 class User extends Bone {
@@ -67,7 +67,7 @@ CREATE TABLE `users` (
 
 leoric 除了提供 [validator.js](https://github.com/validatorjs/validator.js) 包含的验证器作为内置验证器外还提供以下的内置验证
 
-```javascript
+```js
 class User extends Bone {
   static attributes = {
     var: {
@@ -94,7 +94,7 @@ class User extends Bone {
 
 内置验证器支持传入自定义错误信息，验证失败时不再抛出 leoric 默认的错误信息
 
-```javascript
+```js
 class User extends Bone {
   static attributes = {
     var: {
@@ -115,7 +115,8 @@ class User extends Bone {
 ```
 ## 自定义验证器
 leoric 也支持自定义验证器，只需要传入函数即可，在自定义验证器中可使用 `this` 来访问模型的函数或属性值，同时在验证不通过时你既可以在验证器中直接抛出错误，也可以返回 `false` ，leoric 会根据返回值进行下一步处理
-```javascript
+
+```js
 class User extends Bone {
   static attributes = {
     desc: {

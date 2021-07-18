@@ -19,7 +19,7 @@ layout: default
             <li><a href="{{ '/zh/associations' | relative_url }}">关联关系</a></li>
             <li><a href="{{ '/zh/querying' | relative_url }}">查询接口</a></li>
             <li><a href="{{ '/zh/hooks' | relative_url }}">钩子</a></li>
-            <li><a href="{{ '/zh/logging' | relative_url }}">[wip] 日志</a></li>
+            <li><a href="{{ '/zh/logging' | relative_url }}">日志</a></li>
             <li><a href="{{ '/zh/sequelize' | relative_url }}">Sequelize 适配器</a></li>
           </ul>
         </li>
@@ -34,7 +34,7 @@ layout: default
           <a href="{{ '/api' | relative_url }}">API</a>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/' | relative_url }}">English</a>
+          <a href="{{ page.url | replace: '/zh', '' | relative_url }}">English</a>
         </li>
       </ul>
     </nav>
