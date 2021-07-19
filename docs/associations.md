@@ -47,7 +47,7 @@ A `belongsTo()` association sets up a one-to-one or many-to-one relationship. Fo
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop')
   }
 }
@@ -57,7 +57,7 @@ Leoric locates the model class `Shop` automatically by capitalizing `shop` as th
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop', { className: 'Seller' })
   }
 }
@@ -73,7 +73,7 @@ To override foreign key, we can specify it explicitly:
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop', { foreignKey: 'sellerId' })
   }
 }
@@ -89,7 +89,7 @@ If you look this ER diagram from the shops point of view, you may notice that th
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items')
   }
 }
@@ -103,7 +103,7 @@ To override the model name, we can specify it explicitly:
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items', { className: 'Commodity' })
   }
 }
@@ -113,7 +113,7 @@ As you can tell from the ER diagram, the foreign key used to join two tables is 
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items', { foreignKey: 'sellerId' })
   }
 }
@@ -137,7 +137,7 @@ A shop can have as many tags as it see fit. And a tag can be related to as many 
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     // the extra where is needed if you fancy this generic tag system
     this.hasMany('tagMaps', { foreignKey: 'targetId', where: { targetType: 0 } })
     this.hasMany('tags', { through: 'tagMaps' })
@@ -149,7 +149,7 @@ On `Tag`'s side:
 
 ```js
 class Tag extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
   }
@@ -160,7 +160,7 @@ If suddenly our business requires us to apply the tag system to items too, the c
 
 ```diff
 class Tag extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
 +   this.hasMany('itemTagMaps', { className: 'TagMap', where: { targetType: 1 } })
@@ -185,7 +185,7 @@ In this example, a user has one shop:
 
 ```js
 class User extends Bone {
-  static describe() {
+  static initialize() {
     this.hasOne('shop', { foreignKey: 'ownerId' })
   }
 }
@@ -195,7 +195,7 @@ And the shop belongs to the user:
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('owner', { className: 'User' })
   }
 }

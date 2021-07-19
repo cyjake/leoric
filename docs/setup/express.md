@@ -1,6 +1,6 @@
 ---
 layout: en
-title: Setup Leoric in Express
+title: Setup with Express
 ---
 
 ## Table of Contents

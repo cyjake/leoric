@@ -322,3 +322,111 @@ await Shop.remove({ name: 'Barracks' })
 ```
 
 如果 `Shop` 数据模型没有 `deletedAt` 属性，而 `model.remove()`、`Model.remove()` 方法并没有传递 `true`，Leoric 将抛出异常。
+
+## 属性方法
+
+### attribute()
+
+### getter / setter
+
+
+## 脏检查
+
+### changed()
+
+对于已经存到数据库的记录来说，只有重新设置过属性，才会认为属性有改动：
+
+```js
+const user = await User.first;  // => { name: 'James', login: 'james' }
+user.name = 'Jimmy';
+user.changed();  // => [ 'name' ]
+user.login = 'jimmy';
+user.changed();  // => [ 'name', 'login' ]
+```
+
+对于新初始化的模型实例，会认为所有的属性都被改了（从 null 设置成当前值）
+
+```js
+const user = new User({ name: 'Jimmy', login: 'Jimmy' });
+user.changed();  // => [ 'name', 'login' ]
+```
+
+实例保存之后，会重置属性改动判断
+
+```js
+const user = new User({ name: 'Jimmy', login: 'Jimmy' });
+user.changed();  // => [ 'name', 'login' ]
+await user.save();
+user.changed();  // => false
+```
+
+这里需要注意的是，如果没有属性改动，将返回 false 而不是空数组 `[]` 。这是有意为之，目的是和现有其他库的 API 保持一致。如果需要返回值类型固定，可以考虑使用 `changes()` ，后者的返回类型始终为对象。
+
+### changes()
+
+`changes()` 是 `changed()` 的孪生版本，两者判断属性是否有改动的逻辑是一致的。最主要的区别是， `changes()` 返回的是对象而不是数组，对象中包含有改动的属性在改动之前的值和当前的值。
+
+```js
+const user = new User({ name: 'Jimmy', login: 'Jimmy' });
+user.changes();  // => { name: [ null, 'Jimmy' ], login: [ null, 'login' ] }
+```
+
+此外，即便没有属性改动， `changes()` 也会返回 `{}` ，它的返回类型始终为对象。
+
+### previousChanged()
+
+我们可以使用 `previousChanged()` 来检查模型是否之前有过改动，即使刚刚保存过。
+
+```js
+const user = new User({ name: 'Jimmy' });
+user.changed();          // => [ 'name' ]
+user.previousChanged();  // => false
+await user.save();
+user.changed();          // => false
+user.previousChanged();  // => [ 'name' ]
+```
+
+一般情况下不太会需要使用 `previousChanged()` ，但是在一些需要事后判断变更的场景，比如 `afterCreate` 或者 `afterUpdate` 回调，会特别方便：
+
+```js
+User.init(attributes, {
+  hooks: {
+    afterUpdate(obj) {
+      this.previousChanged();  // => check if changed previously or not
+    },
+  },
+});
+```
+
+和 `changes()` 类似，可以用 `previousChanges()` 读取前一个变更版本的具体值。
+
+### previousChanges()
+
+```js
+const user = new User({ name: 'Jimmy' });
+user.changes();          // => { name: [ null, 'Jimmy' ] }
+user.previousChanges();  // => {}
+await user.save();
+user.changes();          // => {}
+user.previousChanged();  // => { name: [ null, 'Jimmy' ] }
+```
+
+可以使用 `preivousChanges(name)` 读取单个属性的变更记录：
+
+```js
+const user = new User({ name: 'Jimmy', login: 'jimmy' });
+user.changes('login');          // => { name: [ null, 'jimmy' ] }
+user.previousChanges('login');  // => {}
+await user.save();
+user.changes('login');          // => {}
+user.previousChanged('login');  // => { name: [ null, 'jimmy' ] }
+```
+
+`previousChanges()` 和 `changes()` 的逻辑基本一样，只是对比是前一个版本而非属性当前值。
+
+
+## 数据校验
+
+## 钩子
+
+## 迁移任务
