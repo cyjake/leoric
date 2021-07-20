@@ -21,6 +21,8 @@ CREATE TABLE `attachments` (
   `gmt_modified` timestamp(3) NULL,
   `article_id` bigint(20) NOT NULL,
   `url` varchar(1000) DEFAULT NULL,
+  `width` int,
+  `height` int,
   `gmt_deleted` timestamp(3) NULL
 );
 

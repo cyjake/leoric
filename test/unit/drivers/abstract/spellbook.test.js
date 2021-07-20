@@ -5,6 +5,7 @@ const { connect, heresql, Bone } = require('../../../..');
 
 describe('=> Spellbook', function() {
   class User extends Bone {}
+  class Attachment extends Bone {}
   class Post extends Bone {
     static table = 'articles'
     static initialize() {
@@ -15,7 +16,7 @@ describe('=> Spellbook', function() {
   before(async function() {
     Bone.driver = null;
     await connect({
-      models: [ User, Post ],
+      models: [ User, Post, Attachment ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,
@@ -50,6 +51,13 @@ describe('=> Spellbook', function() {
              AND `posts`.`gmt_deleted` IS NULL
         */}));
       });
+    });
+
+    it('should format arithmetic operators as is', async function() {
+      const query = Attachment.where('width/height > 16/9');
+      assert.equal(query.toString(), heresql(function() {/*
+        SELECT * FROM `attachments` WHERE `width` / `height` > 16 / 9 AND `gmt_deleted` IS NULL
+      */}));
     });
   });
 });
