@@ -17,7 +17,7 @@ function run {
 function unit {
   # recursive glob nor available in bash 3
   # - https://unix.stackexchange.com/questions/49913/recursive-glob
-  run "$(ls test/unit/{,drivers/,drivers/*/,adapters/}*.test.js)";
+  run "$(ls test/unit/{,drivers/,drivers/*/,adapters/,utils/}*.test.js)";
 }
 
 ##
