@@ -26,6 +26,10 @@ describe('=> Attribute (postgres)', function() {
       type: DATE,
     });
     assert.equal(attribute.toSqlString(), '"created_at" TIMESTAMP WITH TIME ZONE');
+    const attribute1 =  new Attribute('createdAt', {
+      type: new DATE(null, false),
+    });
+    assert.equal(attribute1.toSqlString(), '"created_at" TIMESTAMP WITHOUT TIME ZONE');
   });
 
   it('should support WITHOUT TIME ZONE', async function() {
