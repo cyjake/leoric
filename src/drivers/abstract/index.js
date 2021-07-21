@@ -21,10 +21,10 @@ module.exports = class AbstractDriver {
    * @param {Object|Date|string|Boolean} type
    * @returns {Object|Date|string|boolean}
    */
-  cast(value, type) {
+  cast(value, jsType) {
     if (value == null) return value;
 
-    switch (type) {
+    switch (jsType) {
       case JSON:
         if (!value) return null;
         // type === JSONB

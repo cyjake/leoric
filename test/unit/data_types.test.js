@@ -2,11 +2,12 @@
 
 const assert = require('assert').strict;
 const DataTypes = require('../../src/data_types');
-const {
-  STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB
-} = DataTypes;
 
 describe('=> Data Types', () => {
+  const {
+    STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB
+  } = DataTypes;
+
   it('STRING', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
@@ -46,8 +47,16 @@ describe('=> Data Types', () => {
   });
 });
 
-describe('findType()', () => {
+describe('DataTypes.findType()', () => {
+  const { TEXT } = DataTypes;
   it('longtext => TEXT', () => {
-    assert.strictEqual(DataTypes.findType('longtext'), TEXT);
+    assert.equal(DataTypes.findType('longtext'), TEXT);
+  });
+});
+
+describe('DataTypes.invokable', function() {
+  const { STRING } = DataTypes.invokable;
+  it('should wrap data types to support flexible invoking', async function() {
+    assert.equal(STRING(255).toSqlString(), 'VARCHAR(255)');
   });
 });

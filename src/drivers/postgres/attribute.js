@@ -9,9 +9,7 @@ class PostgresAttribute extends Attribute {
     super(name, params, opts);
   }
 
-  static get DataTypes() {
-    return DataTypes;
-  }
+  static DataTypes = DataTypes.invokable;
 
   toSqlString() {
     const {

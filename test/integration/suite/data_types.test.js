@@ -7,10 +7,8 @@ const { INTEGER, STRING, DATE, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
 
 
 describe('=> Data types', () => {
-  class Note extends Bone {};
-  before(async () => {
-    await Note.driver.dropTable('notes');
-    Note.init({
+  class Note extends Bone {
+    static attributes = {
       id: { type: INTEGER, primaryKey: true },
       title: STRING,
       body: TEXT,
@@ -18,7 +16,10 @@ describe('=> Data types', () => {
       createdAt: DATE,
       updatedAt: DATE,
       publishedAt: DATE(6),
-    });
+    }
+  };
+  before(async () => {
+    await Note.driver.dropTable('notes');
     await Note.sync();
   });
 
@@ -65,18 +66,19 @@ describe('=> Data types', () => {
 describe('=> Data types - JSON', () => {
 
   it('=> init', async () => {
-    class Note extends Bone {};
-    Note.init({
-      id: { type: INTEGER, primaryKey: true },
-      title: STRING,
-      body: TEXT,
-      isPrivate: BOOLEAN,
-      createdAt: DATE,
-      updatedAt: DATE,
-      publishedAt: DATE(6),
-      meta: JSON,
-      metab: JSONB,
-    });
+    class Note extends Bone {
+      static attributes = {
+        id: { type: INTEGER, primaryKey: true },
+        title: STRING,
+        body: TEXT,
+        isPrivate: BOOLEAN,
+        createdAt: DATE,
+        updatedAt: DATE,
+        publishedAt: DATE(6),
+        meta: JSON,
+        metab: JSONB,
+      }
+    }
     await Note.sync();
     await Note.create({ title: 'Leah',  meta: { foo: 1, baz: 'baz' }, metab: { foo: 2, baz: 'baz1' } });
     const foundNote = await Note.first;
