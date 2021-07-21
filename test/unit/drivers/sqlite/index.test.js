@@ -3,8 +3,8 @@
 const assert = require('assert').strict;
 const strftime = require('strftime');
 
-const { heresql } = require('../../../src/utils/string');
-const SqliteDriver = require('../../../src/drivers/sqlite');
+const { heresql } = require('../../../../src/utils/string');
+const SqliteDriver = require('../../../../src/drivers/sqlite');
 
 const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = SqliteDriver.prototype.DataTypes;
 
@@ -64,6 +64,7 @@ describe('=> SQLite driver', () => {
     await driver.createTable('notes', {
       id: { type: BIGINT, primaryKey: true, autoIncrement: true },
       public: { type: INTEGER },
+      has_image: { type: BOOLEAN, defaultValue: false },
     });
   });
 

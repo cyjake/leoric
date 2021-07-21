@@ -202,7 +202,7 @@ class JSONB extends DataType {
   }
 }
 
-const DataTypes = [
+const DataTypes = {
   STRING,
   INTEGER,
   BIGINT,
@@ -212,10 +212,19 @@ const DataTypes = [
   BLOB,
   JSON,
   JSONB,
-];
+};
 
-for (const klass of DataTypes) {
-  DataType[klass.name] = invokable(klass);
-}
+Object.assign(DataType, DataTypes);
+Object.defineProperty(DataType, 'invokable', {
+  get() {
+    return new Proxy(this, {
+      get(target, p) {
+        const value = target[p];
+        if (DataTypes.hasOwnProperty(p)) return invokable(value);
+        return value;
+      }
+    });
+  },
+});
 
 module.exports = DataType;

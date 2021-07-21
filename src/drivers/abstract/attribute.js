@@ -2,22 +2,16 @@
 
 const debug = require('debug')('leoric');
 
-const DataTypes = require('../../data_types');
 const { snakeCase } = require('../../utils/string');
 
 /**
  * Find the corresponding JavaScript type of the type in database.
  * @param {string} dataType
  */
-function findJsType(type, defaultDataType) {
-  // MySQL stores BOOLEAN as TINYINT(1)
-  if (type instanceof DataTypes.BOOLEAN) {
-    return Boolean;
-  }
-
-  const dataType = defaultDataType || type.dataType;
-
+function findJsType(dataType) {
   switch (dataType.toLowerCase().split('(')[0]) {
+    case 'boolean':
+      return Boolean;
     case 'bigint':
     case 'mediumint':
     case 'smallint':
@@ -81,6 +75,7 @@ class Attribute {
    * @param {boolean} opts.underscored
    */
   constructor(name, params, { underscored } = {}) {
+    const { DataTypes } = this.constructor;
     if (params instanceof Attribute) return params;
     const columnName = underscored === false ? name : snakeCase(name);
     if (params == null) return Object.assign(this, { name, columnName });
@@ -90,7 +85,7 @@ class Attribute {
     if (typeof params === 'function' || params instanceof DataTypes) {
       params = { type: params };
     }
-    const type = createType(this.constructor.DataTypes, params);
+    const type = createType(DataTypes, params);
     const dataType = params.dataType || type.dataType;
     Object.assign(this, {
       name,
@@ -102,7 +97,7 @@ class Attribute {
       ...params,
       type,
       dataType,
-      jsType: findJsType(type, dataType),
+      jsType: type instanceof DataTypes.BOOLEAN ? Boolean : findJsType(dataType),
     });
   }
 

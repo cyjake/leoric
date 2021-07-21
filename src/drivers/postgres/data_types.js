@@ -10,7 +10,7 @@ class Postgres_DATE extends DataTypes.DATE {
 
   toSqlString() {
     const { timezone } = this;
-    if (timezone) return `${super.toSqlString()} WITH TIME ZONE}`;
+    if (timezone) return `${super.toSqlString()} WITH TIME ZONE`;
     return `${super.toSqlString()} WITHOUT TIME ZONE`;
   }
 }
