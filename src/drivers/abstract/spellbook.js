@@ -203,29 +203,12 @@ function formatOpExpr(spell, ast) {
     } else {
       throw new Error(`Invalid operator ${name} against ${args[1].value}`);
     }
-  } else if (args[1].type == 'op' && Array.isArray(args[1].args) && !isLogicalOp(ast)) {
+  }
+  else if (args[1].type == 'op' && Array.isArray(args[1].args) && !isLogicalOp(ast) && isLogicalOp(args[1])) {
     let innerOp = args[1].name;
     if ([ 'or', 'and' ].includes(innerOp)) {
-      /*
-        * {
-        *   title: {
-        *     $or: [
-        *       'Leah',
-        *       'Diablo',
-        *     ]
-        *   }
-        * }
-        * {
-        *   title: {
-        *     $or: [
-        *       'Leah',
-        *       {
-        *         $like: '%jjj'
-        *       },
-        *     ]
-        *   }
-        * }
-      **/
+      // { title: { $or: [ 'Leah', 'Diablo' ] } }
+      // { title: { $or: [ 'Leah', { $like: '%jjj' } ] } }
       const expr = [];
       const leftValue = { type: 'id', value: args[0].value };
       for (const arg of args[1].args) {
@@ -236,25 +219,14 @@ function formatOpExpr(spell, ast) {
             args: [ leftValue, arg ],
           };
           expr.push(formatExpr(spell, innerAst));
-        }
-        else {
+        } else {
           arg.args[0] = leftValue;
           expr.push(formatExpr(spell, arg));
         }
-
       }
       return `(${expr.join(` ${innerOp.toUpperCase()} `)})`;
     } else if ('not' === innerOp) {
-    /*
-     * {
-     *   title: {
-     *     $not: [
-     *       'Leah',
-     *       'jss'
-     *     ]
-     *   }
-     * }
-     **/
+      // { title: { $not: [ 'Leah', 'jss' ] } }
       const expr = [];
       const leftValue = { type: 'id', value: args[0].value };
       // if all args are literal, it should be `NOT IN (?, ?, ?)`
@@ -281,10 +253,7 @@ function formatOpExpr(spell, ast) {
         }
       }
       return `(NOT (${expr.join(' AND ')}))`;
-    } else {
-      throw new Error(`Invalid operator ${innerOp} against ${args[1].value}`);
     }
-
   } else if (params[1] !== '') {
     return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
   }
