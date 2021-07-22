@@ -1,3 +1,12 @@
+1.6.6 / 2021-07-22
+==================
+
+  * fix: subclassing data type in dialects (#145)
+  * fix: where('width / height >= 16 / 9') (#144)
+  * docs: logging and sequelzie adapter (zh) (#142)
+  * test: include test/unit/utils (#143)
+  * test: more tests cases about sequelize adapter (#141)
+
 1.6.5 / 2021-07-16
 ==================
 
