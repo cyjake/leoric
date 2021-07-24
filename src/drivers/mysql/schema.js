@@ -38,8 +38,7 @@ module.exports = {
         columnName: row.column_name,
         columnType: row.column_type,
         columnComment: row.column_comment,
-        // It seems there is NO NEED to assign defaultValue from schema info, otherwise it may increase SQL execution cost
-        // defaultValue: row.column_default,
+        defaultValue: row.column_default,
         dataType: row.data_type,
         allowNull: row.is_nullable === 'YES',
         primaryKey: row.column_key == 'PRI',

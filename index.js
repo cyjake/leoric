@@ -55,10 +55,13 @@ function initAttributes(model, columns) {
   const attributes = {};
 
   for (const columnInfo of columns) {
-    const { columnName, dataType } = columnInfo;
+    const { columnName, dataType, defaultValue, ...restInfo } = columnInfo;
     const name = columnName == '_id' ? columnName : camelCase(columnName);
+    // leave out defaultValue to let database take over the default
     attributes[name] = {
-      ...columnInfo,
+      ...restInfo,
+      columnName,
+      dataType,
       type: model.driver.DataTypes.findType(dataType),
     };
   }

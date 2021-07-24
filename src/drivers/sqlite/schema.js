@@ -100,7 +100,7 @@ module.exports = {
       return this.query(`PRAGMA table_info(${this.escapeId(table)})`);
     });
     const results = await Promise.all(queries);
-    const schema = {};
+    const schemaInfo = {};
     for (let i = 0; i < tables.length; i++) {
       const table = tables[i];
       const { rows } = results[i];
@@ -110,18 +110,17 @@ module.exports = {
         const result = {
           columnName: name,
           columnType,
-          // It seems there is NO NEED to assign defaultValue from table schema, otherwise it may increase SQL execution cost
-          // defaultValue: parseDefaultValue(dflt_value),
+          defaultValue: parseDefaultValue(dflt_value),
           dataType: columnType.split('(')[0],
           allowNull: primaryKey ? false : notnull == 0,
           primaryKey,
         };
         return result;
       });
-      if (columns.length > 0) schema[table] = columns;
+      if (columns.length > 0) schemaInfo[table] = columns;
     }
 
-    return schema;
+    return schemaInfo;
   },
 
   async createTable(table, attributes, opts = {}) {
@@ -171,8 +170,8 @@ module.exports = {
 
   async changeColumn(table, name, params) {
     const attribute = new Attribute(name, params);
-    const schema = await this.querySchemaInfo(null, table);
-    const columns = schema[table];
+    const schemaInfo = await this.querySchemaInfo(null, table);
+    const columns = schemaInfo[table];
 
     for (const entry of columns) {
       if (entry.columnName === attribute.columnName) {

@@ -6,7 +6,7 @@ const strftime = require('strftime');
 const { heresql } = require('../../../../src/utils/string');
 const SqliteDriver = require('../../../../src/drivers/sqlite');
 
-const { INTEGER, BIGINT, STRING, DATE, BOOLEAN } = SqliteDriver.prototype.DataTypes;
+const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.prototype.DataTypes;
 
 const options = {
   database: '/tmp/leoric.sqlite3',
@@ -68,7 +68,7 @@ describe('=> SQLite driver', () => {
     });
   });
 
-  it('driver.truncateTable(table', async () => {
+  it('driver.truncateTable(table)', async () => {
     await driver.dropTable('notes');
     await driver.createTable('notes', {
       id: { type: BIGINT, primaryKey: true, autoIncrement: true },
@@ -78,6 +78,52 @@ describe('=> SQLite driver', () => {
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 1);
     await driver.truncateTable('notes');
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
+  });
+
+  it('driver.alterTable(table, changes)', async function() {
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+      title: { type: STRING, allowNull: false },
+    });
+    await driver.alterTable('notes', {
+      params: { type: JSONB },
+    });
+    const { rows } = await driver.describeTable('notes');
+    assert.deepEqual(rows.pop(), {
+      cid: 2,
+      name: 'params',
+      type: 'JSON',
+      notnull: 0,
+      dflt_value: null,
+      pk: 0
+    });
+  });
+
+  it('driver.alterTable(table, changes) should not break table', async function() {
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+      title: { type: new STRING(255) },
+    });
+    await driver.query('INSERT INTO notes (title) VALUES (NULL)');
+    await assert.rejects(async function() {
+      await driver.alterTable('notes', {
+        title: { type: new STRING(127), allowNull: false, modify: true },
+      });
+    }, /NOT NULL/);
+    // should rollback if failed to alter table
+    const { rows } = await driver.describeTable('notes');
+    assert.deepEqual(rows.pop(),   {
+      cid: 1,
+      name: 'title',
+      type: 'VARCHAR(255)',
+      notnull: 0,
+      dflt_value: null,
+      pk: 0
+    });
+    const result = await driver.query('SELECT * FROM notes');
+    assert.equal(result.rows.length, 1);
   });
 });
 

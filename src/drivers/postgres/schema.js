@@ -48,11 +48,11 @@ module.exports = {
 
     const { pool } = this;
     const { rows } = await pool.query(text, [database, tables]);
-    const schema = {};
+    const schemaInfo = {};
 
     for (const row of rows) {
       const tableName = row.table_name;
-      const columns = schema[tableName] || (schema[tableName] = []);
+      const columns = schemaInfo[tableName] || (schemaInfo[tableName] = []);
       let { data_type: dataType, character_octet_length: length } = row;
 
       if (dataType === 'character varying') dataType = 'varchar';
@@ -61,8 +61,7 @@ module.exports = {
       columns.push({
         columnName: row.column_name,
         columnType: length > 0 ? `${dataType}(${length})` : dataType,
-        // It seems there is NO NEED to assign defaultValue from table schema, otherwise it may increase SQL execution cost
-        // defaultValue: primaryKey ? null : row.column_default,
+        defaultValue: primaryKey ? null : row.column_default,
         dataType,
         allowNull: row.is_nullable !== 'NO',
         // https://www.postgresql.org/docs/9.5/infoschema-table-constraints.html
@@ -71,7 +70,7 @@ module.exports = {
       });
     }
 
-    return schema;
+    return schemaInfo;
   },
 
   async alterTable(table, changes) {
