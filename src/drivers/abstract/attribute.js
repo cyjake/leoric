@@ -8,7 +8,10 @@ const { snakeCase } = require('../../utils/string');
  * Find the corresponding JavaScript type of the type in database.
  * @param {string} dataType
  */
-function findJsType(dataType) {
+function findJsType(DataTypes, type, dataType) {
+  if (type instanceof DataTypes.BOOLEAN) return Boolean;
+  if (type instanceof DataTypes.JSON) return JSON;
+
   switch (dataType.toLowerCase().split('(')[0]) {
     case 'boolean':
       return Boolean;
@@ -97,7 +100,7 @@ class Attribute {
       ...params,
       type,
       dataType,
-      jsType: type instanceof DataTypes.BOOLEAN ? Boolean : findJsType(dataType),
+      jsType: findJsType(DataTypes, type, dataType),
     });
   }
 

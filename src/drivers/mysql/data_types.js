@@ -14,9 +14,7 @@ class Mysql_BOOLEAN extends DataTypes.BOOLEAN {
 }
 
 class Mysql_DataTypes extends DataTypes {
-  static get BOOLEAN() {
-    return Mysql_BOOLEAN;
-  }
+  static BOOLEAN = Mysql_BOOLEAN;
 }
 
 module.exports = Mysql_DataTypes;

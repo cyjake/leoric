@@ -15,10 +15,20 @@ class Postgres_DATE extends DataTypes.DATE {
   }
 }
 
-class Postgres_DataTypes extends DataTypes {
-  static get DATE() {
-    return Postgres_DATE;
+class Postgres_JSONB extends DataTypes.JSONB {
+  constructor() {
+    super();
+    this.dataType = 'jsonb';
   }
+
+  toSqlString() {
+    return 'JSONB';
+  }
+}
+
+class Postgres_DataTypes extends DataTypes {
+  static DATE = Postgres_DATE;
+  static JSONB = Postgres_JSONB;
 }
 
 module.exports = Postgres_DataTypes;

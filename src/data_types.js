@@ -156,25 +156,35 @@ class BOOLEAN extends DataType {
   }
 }
 
+const LENGTH_VARIANTS = [ 'tiny', '', 'medium', 'long' ];
+
 class TEXT extends DataType {
-  constructor() {
+  constructor(length = '') {
+    if (!LENGTH_VARIANTS.includes(length)) {
+      throw new Error(`invalid blob length: ${length}`);
+    }
     super();
     this.dataType = 'text';
+    this.length = length;
   }
 
   toSqlString() {
-    return this.dataType.toUpperCase();
+    return [ this.length, this.dataType ].join('').toUpperCase();
   }
 }
 
 class BLOB extends DataType {
-  constructor() {
+  constructor(length = '') {
+    if (!LENGTH_VARIANTS.includes(length)) {
+      throw new Error(`invalid blob length: ${length}`);
+    }
     super();
-    this.dataType = 'longblob';
+    this.dataType = 'blob';
+    this.length = length;
   }
 
   toSqlString() {
-    return this.dataType.toUpperCase();
+    return [ this.length, this.dataType ].join('').toUpperCase();
   }
 }
 
@@ -182,7 +192,7 @@ class BLOB extends DataType {
 class JSON extends DataType {
   constructor() {
     super();
-    this.dataType = 'json';
+    this.dataType = 'text';
   }
 
   toSqlString() {
@@ -191,14 +201,16 @@ class JSON extends DataType {
 }
 
 // JSON binary type, available in postgreSQL or mySQL 5.7 +
+// - https://dev.mysql.com/doc/refman/8.0/en/json.html
+// - https://www.postgresql.org/docs/9.4/datatype-json.html
 class JSONB extends DataType {
   constructor() {
     super();
-    this.dataType = 'jsonb';
+    this.dataType = 'json';
   }
 
   toSqlString() {
-    return 'json';
+    return 'JSON';
   }
 }
 

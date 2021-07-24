@@ -5,13 +5,14 @@ const DataTypes = require('../../src/data_types');
 
 describe('=> Data Types', () => {
   const {
-    STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB
+    STRING, BOOLEAN, DATE, INTEGER, BIGINT, TEXT, JSON, JSONB, BLOB
   } = DataTypes;
 
   it('STRING', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
+    assert.equal(new STRING(255).BINARY.toSqlString(), 'VARCHAR(255) BINARY');
   });
 
   it('BOOLEAN', () => {
@@ -28,22 +29,40 @@ describe('=> Data Types', () => {
   it('INTEGER', () => {
     assert.equal(new INTEGER().dataType, 'integer');
     assert.equal(new INTEGER(10).toSqlString(), 'INTEGER(10)');
+    assert.equal(new INTEGER().UNSIGNED.toSqlString(), 'INTEGER UNSIGNED');
+    assert.equal(new INTEGER().UNSIGNED.ZEROFILL.toSqlString(), 'INTEGER UNSIGNED ZEROFILL');
   });
 
   it('BIGINT', () => {
     assert.equal(new BIGINT().dataType, 'bigint');
+    assert.equal(new BIGINT().UNSIGNED.toSqlString(), 'BIGINT UNSIGNED');
   });
 
   it('TEXT', () => {
     assert.equal(new TEXT().dataType, 'text');
+    assert.equal(new TEXT().toSqlString(), 'TEXT');
+    assert.equal(new TEXT('tiny').toSqlString(), 'TINYTEXT');
+    assert.equal(new TEXT('medium').toSqlString(), 'MEDIUMTEXT');
+    assert.equal(new TEXT('long').toSqlString(), 'LONGTEXT');
   });
 
   it('JSON', () => {
-    assert.equal(new JSON().dataType, 'json');
+    // JSON type is actually stored as TEXT
+    assert.equal(new JSON().dataType, 'text');
+    assert.equal(new JSON().toSqlString(), 'TEXT');
   });
 
   it('JSONB', () => {
-    assert.equal(new JSONB().dataType, 'jsonb');
+    assert.equal(new JSONB().dataType, 'json');
+    assert.equal(new JSONB().toSqlString(), 'JSON');
+  });
+
+  it('BLOB', function() {
+    assert.equal(new BLOB().dataType, 'blob');
+    assert.equal(new BLOB().toSqlString(), 'BLOB');
+    assert.equal(new BLOB('tiny').toSqlString(), 'TINYBLOB');
+    assert.equal(new BLOB('medium').toSqlString(), 'MEDIUMBLOB');
+    assert.equal(new BLOB('long').toSqlString(), 'LONGBLOB');
   });
 });
 

@@ -43,14 +43,14 @@ class Collection extends Array {
    * Save the collection. Currently the changes are made concurrently but NOT in a transaction.
    * @returns {Bone[]}
    */
-  save() {
-    if (this.length === 0) return Promise.resolve(this);
+  async save() {
+    if (this.length === 0) return this;
 
     if (this.some(element => !element.save)) {
       throw new Error('Collection contains element that cannot be saved.');
     }
 
-    return Promise.all(this.map(element => element.save()));
+    return await Promise.all(this.map(element => element.save()));
   }
 }
 
@@ -104,24 +104,28 @@ function dispatch(spell, rows, fields) {
       results.push(current);
     }
 
-    for (const qualifier in spell.joins) {
-      const { Model, hasMany } = spell.joins[qualifier];
-      // mysql2 nests rows with table name instead of table alias.
-      const values = row[qualifier] || row[Model.table];
-      const id = values[Model.primaryColumn];
-      if (hasMany) {
-        if (!current[qualifier]) current[qualifier] = new Collection();
-        if (!id || current[qualifier].some(item => item[Model.primaryKey] == id)) continue;
-        current[qualifier].push(Model.instantiate(values));
-      } else {
-        current[qualifier] = Object.values(values).some(value => value != null)
-          ? Model.instantiate(values)
-          : null;
-      }
-    }
+    dispatchJoins(current, spell, row, fields);
   }
 
   return results;
+}
+
+function dispatchJoins(current, spell, row, fields) {
+  for (const qualifier in spell.joins) {
+    const { Model, hasMany } = spell.joins[qualifier];
+    // mysql2 nests rows with table name instead of table alias.
+    const values = row[qualifier] || row[Model.table];
+    const id = values[Model.primaryColumn];
+    if (hasMany) {
+      if (!current[qualifier]) current[qualifier] = new Collection();
+      if (!id || current[qualifier].some(item => item[Model.primaryKey] == id)) continue;
+      current[qualifier].push(Model.instantiate(values));
+    } else {
+      current[qualifier] = Object.values(values).some(value => value != null)
+        ? Model.instantiate(values)
+        : null;
+    }
+  }
 }
 
 /**

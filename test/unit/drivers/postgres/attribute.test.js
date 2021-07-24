@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Attribute = require('../../../../src/drivers/postgres/attribute');
-const { BIGINT, INTEGER, DATE } = Attribute.DataTypes;
+const { BIGINT, INTEGER, DATE, JSONB } = Attribute.DataTypes;
 
 describe('=> Attribute (postgres)', function() {
   it('should support BIGSERIAL', async function() {
@@ -40,5 +40,10 @@ describe('=> Attribute (postgres)', function() {
       type: DATE(6),
     });
     assert.equal(attribute.toSqlString(), '"updated_at" TIMESTAMP(6) WITH TIME ZONE');
+  });
+
+  it('should support JSON binary', async function() {
+    const attribute = new Attribute('params', { type: JSONB });
+    assert.equal(attribute.toSqlString(), '"params" JSONB');
   });
 });
