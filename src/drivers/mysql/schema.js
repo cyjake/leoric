@@ -24,7 +24,7 @@ module.exports = {
     `);
 
     const { rows } = await this.query(sql, [ database, tables ]);
-    const schema = {};
+    const schemaInfo = {};
 
     for (const entry of rows) {
       // make sure the column names are in lower case
@@ -33,12 +33,12 @@ module.exports = {
         return obj;
       }, {});
       const tabelName = row.table_name;
-      const columns = schema[tabelName] || (schema[tabelName] = []);
+      const columns = schemaInfo[tabelName] || (schemaInfo[tabelName] = []);
       columns.push({
         columnName: row.column_name,
         columnType: row.column_type,
         columnComment: row.column_comment,
-        // It seems there is NO NEED to assign defaultValue from table schema, otherwise it may increase SQL execution cost
+        // It seems there is NO NEED to assign defaultValue from schema info, otherwise it may increase SQL execution cost
         // defaultValue: row.column_default,
         dataType: row.data_type,
         allowNull: row.is_nullable === 'YES',
@@ -47,7 +47,7 @@ module.exports = {
       });
     }
 
-    return schema;
+    return schemaInfo;
   },
 
   /**
@@ -76,25 +76,5 @@ module.exports = {
       CHANGE COLUMN ${escapeId(columnName)} ${attribute.toSqlString()}
     `);
     await this.query(sql);
-  },
-
-  /**
-   * @param {Object} opts.attributes
-   * @param {Array | boolean} updateOnDuplicate enable 'ON DUPLICATE KEY UPDATE'/'ON CONFLICT DO UPDATE SET' or not
-   */
-  updateOnDuplicate(opts = {}) {
-    if (!opts.updateOnDuplicate) return null;
-    const { escapeId } = this;
-    const { attributes } = opts;
-    let columns;
-
-    if (Array.isArray(opts.updateOnDuplicate) && opts.updateOnDuplicate.length) {
-      columns = opts.updateOnDuplicate;
-    } else {
-      columns = attributes.map(attribute => attribute.columnName);
-    }
-
-    const sets = columns.map(column => `${escapeId(column)}=VALUES(${escapeId(column)})`);
-    return `ON DUPLICATE KEY UPDATE ${sets.join(', ')}`;
   },
 };

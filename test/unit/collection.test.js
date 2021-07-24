@@ -8,9 +8,15 @@ describe('=> Collection', function() {
     static table = 'articles'
   }
 
+  class User extends Bone {
+    static initialize() {
+      this.hasMany('posts', { foreignKey: 'authorId' });
+    }
+  }
+
   before(async function() {
     await connect({
-      models: [ Post ],
+      models: [ User, Post ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,
@@ -37,11 +43,28 @@ describe('=> Collection', function() {
 
   it('should not destruct result if query is grouped', async function() {
     const result = Collection.init({
-      spell: Post.group('author_id').count(),
+      spell: Post.group('authorId').count(),
       rows: [ { '': { count: 1 } } ],
       fields: [],
     });
     // merge the qualifier layer
     assert.deepEqual(result, [ { count: 1 } ]);
+  });
+
+  it('should call element.toJSON', async function() {
+    const result = new Collection({ toJSON: () => 1 }, 2);
+    assert.deepEqual(result.toJSON(), [ 1, 2 ]);
+  });
+
+  it('should call element.toObject', async function() {
+    const result = new Collection({ toObject: () => 1 }, 3);
+    assert.deepEqual(result.toObject(), [ 1, 3 ]);
+  });
+
+  it('should reject if not all of the elements can be saved', async function() {
+    const result = new Collection(1, 2);
+    assert.rejects(async function() {
+      return await result.save();
+    }, /cannot be saved/);
   });
 });
