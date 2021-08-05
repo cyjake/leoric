@@ -470,7 +470,7 @@ class Bone {
       if (typeof this[key] !== 'function') {
         const value = this[key];
         if (value != null) {
-          obj[key] = typeof value.toJSON === 'function' ? value.toJSON() : value;
+          obj[key] = value instanceof Bone ? value.toJSON() : value;
         }
       }
     }
