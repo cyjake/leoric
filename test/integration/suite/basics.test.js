@@ -404,13 +404,11 @@ describe('=> Integration', function() {
     const post = await Post.findOne({ title: 'New Post' });
     const result = post.toJSON();
 
-    delete result.updatedAt;
-    delete result.createdAt;
-
     expect(result).to.be.an('object');
     expect(result.id).to.be.ok();
     expect(result.title).to.equal('New Post');
     expect(result.extra).to.eql({ versions: [2, 3] });
+    assert(result.createdAt instanceof Date);
   });
 
   it('bone.toJSON() with missing attributes', async function() {
