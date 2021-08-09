@@ -590,6 +590,7 @@ function formatInsert(spell) {
   const { createdAt } = Model.timestamps;
   const { escapeId } = Model.driver;
   let columns = [];
+  let updateOnDuplicateColumns = [];
 
   let values = [];
   let placeholders = [];
@@ -611,7 +612,11 @@ function formatInsert(spell) {
       }
     }
 
-    columns = attributes.map(entry => entry.columnName);
+    for (const entry of attributes) {
+      columns.push(entry.columnName);
+      if (updateOnDuplicate && createdAt && entry.name === createdAt) continue;
+      updateOnDuplicateColumns.push(entry.columnName);
+    }
 
     for (const entry of sets) {
       if (shardingKey && entry[shardingKey] == null) {
@@ -619,7 +624,6 @@ function formatInsert(spell) {
       }
       for (const attribute of attributes) {
         const { name } = attribute;
-        if (updateOnDuplicate && createdAt && name === createdAt) continue;
         values.push(entry[name]);
       }
       placeholders.push(`(${new Array(attributes.length).fill('?').join(',')})`);
@@ -632,13 +636,14 @@ function formatInsert(spell) {
     for (const name in sets) {
       const value = sets[name];
       // upsert should not update createdAt
-      if (updateOnDuplicate && createdAt && name === createdAt) continue;
       columns.push(Model.unalias(name));
       if (value && value.__raw) {
         values.push(SqlString.raw(value.value));
       } else {
         values.push(value);
       }
+      if (updateOnDuplicate && createdAt && name === createdAt) continue;
+      updateOnDuplicateColumns.push(Model.unalias(name));
     }
   }
 
@@ -656,7 +661,7 @@ function formatInsert(spell) {
   } else {
     chunks.push(`VALUES (${columns.map(_ => '?').join(', ')})`);
   }
-  chunks.push(this.formatUpdateOnDuplicate(spell, columns));
+  chunks.push(this.formatUpdateOnDuplicate(spell, updateOnDuplicateColumns));
   chunks.push(this.formatReturning(spell));
   return {
     sql: chunks.join(' ').trim(),

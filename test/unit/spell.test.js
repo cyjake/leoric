@@ -56,7 +56,7 @@ describe('=> Spell', function() {
     const date = new Date(2017, 11, 12);
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
-      "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
+      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
 
@@ -581,7 +581,7 @@ describe('=> Spell', function() {
   it('upsert with raw sql', function () {
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-      "INSERT INTO `articles` (`id`, `title`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
+      "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
 });
