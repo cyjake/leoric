@@ -169,12 +169,53 @@ class Realm {
    * @memberof Realm
    */
   async query(query, values, opts = {}) {
-    const { rows, fields, ...others } = await this.driver.query(query, values, opts);
+    let res, fieldRes, restRes = {};
+    if (values && typeof values === 'object' && !Array.isArray(values)) {
+      query = query + ' ';
+      let valueResults = [];
+      const replaceTemplates = query.match(/\s:\w+\s/g);
+      const templateKeys = replaceTemplates.map((t) => t.trim().split(':')[1]);
+      let replacementKeys;
+      let replacements = {};
+      if ('replacements' in values) {
+        const { model, connection } = values;
+        replacements = values.replacements;
+        if (replacements == null) {
+          throw new Error('[leoric] replacements not match with values in raw query');
+        }
+        if (model) opts.model = model;
+        if (connection) opts.connection = connection;
+      } else {
+        replacements = values;
+      }
+      replacementKeys = Object.keys(replacements);
+      if (replaceTemplates.length > replacementKeys.length) {
+        throw new Error('[leoric] replacements not match with values in raw query');
+      }
+      for (const templateKey of templateKeys) {
+        if (!replacementKeys.includes(templateKey)) {
+          throw new Error('[leoric] replacements not match with values in raw query');
+        }
+        valueResults.push(replacements[templateKey]);
+      }
+      query = query.replace(/\s:\w+\s/g, '?');
+
+      const { rows, fields, ...others } = await this.driver.query(query, valueResults, opts);
+      restRes = others;
+      res = rows;
+      fieldRes = fields;
+    } else {
+      const { rows, fields, ...others } = await this.driver.query(query, values, opts);
+      restRes = others;
+      res = rows;
+      fieldRes = fields;
+    }
+
     let results = [];
-    if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
+    if (res && res.length && opts.model && opts.model.prototype instanceof this.Bone) {
       const { attributeMap } = opts.model;
 
-      for (const data of rows) {
+      for (const data of res) {
         const instance = opts.model.instantiate(data);
         for (const key in data) {
           if (!attributeMap.hasOwnProperty(key)) instance[key] = data[key];
@@ -183,9 +224,9 @@ class Realm {
       }
     }
     return {
-      rows: results.length? results : rows,
-      fields,
-      ...others
+      rows: results.length? results : res,
+      fields: fieldRes,
+      ...restRes
     };
   }
 

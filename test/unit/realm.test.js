@@ -216,6 +216,185 @@ describe('=> Realm', () => {
       assert(post.authorId === rows1[0].authorId);
       assert(user.nickname === rows1[0].authorName);
     });
+
+    describe('query with replacements', () => {
+      it('should work with ?', async () => {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User, Post ],
+        });
+  
+        await realm.connect();
+        const createdAt = new Date();
+        const post = await Post.create({ title: 'title', authorId: 1, createdAt });
+        const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
+        const { rows } = await realm.query('SELECT * FROM articles where title = ?', ['title1'], { model: Post });
+        assert(rows.length === 1);
+        assert(rows[0] instanceof Post);
+        assert(post1.authorId === rows[0].authorId);
+  
+        // work with join table
+        const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
+
+        const { rows: rows1 } = await realm.query(`
+        SELECT Post.*, users.nickname as authorName 
+          FROM articles as Post 
+          LEFT JOIN users 
+          ON users.id = Post.author_id
+          WHERE users.id = ?
+        `, [ user.id ], { model: Post });
+        assert(rows1.length === 1);
+        assert(rows1[0] instanceof Post);
+        assert(post.authorId === rows1[0].authorId);
+        assert(user.nickname === rows1[0].authorName);
+      });
+
+      it('should work with replacements object', async () => {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User, Post ],
+        });
+  
+        await realm.connect();
+        const createdAt = new Date();
+        const post = await Post.create({ title: 'title', authorId: 1, createdAt });
+        const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
+        const { rows } = await realm.query('SELECT * FROM articles where title = :title', {
+          title: post1.title
+        }, { model: Post });
+        assert(rows.length === 1);
+        assert(rows[0] instanceof Post);
+        assert(post1.authorId === rows[0].authorId);
+  
+        // work with join table
+        const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
+
+        const { rows: rows1 } = await realm.query(`
+          SELECT Post.*, users.nickname as authorName 
+            FROM articles as Post 
+            LEFT JOIN users 
+            ON users.id = Post.author_id 
+            WHERE users.id = :userId
+        `, {
+          userId: user.id
+        }, { model: Post });
+        assert(rows1.length === 1);
+        assert(rows1[0] instanceof Post);
+        assert(post.authorId === rows1[0].authorId);
+        assert(user.nickname === rows1[0].authorName);
+      });
+
+      it('should work with replacements and opts', async () => {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User, Post ],
+        });
+  
+        await realm.connect();
+        const createdAt = new Date();
+        const post = await Post.create({ title: 'title', authorId: 1, createdAt });
+        const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
+        const { rows } = await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
+          replacements: {
+            title: post1.title,
+            authorId: 2
+          },
+          model: Post
+        });
+        assert(rows.length === 1);
+        assert(rows[0] instanceof Post);
+        assert(post1.authorId === rows[0].authorId);
+  
+        // work with join table
+        const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
+
+        const { rows: rows1 } = await realm.query(`
+        SELECT Post.*, users.nickname as authorName 
+          FROM articles as Post 
+          LEFT JOIN users 
+          ON users.id = Post.author_id
+          WHERE users.id = :userId
+          AND users.status = :status
+        `, {
+          replacements: {
+            userId: user.id,
+            status: 1
+          },
+          model: Post
+        });
+        assert(rows1.length === 1);
+        assert(rows1[0] instanceof Post);
+        assert(post.authorId === rows1[0].authorId);
+        assert(user.nickname === rows1[0].authorName);
+      });
+
+      it('should work with empty args', async () => {
+        const realm = new Realm({
+          dialect: 'sqlite',
+          database: '/tmp/leoric.sqlite3',
+          models: [ Post ],
+        });
+  
+        await realm.connect();
+  
+        const createdAt = new Date();
+        await Post.create({ title: 'title', authorId: 1, createdAt });
+        const { rows } = await realm.query('SELECT * FROM articles');
+        assert(rows.length === 1);
+      });
+
+      it('should error', async () => {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User, Post ],
+        });
+  
+        await realm.connect();
+        const createdAt = new Date();
+        const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
+        await assert.rejects(async () => {
+          await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
+            title: post1.title
+          }, { model: Post });
+        }, 'Error: [leoric] replacements not match with values in raw query');
+
+        await assert.rejects(async () => {
+          await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
+            replacements: {
+              title: post1.title,
+            }
+          }, { model: Post });
+        }, 'Error: [leoric] replacements not match with values in raw query');
+
+        await assert.rejects(async () => {
+          await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
+            replacements: {
+              title: post1.title,
+              hello: 'ye'
+            }
+          }, { model: Post });
+        }, 'Error: [leoric] replacements not match with values in raw query');
+
+        await assert.rejects(async () => {
+            await realm.query('SELECT * FROM articles where title = :title', {
+              replacements: null
+            }, { model: Post });
+        }, 'Error: [leoric] replacements not match with values in raw query');
+
+        await assert.rejects(async () => {
+          await realm.query('SELECT * FROM articles where title = :title', null, { model: Post });
+        }, "Error: ER_BAD_FIELD_ERROR: Unknown column 'authorId' in 'where clause'");
+
+      });
+    });
   });
 
   describe('realm.escape', () => {
