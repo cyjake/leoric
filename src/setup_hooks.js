@@ -28,10 +28,6 @@ function formatArgs(isInstance, fnName, args, target) {
         argsRes = [ target, ...args ];
         break;
       }
-      // class.create(values, options)
-      opts = args[1];
-      if (opts && opts.hooks === false) useHooks = false;
-      argsRes = args;
       break;
     }
     case 'update': case 'remove': {
@@ -91,8 +87,6 @@ function formatArgs(isInstance, fnName, args, target) {
       argsRes = [ target, ...args ];
       break;
     }
-    default:
-      throw new Error('Unsupported hook');
   }
   return {
     useHooks,
@@ -169,18 +163,6 @@ function addHook(target, hookName, func) {
 }
 
 /**
- * Batch setup hooks
- * @param {Bone} target
- * @param {Object<string, function>} hooks
- */
-function setupHooks(target, hooks) {
-  if (!hooks || !target) return;
-  Object.keys(hooks).map(hookName => {
-    addHook(target, hookName, hooks[hookName]);
-  });
-}
-
-/**
  * setup hook to class
  * @param {Bone} target target class
  * @param {string} hookName
@@ -194,7 +176,6 @@ function setupSingleHook(target, hookName, func) {
 }
 
 module.exports = {
-  setupHooks,
   setupSingleHook,
   hookNames,
 };

@@ -85,10 +85,10 @@ describe('hooks', function() {
     });
 
     it('create skip hooks', async () => {
-      assert.rejects(async () => {
+      await assert.rejects(async () => {
         await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
-      });
-    }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
+      }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
+    });
 
     describe('bulkCreate', () => {
 
@@ -507,6 +507,58 @@ describe('hooks', function() {
       assert(!updatedUser);
       assert(!beforeProbe);
       assert(!afterProbe);
+    });
+  });
+
+  describe('save', () => {
+    class User extends Bone {
+      constructor(opts) {
+        super(opts);
+      }
+    }
+
+    User.init(attributes, {
+      hooks: {
+        beforeSave(obj) {
+          console.log(obj);
+          if (!obj.email) {
+            obj.email = 'hello@yo.com';
+          }
+        },
+        afterSave(obj){
+          obj.status = 10;
+        },
+      }
+    });
+
+    beforeEach(async () => {
+      Bone.driver = null;
+      await connect({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ User ],
+      });
+    });
+
+    afterEach(async () => {
+      await User.remove({}, true);
+      Bone.driver = null;
+    });
+
+    it('create', async () => {
+      const user = new User({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 });
+      await user.save();
+      assert(user.email === 'hello@yo.com');
+      assert(user.meta.foo === 1);
+      assert(user.status === 10);
+    });
+
+    it('create skip hooks', async () => {
+      await assert.rejects(async () => {
+        const user = new User({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 });
+        await user.save({ hooks: false });
+      }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
     });
   });
 
