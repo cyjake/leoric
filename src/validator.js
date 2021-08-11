@@ -14,6 +14,15 @@ class LeoricValidateError extends Error {
   }
 }
 
+function regex(str, pattern, modifiers) {
+  str += '';
+  if (Object.prototype.toString.call(pattern).slice(8, -1) !== 'RegExp') {
+    pattern = new RegExp(pattern, modifiers);
+  }
+  const result = str.match(pattern);
+  return result ? result.length > 0 : false;
+}
+
 const validators = {
   ...Validator,
   notIn(str, values) {
@@ -35,21 +44,14 @@ const validators = {
     return !!elem && str.includes(elem);
   },
   notContains(str, elem) {
-    return !this.contains(str, elem);
+    return !Validator.contains(str, elem);
   },
-  regex(str, pattern, modifiers) {
-    str += '';
-    if (Object.prototype.toString.call(pattern).slice(8, -1) !== 'RegExp') {
-      pattern = new RegExp(pattern, modifiers);
-    }
-    const result = str.match(pattern);
-    return result ? result.length > 0 : false;
-  },
+  regex,
   notRegex(str, pattern, modifiers) {
-    return !this.regex(str, pattern, modifiers);
+    return !regex(str, pattern, modifiers);
   },
   is(str, pattern, modifiers) {
-    return this.regex(str, pattern, modifiers);
+    return regex(str, pattern, modifiers);
   },
   notEmpty(str) {
     return /[^\s]/.test(str);
@@ -74,21 +76,21 @@ function executeValidator(ctx, name, attribute, setValue) {
     // custom validator
     try {
       // Make sure this[name] callable and not return undefined or previous value (instance only) during validator executing while updating or saving
-      if (ctx.raw) {
+      if (ctx.getRaw) {
         needToRevert = true;
-        originValue = ctx.raw[field];
-        ctx.raw[field] = value;
+        originValue = ctx.getRaw(field);
+        ctx._setRaw(field, value);
       }
       const execRes = validateArgs.call(ctx, value);
       if (execRes === false) throw new LeoricValidateError(name, field);
     } catch (err) {
       // revert value (instance only)
-      if (ctx.raw && needToRevert) ctx.raw[field] = originValue;
+      if (ctx.getRaw && needToRevert) ctx._setRaw(field, originValue);
       err.name = ERR_NAME;
       throw err;
     }
     // revert value (instance only)
-    if (ctx.raw && needToRevert) ctx.raw[field] = originValue;
+    if (ctx.getRaw && needToRevert) ctx._setRaw(field, originValue);
   } else {
     const validator = validators[name];
     if (typeof validator !== 'function') throw new LeoricValidateError(`Invalid validator function: ${name}`);
@@ -96,7 +98,7 @@ function executeValidator(ctx, name, attribute, setValue) {
     let msg;
     if (isPlainObject(validateArgs)) {
       if ('args' in validateArgs) args = validateArgs.args;
-      msg = validateArgs.msg || msg;
+      msg = validateArgs.msg;
     }
 
     if (['true', 'false'].indexOf(String(validateArgs)) >= 0) {
@@ -105,8 +107,8 @@ function executeValidator(ctx, name, attribute, setValue) {
       }
       return;
     }
-    let callableArgs = [ String(value) ];
-    callableArgs = callableArgs.concat(args);
+    const callableArgs = [ String(value) ];
+    callableArgs.push(args);
     if (!validator.apply(ctx, callableArgs)) throw new LeoricValidateError(name, field, msg);
   }
 }

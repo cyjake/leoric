@@ -15,6 +15,7 @@ describe('validator', () => {
       unique: true,
       validate: {
         isEmail: true,
+        is: '\\w+(@e.com)\\w{0}',
       }
     },
     nickname: {
@@ -22,6 +23,8 @@ describe('validator', () => {
       allowNull: false,
       validate: {
         isNumeric: false,
+        notIn: [ 'Yhorm', 'Gwyn' ],
+        notContains: 'closePease',
       }
     },
     meta: {
@@ -46,6 +49,7 @@ describe('validator', () => {
       type: DataTypes.STRING,
       validate: {
         notNull: true,
+        notEmpty: true,
         isValid() {
           if (this.desc && this.desc.length < 2) {
             throw new Error('Invalid desc');
@@ -55,13 +59,16 @@ describe('validator', () => {
           if (value && value.length >= 10) {
             return false;
           }
-        }
+        },
+        regex: /^\d{3}\w+/g,
       }
     },
     fingerprint: {
       type: DataTypes.TEXT,
       validate: {
         contains: 'finger',
+        notRegex: /^\d{3}\w+/g,
+        is: /\w+\d{2}$/g
       }
     }
   };
@@ -96,6 +103,21 @@ describe('validator', () => {
         });
       }, /Validation isEmail on email failed/);
     });
+
+    it('is** true', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'sss@e.cn',
+          nickname: 's',
+        });
+      }, /Validation is on email failed/);
+
+      await User.create({
+        email: 'sss@e.com',
+        nickname: 's',
+      });
+    });
+
 
     it('is** false', async () => {
       await assert.rejects(async () => {
@@ -135,6 +157,95 @@ describe('validator', () => {
       }, /Validation notNull on desc failed/);
     });
 
+    it('notIn', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'Gwyn'
+        });
+      }, /Validation notIn on nickname failed/);
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss'
+      });
+      assert(user);
+      assert(user.email);
+      assert(user.nickname);
+    });
+
+    it('notContaines', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'hou closePease'
+        });
+      }, /Validation notContains on nickname failed/);
+    });
+
+    it('regex', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'yes',
+          desc: 'hhhawww'
+        });
+      }, /Validation regex on desc failed/);
+
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'yes',
+        desc: '123hhha22'
+      });
+    });
+
+    it('notRegex', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'yes',
+          fingerprint: '123yellowfingersss12',
+        });
+      }, /Validation notRegex on fingerprint failed/);
+
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'yes',
+        fingerprint: 'yellofingerwsss12',
+      });
+    });
+
+    it('is', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'yes',
+          fingerprint: 'yellowfingersss',
+        });
+      }, /Validation is on fingerprint failed/);
+
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'yes',
+        fingerprint: 'yellofingerwsss12',
+      });
+    });
+
+    it('notEmpty', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 'yes',
+          desc: ''
+        });
+      }, /Validation notEmpty on desc failed/);
+
+      await User.create({
+        email: 'a@e.com',
+        nickname: 'yes',
+        desc: '123fin22',
+      });
+    });
+  
     it('multiple validator and custom msg', async () => {
       await assert.rejects(async () => {
         await User.create({
@@ -175,7 +286,7 @@ describe('validator', () => {
         email: 'a1@e.com',
         nickname: 'sss1',
         status: 1,
-        desc: '222'
+        desc: '222www22'
       });
       assert(user);
     });
@@ -185,13 +296,13 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
-          fingerprint: 'aaa'
+          fingerprint: 'aaa12'
         });
       }, /Validation contains on fingerprint failed/);
       const user = await User.create({
         email: 'a1@e.com',
         nickname: 'sss1',
-        fingerprint: 'fingerprint:1'
+        fingerprint: 'fingerprints12'
       });
       assert(user);
     });
@@ -342,7 +453,7 @@ describe('validator', () => {
       const users = [];
       while (i < 10) {
         users.push({
-          email: `a@e${i}.com`,
+          email: `a${i}@e.com`,
           nickname: `sss${i}`,
           fingerprint: 'aaa'
         });
@@ -359,7 +470,7 @@ describe('validator', () => {
       const users = [];
       while (i < 10) {
         users.push({
-          email: `a@e${i}.com`,
+          email: `a${i}@e.com`,
           nickname: `sss${i}`,
           fingerprint: 'aaa'
         });
@@ -372,5 +483,29 @@ describe('validator', () => {
       assert.equal(count, 10);
     });
 
+  });
+
+  describe('executeValidator', () => {
+    it('revert should work while validate faield', async () => {
+      const user = await User.create({
+        email: 'a@e.com',
+        nickname: 'sss',
+        desc: '231hjjj'
+      });
+
+      await assert.rejects(async () => {
+        await user.update({
+          desc: '1'
+        });
+      }, /Invalid desc/);
+
+      assert(user.desc === '231hjjj');
+
+      await user.update({
+        desc: '121hhhh'
+      });
+      
+      assert(user.getRawPrevious('desc') === '231hjjj');
+    });
   });
 });
