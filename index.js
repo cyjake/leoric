@@ -94,6 +94,8 @@ function createSpine(opts) {
   return class Spine extends Bone {};
 }
 
+const rReplacementKey = /\s:(\w+)\b/g;
+
 class Realm {
   constructor(opts = {}) {
     const { client, dialect, database, ...restOpts } = {
@@ -169,53 +171,34 @@ class Realm {
    * @memberof Realm
    */
   async query(query, values, opts = {}) {
-    let res, fieldRes, restRes = {};
     if (values && typeof values === 'object' && !Array.isArray(values)) {
-      query = query + ' ';
-      let valueResults = [];
-      const replaceTemplates = query.match(/\s:\w+\s/g);
-      const templateKeys = replaceTemplates.map((t) => t.trim().split(':')[1]);
-      let replacementKeys;
-      let replacements = {};
       if ('replacements' in values) {
         const { model, connection } = values;
-        replacements = values.replacements;
-        if (replacements == null) {
-          throw new Error('[leoric] replacements not match with values in raw query');
-        }
+        opts.replacements = values.replacements;
         if (model) opts.model = model;
         if (connection) opts.connection = connection;
       } else {
-        replacements = values;
+        opts.replacements = values;
       }
-      replacementKeys = Object.keys(replacements);
-      if (replaceTemplates.length > replacementKeys.length) {
-        throw new Error('[leoric] replacements not match with values in raw query');
-      }
-      for (const templateKey of templateKeys) {
-        if (!replacementKeys.includes(templateKey)) {
-          throw new Error('[leoric] replacements not match with values in raw query');
-        }
-        valueResults.push(replacements[templateKey]);
-      }
-      query = query.replace(/\s:\w+\s/g, '?');
-
-      const { rows, fields, ...others } = await this.driver.query(query, valueResults, opts);
-      restRes = others;
-      res = rows;
-      fieldRes = fields;
-    } else {
-      const { rows, fields, ...others } = await this.driver.query(query, values, opts);
-      restRes = others;
-      res = rows;
-      fieldRes = fields;
+      values = [];
     }
 
-    let results = [];
-    if (res && res.length && opts.model && opts.model.prototype instanceof this.Bone) {
+    const replacements = opts.replacements || {};
+    query = query.replace(rReplacementKey, function replacer(m, key) {
+      if (!replacements.hasOwnProperty(key)) {
+        throw new Error(`unable to replace :${key}`);
+      }
+      values.push(replacements[key]);
+      return '?';
+    });
+
+    const { rows, ...restRes } = await this.driver.query(query, values, opts);
+    const results = [];
+
+    if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
       const { attributeMap } = opts.model;
 
-      for (const data of res) {
+      for (const data of rows) {
         const instance = opts.model.instantiate(data);
         for (const key in data) {
           if (!attributeMap.hasOwnProperty(key)) instance[key] = data[key];
@@ -223,9 +206,9 @@ class Realm {
         results.push(instance);
       }
     }
+
     return {
-      rows: results.length? results : res,
-      fields: fieldRes,
+      rows: results.length > 0 ? results : rows,
       ...restRes
     };
   }

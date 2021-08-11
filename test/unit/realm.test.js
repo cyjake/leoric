@@ -225,7 +225,7 @@ describe('=> Realm', () => {
           database: 'leoric',
           models: [ User, Post ],
         });
-  
+
         await realm.connect();
         const createdAt = new Date();
         const post = await Post.create({ title: 'title', authorId: 1, createdAt });
@@ -234,14 +234,14 @@ describe('=> Realm', () => {
         assert(rows.length === 1);
         assert(rows[0] instanceof Post);
         assert(post1.authorId === rows[0].authorId);
-  
+
         // work with join table
         const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
 
         const { rows: rows1 } = await realm.query(`
-        SELECT Post.*, users.nickname as authorName 
-          FROM articles as Post 
-          LEFT JOIN users 
+        SELECT Post.*, users.nickname as authorName
+          FROM articles as Post
+          LEFT JOIN users
           ON users.id = Post.author_id
           WHERE users.id = ?
         `, [ user.id ], { model: Post });
@@ -258,7 +258,7 @@ describe('=> Realm', () => {
           database: 'leoric',
           models: [ User, Post ],
         });
-  
+
         await realm.connect();
         const createdAt = new Date();
         const post = await Post.create({ title: 'title', authorId: 1, createdAt });
@@ -269,15 +269,15 @@ describe('=> Realm', () => {
         assert(rows.length === 1);
         assert(rows[0] instanceof Post);
         assert(post1.authorId === rows[0].authorId);
-  
+
         // work with join table
         const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
 
         const { rows: rows1 } = await realm.query(`
-          SELECT Post.*, users.nickname as authorName 
-            FROM articles as Post 
-            LEFT JOIN users 
-            ON users.id = Post.author_id 
+          SELECT Post.*, users.nickname as authorName
+            FROM articles as Post
+            LEFT JOIN users
+            ON users.id = Post.author_id
             WHERE users.id = :userId
         `, {
           userId: user.id
@@ -295,7 +295,7 @@ describe('=> Realm', () => {
           database: 'leoric',
           models: [ User, Post ],
         });
-  
+
         await realm.connect();
         const createdAt = new Date();
         const post = await Post.create({ title: 'title', authorId: 1, createdAt });
@@ -310,14 +310,14 @@ describe('=> Realm', () => {
         assert(rows.length === 1);
         assert(rows[0] instanceof Post);
         assert(post1.authorId === rows[0].authorId);
-  
+
         // work with join table
         const user = await User.create({ id: 1, nickname: 'userName', status: 1, email: 'aaa@h.com' });
 
         const { rows: rows1 } = await realm.query(`
-        SELECT Post.*, users.nickname as authorName 
-          FROM articles as Post 
-          LEFT JOIN users 
+        SELECT Post.*, users.nickname as authorName
+          FROM articles as Post
+          LEFT JOIN users
           ON users.id = Post.author_id
           WHERE users.id = :userId
           AND users.status = :status
@@ -340,9 +340,9 @@ describe('=> Realm', () => {
           database: '/tmp/leoric.sqlite3',
           models: [ Post ],
         });
-  
+
         await realm.connect();
-  
+
         const createdAt = new Date();
         await Post.create({ title: 'title', authorId: 1, createdAt });
         const { rows } = await realm.query('SELECT * FROM articles');
@@ -356,7 +356,7 @@ describe('=> Realm', () => {
           database: 'leoric',
           models: [ User, Post ],
         });
-  
+
         await realm.connect();
         const createdAt = new Date();
         const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
@@ -364,7 +364,7 @@ describe('=> Realm', () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
             title: post1.title
           }, { model: Post });
-        }, 'Error: [leoric] replacements not match with values in raw query');
+        }, /Error: unable to replace :authorId/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
@@ -372,7 +372,7 @@ describe('=> Realm', () => {
               title: post1.title,
             }
           }, { model: Post });
-        }, 'Error: [leoric] replacements not match with values in raw query');
+        }, /Error: unable to replace :authorId/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
@@ -381,17 +381,17 @@ describe('=> Realm', () => {
               hello: 'ye'
             }
           }, { model: Post });
-        }, 'Error: [leoric] replacements not match with values in raw query');
+        }, /Error: unable to replace :authorId/);
 
         await assert.rejects(async () => {
             await realm.query('SELECT * FROM articles where title = :title', {
               replacements: null
             }, { model: Post });
-        }, 'Error: [leoric] replacements not match with values in raw query');
+        }, /Error: unable to replace :title/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title', null, { model: Post });
-        }, "Error: ER_BAD_FIELD_ERROR: Unknown column 'authorId' in 'where clause'");
+        }, /Error: unable to replace :title/);
 
       });
     });
