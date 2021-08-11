@@ -16,7 +16,7 @@ class LeoricValidateError extends Error {
 
 function regex(str, pattern, modifiers) {
   str += '';
-  if (Object.prototype.toString.call(pattern).slice(8, -1) !== 'RegExp') {
+  if (pattern instanceof RegExp) {
     pattern = new RegExp(pattern, modifiers);
   }
   const result = str.match(pattern);
