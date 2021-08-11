@@ -94,6 +94,8 @@ function createSpine(opts) {
   return class Spine extends Bone {};
 }
 
+const rReplacementKey = /\s:(\w+)\b/g;
+
 class Realm {
   constructor(opts = {}) {
     const { client, dialect, database, ...restOpts } = {
@@ -169,8 +171,30 @@ class Realm {
    * @memberof Realm
    */
   async query(query, values, opts = {}) {
-    const { rows, fields, ...others } = await this.driver.query(query, values, opts);
-    let results = [];
+    if (values && typeof values === 'object' && !Array.isArray(values)) {
+      if ('replacements' in values) {
+        const { model, connection } = values;
+        opts.replacements = values.replacements;
+        if (model) opts.model = model;
+        if (connection) opts.connection = connection;
+      } else {
+        opts.replacements = values;
+      }
+      values = [];
+    }
+
+    const replacements = opts.replacements || {};
+    query = query.replace(rReplacementKey, function replacer(m, key) {
+      if (!replacements.hasOwnProperty(key)) {
+        throw new Error(`unable to replace :${key}`);
+      }
+      values.push(replacements[key]);
+      return '?';
+    });
+
+    const { rows, ...restRes } = await this.driver.query(query, values, opts);
+    const results = [];
+
     if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
       const { attributeMap } = opts.model;
 
@@ -182,10 +206,10 @@ class Realm {
         results.push(instance);
       }
     }
+
     return {
-      rows: results.length? results : rows,
-      fields,
-      ...others
+      rows: results.length > 0 ? results : rows,
+      ...restRes
     };
   }
 
