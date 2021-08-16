@@ -21,17 +21,31 @@ class MysqlDriver extends AbstractDriver {
    * @param {boolean} opts.stringifyObjects  - stringify object value in dataValues
    */
   constructor(opts = {}) {
+    super(opts);
+    this.type = 'mysql';
+    this.pool = this.createPool(opts);
+    this.escape = this.pool.escape.bind(this.pool);
+    this.recycleConnections();
+  }
+
+  get escapeId() {
+    return this.pool.escapeId;
+  }
+
+  createPool(opts) {
+    // some RDMS use appName to locate the database instead of the actual db, though the table_schema stored in infomation_schema.columns is still the latter one.
+    const database = opts.appName || opts.database;
     const client = opts.client || 'mysql';
+    const {
+      host, port, user, password,
+      connectionLimit, charset, stringifyObjects = false,
+    } = opts;
+
     if (client !== 'mysql' && client !== 'mysql2') {
       throw new Error(`Unsupported mysql client ${client}`);
     }
-    const { host, port, user, password, connectionLimit, charset, stringifyObjects = false } = opts;
-    // some RDMS use appName to locate the database instead of the actual db, though the table_schema stored in infomation_schema.columns is still the latter one.
-    const database = opts.appName || opts.database;
-    super(opts);
-    this.type = 'mysql';
-    this.database = database;
-    this.pool = require(client).createPool({
+
+    return require(client).createPool({
       connectionLimit,
       host,
       port,
@@ -41,12 +55,6 @@ class MysqlDriver extends AbstractDriver {
       charset,
       stringifyObjects,
     });
-
-    this.escape = this.pool.escape.bind(this.pool);
-  }
-
-  get escapeId() {
-    return this.pool.escapeId;
   }
 
   getConnection() {
@@ -61,11 +69,16 @@ class MysqlDriver extends AbstractDriver {
     });
   }
 
+  closeConnection(connection) {
+    connection.release();
+    connection.destroy();
+  }
+
   async query(query, values, opts = {}) {
-    const { pool, logger } = this;
-    const { connection } = opts;
+    const { logger } = this;
+    const connection = opts.connection || await this.getConnection();
     const promise = new Promise((resolve, reject) => {
-      (connection || pool).query(query, values, (err, results, fields) => {
+      connection.query(query, values, (err, results, fields) => {
         if (err) {
           reject(err);
         } else {
@@ -82,6 +95,8 @@ class MysqlDriver extends AbstractDriver {
     } catch (err) {
       logger.logQueryError(sql, err, Date.now() - start, opts);
       throw err;
+    } finally {
+      if (!opts.connection) connection.release();
     }
 
     logger.logQuery(sql, Date.now() - start, opts);

@@ -24,7 +24,7 @@ describe('=> MySQL driver', () => {
     await driver2.query('SELECT 1');
     const [ sql, duration ] = result[0];
     assert.equal(sql, 'SELECT 1');
-    assert.ok(duration > 0);
+    assert.ok(duration >= 0);
   });
 
   it('driver.logger.logQueryError', async () => {
@@ -62,7 +62,7 @@ describe('=> MySQL driver', () => {
     assert.equal(definition.unique, true);
   });
 
-  it('driver.truncateTable(table', async () => {
+  it('driver.truncateTable(table)', async () => {
     const { BIGINT, STRING } = driver.DataTypes;
     await driver.dropTable('notes');
     await driver.createTable('notes', {
@@ -73,5 +73,34 @@ describe('=> MySQL driver', () => {
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 1);
     await driver.truncateTable('notes');
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
+  });
+
+  it('driver.recycleConnections()', async function() {
+    const driver2 = new MysqlDriver({
+      ...options,
+      idleTimeout: 0.01,
+    });
+    let released;
+    driver2.pool.on('release', function() {
+      released = true;
+    });
+    const connection = await driver2.getConnection();
+    await new Promise(function(resolve, reject) {
+      connection.query('SELECT 1', function(err, row) {
+        if (err) reject(err);
+        resolve({ row });
+      });
+    });
+    assert.ok(!released);
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.ok(released);
+    await assert.rejects(async function() {
+      await new Promise(function(resolve, reject) {
+        connection.query('SELECT 1', function(err, row) {
+          if (err) reject(err);
+          resolve({ row });
+        });
+      });
+    }, /Error: Cannot enqueue Query after being destroyed./);
   });
 });

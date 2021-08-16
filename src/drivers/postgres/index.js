@@ -107,21 +107,30 @@ function parameterize(sql, values) {
 class PostgresDriver extends AbstractDriver {
   constructor(opts = {}) {
     super(opts);
-    const { host, port, user, password, database } = opts;
-
     this.type = 'postgres';
-    this.pool = new Pool({ host, port, user, password, database });
+    this.pool = this.createPool(opts);
+    this.recycleConnections();
+  }
+
+  createPool(opts) {
+    const { host, port, user, password, database } = opts;
+    return new Pool({ host, port, user, password, database });
   }
 
   async getConnection() {
     return await this.pool.connect();
   }
 
+  async closeConnection(client) {
+    client.release();
+    await client.end();
+  }
+
   async query(query, values, spell = {}) {
     const { sql, nestTables } = typeof query === 'string' ? { sql: query } : query;
     const { text } = parameterize(sql, values);
     const { logger } = this;
-    const client = spell && spell.connection || this.pool;
+    const connection = spell.connection || await this.getConnection();
     const command = sql.slice(0, sql.indexOf(' ')).toLowerCase();
 
     async function tryQuery(...args) {
@@ -130,10 +139,12 @@ class PostgresDriver extends AbstractDriver {
       let result;
 
       try {
-        result = await client.query(...args);
+        result = await connection.query(...args);
       } catch (err) {
         logger.logQueryError(formatted, err, Date.now() - start, spell);
         throw err;
+      } finally {
+        if (!spell.connection) connection.release();
       }
 
       logger.logQuery(formatted, Date.now() - start, spell);

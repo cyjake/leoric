@@ -531,7 +531,9 @@ describe('=> Sequelize adapter', () => {
     const post = await Post.find(posts[1].id);
     assert.equal(post.title, 'Tyrael');
 
-    const post2 = await Post.find({ title: 'Leah' });
+    const post2 = await Post.find({
+      where: { title: 'Leah' },
+    });
     assert.equal(post2.title, 'Leah');
   });
 

@@ -58,7 +58,8 @@ module.exports = {
    * @param {string} newColumn the new column name
    */
   async renameColumn(table, name, newName) {
-    const { database, escapeId } = this;
+    const { escapeId } = this;
+    const { database } = this.options;
     const { columnName } = new Attribute(name);
     const schemaInfo = await this.querySchemaInfo(database, table);
     const { columnName: _, ...columnInfo } = schemaInfo[table].find(entry => {
