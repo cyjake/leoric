@@ -61,18 +61,14 @@ describe('=> AbstractDriver#recycleConnections', function() {
   it('should close idle connections', async function() {
     const driver = new AbstractDriver({ idleTimeout: 0.01 });
     driver.pool = new EventEmitter();
-    let released;
-    let destroyed;
+    let disconnected;
     driver.recycleConnections();
-    driver.closeConnection = function() {
-      released = true;
-      destroyed = true;
+    driver.closeConnection = async function() {
+      disconnected = true;
     };
-    driver.pool.emit('acquire', {});
-    assert.ok(!released);
-    assert.ok(!destroyed);
+    driver.pool.emit('release', {});
+    assert.ok(!disconnected);
     await new Promise(resolve => setTimeout(resolve, 30));
-    assert.ok(released);
-    assert.ok(destroyed);
+    assert.ok(disconnected);
   });
 });

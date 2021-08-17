@@ -16,24 +16,30 @@ module.exports = class AbstractDriver {
     this.options = opts;
   }
 
-  closeConnection(connection) {
+  async closeConnection(connection) {
     throw new Error('not implemented');
   }
 
   recycleConnections() {
-    const acquiredAt = new Map();
+    const releasedAt = new Map();
     const timeout = this.idleTimeout * 1000;
 
-    this.pool.on('acquire', function onAcquire(connection) {
-      acquiredAt.set(connection, Date.now());
+    this.pool.on('release', function onAcquire(connection) {
+      releasedAt.set(connection, Date.now());
+    });
+
+    this.pool.on('acquire', function onRelease(connection) {
+      releasedAt.delete(connection);
     });
 
     const checkIdle = () => {
       const now = Date.now();
-      for (const [ connection, timestamp ] of acquiredAt) {
+      for (const [ connection, timestamp ] of releasedAt) {
         if (now - timestamp > timeout) {
-          this.closeConnection(connection);
-          acquiredAt.delete(connection);
+          this.closeConnection(connection).catch(function(err) {
+            console.error(err.stack);
+          });
+          releasedAt.delete(connection);
         }
       }
       setTimeout(checkIdle, timeout);

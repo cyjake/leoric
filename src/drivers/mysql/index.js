@@ -70,8 +70,13 @@ class MysqlDriver extends AbstractDriver {
   }
 
   closeConnection(connection) {
-    connection.release();
-    connection.destroy();
+    return new Promise(function(resolve, reject) {
+      const fn = connection._realEnd || connection.end;
+      fn.call(connection, function(err) {
+        if (err) reject(err);
+        resolve();
+      });
+    });
   }
 
   async query(query, values, opts = {}) {

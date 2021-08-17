@@ -80,20 +80,17 @@ describe('=> MySQL driver', () => {
       ...options,
       idleTimeout: 0.01,
     });
-    let released;
-    driver2.pool.on('release', function() {
-      released = true;
-    });
     const connection = await driver2.getConnection();
-    await new Promise(function(resolve, reject) {
-      connection.query('SELECT 1', function(err, row) {
-        if (err) reject(err);
-        resolve({ row });
+    await assert.doesNotReject(async function() {
+      await new Promise(function(resolve, reject) {
+        connection.query('SELECT 1', function(err, row) {
+          if (err) reject(err);
+          resolve({ row });
+        });
       });
     });
-    assert.ok(!released);
+    connection.release();
     await new Promise(resolve => setTimeout(resolve, 30));
-    assert.ok(released);
     await assert.rejects(async function() {
       await new Promise(function(resolve, reject) {
         connection.query('SELECT 1', function(err, row) {
@@ -101,6 +98,6 @@ describe('=> MySQL driver', () => {
           resolve({ row });
         });
       });
-    }, /Error: Cannot enqueue Query after being destroyed./);
+    }, /Error: Cannot enqueue Query after invoking quit./);
   });
 });

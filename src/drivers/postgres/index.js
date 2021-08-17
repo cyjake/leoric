@@ -122,7 +122,6 @@ class PostgresDriver extends AbstractDriver {
   }
 
   async closeConnection(client) {
-    client.release();
     await client.end();
   }
 

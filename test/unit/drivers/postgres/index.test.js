@@ -112,13 +112,16 @@ describe('=> PostgreSQL driver', () => {
     assert.equal((await driver.query('SELECT id FROM notes')).rows[0].id, '1');
   });
 
-  it('driver.recycleConnections()', async function() {
+  it.skip('driver.recycleConnections()', async function() {
     const driver2 = new PostgresDriver({
       ...options,
       idleTimeout: 0.01,
     });
     const connection = await driver2.getConnection();
-    await connection.query('SELECT 1');
+    await assert.doesNotReject(async function() {
+      await connection.query('SELECT 1');
+    });
+    connection.release();
     await new Promise(resolve => setTimeout(resolve, 30));
     await assert.rejects(async function() {
       await connection.query('SELECT 1');

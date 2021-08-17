@@ -194,7 +194,10 @@ describe('=> SQLite driver.pool', function() {
       idleTimeout: 0.01,
     });
     const connection = await driver2.getConnection();
-    await connection.query('SELECT 1');
+    await assert.doesNotReject(async function() {
+      await connection.query('SELECT 1');
+    });
+    connection.release();
     await new Promise(resolve => setTimeout(resolve, 30));
     await assert.rejects(async function() {
       await connection.query('SELECT 1');
