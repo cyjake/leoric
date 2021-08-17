@@ -1,3 +1,12 @@
+1.7.0 / 2021-08-17
+=================
+
+  * feat: close connections that exceeds opts.idleTimeout (#159)
+  * feat: raw query relpacements, closes #149 (#155)
+  * fix: upsert created_at default (#154)
+  * test: validator unit test (#157)
+  * test: setup_hooks unit test (#158)
+
 1.6.7 / 2021-08-05
 ==================
 
