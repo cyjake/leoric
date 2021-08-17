@@ -12,6 +12,33 @@ module.exports = class AbstractDriver {
   constructor(opts = {}) {
     const { logger } = opts;
     this.logger = logger instanceof Logger ? logger : new Logger(logger);
+    this.idleTimeout = opts.idleTimeout || 60;
+    this.options = opts;
+  }
+
+  closeConnection(connection) {
+    throw new Error('not implemented');
+  }
+
+  recycleConnections() {
+    const acquiredAt = new Map();
+    const timeout = this.idleTimeout * 1000;
+
+    this.pool.on('acquire', function onAcquire(connection) {
+      acquiredAt.set(connection, Date.now());
+    });
+
+    const checkIdle = () => {
+      const now = Date.now();
+      for (const [ connection, timestamp ] of acquiredAt) {
+        if (now - timestamp > timeout) {
+          this.closeConnection(connection);
+          acquiredAt.delete(connection);
+        }
+      }
+      setTimeout(checkIdle, timeout);
+    };
+    checkIdle();
   }
 
   /**

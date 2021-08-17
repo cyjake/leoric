@@ -1,5 +1,6 @@
 'use strict';
 
+const EventEmitter = require('events');
 const strftime = require('strftime');
 
 const AbstractDriver = require('../abstract');
@@ -34,11 +35,11 @@ function nest(rows, fields, spell) {
 }
 
 class Connection {
-  constructor({ client, database, mode, logger }) {
+  constructor({ client, database, mode, pool }) {
     const { Database, OPEN_READWRITE, OPEN_CREATE } = client;
     if (mode == null) mode = OPEN_READWRITE | OPEN_CREATE;
     this.database = new Database(database, mode);
-    this.logger = logger;
+    this.pool = pool;
   }
 
   async query(query, values, spell) {
@@ -48,15 +49,14 @@ class Connection {
       const result = await this.all(sql, values);
       if (nestTables) return nest(result.rows, result.fields, spell);
       return result;
-    } else {
-      return await this.run(sql, values);
     }
+    return await this.run(sql, values);
   }
 
   all(sql, values) {
     return new Promise((resolve, reject) => {
       this.database.all(sql, values, (err, rows, fields) => {
-        if (err) reject(new Error(err.stack));
+        if (err) reject(err);
         else resolve({ rows, fields });
       });
     });
@@ -70,39 +70,88 @@ class Connection {
       });
     });
   }
+
+  release() {
+    this.pool.releaseConnection(this);
+  }
+
+  async destroy() {
+    const { connections } = this.pool;
+    const index = connections.indexOf(this);
+    if (index >= 0) connections.splice(index, 1);
+
+    return await new Promise((resolve, reject) => {
+      this.database.close(function(err) {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+  }
+}
+
+class Pool extends EventEmitter {
+  constructor(opts) {
+    super(opts);
+    this.options = {
+      connectionLimit: 10,
+      ...opts,
+      client: opts.client || 'sqlite3',
+    };
+    this.client = require(this.options.client);
+    this.connections = [];
+    this.queue = [];
+  }
+
+  async getConnection() {
+    const { connections, queue, client, options } = this;
+    for (const connection of connections) {
+      if (connection.idle) {
+        connection.idle = false;
+        this.emit('acquire', connection);
+        return connection;
+      }
+    }
+    if (connections.length < options.connectionLimit) {
+      const connection = new Connection({ ...options, client, pool: this });
+      connections.push(connection);
+      this.emit('acquire', connection);
+      return connection;
+    }
+    await new Promise(resolve => queue.push(resolve));
+    return await this.getConnection();
+  }
+
+  releaseConnection(connection) {
+    connection.idle = true;
+    this.emit('release', connection);
+
+    const { queue } = this;
+    while (queue.length > 0) {
+      const task = queue.shift();
+      task();
+    }
+  }
 }
 
 class SqliteDriver extends AbstractDriver {
   constructor(opts = {}) {
     super(opts);
-    const { logger } = this;
-    const client = require(opts.client || 'sqlite3');
     this.type = 'sqlite';
-    this.connections = [ new Connection({ ...opts, client, logger }) ];
-    this.callbacks = [];
+    this.pool = this.createPool(opts);
+    this.recycleConnections();
+  }
+
+  createPool(opts) {
+    return new Pool(opts);
   }
 
   async getConnection() {
-    const { connections, callbacks } = this;
+    return await this.pool.getConnection();
+  }
 
-    if (connections.length > 0) {
-      const connection = connections.shift();
-      return Object.assign(connection, {
-        release() {
-          connections.push(connection);
-          while (callbacks.length > 0) {
-            const callback = callbacks.shift();
-            callback();
-          }
-        },
-      });
-    }
-
-    await new Promise((resolve) => {
-      callbacks.push(resolve);
-    });
-
-    return this.getConnection();
+  async closeConnection(connection) {
+    connection.release();
+    await connection.destroy();
   }
 
   async query(query, values, opts = {}) {

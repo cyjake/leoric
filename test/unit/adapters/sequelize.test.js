@@ -351,9 +351,8 @@ describe('=> Sequelize adapter', () => {
     ].map(opts => Post.create(opts)));
 
     const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
-        throw new Error(message);
-      }
-    );
+      throw new Error(message);
+    });
 
     let posts = await Post.findAll({
       where: {
@@ -364,7 +363,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts[0].title, 'Leah');
 
     await Post.destroy({ title: 'Leah' });
-    const post = await Post.findOne({ title: 'Leah' });
+    const post = await Post.findOne({ where: { title: 'Leah' } });
     assert(!post);
 
     posts = await Post.findAll({
@@ -494,7 +493,7 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
     await Post.destroy({ title: 'Leah' });
-    const post = await Post.findOne({ title: 'Leah' });
+    const post = await Post.findOne({ where: { title: 'Leah' } });
     assert(!post);
     const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
     assert.equal(post1.title, 'Leah');
@@ -518,7 +517,7 @@ describe('=> Sequelize adapter', () => {
     const post = await Post.findOne(posts[1].id);
     assert.equal(post.title, 'Tyrael');
 
-    const post2 = await Post.findOne({ title: 'Leah' });
+    const post2 = await Post.findOne({ where: { title: 'Leah' } });
     assert.equal(post2.title, 'Leah');
   });
 
@@ -531,7 +530,7 @@ describe('=> Sequelize adapter', () => {
     const post = await Post.find(posts[1].id);
     assert.equal(post.title, 'Tyrael');
 
-    const post2 = await Post.find({ title: 'Leah' });
+    const post2 = await Post.find({ where: { title: 'Leah' } });
     assert.equal(post2.title, 'Leah');
   });
 

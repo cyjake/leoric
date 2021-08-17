@@ -161,3 +161,51 @@ describe('=> SQLite driver.query()', () => {
     assert.equal(is_private, 1);
   });
 });
+
+describe('=> SQLite driver.pool', function() {
+  beforeEach(async () => {
+    await driver.dropTable('notes');
+  });
+
+  it('should not create connection unless necessary', async function() {
+    assert.equal(driver.pool.connections.length, 1);
+  });
+
+  it('should create connection if upbound limit not reached', async function() {
+    await Promise.all([
+      driver.createTable('notes', { title: STRING, isPrivate: BOOLEAN }),
+      driver.query('SELECT 2'),
+    ]);
+    assert.equal(driver.pool.connections.length, 2);
+  });
+
+  it('should wait until connection is available', async function() {
+    const driver2 = new SqliteDriver({ ...options, connectionLimit: 1 });
+    await Promise.all([
+      driver2.createTable('notes', { title: STRING, isPrivate: BOOLEAN }),
+      driver2.query('SELECT 2'),
+    ]);
+    assert.equal(driver2.pool.connections.length, 1);
+  });
+
+  it('driver.recycleConnections()', async function() {
+    const driver2 = new SqliteDriver({
+      ...options,
+      idleTimeout: 0.01,
+    });
+    const connection = await driver2.getConnection();
+    await connection.query('SELECT 1');
+    await new Promise(resolve => setTimeout(resolve, 30));
+    await assert.rejects(async function() {
+      await connection.query('SELECT 1');
+    }, /Error: SQLITE_MISUSE: Database is closed/);
+
+    // should remove connection from pool when destroy
+    assert.equal(driver2.pool.connections.length, 0);
+
+    // should still be able to create new connection
+    await assert.doesNotReject(async function() {
+      await driver2.query('SELECT 1');
+    });
+  });
+});
