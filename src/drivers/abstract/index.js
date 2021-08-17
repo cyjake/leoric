@@ -24,11 +24,11 @@ module.exports = class AbstractDriver {
     const releasedAt = new Map();
     const timeout = this.idleTimeout * 1000;
 
-    this.pool.on('release', function onAcquire(connection) {
+    this.pool.on('release', function onRelease(connection) {
       releasedAt.set(connection, Date.now());
     });
 
-    this.pool.on('acquire', function onRelease(connection) {
+    this.pool.on('acquire', function onAcquire(connection) {
       releasedAt.delete(connection);
     });
 
