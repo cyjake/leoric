@@ -23,7 +23,7 @@ describe('validator', () => {
       allowNull: false,
       validate: {
         isNumeric: false,
-        notIn: [ 'Yhorm', 'Gwyn' ],
+        notIn: [ [ 'Yhorm', 'Gwyn' ] ],
         notContains: 'closePease',
       }
     },
@@ -40,7 +40,7 @@ describe('validator', () => {
       validate: {
         isNumeric: true,
         isIn: {
-          args: [ '1', '2' ],
+          args: [ [ '1', '2' ] ],
           msg: 'Error status',
         },
       }

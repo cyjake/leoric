@@ -107,8 +107,8 @@ function executeValidator(ctx, name, attribute, setValue) {
       }
       return;
     }
-    const callableArgs = [ String(value) ];
-    callableArgs.push(args);
+    let callableArgs = [ String(value) ];
+    callableArgs = callableArgs.concat(args);
     if (!validator.apply(ctx, callableArgs)) throw new LeoricValidateError(name, field, msg);
   }
 }
