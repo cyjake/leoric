@@ -1,6 +1,5 @@
 'use strict';
 
-const EventEmitter = require('events');
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const { Logger } = require('../../../..');
@@ -54,25 +53,5 @@ describe('=> AbstractDriver#logger', function() {
     const driver = new AbstractDriver({ logger: new CustomLogger });
     assert.ok(driver.logger);
     assert.ok(driver.logger instanceof CustomLogger);
-  });
-});
-
-describe('=> AbstractDriver#recycleConnections', function() {
-  it('should close idle connections', async function() {
-    const driver = new AbstractDriver({ idleTimeout: 0.01 });
-    driver.pool = new EventEmitter();
-    let released;
-    let destroyed;
-    driver.recycleConnections();
-    driver.closeConnection = function() {
-      released = true;
-      destroyed = true;
-    };
-    driver.pool.emit('acquire', {});
-    assert.ok(!released);
-    assert.ok(!destroyed);
-    await new Promise(resolve => setTimeout(resolve, 30));
-    assert.ok(released);
-    assert.ok(destroyed);
   });
 });

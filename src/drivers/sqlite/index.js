@@ -75,7 +75,7 @@ class Connection {
     this.pool.releaseConnection(this);
   }
 
-  async destroy() {
+  async end() {
     const { connections } = this.pool;
     const index = connections.indexOf(this);
     if (index >= 0) connections.splice(index, 1);
@@ -138,7 +138,6 @@ class SqliteDriver extends AbstractDriver {
     super(opts);
     this.type = 'sqlite';
     this.pool = this.createPool(opts);
-    this.recycleConnections();
   }
 
   createPool(opts) {
@@ -147,11 +146,6 @@ class SqliteDriver extends AbstractDriver {
 
   async getConnection() {
     return await this.pool.getConnection();
-  }
-
-  async closeConnection(connection) {
-    connection.release();
-    await connection.destroy();
   }
 
   async query(query, values, opts = {}) {

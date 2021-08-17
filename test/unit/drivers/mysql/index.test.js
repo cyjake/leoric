@@ -74,33 +74,4 @@ describe('=> MySQL driver', () => {
     await driver.truncateTable('notes');
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
   });
-
-  it('driver.recycleConnections()', async function() {
-    const driver2 = new MysqlDriver({
-      ...options,
-      idleTimeout: 0.01,
-    });
-    let released;
-    driver2.pool.on('release', function() {
-      released = true;
-    });
-    const connection = await driver2.getConnection();
-    await new Promise(function(resolve, reject) {
-      connection.query('SELECT 1', function(err, row) {
-        if (err) reject(err);
-        resolve({ row });
-      });
-    });
-    assert.ok(!released);
-    await new Promise(resolve => setTimeout(resolve, 30));
-    assert.ok(released);
-    await assert.rejects(async function() {
-      await new Promise(function(resolve, reject) {
-        connection.query('SELECT 1', function(err, row) {
-          if (err) reject(err);
-          resolve({ row });
-        });
-      });
-    }, /Error: Cannot enqueue Query after being destroyed./);
-  });
 });

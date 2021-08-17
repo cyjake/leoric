@@ -109,7 +109,6 @@ class PostgresDriver extends AbstractDriver {
     super(opts);
     this.type = 'postgres';
     this.pool = this.createPool(opts);
-    this.recycleConnections();
   }
 
   createPool(opts) {
@@ -119,11 +118,6 @@ class PostgresDriver extends AbstractDriver {
 
   async getConnection() {
     return await this.pool.connect();
-  }
-
-  async closeConnection(client) {
-    client.release();
-    await client.end();
   }
 
   async query(query, values, spell = {}) {
