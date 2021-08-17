@@ -16,31 +16,6 @@ module.exports = class AbstractDriver {
     this.options = opts;
   }
 
-  closeConnection(connection) {
-    throw new Error('not implemented');
-  }
-
-  recycleConnections() {
-    const acquiredAt = new Map();
-    const timeout = this.idleTimeout * 1000;
-
-    this.pool.on('acquire', function onAcquire(connection) {
-      acquiredAt.set(connection, Date.now());
-    });
-
-    const checkIdle = () => {
-      const now = Date.now();
-      for (const [ connection, timestamp ] of acquiredAt) {
-        if (now - timestamp > timeout) {
-          this.closeConnection(connection);
-          acquiredAt.delete(connection);
-        }
-      }
-      setTimeout(checkIdle, timeout);
-    };
-    checkIdle();
-  }
-
   /**
    * Cast raw values from database to JavaScript types. When the raw packet is fetched from database, `Date`s and special numbers are transformed by drivers already. This method is used to cast said values to custom types set by {@link Bone.attribute}, such as `JSON`.
    * @private

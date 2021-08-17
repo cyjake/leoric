@@ -25,7 +25,6 @@ class MysqlDriver extends AbstractDriver {
     this.type = 'mysql';
     this.pool = this.createPool(opts);
     this.escape = this.pool.escape.bind(this.pool);
-    this.recycleConnections();
   }
 
   get escapeId() {
@@ -67,11 +66,6 @@ class MysqlDriver extends AbstractDriver {
         }
       });
     });
-  }
-
-  closeConnection(connection) {
-    connection.release();
-    connection.destroy();
   }
 
   async query(query, values, opts = {}) {

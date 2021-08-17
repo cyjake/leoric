@@ -111,17 +111,4 @@ describe('=> PostgreSQL driver', () => {
     await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     assert.equal((await driver.query('SELECT id FROM notes')).rows[0].id, '1');
   });
-
-  it('driver.recycleConnections()', async function() {
-    const driver2 = new PostgresDriver({
-      ...options,
-      idleTimeout: 0.01,
-    });
-    const connection = await driver2.getConnection();
-    await connection.query('SELECT 1');
-    await new Promise(resolve => setTimeout(resolve, 30));
-    await assert.rejects(async function() {
-      await connection.query('SELECT 1');
-    }, /Error: Client was closed and is not queryable/);
-  });
 });
