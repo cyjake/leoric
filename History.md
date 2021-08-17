@@ -1,7 +1,14 @@
+1.7.1 / 2021-08-17
+==================
+
+  * revert: drop Driver#recycleConnections due to poor interoperability (#162)
+  * fix: validator call array arguments (#160)
+
 1.7.0 / 2021-08-17
 =================
 
   * feat: close connections that exceeds opts.idleTimeout (#159)
+  * feat: `opts.connectionLimit` support for SQLite (#159)
   * feat: raw query relpacements, closes #149 (#155)
   * fix: upsert created_at default (#154)
   * test: validator unit test (#157)
