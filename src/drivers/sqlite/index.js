@@ -72,10 +72,14 @@ class Connection {
   }
 
   release() {
-    if (this.pool) this.pool.releaseConnection(this);
+    this.pool.releaseConnection(this);
   }
 
   async destroy() {
+    const { connections } = this.pool;
+    const index = connections.indexOf(this);
+    if (index >= 0) connections.splice(index, 1);
+
     return await new Promise((resolve, reject) => {
       this.database.close(function(err) {
         if (err) reject(err);
