@@ -751,22 +751,32 @@ describe('=> Sequelize adapter', () => {
 
   it('Model.increment()', async () => {
     const isbn = 9787550616950;
+    const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    assert.notEqual(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
+    const clock = sinon.useFakeTimers(fakeDate);
     await Book.increment('price', { where: { isbn } });
     await book.reload();
     assert.equal(book.price, 11);
+    assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
 
     await Book.increment({ price: 2 }, { where: { isbn } });
     await book.reload();
     assert.equal(book.price, 13);
+    clock.restore();
   });
 
   it('Model.increment(, { paranoid })', async () => {
     const isbn = 9787550616950;
+    const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    assert.notEqual(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
+    const clock = sinon.useFakeTimers(fakeDate);
     await Book.increment('price', { where: { isbn } });
     await book.reload();
     assert.equal(book.price, 11);
+    assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
+    clock.restore();
 
     await Book.increment({ price: 2 }, { where: { isbn } });
     await book.reload();
@@ -779,6 +789,20 @@ describe('=> Sequelize adapter', () => {
     await Book.increment({ price: 2 }, { where: { isbn }, paranoid: false });
     await book.reload();
     assert.equal(book.price, 15);
+  });
+
+  it('Model.increment(, { silent })', async () => {
+    const fakeDate = new Date(`2012-12-14 12:00-08:00`).getTime();
+    const clock = sinon.useFakeTimers(fakeDate);
+    const isbn = 9787550616950;
+    const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
+    assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
+    clock.restore();
+    await Book.increment('price', { where: { isbn }, silent: true });
+    await book.reload();
+    assert.equal(book.price, 11);
+    console.log(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
+    assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
   });
 
   it('Model.removeAttribute()', async function() {

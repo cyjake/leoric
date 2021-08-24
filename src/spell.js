@@ -286,7 +286,8 @@ function parseSelect(spell, ...names) {
  * @returns
  */
 function formatValueSet(spell, obj, strict = true) {
-  const { Model } = spell;
+  const { Model, silent = false, command } = spell;
+  const { timestamps } = Model;
   const sets = {};
   for (const name in obj) {
     if (!Model.attributes.hasOwnProperty(name)) {
@@ -297,6 +298,7 @@ function formatValueSet(spell, obj, strict = true) {
       }
     }
 
+    if (silent && timestamps.updatedAt && name === timestamps.updatedAt && command === 'update') continue;
     // raw sql don't need to uncast
     if (obj[name] && obj[name].__raw) {
       sets[name] = obj[name];
@@ -691,8 +693,8 @@ class Spell {
    * @param {Object} obj - key-values pairs
    */
   $insert(obj) {
-    this.sets = parseSet(this, obj);
     this.command = 'insert';
+    this.sets = parseSet(this, obj);
     return this;
   }
 
@@ -702,14 +704,14 @@ class Spell {
    * @param {Object} obj - key-value pairs to SET
    */
   $upsert(obj) {
-    this.sets = parseSet(this, obj);
     this.command = 'upsert';
+    this.sets = parseSet(this, obj);
     return this;
   }
 
   $bulkInsert(records) {
-    this.sets = parseSet(this, records);
     this.command = 'bulkInsert';
+    this.sets = parseSet(this, records);
     return this;
   }
 
@@ -732,14 +734,16 @@ class Spell {
    * @param {Object} obj - key-value pairs to SET
    */
   $update(obj) {
-    this.sets = parseSet(this, obj);
     this.command = 'update';
+    this.sets = parseSet(this, obj);
     return this;
   }
 
-  $increment(name, by = 1) {
-    const { Model } = this;
-
+  $increment(name, by = 1, opts = {}) {
+    let { Model, silent = false } = this;
+    silent = opts.silent;
+    const { timestamps } = Model;
+    this.command = 'update';
     if (!Number.isFinite(by)) throw new Error(`unexpected increment value ${by}`);
     if (!Model.attributes.hasOwnProperty(name)) {
       throw new Error(`undefined attribute "${name}"`);
@@ -757,12 +761,16 @@ class Spell {
         __expr: true,
       },
     };
-    this.command = 'update';
+
+    if (timestamps.updatedAt && !this.sets[timestamps.updatedAt] && !silent) {
+      this.sets[timestamps.updatedAt] = new Date();
+    }
+
     return this;
   }
 
-  $decrement(name, by = 1) {
-    return this.$increment(name, -by);
+  $decrement(name, by = 1,  opts = {}) {
+    return this.$increment(name, -by, opts);
   }
 
   /**
