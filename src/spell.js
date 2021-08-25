@@ -618,6 +618,7 @@ class Spell {
       hints: [...this.hints],
       // used by transaction
       connection: this.connection,
+      silent: this.silent,
     });
   }
 
@@ -741,7 +742,7 @@ class Spell {
 
   $increment(name, by = 1, opts = {}) {
     let { Model, silent = false } = this;
-    silent = opts.silent;
+    if (opts.silent != null) silent = opts.silent;
     const { timestamps } = Model;
     this.command = 'update';
     if (!Number.isFinite(by)) throw new Error(`unexpected increment value ${by}`);

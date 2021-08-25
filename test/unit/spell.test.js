@@ -602,6 +602,23 @@ describe('=> Spell', function() {
 
       assert.equal(Book.find({ name: 'hello' }).decrement('price', 1, { silent: true }).toString(), 
       "UPDATE `books` SET `price` = `price` - 1 WHERE `name` = 'hello' AND `gmt_deleted` IS NULL");
+
+      const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
+      const clock = sinon.useFakeTimers(fakeDate);
+      const spell = Book.find({ name: 'hello' });
+      spell.silent = false;
+      assert.equal(spell.decrement('price', 1).toString(), 
+      "UPDATE `books` SET `price` = `price` - 1, `gmt_modified` = '2012-12-14 12:00:00.000' WHERE `name` = 'hello' AND `gmt_deleted` IS NULL");
+      assert.equal(spell.decrement('price', 1, { silent: true }).toString(), 
+      "UPDATE `books` SET `price` = `price` - 1 WHERE `name` = 'hello' AND `gmt_deleted` IS NULL");
+
+      const spell1 = Book.find({ name: 'hello' });
+      spell1.silent = true;
+      assert.equal(spell1.decrement('price', 1).toString(), 
+      "UPDATE `books` SET `price` = `price` - 1 WHERE `name` = 'hello' AND `gmt_deleted` IS NULL");
+      assert.equal(spell1.decrement('price', 1, { silent: false }).toString(), 
+      "UPDATE `books` SET `price` = `price` - 1, `gmt_modified` = '2012-12-14 12:00:00.000' WHERE `name` = 'hello' AND `gmt_deleted` IS NULL");
+      clock.restore();
     });
   });
 });
