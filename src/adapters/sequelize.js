@@ -399,14 +399,15 @@ module.exports = Bone => {
 
     static increment(fields, options = {}) {
       const { where, paranoid } = options;
-      const spell = super.update(where);
+      // pass options to update
+      const spell = super.update(where, undefined, options);
 
       if (Array.isArray(fields)) {
-        for (const field of fields) spell.$increment(field);
+        for (const field of fields) spell.$increment(field, undefined, options);
       } else if (fields != null && typeof fields === 'object') {
-        for (const field in fields) spell.$increment(field, fields[field]);
+        for (const field in fields) spell.$increment(field, fields[field], options);
       } else if (typeof fields === 'string') {
-        spell.$increment(fields);
+        spell.$increment(fields, undefined, options);
       } else {
         throw new Error(`Unexpected fields: ${fields}`);
       }
@@ -610,7 +611,6 @@ module.exports = Bone => {
         }
         this._validateAttributes(updateValues);
       }
-
       return Model.increment(fields, {
         ...options,
         where: { [primaryKey]: this[primaryKey] },
