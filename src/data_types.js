@@ -61,15 +61,29 @@ class STRING extends DataType {
 
   get BINARY() {
     this.binary = true;
+    this.dataType = 'binary';
     return this;
   }
 
+  get VARBINARY() {
+    this.varbinary = true;
+    this.dataType = 'varbinary';
+    return this;
+  }
+
+  static BINARY() {
+    return new this().BINARY;
+  }
+
+  static VARBINARY() {
+    return new this().VARBINARY;
+  }
+
   toSqlString() {
-    const { length, binary } = this;
+    const { length } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
     chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
-    if (binary) chunks.push('BINARY');
     return chunks.join(' ');
   }
 }
