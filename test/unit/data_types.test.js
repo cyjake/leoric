@@ -12,7 +12,8 @@ describe('=> Data Types', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
-    assert.equal(new STRING(255).BINARY.toSqlString(), 'VARCHAR(255) BINARY');
+    assert.equal(new STRING(255).BINARY.toSqlString(), 'BINARY(255)');
+    assert.equal(new STRING(255).VARBINARY.toSqlString(), 'VARBINARY(255)');
   });
 
   it('BOOLEAN', () => {
