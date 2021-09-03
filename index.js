@@ -82,7 +82,6 @@ async function loadModels(Spine, models, opts) {
   }
 
   for (const model of models) {
-    model.describe();
     model.initialize();
   }
 }

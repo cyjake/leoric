@@ -30,8 +30,12 @@ module.exports = {
   },
 
   async describeTable(table) {
-    const { escapeId } = this;
-    await this.query(`DESCRIBE ${escapeId(table)}`);
+    const { database } = this.options;
+    const schemaInfo = await this.querySchemaInfo(database, table);
+    return schemaInfo[table].reduce(function(result, column) {
+      result[column.columnName] = column;
+      return result;
+    }, {});
   },
 
   async addColumn(table, name, params) {

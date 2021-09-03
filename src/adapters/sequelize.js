@@ -278,10 +278,8 @@ module.exports = Bone => {
       return spell;
     }
 
-    static async describe() {
-      const { driver, physicTable: table } = this;
-      return await driver.describeTable(table);
-    }
+    // EXISTS
+    // static async describe() {}
 
     static async destroy(options = {}) {
       const { where, individualHooks, paranoid } = options;

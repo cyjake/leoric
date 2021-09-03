@@ -77,4 +77,20 @@ module.exports = {
     `);
     await this.query(sql);
   },
+
+  async describeTable(table) {
+    const { escapeId } = this;
+    const { rows } = await this.query(`DESCRIBE ${escapeId(table)}`);
+    const result = {};
+    for (const row of rows) {
+      result[row.Field] = {
+        columnName: row.Field,
+        columnType: row.Type,
+        allowNull: row.Null === 'YES',
+        defaultValue: row.Default,
+        autoIncrement: row.Extra === 'auto_increment',
+      };
+    }
+    return result;
+  },
 };

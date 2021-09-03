@@ -154,10 +154,6 @@ module.exports = {
     }
   },
 
-  async describeTable(table) {
-    return await this.query(`PRAGMA table_info(${this.escapeId(table)})`);
-  },
-
   async addColumn(table, name, params) {
     const { escapeId } = this;
     const attribute = new Attribute(name, params);

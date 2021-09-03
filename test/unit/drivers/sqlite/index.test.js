@@ -89,14 +89,14 @@ describe('=> SQLite driver', () => {
     await driver.alterTable('notes', {
       params: { type: JSONB },
     });
-    const { rows } = await driver.describeTable('notes');
-    assert.deepEqual(rows.pop(), {
-      cid: 2,
-      name: 'params',
-      type: 'JSON',
-      notnull: 0,
-      dflt_value: null,
-      pk: 0
+    const result = await driver.describeTable('notes');
+    assert.deepEqual(result.params, {
+      columnName: 'params',
+      columnType: 'json',
+      dataType: 'json',
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false
     });
   });
 
@@ -113,14 +113,14 @@ describe('=> SQLite driver', () => {
       });
     }, /NOT NULL/);
     // should rollback if failed to alter table
-    const { rows } = await driver.describeTable('notes');
-    assert.deepEqual(rows.pop(),   {
-      cid: 1,
-      name: 'title',
-      type: 'VARCHAR(255)',
-      notnull: 0,
-      dflt_value: null,
-      pk: 0
+    const tableInfo = await driver.describeTable('notes');
+    assert.deepEqual(tableInfo.title, {
+      columnName: 'title',
+      columnType: 'varchar(255)',
+      dataType: 'varchar',
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
     });
     const result = await driver.query('SELECT * FROM notes');
     assert.equal(result.rows.length, 1);
