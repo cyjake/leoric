@@ -89,7 +89,7 @@ function copyValues(values) {
  * The base class that provides Object-relational mapping. This class is never intended to be used directly. We need to create models that extends from Bone. Most of the query features of Bone is implemented by {@link Spell} such as {@link Spell#$group} and {@link Spell#$join}. With Bone, you can create models like this:
  *
  *     class Post extends Bone {
- *       static describe() {
+ *       static initialize() {
  *         this.hasMany('comments')
  *         this.belongsTo('author', { className: 'User' })
  *         this.attribute('extra', { type: JSON })
@@ -873,7 +873,7 @@ class Bone {
    * @param {Object} meta
    * @example
    * class Post extends Bone {
-   *   static describe() {
+   *   static initialize() {
    *     Post.attribute('extra', { type: JSON })
    *   }
    * }
@@ -952,19 +952,6 @@ class Bone {
       if (this[hookName]) setupSingleHook(this, hookName, this[hookName]);
     }
   }
-
-  /**
-   * Override this method to setup associations, rename attributes, etc.
-   * @deprecated use {@link Bone.initialize} instead
-   * @example
-   * class Post extends Bone {
-   *   static describe() {
-   *     this.belongsTo('author', { className: 'User' })
-   *     this.renameAttribute('content', 'body')
-   *   }
-   * }
-   */
-  static describe() {}
 
   /**
    * Override this method to setup associations, rename attributes, etc.
@@ -1251,14 +1238,14 @@ class Bone {
    * Start a join query by including associations by name. The associations should be predefined in model's static `describe()` method. See {@link Bone.belongsTo}, {@link Bone.hasMany}, and {@link Bone.hasOne} for more information.
    * @example
    * class Post extends Bone {
-   *   static describe() {
+   *   static initialize() {
    *     this.hasMany('comments')
    *     this.belongsTo('author')
    *   }
    * }
    * Post.include('comments')
    * Post.include('author', 'comments')
-   * @param {...string} names - association names defined in {@link Bone.describe}
+   * @param {...string} names - association names defined in {@link Bone.initialize}
    */
   static include(...names) {
     return this._find().$with(...names);
@@ -1514,6 +1501,11 @@ class Bone {
 
     const schemaInfo = await driver.querySchemaInfo(database, table);
     this.load(schemaInfo[table]);
+  }
+
+  static async describe() {
+    const { driver, physicTable: table } = this;
+    return await driver.describeTable(table);
   }
 
   static async drop() {

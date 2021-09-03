@@ -249,3 +249,21 @@ describe('=> Bone.truncate()', () => {
     assert.equal(await Temp.count(), 0);
   });
 });
+
+describe('=> Bone.describe()', function() {
+  beforeEach(async function() {
+    await Bone.driver.dropTable('temp');
+  });
+
+  it('should be able to get table description', async function() {
+    class Temp extends Bone {};
+    Temp.init({
+      id: INTEGER,
+      foo: STRING,
+    }, { tableName: 'temp' });
+
+    await Temp.sync();
+    const result = await Temp.describe();
+    assert.deepEqual(Object.keys(result), [ 'id', 'foo' ]);
+  });
+});

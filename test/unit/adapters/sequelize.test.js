@@ -250,10 +250,6 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.price, 7);
   });
 
-  it('Model.describe()', async () => {
-
-  });
-
   it('Model.destroy()', async () => {
     await Promise.all([
       Post.create({ title: 'By three they come' }),
@@ -861,9 +857,8 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('Model.describe()', async function() {
-    const { rows } = await Book.describe();
-    assert(rows);
-    assert(rows.find(row => row.name === 'isbn'));
+    const result = await Book.describe();
+    assert(result.hasOwnProperty('isbn'));
   });
 
   it('model.decrement()', async () => {
