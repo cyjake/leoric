@@ -1,3 +1,10 @@
+1.9.0 / 2021-09-04
+==================
+
+> should've been a major release but since existing users have all migrated to the new api...
+
+  * breaking: drop the deprecated `Model.describe()` (#167)
+
 1.8.0 / 2021-08-30
 ==================
 
