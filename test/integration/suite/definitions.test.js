@@ -124,8 +124,14 @@ describe('=> Table definitions', () => {
       userId: { type: INTEGER },
       title: { type: STRING },
     });
+    await assert.rejects(async function() {
+      await Bone.driver.addIndex('notes', [ 'userId' ], { type: 'UNKNOWN' });
+    }, /Unexpected index type/i);
     await Bone.driver.addIndex('notes', [ 'userId', 'title' ]);
     await Bone.driver.removeIndex('notes', [ 'userId', 'title' ]);
+    await assert.rejects(async function() {
+      await Bone.driver.removeIndex('notes', {});
+    }, /Unexpected index name/i);
   });
 });
 

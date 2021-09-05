@@ -1322,10 +1322,7 @@ class Bone {
     if (!(autoIncrement && unset || allset)) {
       // validate first
       if (options.validate !== false) {
-        records.map(record => {
-          if (record instanceof Bone) record._validateAttributes();
-          else this._validateAttributes(record);
-        });
+        for (const record of records) this._validateAttributes(record);
       }
       return await new Spell(this, options).$bulkInsert(records);
     }
