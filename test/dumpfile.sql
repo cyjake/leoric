@@ -11,7 +11,8 @@ CREATE TABLE `articles` (
   `author_id` bigint(20) DEFAULT NULL,
   `is_private` tinyint(1) DEFAULT 0,
   `summary` text,
-  `word_count` int DEFAULT 0
+  `word_count` int DEFAULT 0,
+  `settings` text
 );
 
 DROP TABLE IF EXISTS `attachments`;

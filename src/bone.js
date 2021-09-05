@@ -1313,6 +1313,9 @@ class Bone {
       opts.uniqueKeys = opts.uniqueKeys.map((field) => this.unalias(field));
     }
 
+    // records might change when filter through custom setters
+    records = instances.map(instance => instance.getRaw());
+
     // bulk create with instances is possible only if
     // 1) either all of records primary key are set
     // 2) or none of records priamry key is set and primary key is auto incremented
