@@ -34,6 +34,21 @@ class Post extends Bone {
       return chr.toUpperCase();
     });
   }
+
+  get settings() {
+    const value = this.attribute('settings');
+    try {
+      return JSON.parse(value);
+    } catch (err) {
+      console.warn(`unable to parse 'settings': ${value}`, err);
+    }
+    return {};
+  }
+
+  set settings(value) {
+    if (typeof value !== 'string') value = JSON.stringify(value);
+    this.attribute('settings', value);
+  }
 }
 
 Object.defineProperty(Post.prototype, 'slug', {

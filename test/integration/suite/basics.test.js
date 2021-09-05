@@ -966,9 +966,9 @@ describe('=> Bulk', () => {
 
     assert.equal(await User.count(), 2);
     let p1 = await User.findOne({ email: 'hello@h1.com' });
-    assert.equal(p1.nickname, 'Tyrael');
+    assert.equal(p1.nickname, 'TYRAEL');
     let p2 = await User.findOne({ email: 'hello1@h1.com' });
-    assert.equal(p2.nickname, 'Leah');
+    assert.equal(p2.nickname, 'LEAH');
 
     await User.bulkCreate([
       { nickname: 'Tyrael1', email: 'hello@h1.com', status: 1 },
@@ -979,9 +979,9 @@ describe('=> Bulk', () => {
 
     assert.equal(await User.count(), 2);
     p1 = await User.findOne({ email: 'hello@h1.com' });
-    assert.equal(p1.nickname, 'Tyrael1');
+    assert.equal(p1.nickname, 'TYRAEL1');
     p2 = await User.findOne({ email: 'hello1@h1.com' });
-    assert.equal(p2.nickname, 'Leah1');
+    assert.equal(p2.nickname, 'LEAH1');
 
     await User.bulkCreate([
       { nickname: 'Tyrael2', email: 'hello2@h1.com', status: 1 },
@@ -1039,6 +1039,17 @@ describe('=> Bulk', () => {
         { id: 2, title: 'Leah', authorId: 1 },
       ]);
     });
+  });
+
+  it('Bone.bulkCreate() should be aware of custom setters', async function() {
+    await Post.bulkCreate([
+      { id: 1, title: 'Tyrael', settings: { a: 1 } },
+      { id: 2, title: 'Leah', settings: { b: 2 } },
+    ]);
+    const posts = await Post.all;
+    assert.equal(posts.length, 2);
+    assert.deepEqual(posts[0].settings, { a: 1 });
+    assert.deepEqual(posts[1].settings, { b: 2 });
   });
 });
 
