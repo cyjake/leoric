@@ -17,6 +17,12 @@ class DataType {
     switch (dataType) {
       case 'varchar':
       case 'char':
+      // mysql only
+      case 'binary':
+      // mysql only
+      case 'varbinary':
+      // postgres only
+      case 'bytea':
         return STRING;
       // longtext is only for MySQL
       case 'longtext':
@@ -71,12 +77,12 @@ class STRING extends DataType {
     return this;
   }
 
-  static BINARY() {
-    return new this().BINARY;
+  static BINARY(length) {
+    return new this(length).BINARY;
   }
 
-  static VARBINARY() {
-    return new this().VARBINARY;
+  static VARBINARY(length) {
+    return new this(length).VARBINARY;
   }
 
   toSqlString() {

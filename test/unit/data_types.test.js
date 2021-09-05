@@ -14,6 +14,8 @@ describe('=> Data Types', () => {
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
     assert.equal(new STRING(255).BINARY.toSqlString(), 'BINARY(255)');
     assert.equal(new STRING(255).VARBINARY.toSqlString(), 'VARBINARY(255)');
+    assert.equal(STRING.BINARY(255).toSqlString(), 'BINARY(255)');
+    assert.equal(STRING.VARBINARY(255).toSqlString(), 'VARBINARY(255)');
   });
 
   it('BOOLEAN', () => {
@@ -71,6 +73,17 @@ describe('DataTypes.findType()', () => {
   const { TEXT } = DataTypes;
   it('longtext => TEXT', () => {
     assert.equal(DataTypes.findType('longtext'), TEXT);
+  });
+
+  it('binary => STRING', () => {
+    const { STRING } = DataTypes;
+    assert.equal(DataTypes.findType('binary'), STRING);
+    assert.equal(DataTypes.findType('varbinary'), STRING);
+  });
+
+  it('bytea => STRING', () => {
+    const { STRING } = DataTypes;
+    assert.equal(DataTypes.findType('bytea'), STRING);
   });
 });
 
