@@ -41,9 +41,10 @@ async function findModels(dir) {
   const models = [];
 
   for (const entry of entries) {
-    const extname = path.extname(entry.name);
-    if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
-      const model = require(path.join(dir, entry.name));
+    const { name, isFile } = entry;
+    const extname = path.extname(name);
+    if (isFile() && ['.js', '.mjs'].includes(extname)) {
+      const model = require(path.join(dir, name));
       if (model.prototype instanceof Bone) models.push(model);
     }
   }
@@ -56,7 +57,7 @@ function initAttributes(model, columns) {
 
   for (const columnInfo of columns) {
     const { columnName, dataType, defaultValue, ...restInfo } = columnInfo;
-    const name = columnName == '_id' ? columnName : camelCase(columnName);
+    const name = columnName === '_id' ? columnName : camelCase(columnName);
     // leave out defaultValue to let database take over the default
     attributes[name] = {
       ...restInfo,
@@ -185,7 +186,7 @@ class Realm {
     const replacements = opts.replacements || {};
     query = query.replace(rReplacementKey, function replacer(m, key) {
       if (!replacements.hasOwnProperty(key)) {
-        throw new Error(`unable to replace :${key}`);
+        throw new Error(`unable to replace: ${key}`);
       }
       values.push(replacements[key]);
       return '?';

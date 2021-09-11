@@ -64,8 +64,8 @@ function isDispatchable(spell) {
 
   for (const token of columns) {
     const { type } = token;
-    if (type == 'func') return false;
-    if (type == 'alias' && token.args[0].type == 'func') return false;
+    if (type === 'func') return false;
+    if (type === 'alias' && token.args[0].type === 'func') return false;
   }
   if (groups.length > 0) return false;
   if (table.value instanceof Spell && Object.keys(table.value.joins).length > 0) {
@@ -85,7 +85,7 @@ function isDispatchable(spell) {
 function dispatch(spell, rows, fields) {
   const { Model } = spell;
 
-  if (Object.keys(spell.joins).length == 0) {
+  if (Object.keys(spell.joins).length === 0) {
     return Collection.from(rows, row => Model.instantiate(Object.values(row)[0]));
   }
 
@@ -118,7 +118,7 @@ function dispatchJoins(current, spell, row, fields) {
     const id = values[Model.primaryColumn];
     if (hasMany) {
       if (!current[qualifier]) current[qualifier] = new Collection();
-      if (!id || current[qualifier].some(item => item[Model.primaryKey] == id)) continue;
+      if (!id || current[qualifier].some(item => item[Model.primaryKey] === id)) continue;
       current[qualifier].push(Model.instantiate(values));
     } else {
       current[qualifier] = Object.values(values).some(value => value != null)
@@ -156,9 +156,9 @@ function convert(spell, rows, fields) {
     for (let prop in row) {
       const data = row[prop];
       // mysql2 sometimes nests rows with table name instead of table alias
-      const qualifier = prop == table ? tableAlias : prop;
+      const qualifier = prop === table ? tableAlias : prop;
       const obj = result[qualifier] || (result[qualifier] = {});
-      if (qualifier == '') {
+      if (qualifier === '') {
         Object.assign(obj, data);
       }
       else if (qualifier in joins || qualifier == tableAlias) {
