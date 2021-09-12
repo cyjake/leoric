@@ -55,11 +55,7 @@ const LOGICAL_OPERATORS = [
 ];
 
 const OPERATORS = new Set(
-  ['between', 'not between', ...UNARY_OPERATORS, ...BINARY_OPERATORS].sort((a, b) => {
-    if (a.length > b.length) return -1;
-    else if (a.length < b.length) return 1;
-    else return 0;
-  })
+  ['between', 'not between', ...UNARY_OPERATORS, ...BINARY_OPERATORS].sort((a, b) => b.length - a.length)
 );
 
 /**
@@ -153,7 +149,7 @@ function parseExprList(str, ...values) {
     let value = '';
     const quote = chr;
     next();
-    while (chr && chr != quote) {
+    while (chr && chr !== quote) {
       value += chr;
       next();
     }
@@ -171,7 +167,7 @@ function parseExprList(str, ...values) {
       const arg = expr();
       if (arg) args.push(arg);
       space();
-    } while (chr == ',');
+    } while (chr === ',');
     next();
     return { type: 'func', name, args };
   }
@@ -192,10 +188,10 @@ function parseExprList(str, ...values) {
   function array() {
     const items = [];
     next();
-    while (chr && chr != ')') {
+    while (chr && chr !== ')') {
       space();
       const item = token();
-      if (item.type == 'literal') {
+      if (item.type === 'literal') {
         items.push(item.value);
       } else {
         throw new Error(`Unexpected token ${item.type}`);
@@ -214,13 +210,13 @@ function parseExprList(str, ...values) {
 
   function token() {
     if (/['"]/.test(chr)) return string();
-    if (chr == '?') return placeholder();
-    if (chr == '(') return array();
+    if (chr === '?') return placeholder();
+    if (chr === '(') return array();
 
     for (const name of OPERATORS) {
       const j = i + name.length;
       const chunk = str.slice(i, j);
-      if (chunk.toLowerCase() == name && (str[j] == ' ' || !/[a-z]$/.test(name))) {
+      if (chunk.toLowerCase() === name && (str[j] === ' ' || !/[a-z]$/.test(name))) {
         i += name.length;
         chr = str[i];
         return { type: 'op', name: OPERATOR_ALIAS_MAP[name] || name, args: [] };
@@ -240,7 +236,7 @@ function parseExprList(str, ...values) {
     else if (MODIFIERS.includes(lowerCase)) {
       return { type: 'mod', name: lowerCase, args: [] };
     }
-    else if (chr == '(') {
+    else if (chr === '(') {
       return func(lowerCase);
     }
     else if (lowerCase == 'null') {
@@ -259,7 +255,7 @@ function parseExprList(str, ...values) {
     const start = token();
     space();
     const conj = token();
-    if (conj.name != 'and') throw new Error(`Unexpected conj ${conj}`);
+    if (conj.name !== 'and') throw new Error(`Unexpected conj ${conj}`);
     space();
     const end = token();
     return { ...op, args: [ t, start, end ] };
@@ -271,8 +267,8 @@ function parseExprList(str, ...values) {
   }
 
   function unary(op) {
-    const arg = chr == '(' ? expr() : token();
-    if (op.name == '-' && arg.type == 'literal' && Number.isFinite(arg.value)) {
+    const arg = chr === '(' ? expr() : token();
+    if (op.name === '-' && arg.type === 'literal' && Number.isFinite(arg.value)) {
       return { type: 'literal', value: -arg.value };
     } else {
       return { ...op, args: [arg] };
@@ -281,29 +277,29 @@ function parseExprList(str, ...values) {
 
   function operator(t) {
     const op = token();
-    if (op.name == 'as') return alias(t);
-    if (op.name == 'between' || op.name == 'not between') {
+    if (op.name === 'as') return alias(t);
+    if (['between','not between'].includes(op.name)) {
       return between(op, t);
     }
     if (BINARY_OPERATORS.includes(op.name)) {
       space();
-      const isLower = chr == '(';
+      const isLower = chr === '(';
       const operand = LOGICAL_OPERATORS.includes(op.name) ? expr() : token();
       // parseExpr('1 > -1')
       if (UNARY_OPERATORS.includes(operand.name) && operand.args.length == 0) {
         return { ...op, args: [t, unary(operand)] };
       }
-      else if (operand.type == 'op' && operand.args.length < 2) {
+      else if (operand.type === 'op' && operand.args.length < 2) {
         throw new Error(`Unexpected token ${operand.name}`);
       }
       // parseExpr('a = 1 && b = 2 && c = 3')
-      else if (operand.type == 'op' && !isLower && precedes(op.name, operand.name) <= 0) {
+      else if (operand.type === 'op' && !isLower && precedes(op.name, operand.name) <= 0) {
         const { args } = operand;
         operand.args = [{ ...op, args: [t, args[0]] }, args[1]];
         return operand;
       }
       // parseExpr('a + b * c')
-      else if (operand.type !== 'op' && t.type == 'op' && precedes(op.name, t.name) < 0) {
+      else if (operand.type !== 'op' && t.type === 'op' && precedes(op.name, t.name) < 0) {
         t.args[1] = { ...op, args: [t.args[1], operand] };
         return t;
       }
@@ -318,11 +314,11 @@ function parseExprList(str, ...values) {
 
   function expr() {
     let node;
-    while (chr && chr != ',' && chr != ')') {
+    while (chr && chr !== ',' && chr !== ')') {
       space();
       if (node) {
         // check arguments length to differentiate unary minus and binary minus
-        if (UNARY_OPERATORS.includes(node.name) && node.args.length == 0) {
+        if (UNARY_OPERATORS.includes(node.name) && node.args.length === 0) {
           node = unary(node);
         }
         else if (MODIFIERS.includes(node.name)) {
@@ -332,12 +328,12 @@ function parseExprList(str, ...values) {
           node = operator(node);
         }
       }
-      else if (chr == '(') {
+      else if (chr === '(') {
         next();
         node = expr();
         next();
       }
-      else if (chr == '*') {
+      else if (chr === '*') {
         node = wildcard();
       }
       else {
@@ -351,7 +347,7 @@ function parseExprList(str, ...values) {
   const results = [];
   while (chr) {
     results.push(expr());
-    if (chr == ',') next();
+    if (chr === ',') next();
   }
   return results;
 }

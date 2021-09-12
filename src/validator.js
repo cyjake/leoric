@@ -102,7 +102,7 @@ function executeValidator(ctx, name, attribute, setValue) {
     }
 
     if (['true', 'false'].indexOf(String(validateArgs)) >= 0) {
-      if (validator.call(ctx, value == null? value : String(value)) !== args) {
+      if (validator.call(ctx, value == null ? value : String(value)) !== args) {
         throw new LeoricValidateError(name, field, msg, !validateArgs? validateArgs : undefined);
       }
       return;
