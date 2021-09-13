@@ -364,7 +364,7 @@ describe('=> Realm', () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
             title: post1.title
           }, { model: Post });
-        }, /Error: unable to replace :authorId/);
+        }, /Error: unable to replace: authorId/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
@@ -372,7 +372,7 @@ describe('=> Realm', () => {
               title: post1.title,
             }
           }, { model: Post });
-        }, /Error: unable to replace :authorId/);
+        }, /Error: unable to replace: authorId/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
@@ -381,17 +381,17 @@ describe('=> Realm', () => {
               hello: 'ye'
             }
           }, { model: Post });
-        }, /Error: unable to replace :authorId/);
+        }, /Error: unable to replace: authorId/);
 
         await assert.rejects(async () => {
             await realm.query('SELECT * FROM articles where title = :title', {
               replacements: null
             }, { model: Post });
-        }, /Error: unable to replace :title/);
+        }, /Error: unable to replace: title/);
 
         await assert.rejects(async () => {
           await realm.query('SELECT * FROM articles where title = :title', null, { model: Post });
-        }, /Error: unable to replace :title/);
+        }, /Error: unable to replace: title/);
 
       });
     });
