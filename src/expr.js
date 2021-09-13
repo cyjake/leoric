@@ -278,7 +278,7 @@ function parseExprList(str, ...values) {
   function operator(t) {
     const op = token();
     if (op.name === 'as') return alias(t);
-    if (['between','not between'].includes(op.name)) {
+    if (['between', 'not between'].includes(op.name)) {
       return between(op, t);
     }
     if (BINARY_OPERATORS.includes(op.name)) {
