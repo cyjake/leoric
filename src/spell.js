@@ -81,11 +81,13 @@ function parseObjectValue(value) {
  * @returns {boolean}
  */
 function isOperatorCondition(condition) {
+  if (!isPlainObject(condition)) return false;
   const keys = Object.keys(condition);
 
-  return isPlainObject(condition) &&
-    keys.length > 0 &&
-    keys.every($op => OPERATOR_MAP.hasOwnProperty($op));
+  return (
+    keys.length > 0 && 
+    keys.every($op => OPERATOR_MAP.hasOwnProperty($op))
+  );
 }
 
 /**
