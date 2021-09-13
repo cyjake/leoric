@@ -81,9 +81,13 @@ function parseObjectValue(value) {
  * @returns {boolean}
  */
 function isOperatorCondition(condition) {
-  return isPlainObject(condition) &&
-    Object.keys(condition).length > 0 &&
-    Object.keys(condition).every($op => OPERATOR_MAP.hasOwnProperty($op));
+  if (!isPlainObject(condition)) return false;
+  const keys = Object.keys(condition);
+
+  return (
+    keys.length > 0 && 
+    keys.every($op => OPERATOR_MAP.hasOwnProperty($op))
+  );
 }
 
 /**
@@ -252,7 +256,7 @@ function parseObjectConditions(conditions) {
 
 function parseSelect(spell, ...names) {
   const { joins, Model } = spell;
-  if (typeof names[0] == 'function') {
+  if (typeof names[0] === 'function') {
     names = Object.keys(Model.attributes).filter(names[0]);
   } else {
     names = names.reduce((result, name) => result.concat(name), []);
@@ -431,7 +435,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
     const columns = parseSelect({ Model: RefModel }, select);
     for (const token of columns) {
       walkExpr(token, node => {
-        if (node.type == 'id' && !node.qualifiers && RefModel.attributes[node.value]) {
+        if (node.type === 'id' && !node.qualifiers && RefModel.attributes[node.value]) {
           node.qualifiers = [refName];
         }
       });
@@ -463,7 +467,7 @@ function scopeDeletedAt(spell) {
   for (const condition of whereConditions) {
     let found = false;
     walkExpr(condition, ({ type, value }) => {
-      if (type == 'id' && value == deletedAt) {
+      if (type === 'id' && value == deletedAt) {
         found = true;
       }
     });
@@ -526,7 +530,7 @@ class Spell {
       scopes.push(...opts.scopes);
     }
 
-    this.scopes =  scopes;
+    this.scopes = scopes;
 
     /**
      * A sub-class of Bone.
@@ -838,12 +842,12 @@ class Spell {
 
     for (const name of names) {
       const token = parseExpr(name);
-      if (token.type == 'alias') {
+      if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
       } else {
         groups.push(token);
       }
-      if (!columns.some(entry => entry.value == token.value)) {
+      if (!columns.some(entry => entry.value === token.value)) {
         columns.push(token);
       }
     }
@@ -990,7 +994,7 @@ class Spell {
    * @returns {Spell}
    */
   $join(Model, onConditions, ...values) {
-    if (typeof Model == 'string') {
+    if (typeof Model === 'string') {
       return this.$with(...arguments);
     }
     const qualifier = Model.tableAlias;
