@@ -943,7 +943,7 @@ class Bone {
       primaryKey,
       columns,
       attributeMap,
-      associations: [],
+      associations: {},
       tableAlias,
       synchronized: Object.keys(compare(attributes, columns)).length === 0,
     }));
@@ -1493,7 +1493,7 @@ class Bone {
 
     const { attributes, columns } = this;
 
-    if (Object.keys(columns).length === 0) {
+    if (columns.length === 0) {
       await driver.createTable(table, attributes);
     } else {
       await driver.alterTable(table, compare(attributes, columns));

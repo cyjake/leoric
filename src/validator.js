@@ -69,7 +69,7 @@ function executeValidator(ctx, name, attribute, setValue) {
   const { name: field, validate, defaultValue } = attribute;
   const validateArgs = validate[name];
 
-  const value = setValue != null? setValue : defaultValue;
+  const value = setValue != null ? setValue : defaultValue;
   if (typeof validateArgs === 'function') {
     let needToRevert = false;
     let originValue;
@@ -103,7 +103,7 @@ function executeValidator(ctx, name, attribute, setValue) {
 
     if (['true', 'false'].indexOf(String(validateArgs)) >= 0) {
       if (validator.call(ctx, value == null ? value : String(value)) !== args) {
-        throw new LeoricValidateError(name, field, msg, !validateArgs? validateArgs : undefined);
+        throw new LeoricValidateError(name, field, msg, !validateArgs ? validateArgs : undefined);
       }
       return;
     }

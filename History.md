@@ -74,7 +74,7 @@
 ==================
 
   * feat: support class static attributes and hooks (#131)
-  * fix: names defined in Bone.attributes should be always enumerable (#128)
+  * fix: names defined in Bone.attributes should always be enumerable (#128)
   * chore: add quality badge to readme (#129)
 
 1.5.2 / 2021-07-02
