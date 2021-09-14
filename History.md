@@ -1,3 +1,10 @@
+1.10.0 / 2021-09-14
+==================
+
+  * feat: SQLite driver should emit "connection" event when new connection is created (#168)
+  * fix: bulkCreate(...records) should recognize custom setters (#168)
+  * fix: attribute.equals() check should ignore defaultValue (#172)
+
 1.9.0 / 2021-09-04
 ==================
 
