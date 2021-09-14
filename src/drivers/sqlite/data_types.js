@@ -30,16 +30,6 @@ class Sqlite_STRING extends DataTypes.STRING {
     this.dataType = 'varchar';
   }
 
-  get BINARY() {
-    this.binary = true;
-    return this;
-  }
-
-  get VARBINARY() {
-    this.varbinary = true;
-    return this;
-  }
-
   toSqlString() {
     const { length } = this;
     const dataType = this.dataType.toUpperCase();
@@ -49,6 +39,29 @@ class Sqlite_STRING extends DataTypes.STRING {
     else if (this.varbinary) chunks.push(length > 0 ? `VARBINARY(${length})` : 'BINARY');
     else return super.toSqlString();
     return chunks.join(' ');
+  }
+}
+
+class Sqlite_BINARY extends DataTypes {
+  constructor(length = 255) {
+    super(length);
+    this.length = length;
+    this.dataType = 'binary';
+  }
+
+  toSqlString() {
+    const { length } = this;
+    const dataType = this.dataType.toUpperCase();
+    const chunks = [];
+    chunks.push('VARCHAR');
+    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    return chunks.join(' ');
+  }
+}
+class Sqlite_VARBINARY extends Sqlite_BINARY {
+  constructor(length) {
+    super(length);
+    this.dataType = 'varbinary';
   }
 }
 
@@ -63,6 +76,14 @@ class Sqlite_DataTypes extends DataTypes {
 
   static get STRING() {
     return Sqlite_STRING;
+  }
+
+  static get BINARY() {
+    return Sqlite_BINARY;
+  }
+
+  static get VARBINARY() {
+    return Sqlite_VARBINARY;
   }
 }
 

@@ -39,6 +39,20 @@ describe('=> AbstractDriver', function() {
     assert.ok(date instanceof Date);
     assert.equal(date.getFullYear(), 2021);
   });
+
+  it('driver.cast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.cast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
+  });
+
+  it('driver.uncast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.uncast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
+  });
 });
 
 describe('=> AbstractDriver#logger', function() {

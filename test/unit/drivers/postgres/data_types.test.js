@@ -5,15 +5,20 @@ const DataTypes = require('../../../../src/drivers/postgres/data_types');
 
 describe('=> Data Types', () => {
   const {
-    STRING, DATE, JSONB
+    STRING, DATE, JSONB, VARBINARY, BINARY, BLOB
   } = DataTypes;
 
   it('STRING', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
-    assert.equal(new STRING(255).BINARY.toSqlString(), 'BYTEA');
-    assert.equal(new STRING(255).VARBINARY.toSqlString(), 'BYTEA');
+  });
+
+  it('BINARY', () => {
+    assert.equal(new BINARY().toSqlString(), 'BYTEA');
+    assert.equal(new BINARY(127).toSqlString(), 'BYTEA');
+    assert.equal(new VARBINARY(127).toSqlString(), 'BYTEA');
+    assert.equal(new BLOB().toSqlString(), 'BYTEA');
   });
 
   it('DATE', () => {

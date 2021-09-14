@@ -111,4 +111,18 @@ describe('=> PostgreSQL driver', () => {
     await driver.query(`INSERT INTO notes (title) VALUES ('Untitled')`);
     assert.equal((await driver.query('SELECT id FROM notes')).rows[0].id, '1');
   });
+
+  it('driver.cast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.cast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
+  });
+
+  it('driver.uncast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.uncast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
+  });
 });

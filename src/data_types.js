@@ -12,17 +12,11 @@ const invokable = require('./utils/invokable');
 
 class DataType {
   static findType(dataType) {
-    const { STRING, TEXT, DATE, INTEGER, BIGINT, BOOLEAN } = this;
+    const { STRING, TEXT, DATE, INTEGER, BIGINT, BOOLEAN, BINARY, VARBINARY, BLOB } = this;
 
     switch (dataType) {
       case 'varchar':
       case 'char':
-      // mysql only
-      case 'binary':
-      // mysql only
-      case 'varbinary':
-      // postgres only
-      case 'bytea':
         return STRING;
       // longtext is only for MySQL
       case 'longtext':
@@ -45,6 +39,16 @@ class DataType {
         return BIGINT;
       case 'boolean':
         return BOOLEAN;
+      // mysql only
+      case 'binary':
+      // postgres only
+      case 'bytea':
+        return BINARY;
+      // mysql only
+      case 'varbinary':
+        return VARBINARY;
+      case 'blob':
+        return BLOB;
       default:
         throw new Error(`Unexpected data type ${dataType}`);
     }
@@ -65,24 +69,20 @@ class STRING extends DataType {
     this.length = length;
   }
 
-  get BINARY() {
-    this.binary = true;
+  toSqlString() {
+    const { length } = this;
+    const dataType = this.dataType.toUpperCase();
+    const chunks = [];
+    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    return chunks.join(' ');
+  }
+}
+
+class BINARY extends DataType {
+  constructor(length = 255) {
+    super();
+    this.length = length;
     this.dataType = 'binary';
-    return this;
-  }
-
-  get VARBINARY() {
-    this.varbinary = true;
-    this.dataType = 'varbinary';
-    return this;
-  }
-
-  static BINARY(length) {
-    return new this(length).BINARY;
-  }
-
-  static VARBINARY(length) {
-    return new this(length).VARBINARY;
   }
 
   toSqlString() {
@@ -91,6 +91,13 @@ class STRING extends DataType {
     const chunks = [];
     chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
     return chunks.join(' ');
+  }
+}
+
+class VARBINARY extends BINARY {
+  constructor(length) {
+    super(length);
+    this.dataType = 'varbinary';
   }
 }
 
@@ -244,6 +251,8 @@ const DataTypes = {
   BLOB,
   JSON,
   JSONB,
+  BINARY,
+  VARBINARY,
 };
 
 Object.assign(DataType, DataTypes);
