@@ -19,6 +19,8 @@ describe('=> Data Types', () => {
     assert.equal(new BINARY().toSqlString(), 'VARCHAR BINARY(255)');
     assert.equal(new BINARY(127).toSqlString(), 'VARCHAR BINARY(127)');
     assert.equal(new VARBINARY(127).toSqlString(), 'VARCHAR VARBINARY(127)');
+    assert.equal(new VARBINARY(0).toSqlString(), 'VARCHAR VARBINARY');
+    assert.equal(new BINARY(0).toSqlString(), 'VARCHAR BINARY');
   });
 
   it('DATE', () => {

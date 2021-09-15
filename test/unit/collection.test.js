@@ -63,7 +63,7 @@ describe('=> Collection', function() {
 
   it('should reject if not all of the elements can be saved', async function() {
     const result = new Collection(1, 2);
-    assert.rejects(async function() {
+    await assert.rejects(async function() {
       return await result.save();
     }, /cannot be saved/);
   });

@@ -188,7 +188,7 @@ const LENGTH_VARIANTS = [ 'tiny', '', 'medium', 'long' ];
 class TEXT extends DataType {
   constructor(length = '') {
     if (!LENGTH_VARIANTS.includes(length)) {
-      throw new Error(`invalid blob length: ${length}`);
+      throw new Error(`invalid text length: ${length}`);
     }
     super();
     this.dataType = 'text';

@@ -11,7 +11,7 @@ const { snakeCase } = require('../../utils/string');
 function findJsType(DataTypes, type, dataType) {
   if (type instanceof DataTypes.BOOLEAN) return Boolean;
   if (type instanceof DataTypes.JSON) return JSON;
-  if (type instanceof DataTypes.BINARY || type instanceof DataTypes.VARBINARY || type instanceof DataTypes.BLOB) {
+  if (type instanceof DataTypes.BINARY || type instanceof DataTypes.BLOB) {
     return Buffer;
   }
 

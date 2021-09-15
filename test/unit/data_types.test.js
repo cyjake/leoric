@@ -42,12 +42,14 @@ describe('=> Data Types', () => {
     assert.equal(new BIGINT().UNSIGNED.toSqlString(), 'BIGINT UNSIGNED');
   });
 
-  it('TEXT', () => {
+  it('TEXT', async () => {
     assert.equal(new TEXT().dataType, 'text');
     assert.equal(new TEXT().toSqlString(), 'TEXT');
     assert.equal(new TEXT('tiny').toSqlString(), 'TINYTEXT');
     assert.equal(new TEXT('medium').toSqlString(), 'MEDIUMTEXT');
     assert.equal(new TEXT('long').toSqlString(), 'LONGTEXT');
+    // invalid length
+    await assert.rejects(async () => new TEXT('error'), /invalid text length: error/);
   });
 
   it('JSON', () => {
@@ -61,12 +63,14 @@ describe('=> Data Types', () => {
     assert.equal(new JSONB().toSqlString(), 'JSON');
   });
 
-  it('BLOB', function() {
+  it('BLOB', async function() {
     assert.equal(new BLOB().dataType, 'blob');
     assert.equal(new BLOB().toSqlString(), 'BLOB');
     assert.equal(new BLOB('tiny').toSqlString(), 'TINYBLOB');
     assert.equal(new BLOB('medium').toSqlString(), 'MEDIUMBLOB');
     assert.equal(new BLOB('long').toSqlString(), 'LONGBLOB');
+    // invalid length
+    await assert.rejects(async () => new BLOB('error'), /invalid blob length: error/);
   });
 });
 
@@ -85,6 +89,15 @@ describe('DataTypes.findType()', () => {
   it('bytea => BINARY', () => {
     const { BINARY } = DataTypes;
     assert.equal(DataTypes.findType('bytea'), BINARY);
+  });
+
+  it('blob => BLOB', () => {
+    const { BLOB } = DataTypes;
+    assert.equal(DataTypes.findType('blob'), BLOB);
+  });
+
+  it('unknown type', async () => {
+    await assert.rejects(async () => DataTypes.findType('error'), /Unexpected data type error/);
   });
 });
 

@@ -18,6 +18,15 @@ describe('=> AbstractDriver', function() {
 
     const string = driver.cast('string', String);
     assert.equal(string, 'string');
+
+    const nullValue = driver.cast(null, JSON);
+    assert.equal(nullValue, null);
+
+    const buf = Buffer.from('yes');
+    const buffRes = driver.cast(buf, Buffer);
+    assert.deepEqual(buf, buffRes);
+    const buffRes1 = driver.cast('yes', Buffer);
+    assert.equal('yes', buffRes1.toString());
   });
 
   it('driver.uncast(value, type)', async function() {
