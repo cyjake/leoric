@@ -26,17 +26,23 @@ class Postgres_JSONB extends DataTypes.JSONB {
   }
 }
 
-class Postgres_STRING extends DataTypes.STRING {
+class Postgres_BINARY extends DataTypes {
+  constructor() {
+    super();
+    this.dataType = 'bytea';
+  }
+
   toSqlString() {
-    if (this.binary || this.varbinary) return 'BYTEA';
-    return super.toSqlString();
+    return 'BYTEA';
   }
 }
 
 class Postgres_DataTypes extends DataTypes {
   static DATE = Postgres_DATE;
   static JSONB = Postgres_JSONB;
-  static STRING = Postgres_STRING;
+  static BINARY = Postgres_BINARY;
+  static VARBINARY = Postgres_BINARY;
+  static BLOB = Postgres_BINARY;
 }
 
 module.exports = Postgres_DataTypes;

@@ -18,6 +18,15 @@ describe('=> AbstractDriver', function() {
 
     const string = driver.cast('string', String);
     assert.equal(string, 'string');
+
+    const nullValue = driver.cast(null, JSON);
+    assert.equal(nullValue, null);
+
+    const buf = Buffer.from('yes');
+    const buffRes = driver.cast(buf, Buffer);
+    assert.deepEqual(buf, buffRes);
+    const buffRes1 = driver.cast('yes', Buffer);
+    assert.equal('yes', buffRes1.toString());
   });
 
   it('driver.uncast(value, type)', async function() {
@@ -38,6 +47,20 @@ describe('=> AbstractDriver', function() {
     const date = driver.uncast(1625743838518, Date);
     assert.ok(date instanceof Date);
     assert.equal(date.getFullYear(), 2021);
+  });
+
+  it('driver.cast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.cast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
+  });
+
+  it('driver.uncast(buffer, Buffer)', async function() {
+    const buf = Buffer.from('yes');
+    const data = driver.uncast(buf, Buffer);
+    assert.ok(data instanceof Buffer);
+    assert.equal(data.toString(), 'yes');
   });
 });
 

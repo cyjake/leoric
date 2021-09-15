@@ -74,4 +74,5 @@ describe('=> MySQL driver', () => {
     await driver.truncateTable('notes');
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
   });
+
 });

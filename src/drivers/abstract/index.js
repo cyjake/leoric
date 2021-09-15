@@ -40,6 +40,9 @@ module.exports = class AbstractDriver {
       case Number:
         // pg may return string
         return Number(value);
+      case Buffer:
+        if (Buffer.isBuffer(value)) return value;
+        return Buffer.from(value);
       default:
         return value;
     }
