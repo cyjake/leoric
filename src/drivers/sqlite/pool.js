@@ -11,7 +11,13 @@ class Pool extends EventEmitter {
       ...opts,
       client: opts.client || 'sqlite3',
     };
-    this.client = require(this.options.client);
+
+    const client = require(this.options.client);
+    // Turn on stack trace capturing otherwise the output is useless
+    // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
+    client.verbose();
+
+    this.client = client;
     this.connections = [];
     this.queue = [];
   }

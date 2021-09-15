@@ -55,7 +55,7 @@ describe('=> Table definitions (sqlite)', () => {
   });
 });
 
-describe('=> upsert', function () {
+describe('=> upsert (sqlite)', function () {
   const Post = require('../models/post');
 
   it('upsert', function() {

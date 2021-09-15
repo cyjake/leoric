@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const path = require('path');
 const strftime = require('strftime');
 
 const { heresql } = require('../../../../src/utils/string');
@@ -173,6 +174,16 @@ describe('=> SQLite driver.query()', () => {
       ]
     } = await driver.query('SELECT is_private FROM notes');
     assert.equal(is_private, 1);
+  });
+
+  it('should support async stack trace', async function() {
+    await assert.rejects(async function() {
+      await driver.query('SELECT * FROM missing');
+    }, function(err) {
+      assert(err instanceof Error);
+      assert(/SQLITE_ERROR: no such table/i.test(err.message));
+      return err.stack.includes(path.basename(__filename));
+    });
   });
 });
 

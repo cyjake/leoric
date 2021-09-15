@@ -56,6 +56,7 @@
     "@babel/core": "^7.14.6",
     "@babel/eslint-parser": "^7.14.7",
     "@cara/minami": "^1.2.3",
+    "@journeyapps/sqlcipher": "^5.2.0",
     "dayjs": "^1.10.3",
     "eslint": "^7.20.0",
     "expect.js": "^0.3.1",
