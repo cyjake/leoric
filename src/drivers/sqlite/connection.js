@@ -45,18 +45,24 @@ class Connection {
 
   all(sql, values) {
     return new Promise((resolve, reject) => {
-      this.database.all(sql, values, (err, rows, fields) => {
-        if (err) reject(err);
-        else resolve({ rows, fields });
+      this.database.all(sql, values, function Leoric_all(err, rows, fields) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ rows, fields });
+        }
       });
     });
   }
 
   run(sql, values) {
     return new Promise((resolve, reject) => {
-      this.database.run(sql, values, function Leoric_sqliteRun(err) {
-        if (err) reject(err);
-        else resolve({ insertId: this.lastID, affectedRows: this.changes });
+      this.database.run(sql, values, function Leoric_run(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ insertId: this.lastID, affectedRows: this.changes });
+        }
       });
     });
   }
@@ -71,9 +77,12 @@ class Connection {
     if (index >= 0) connections.splice(index, 1);
 
     return await new Promise((resolve, reject) => {
-      this.database.close(function(err) {
-        if (err) reject(err);
-        resolve();
+      this.database.close(function Leoric_end(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
       });
     });
   }

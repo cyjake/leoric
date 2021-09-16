@@ -43,6 +43,11 @@ describe('=> Migrations', async () => {
   before(() => {
     // use existing options, such as test/integration/test.mysql.js
     realm = new Realm({ ...Bone.options, migrations });
+    if (/sqlcipher/.test(realm.options.client || '')) {
+      realm.driver.pool.on('connection', function(connection) {
+        connection.query('PRAGMA key = "Accio!"');
+      });
+    }
   });
 
   beforeEach(async () => {
