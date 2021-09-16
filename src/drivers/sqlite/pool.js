@@ -6,17 +6,20 @@ const Connection = require('./connection');
 class Pool extends EventEmitter {
   constructor(opts) {
     super(opts);
-    this.options = {
+    const options = {
       connectionLimit: 10,
+      trace: true,
+      busyTimeout: 30000,
       ...opts,
       client: opts.client || 'sqlite3',
     };
 
-    const client = require(this.options.client);
+    const client = require(options.client);
     // Turn on stack trace capturing otherwise the output is useless
     // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
-    client.verbose();
+    if (options.trace) client.verbose();
 
+    this.options = options;
     this.client = client;
     this.connections = [];
     this.queue = [];
@@ -51,6 +54,11 @@ class Pool extends EventEmitter {
       const task = queue.shift();
       task();
     }
+  }
+
+  async end() {
+    await Promise.allSettled(this.connections.map(connection => connection.close()));
+    this.connections = [];
   }
 }
 

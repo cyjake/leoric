@@ -13,6 +13,7 @@ before(async function() {
   const { Database, OPEN_READWRITE, OPEN_CREATE } = sqlcipher;
   const database = new Database(plaintext, OPEN_READWRITE | OPEN_CREATE);
   await fs.unlink(encrypted).catch(() => {/* ignored */});
+  // https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868
   await new Promise((resolve, reject) => {
     database.serialize(function() {
       database.run(`ATTACH DATABASE '${encrypted}' AS encrypted KEY 'Accio!'`);

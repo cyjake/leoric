@@ -14,4 +14,18 @@ describe('=> SQLite driver.pool', function() {
     });
     assert.equal(await pool.getConnection(), result);
   });
+
+  it('should be able to end connections', async function() {
+    const pool = new Pool({
+      database: '/tmp/leoric.sqlite3',
+    });
+    await pool.getConnection();
+    await pool.getConnection();
+    await pool.getConnection();
+    assert.equal(pool.connections.length, 3);
+    await assert.doesNotReject(async function() {
+      await pool.end();
+    });
+    assert.equal([...pool.connections].length, 0);
+  });
 });
