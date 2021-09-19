@@ -85,7 +85,7 @@ function isOperatorCondition(condition) {
   const keys = Object.keys(condition);
 
   return (
-    keys.length > 0 && 
+    keys.length > 0 &&
     keys.every($op => OPERATOR_MAP.hasOwnProperty($op))
   );
 }
@@ -647,6 +647,18 @@ class Spell {
     return this;
   }
 
+  async ignite() {
+    const { Model, command, laters } = this;
+    const { sql, values } = Model.driver.format(this);
+    const query = { sql, nestTables: command === 'select' };
+    let result = await Model.driver.query(query, values, this);
+    result = { ...result, spell: this };
+    for (const later of laters) {
+      result = await later(result);
+    }
+    return result;
+  }
+
   /**
    * Fake spell as a thenable object so it can be consumed like a regular Promise.
    * @example
@@ -655,15 +667,8 @@ class Spell {
    * @param {Function} resolve
    * @param {Function} reject
    */
-  then(resolve, reject) {
-    const { Model, command, laters } = this;
-    const { sql, values } = Model.driver.format(this);
-    const query = { sql, nestTables: command === 'select' };
-    const start = Model.driver.query(query, values, this).then(result => {
-      return { ...result, spell: this };
-    });
-    const queue = laters.reduce((result, later) => result.then(later), start);
-    return resolve ? queue.then(resolve, reject) : queue.then(null, reject);
+  then(resolve = null, reject) {
+    return this.ignite().then(resolve, reject);
   }
 
   /**

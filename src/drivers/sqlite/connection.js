@@ -25,10 +25,16 @@ function nest(rows, fields, spell) {
 }
 
 class Connection {
-  constructor({ client, database, mode, pool }) {
+  constructor({ client, database: databasePath, mode, pool, busyTimeout }) {
     const { Database, OPEN_READWRITE, OPEN_CREATE } = client;
     if (mode == null) mode = OPEN_READWRITE | OPEN_CREATE;
-    this.database = new Database(database, mode);
+    const database = new Database(databasePath, mode);
+    // SQLITE_BUSY
+    // - https://www.sqlite.org/rescode.html#busy
+    // - https://www.sqlite.org/c3ref/busy_timeout.html
+    // - https://github.com/mapbox/node-sqlite3/wiki/API#databaseconfigureoption-value
+    if (busyTimeout > 0) database.configure('busyTimeout', busyTimeout);
+    this.database = database;
     this.pool = pool;
   }
 
@@ -75,7 +81,10 @@ class Connection {
     const { connections } = this.pool;
     const index = connections.indexOf(this);
     if (index >= 0) connections.splice(index, 1);
+    await this.close();
+  }
 
+  async close() {
     return await new Promise((resolve, reject) => {
       this.database.close(function Leoric_end(err) {
         if (err) {
