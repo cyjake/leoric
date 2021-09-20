@@ -427,6 +427,6 @@ user.previousChanged('login');  // => { name: [ null, 'jimmy' ] }
 
 ## 数据校验
 
-## 钩子
+## 回调函数
 
 ## 迁移任务
