@@ -37,7 +37,7 @@ class Pool extends EventEmitter {
     if (connections.length < options.connectionLimit) {
       const connection = new Connection({ ...options, client, pool: this });
       connections.push(connection);
-      this.emit('connection', connection);
+      await this.emit('connection', connection);
       this.emit('acquire', connection);
       return connection;
     }

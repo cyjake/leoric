@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Realm = require('../..');
+const Realm = require('../../index');
 const { connect, Bone, DataTypes, Logger, Spell } = Realm;
 
 const attributes = {
@@ -101,6 +101,18 @@ describe('=> Realm', () => {
     await realm.connect();
     await realm.driver.query('SELECT 1');
     assert.equal(queries[0], 'SELECT 1');
+  });
+
+  it('should reject if models option is not valid', async function() {
+    await assert.rejects(async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: true,
+      });
+      await realm.connect();
+    }, /Unexpected models dir/);
   });
 
   describe('realm.query', async () => {
@@ -764,6 +776,45 @@ describe('=> Realm', () => {
 
       assert(realm.Bone.models.User);
       assert(realm.Bone.models.User === User);
+    });
+  });
+
+  describe('realm.sync', function() {
+    beforeEach(async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.driver.dropTable('clients');
+    });
+
+    it('should be able to create tables', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      const Client = realm.define('Client', {
+        id: DataTypes.BIGINT,
+        name: DataTypes.STRING,
+      });
+      await realm.sync();
+      const columns = await Client.describe();
+      assert.deepEqual(Object.keys(columns), [ 'id', 'name' ]);
+    });
+  });
+
+  describe('realm.raw', function() {
+    it('should throw if sql is not string', function() {
+      assert.throws(function() {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+        });
+        realm.raw({});
+      });
     });
   });
 });

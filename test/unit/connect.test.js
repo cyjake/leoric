@@ -31,7 +31,7 @@ describe('connect', function() {
   });
 
   it('connect with subclass', async function() {
-    const Spine = await connect({ subclass: true });
+    const { Bone: Spine } = await connect({ subclass: true });
     assert.ok(Spine.prototype instanceof Bone);
     assert.ok(Spine.models);
     assert.equal(Bone.driver, null);
