@@ -123,19 +123,19 @@ Sequelize 适配器支持批量删除：
 // TRUNCATE TABLE `shops`
 await Shop.truncate({});
 
-// 不需要处理回调函数时可以直接批量删除
+// 不需要处理钩子时可以直接批量删除
 await Shop.bulkDestroy();
 
-// 会触发回调函数的批量删除
+// 会触发钩子的批量删除
 await Shop.destroy();
 ```
 
-其中触发回调函数的 `Model.destroy()` 方法有两种情况：
+其中触发钩子的 `Model.destroy()` 方法有两种情况：
 
-| 方法 | 对应的回调函数 |
+| 方法 | 对应的钩子 |
 |------|------------|
-| `Model.destroy()` | 仅触发 `bulkDestroy` 回调函数|
-| `Model.destroy({ individualHooks: true })` | 逐一查找相关记录执行删除然后触发 `destroy` 回调函数 |
+| `Model.destroy()` | 仅触发 `bulkDestroy` 钩子|
+| `Model.destroy({ individualHooks: true })` | 逐一查找相关记录执行删除然后触发 `destroy` 钩子 |
 
 也支持单条记录的删除：
 

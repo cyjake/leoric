@@ -103,6 +103,18 @@ describe('=> Realm', () => {
     assert.equal(queries[0], 'SELECT 1');
   });
 
+  it('should reject if models option is not valid', async function() {
+    await assert.rejects(async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: true,
+      });
+      await realm.connect();
+    }, /Unexpected models dir/);
+  });
+
   describe('realm.query', async () => {
 
     class Post extends Bone {

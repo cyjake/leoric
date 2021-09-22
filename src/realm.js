@@ -22,7 +22,7 @@ const sequelize = require('./adapters/sequelize');
  */
 async function findModels(dir) {
   if (!dir || typeof dir !== 'string') {
-    throw new Error(`Unexpected dir (${dir})`);
+    throw new Error(`Unexpected models dir (${dir})`);
   }
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const models = [];
@@ -225,6 +225,7 @@ class Realm {
   raw(sql) {
     return Realm.raw(sql);
   }
+
   /**
    * escape value
    * @param {string} value
