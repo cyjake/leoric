@@ -103,7 +103,7 @@ declare class Spell {
   toString(): string;
 }
 
-type Literal = null | boolean | number | string | Date
+type Literal = null | boolean | number | string | Date | JSON | ArrayBuffer;
 
 type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
@@ -138,7 +138,7 @@ interface AttributeMeta {
   defaultValue: Literal;
   primaryKey: boolean;
   dataType: string;
-  jsType: boolean | number | string | Date | JSON;
+  jsType: Literal;
   type: DataType;
 }
 
@@ -556,7 +556,11 @@ interface ConnectOptions {
 interface InitOptions {
   underscored?: boolean;
   tableName?: string;
-  hooks?: Record<string, Function>;
+  hooks?: {
+    [key in 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove' ]: (options: QueryOptions) => Promise<void>
+  } | {
+    [key in 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove' ]: (instance: Bone, result: Object) => Promise<void>
+  };
 }
 
 declare class Realm {

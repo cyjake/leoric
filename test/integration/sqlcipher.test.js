@@ -32,8 +32,8 @@ before(async function() {
     models: path.resolve(__dirname, '../models'),
   });
 
-  realm.driver.pool.on('connection', function(connection) {
-    connection.query('PRAGMA key = "Accio!"');
+  realm.driver.pool.on('connection', async function(connection) {
+    await connection.query('PRAGMA key = "Accio!"');
   });
 
   await realm.connect();
