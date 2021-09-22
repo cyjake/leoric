@@ -5,7 +5,7 @@ title: Setup
 
 ## Web Frameworks
 
-- [Setup with Egg]({{ '/setup/egg' | relative_url }})
+- [Setup with Egg / Chair]({{ '/setup/egg' | relative_url }})
 - [Setup with Express]({{ '/setup/express' | relative_url }})
 
 ## RDMS / dialects

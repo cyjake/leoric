@@ -11,14 +11,14 @@ layout: default
           <a href="{{ '/zh' | relative_url }}">首页</a>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/zh/basics' | relative_url }}">帮助手册</a>
+          <a href="{{ '/zh/guides' | relative_url }}">帮助手册</a>
           <ul class="dropdown-list">
             <li><a href="{{ '/zh/basics' | relative_url }}">基础</a></li>
             <li><a href="{{ '/zh/migrations' | relative_url }}">迁移任务</a></li>
             <li><a href="{{ '/zh/validations' | relative_url }}">数据校验</a></li>
             <li><a href="{{ '/zh/associations' | relative_url }}">关联关系</a></li>
             <li><a href="{{ '/zh/querying' | relative_url }}">查询接口</a></li>
-            <li><a href="{{ '/zh/hooks' | relative_url }}">钩子</a></li>
+            <li><a href="{{ '/zh/hooks' | relative_url }}">回调函数</a></li>
             <li><a href="{{ '/zh/logging' | relative_url }}">日志</a></li>
             <li><a href="{{ '/zh/sequelize' | relative_url }}">Sequelize 适配器</a></li>
           </ul>
@@ -26,8 +26,11 @@ layout: default
         <li class="nav-item dropdown-trigger">
           <a href="{{ '/zh/setup' | relative_url }}">快速配置</a>
           <ul class="dropdown-list">
-            <li><a href="{{ 'zh/setup/egg' | relative_url }}">Egg 应用配置</a></li>
-            <li><a href="{{ 'zh/setup/express' | relative_url }}">[wip] Express 应用配置</a></li>
+            <li><a href="{{ 'zh/setup/egg' | relative_url }}">Egg / Chair 配置</a></li>
+            <li><a href="{{ 'zh/setup/express' | relative_url }}">[wip] Express 配置</a></li>
+            <li><a href="{{ 'zh/setup/mysql' | relative_url }}">MySQL 配置</a></li>
+            <li><a href="{{ 'zh/setup/sqlite' | relative_url }}">SQLite 配置</a></li>
+            <li><a href="{{ 'zh/setup/postgres' | relative_url }}">PostgreSQL 配置</a></li>
           </ul>
         </li>
         <li class="nav-item">

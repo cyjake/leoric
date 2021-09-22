@@ -38,24 +38,22 @@ index cf91c34..7ae144d 100644
 
 ## Options
 
-### `options.client`
+### `client`
 
-The client used to access SQLite database can be customized with `options.client`. For example, if the database is encrypted with sqlcipher and `@journeyapps/sqlcipher` is the preferred client:
+The client used to access SQLite database can be customized with `client`. For example, if the database is encrypted with sqlcipher and `@journeyapps/sqlcipher` is the preferred client:
 
 ```js
-const Realm = require('leoric');
 const realm = new Realm({
   client: '@journeyapps/sqlcipher',
   dialect: 'sqlite',
   database: 'database/development.sqlite3',
   models: 'app/models',
 });
-await realm.connect();
 ```
 
 Remember to add the customized client as dependencies. Currently both `sqlite3` and `@journeyapps/sqlcipher` are tested with Leoric in our continuous integration tests.
 
-### `options.trace`
+### `trace`
 
 To better generate the stack trace when error occurs while querying database, `client.verbose()` is called by default. This helper method is provided by `sqlite3` and has a slight performance penalty because each time a query is performed, there is a `new Error()` to capture the stack trace before the asynchronous call.
 
@@ -74,38 +72,34 @@ To better generate the stack trace when error occurs while querying database, `c
 
 For more detail about the result and the related code, see [!175](https://github.com/cyjake/leoric/pull/175).
 
-This behavior can be turned off by setting `options.trace` to `false`.
+This behavior can be turned off by setting `trace` to `false`.
 
-### `options.connectionLimit`
+### `connectionLimit`
 
-Connection pool for SQLite is supported as well, which is turned on by default with `options.connectionLimit` set to `10`.
+Connection pool for SQLite is supported as well, which is turned on by default with `connectionLimit` set to `10`.
 
-Accessing SQLite database with multiple read/write connections (or should we say, file handles?) might cause random `SQLITE_BUSY` errors because there is no server to resolve database or table lock. To keep from situations like this, we can either turn off multiple connections by setting `options.connectionLimit` to `1`, or try telling the client to wait a little longer with bigger `options.busyTimeout`.
+Accessing SQLite database with multiple read/write connections (or should we say, file handles?) might cause random `SQLITE_BUSY` errors because there is no server to resolve database or table lock. To keep from situations like this, we can either turn off multiple connections by setting `connectionLimit` to `1`, or try telling the client to wait a little longer with bigger `busyTimeout`.
 
 ```js
-const Realm = require('leoric');
 const realm = new Realm({
   dialect: 'sqlite',
   database: 'database/development.sqlite3',
   models: 'app/models',
   connectionLimit: 1,
 });
-await realm.connect();
 ```
 
-### `options.busyTimeout`
+### `busyTimeout`
 
-The default `options.busyTimeout` is set to `30000` in milliseconds.
+The default `busyTimeout` is set to `30000` in milliseconds.
 
 ```js
-const Realm = require('leoric');
 const realm = new Realm({
   dialect: 'sqlite',
   database: 'database/development.sqlite3',
   models: 'app/models',
   busyTimeout: 30000,
 });
-await realm.connect();
 ```
 
 For more information about `SQLITE_BUSY`:
