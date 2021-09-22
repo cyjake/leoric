@@ -121,15 +121,25 @@ interface WhereConditions {
   [key: string]: Literal | Literal[] | OperatorCondition;
 }
 
-interface Attributes {
+interface Values {
   [key: string]: Literal;
 }
 
+declare class DataType {}
+
+declare const DataTypes: {
+  [key in 'STRING' | 'INTEGER' | 'BIGINT' | 'DATE' | 'BOOLEAN' | 'TEXT' | 'BLOB' | 'JSON' | 'JSONB' | 'BINARY' | 'VARBINARY' ]: DataType;
+};
+
 interface AttributeMeta {
-  column: string,
-  columnType: string,
-  isNullable: boolean,
-  type: boolean | number | string | Date | JSON;
+  column: string;
+  columnType: string;
+  allowNull: boolean;
+  defaultValue: Literal;
+  primaryKey: boolean;
+  dataType: string;
+  jsType: boolean | number | string | Date | JSON;
+  type: DataType;
 }
 
 interface RelateOptions {
@@ -155,7 +165,7 @@ interface Connection {
   ): void;
 }
 
-declare class Pool implements Connection {
+declare class Pool {
   getConnection(): Connection;
 }
 
@@ -181,7 +191,7 @@ declare class Driver {
   query(sql: string, values: Array<Literal>): ResultSet;
 }
 
-type ResultSet = Attributes[] | { [qualifier: string]: Attributes }[]
+type ResultSet = Values[] | { [qualifier: string]: Values }[]
 
 declare class Collection<Bone> extends Array<Bone> {
   save(): Promise<void>;
@@ -215,7 +225,7 @@ declare class Bone {
   /**
    * The plural model name in camelCase, e.g. `Post => posts`
    */
-  static aliasName: string;
+  static tableAlias: string;
 
   /**
    * The primary key of current model, defaults to `id`.
@@ -223,14 +233,14 @@ declare class Bone {
   static primaryKey: string;
 
   /**
-   * The attribute names of current model, which is converted from field names of the table in camelCase.
+   * The attribute definitions of the model.
    */
-  static attributes: string[];
+  static attributes: { [key: string]: DataType | AttributeMeta };
 
   /**
    * The schema info of current model.
    */
-  static schema: { [key: string]: AttributeMeta };
+  static columns: Array<AttributeMeta>;
 
   /**
    * If the table consists of multiple partition tables then a sharding key is needed to perform actual query. The sharding key can be specified through overridding this property, which will then be used to check the query before it hits database.
@@ -275,7 +285,7 @@ declare class Bone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create(attributes: Attributes, opts?: QueryOptions): Promise<Bone>;
+  static create(values: Values, options?: QueryOptions): Promise<Bone>;
 
   /**
    * INSERT or UPDATE rows
@@ -289,7 +299,7 @@ declare class Bone {
   /**
    * Batch INSERT
    */
-  static bulkCreate(records: Array<Object<string, Literal>>, opts?: QueryOptions): Promise<Array<Bone>>;
+  static bulkCreate(records: Array<Record<string, Literal>>, options?: QueryOptions): Promise<Array<Bone>>;
 
   /**
    * SELECT rows
@@ -420,7 +430,7 @@ declare class Bone {
    * });
    */
   static transaction(callback: GeneratorFunction): Promise<void>;
-  static transaction(callback: AsyncFunction): Promise<void>;
+  static transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
 
   /**
    * DROP the table
@@ -432,7 +442,7 @@ declare class Bone {
    */
   static truncate(): Promise<void>;
 
-  constructor(attributes: Attributes);
+  constructor(values: Values);
 
   /**
    * Get or set attribute value. Getting the value of unset attribute gives an error.
@@ -467,8 +477,8 @@ declare class Bone {
   /**
    * Get attribute changes
    */
-  changes(name: string): Object<string, Array>;
-  changes(): Object<string, Array>;
+  changes(name: string): Record<string, [ Literal, Literal ]>;
+  changes(): Record<string, [ Literal, Literal ]>;
 
   /**
    * See if attribute was changed previously or not.
@@ -543,6 +553,27 @@ interface ConnectOptions {
   models: string | Bone[];
 }
 
+interface InitOptions {
+  underscored?: boolean;
+  tableName?: string;
+  hooks?: Record<string, Function>;
+}
+
+declare class Realm {
+  Bone: Bone;
+  driver: Driver;
+  models: Record<string, Bone>;
+
+  constructor(options: ConnectOptions);
+
+  define(
+    name: string,
+    attributes: Record<string, AttributeMeta>,
+    options: InitOptions,
+    descriptors: Record<string, Function>,
+  ): Bone;
+}
+
 /**
  * Connect models to database.
  * @example
@@ -553,4 +584,4 @@ interface ConnectOptions {
  *   models: path.join(__dirname, 'models')
  * })
  */
-export function connect(opts: ConnectOptions): Promise<Pool>;
+export function connect(opts: ConnectOptions): Promise<Realm>;

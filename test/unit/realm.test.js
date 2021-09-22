@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Realm = require('../..');
+const Realm = require('../../index');
 const { connect, Bone, DataTypes, Logger, Spell } = Realm;
 
 const attributes = {
