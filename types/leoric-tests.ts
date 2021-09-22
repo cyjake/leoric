@@ -1,4 +1,4 @@
-import { Bone, DataTypes } from './index';
+import Realm, { Bone, DataTypes } from './index';
 
 const { STRING, DATE } = DataTypes;
 
@@ -14,6 +14,12 @@ async function main() {
   await User.create({ name: 'Stranger' })
   const user = await User.first;
   await user.update({ name: 'Tyrael' });
+
+  const realm = new Realm({
+    dialect: 'sqlite',
+    database: '/tmp/leoric.sqlite3',
+  });
+  await realm.query('SELECT * FROM sqlite_master');
 }
 
 main().catch(err => console.error(err))
