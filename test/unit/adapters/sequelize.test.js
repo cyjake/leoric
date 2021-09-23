@@ -553,10 +553,12 @@ describe('=> Sequelize adapter', () => {
     const post1 = await Post.findOne();
     assert(!post1);
     const post2 = await Post.findOne({ paranoid: false });
+    assert.equal(post2.isNewRecord, false);
     assert(post2);
 
     const post3 = await Post.findOne({ where: { id }, paranoid: false });
     assert.equal(post3.title, 'Leah');
+    assert.equal(post3.isNewRecord, false);
     await post3.destroy({ force: true });
     const post4 = await Post.findOne({ where: { id }, paranoid: false });
     assert(!post4);
@@ -567,6 +569,7 @@ describe('=> Sequelize adapter', () => {
 
     const post = await Post.findByPk(id);
     assert.equal(post.title, 'Leah');
+    assert.equal(post.isNewRecord, false);
   });
 
   it('Model.findByPk(pk, { paranoid: false })', async () => {
@@ -995,6 +998,12 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book2.isNewRecord, false);
     const book3 = Book.build({ name: 'Book of Outland', }, { isNewRecord: false });
     assert.equal(book3.isNewRecord, false);
+    const book4 = await Book.findOne({ where: { name: 'Book New' }});
+    assert.equal(book4.isNewRecord, false);
+    const book5 = await Book.findOne({ where: { name: 'Book New' }, attributes: [ 'price' ]});
+    assert(!book5.name);
+    assert.equal(book5.isNewRecord, false);
+
   });
 
   it('instance.dataValues', async () => {
