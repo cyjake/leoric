@@ -1,6 +1,6 @@
 ---
 layout: zh
-title: 如何贡献代码
+title: 如何参与
 ---
 
 ## 快速上手

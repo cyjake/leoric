@@ -127,7 +127,7 @@ interface Values {
 
 declare class DataType {}
 
-declare const DataTypes: {
+export const DataTypes: {
   [key in 'STRING' | 'INTEGER' | 'BIGINT' | 'DATE' | 'BOOLEAN' | 'TEXT' | 'BLOB' | 'JSON' | 'JSONB' | 'BINARY' | 'VARBINARY' ]: DataType;
 };
 
@@ -161,7 +161,7 @@ interface Connection {
   query(
     query: string,
     values: Array<Literal>,
-    callback: (err: Error|null, results: Array<Object>, fields: Array<string>) => void
+    callback: (err: Error|null, results: ResultSet, fields: Array<string>) => void
   ): void;
 }
 
@@ -201,7 +201,7 @@ declare class Collection<Bone> extends Array<Bone> {
 
 type Query = Spell & Promise<Collection<Bone>>;
 
-declare class Bone {
+export class Bone {
   /**
    * The connection pool of the specified client, with few `Leoric_` prefixed methods extended to eliminate client differences.
    */
@@ -294,7 +294,7 @@ declare class Bone {
    * @param values values
    * @param opt query options
    */
-  static upsert(values: Object, opt?: QueryOptions): Spell & Promise<number>;
+  static upsert(values: Object, options?: QueryOptions): Spell & Promise<number>;
 
   /**
    * Batch INSERT
@@ -546,11 +546,12 @@ declare class Bone {
 }
 
 interface ConnectOptions {
-  client?: 'mysql' | 'mysql2' | 'postgres';
-  host: string;
-  user: string;
+  client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher';
+  dialect?: 'mysql' | 'postgres' | 'sqlite';
+  host?: string;
+  user?: string;
   database: string;
-  models: string | Bone[];
+  models?: string | Bone[];
 }
 
 interface InitOptions {
@@ -563,7 +564,19 @@ interface InitOptions {
   };
 }
 
-declare class Realm {
+type RawSql = {
+  __raw: true,
+  value: string,
+  type: 'raw',
+};
+
+interface RawQueryOptions {
+  replacements?: Values;
+  model: Bone;
+  connection: Connection;
+}
+
+export default class Realm {
   Bone: Bone;
   driver: Driver;
   models: Record<string, Bone>;
@@ -576,6 +589,15 @@ declare class Realm {
     options: InitOptions,
     descriptors: Record<string, Function>,
   ): Bone;
+
+  raw(sql: string): RawSql;
+
+  escape(value: Literal): string;
+
+  query(sql: string, values?: Array<Literal>, options?: RawQueryOptions): ResultSet;
+
+  transaction(callback: GeneratorFunction): Promise<void>;
+  transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
 }
 
 /**
