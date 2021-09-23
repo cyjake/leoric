@@ -86,6 +86,16 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' OR `content` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
     );
 
+
+    assert.equal(
+      Post.where({
+        $or: {
+          content: { $like: '%Leah%' },
+        },
+      }).toString(),
+      "SELECT * FROM `articles` WHERE `content` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
+    );
+
     assert.equal(
       Post.where({
         $or: [
@@ -104,6 +114,24 @@ describe('=> Spell', function() {
         ],
       }).toSqlString(),
       "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` LIKE '%Diablo%') AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $or: [
+          { title: 'Leah' },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $and: [
+          { title: 'Leah' },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
     );
   });
 
