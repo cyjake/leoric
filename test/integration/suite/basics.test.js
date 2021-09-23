@@ -495,6 +495,7 @@ describe('=> Type casting', function() {
     expect(post).to.be.a(Post);
     expect(post.title).to.equal('Archbishop Lazarus');
     expect(post.deletedAt).to.eql(null);
+    expect(post.isNewRecord).to.be(false);
   });
 });
 

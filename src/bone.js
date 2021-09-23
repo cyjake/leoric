@@ -1160,7 +1160,7 @@ class Bone {
         instance._getRawUnset().add(name);
       }
     }
-
+    instance.isNewRecord = false;
     return instance;
   }
 
