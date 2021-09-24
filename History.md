@@ -1,5 +1,16 @@
+1.11.0 / 2021-09-24
+===================
+
+  * feat: support BINARY(length), VARBINARY(length), and BLOB (#169)
+  * fix: logic operate should adapt one argument (#183)
+  * fix: Bone.load() should be idempotent, make sure associations is intact (#184)
+  * fix: selected instance isNewRecord is false (#182)
+  * fix: set options.busyTimeout to mitigate SQLITE_BUSY (#176)
+  * fix: turn on long stack trace of sqlite driver (#175)
+  * docs: how to contribute (#180)
+
 1.10.0 / 2021-09-14
-==================
+===================
 
   * feat: SQLite driver should emit "connection" event when new connection is created (#168)
   * fix: bulkCreate(...records) should recognize custom setters (#168)
