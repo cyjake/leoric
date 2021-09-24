@@ -787,6 +787,7 @@ describe('=> Realm', () => {
         database: 'leoric',
       });
       await realm.driver.dropTable('clients');
+      await realm.driver.dropTable('recipients');
     });
 
     it('should be able to create tables', async function() {
@@ -802,6 +803,48 @@ describe('=> Realm', () => {
       await realm.sync();
       const columns = await Client.describe();
       assert.deepEqual(Object.keys(columns), [ 'id', 'name' ]);
+    });
+
+    it('should not reset model associations after sync', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+
+      class Client extends realm.Bone {
+        static attributes = {
+          id: DataTypes.BIGINT,
+          name: DataTypes.STRING,
+        }
+        static initialize() {
+          this.hasMany('recipients', { foreignKey: 'clientId' });
+        }
+      }
+
+      class Recipient extends realm.Bone {
+        static attributes = {
+          id: DataTypes.BIGINT,
+          clientId: DataTypes.BIGINT,
+          name: DataTypes.STRING,
+          address: DataTypes.STRING,
+        }
+        static initialize() {
+          this.belongsTo('client', { foreignkey: 'clientId' });
+        }
+      }
+
+      realm.models[Client.name] = Client;
+      realm.models[Recipient.name] = Recipient;
+      await realm.sync();
+      assert.deepEqual(Object.keys(Recipient.associations), [ 'client' ]);
+
+      const { id: clientId } = await Client.create({ name: 'Daisy & Friends' });
+      await Recipient.create({ name: 'Daisy', address: 'Hangzhou, China', clientId });
+      const client = await Client.first.with('recipients');
+      assert.ok(client);
+      assert.ok(Array.isArray(client.recipients));
+      assert.equal(client.recipients.length, 1);
     });
   });
 

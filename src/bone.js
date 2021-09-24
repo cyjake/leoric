@@ -914,7 +914,7 @@ class Bone {
    */
   static load(columns = []) {
     const { Attribute } = this.driver;
-    const { attributes, options } = this;
+    const { associations = {}, attributes, options } = this;
     const attributeMap = {};
     const table = this.table || snakeCase(pluralize(this.name));
     const tableAlias = camelCase(pluralize(this.name || table));
@@ -943,7 +943,7 @@ class Bone {
       primaryKey,
       columns,
       attributeMap,
-      associations: {},
+      associations,
       tableAlias,
       synchronized: Object.keys(compare(attributes, columns)).length === 0,
     }));
