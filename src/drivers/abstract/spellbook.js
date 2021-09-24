@@ -180,85 +180,82 @@ function formatOpExpr(spell, ast) {
   }
   else if ('!~-'.includes(name) && params.length == 1) {
     return `${name} ${params[0]}`;
-  } else if (args[1]) {
-    if (args[1].type == 'literal' && args[1].value == null && !isLogicalOp(ast)) {
-      if (['=', '!='].includes(name)) {
-        const op = name == '=' ? 'IS' : 'IS NOT';
-        return `${params[0]} ${op} NULL`;
-      } else {
-        throw new Error(`Invalid operator ${name} against null`);
-      }
+  }
+  else if (args[1].type == 'literal' && args[1].value == null && !isLogicalOp(ast)) {
+    if (['=', '!='].includes(name)) {
+      const op = name == '=' ? 'IS' : 'IS NOT';
+      return `${params[0]} ${op} NULL`;
+    } else {
+      throw new Error(`Invalid operator ${name} against null`);
     }
-    // IN (1, 2, 3)
-    // IN (SELECT user_id FROM group_users)
-    else if ((args[1].type == 'literal' && Array.isArray(args[1].value)) || args[1].type == 'subquery') {
-      let op = name;
-      if (name == '=') {
-        op = 'in';
-      } else if (name == '!=') {
-        op = 'not in';
-      }
-      if (['in', 'not in'].includes(op)) {
-        return `${params[0]} ${op.toUpperCase()} ${params[1]}`;
-      } else {
-        throw new Error(`Invalid operator ${name} against ${args[1].value}`);
-      }
+  }
+  // IN (1, 2, 3)
+  // IN (SELECT user_id FROM group_users)
+  else if ((args[1].type == 'literal' && Array.isArray(args[1].value)) || args[1].type == 'subquery') {
+    let op = name;
+    if (name == '=') {
+      op = 'in';
+    } else if (name == '!=') {
+      op = 'not in';
     }
-    else if (args[1].type == 'op' && Array.isArray(args[1].args) && !isLogicalOp(ast) && isLogicalOp(args[1])) {
-      let innerOp = args[1].name;
-      if ([ 'or', 'and' ].includes(innerOp)) {
-        // { title: { $or: [ 'Leah', 'Diablo' ] } }
-        // { title: { $or: [ 'Leah', { $like: '%jjj' } ] } }
-        const expr = [];
-        const leftValue = { type: 'id', value: args[0].value };
-        for (const arg of args[1].args) {
-          if (arg.type === 'literal') {
-            const innerAst = {
-              type: 'op',
-              name: '=',
-              args: [ leftValue, arg ],
-            };
-            expr.push(formatExpr(spell, innerAst));
-          } else {
-            arg.args[0] = leftValue;
-            expr.push(formatExpr(spell, arg));
-          }
-        }
-        return `(${expr.join(` ${innerOp.toUpperCase()} `)})`;
-      } else if ('not' === innerOp) {
-        // { title: { $not: [ 'Leah', 'jss' ] } }
-        const expr = [];
-        const leftValue = { type: 'id', value: args[0].value };
-        // if all args are literal, it should be `NOT IN (?, ?, ?)`
-        const notAllLiteral = args[1].args.find(arg => arg.type !== 'literal');
-        if (!notAllLiteral) {
-          const values = args[1].args.map(arg => arg.value);
-          return `(NOT IN (${values.map(v => {
-            if (v == null) return 'NULL';
-            return '?';
-          })}))`;
-        }
-        for (const arg of args[1].args) {
-          if (arg.type === 'literal') {
-            const innerAst = {
-              type: 'op',
-              name: '=',
-              args: [ leftValue, arg ],
-            };
-            expr.push(formatExpr(spell, innerAst));
-          }
-          else {
-            arg.args[0] = leftValue;
-            expr.push(formatExpr(spell, arg));
-          }
-        }
-        return `(NOT (${expr.join(' AND ')}))`;
-      }
-    } else if (params[1] !== '') {
-      return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
+    if (['in', 'not in'].includes(op)) {
+      return `${params[0]} ${op.toUpperCase()} ${params[1]}`;
+    } else {
+      throw new Error(`Invalid operator ${name} against ${args[1].value}`);
     }
-  } else {
-    return params[0];
+  }
+  else if (args[1].type == 'op' && Array.isArray(args[1].args) && !isLogicalOp(ast) && isLogicalOp(args[1])) {
+    let innerOp = args[1].name;
+    if ([ 'or', 'and' ].includes(innerOp)) {
+      // { title: { $or: [ 'Leah', 'Diablo' ] } }
+      // { title: { $or: [ 'Leah', { $like: '%jjj' } ] } }
+      const expr = [];
+      const leftValue = { type: 'id', value: args[0].value };
+      for (const arg of args[1].args) {
+        if (arg.type === 'literal') {
+          const innerAst = {
+            type: 'op',
+            name: '=',
+            args: [ leftValue, arg ],
+          };
+          expr.push(formatExpr(spell, innerAst));
+        } else {
+          arg.args[0] = leftValue;
+          expr.push(formatExpr(spell, arg));
+        }
+      }
+      return `(${expr.join(` ${innerOp.toUpperCase()} `)})`;
+    } else if ('not' === innerOp) {
+      // { title: { $not: [ 'Leah', 'jss' ] } }
+      const expr = [];
+      const leftValue = { type: 'id', value: args[0].value };
+      // if all args are literal, it should be `NOT IN (?, ?, ?)`
+      const notAllLiteral = args[1].args.find(arg => arg.type !== 'literal');
+      if (!notAllLiteral) {
+        const values = args[1].args.map(arg => arg.value);
+        return `(NOT IN (${values.map(v => {
+          if (v == null) return 'NULL';
+          return '?';
+        })}))`;
+      }
+      for (const arg of args[1].args) {
+        if (arg.type === 'literal') {
+          const innerAst = {
+            type: 'op',
+            name: '=',
+            args: [ leftValue, arg ],
+          };
+          expr.push(formatExpr(spell, innerAst));
+        }
+        else {
+          arg.args[0] = leftValue;
+          expr.push(formatExpr(spell, arg));
+        }
+      }
+      return `(NOT (${expr.join(' AND ')}))`;
+    }
+  } else if (params[1] !== '') {
+    return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
   }
 }
 
@@ -574,7 +571,7 @@ function formatDelete(spell) {
 function formatConditions(spell, conditions) {
   return conditions
     .map(condition => {
-      return isLogicalOp(condition) && condition.name == 'or' && conditions.length > 1 && condition.args.length > 1
+      return isLogicalOp(condition) && condition.name == 'or' && conditions.length > 1
         ? `(${formatExpr(spell, condition)})`
         : formatExpr(spell, condition);
     })

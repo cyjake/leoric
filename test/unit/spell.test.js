@@ -96,6 +96,12 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE `content` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
     );
 
+    assert.throws(function() {
+      Post.where({
+        $or: {},
+      }).toString();
+    }, /insufficient logical operator value/);
+
     assert.equal(
       Post.where({
         $or: [
