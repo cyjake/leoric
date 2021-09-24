@@ -400,6 +400,13 @@ describe('=> Spell', function() {
     );
   });
 
+  it('where not in conditions', function() {
+    assert.equal(
+      Post.where('id != ?', [ 1, 2 ]).toString(),
+      'SELECT * FROM `articles` WHERE `id` NOT IN (1, 2) AND `gmt_deleted` IS NULL'
+    );
+  });
+
   it('where in Spell', function() {
     assert.equal(
       Post.where({ id: TagMap.select('targetId').where({ tagId: 1 }) }).toString(),
