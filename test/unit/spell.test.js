@@ -86,6 +86,22 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' OR `content` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
     );
 
+
+    assert.equal(
+      Post.where({
+        $or: {
+          content: { $like: '%Leah%' },
+        },
+      }).toString(),
+      "SELECT * FROM `articles` WHERE `content` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
+    );
+
+    assert.throws(function() {
+      Post.where({
+        $or: {},
+      }).toString();
+    }, /insufficient logical operator value/);
+
     assert.equal(
       Post.where({
         $or: [
@@ -104,6 +120,24 @@ describe('=> Spell', function() {
         ],
       }).toSqlString(),
       "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` LIKE '%Diablo%') AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $or: [
+          { title: 'Leah' },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        $and: [
+          { title: 'Leah' },
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
     );
   });
 
@@ -363,6 +397,13 @@ describe('=> Spell', function() {
     assert.equal(
       Post.where('~id = -1').toString(),
       'SELECT * FROM `articles` WHERE ~ `id` = -1 AND `gmt_deleted` IS NULL'
+    );
+  });
+
+  it('where not in conditions', function() {
+    assert.equal(
+      Post.where('id != ?', [ 1, 2 ]).toString(),
+      'SELECT * FROM `articles` WHERE `id` NOT IN (1, 2) AND `gmt_deleted` IS NULL'
     );
   });
 
