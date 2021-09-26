@@ -3,6 +3,12 @@ layout: en
 title: How to Contribute
 ---
 
+## Table of Contents
+{:.no_toc}
+
+1. Table of Contents
+{:toc}
+
 ## Get Started
 
 Three steps:

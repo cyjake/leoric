@@ -1,6 +1,11 @@
 ---
 ---
 
+:root {
+  --container-width: 920px;
+  --padding-base: 6px;
+}
+
 @import 'jekyll-theme-primer';
 
 #header {
@@ -106,11 +111,10 @@
 @media(min-width: 1400px) {
   #header {
     position: fixed;
-    // half the width of container-lg
-    right: calc(50% + 506px);
+    right: calc(50% + (var(--container-width) / 2) + var(--padding-base));
     top: 26px;
     bottom: 24px;
-    width: 200px;
+    width: calc(50% - (var(--container-width) / 2) + var(--padding-base));
     background: none;
     border-bottom: none;
     overflow-y: auto;
@@ -138,7 +142,7 @@
     }
 
     a {
-      padding: 6px 12px 6px 32px;
+      padding: 6px 12px 6px 36px;
 
       &:hover {
         background-color: #f0f0f0;
@@ -170,7 +174,7 @@
           padding-left: 0;
 
           a {
-            padding: 6px 12px 6px 60px;
+            padding: 6px 12px 6px 66px;
           }
         }
       }
@@ -179,11 +183,12 @@
 
   #markdown-toc {
     position: fixed;
-    left: calc(50% + 506px);
+    left: calc(50% + (var(--container-width) / 2) + var(--padding-base));
     top: 100px;
     bottom: 16px;
     overflow: auto;
-    max-width: calc(50% - 512px);
+    max-width: calc(50% - (var(--container-width) / 2));
+    padding-right: var(--padding-base);
   }
 
   .no_toc {
@@ -207,7 +212,11 @@
   }
 
   .syntax-table .highlight {
-    width: 462px;
+    width: calc(var(--container-width) / 2 - 38px);
+  }
+
+  .container-lg {
+    max-width: var(--container-width);
   }
 }
 

@@ -85,8 +85,9 @@ describe('=> Spell', function() {
       }).toString(),
       "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' OR `content` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
     );
+  });
 
-
+  it('where object condition with logical operator but insufficient args', async function() {
     assert.equal(
       Post.where({
         $or: {
@@ -96,12 +97,32 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE `content` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
     );
 
+    assert.equal(
+      Post.where({
+        title: {
+          $and: [ { $like: '%bloodborne%' } ]
+        }
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` LIKE '%bloodborne%' AND `gmt_deleted` IS NULL"
+    );
+
+    assert.equal(
+      Post.where({
+        title: {
+          $and: [ 'Leah' ]
+        }
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
+    );
+
     assert.throws(function() {
       Post.where({
         $or: {},
       }).toString();
     }, /insufficient logical operator value/);
+  });
 
+  it('where object condition with logical operator on same column', async function() {
     assert.equal(
       Post.where({
         $or: [
@@ -230,7 +251,7 @@ describe('=> Spell', function() {
             ],
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` = 'Diablo') AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `title` = 'Diablo' AND `gmt_deleted` IS NULL"
       );
 
       assert.equal(
@@ -254,7 +275,7 @@ describe('=> Spell', function() {
             ],
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` LIKE '%Leah%') AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `title` LIKE '%Leah%' AND `gmt_deleted` IS NULL"
       );
 
       assert.equal(
@@ -268,7 +289,7 @@ describe('=> Spell', function() {
             ],
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` = 'Leah' AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `title` != 'Leah' AND `gmt_deleted` IS NULL"
       );
 
       assert.equal(
@@ -282,7 +303,7 @@ describe('=> Spell', function() {
             ],
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` IS NULL AND `title` != 'Leah') AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE `title` IS NULL AND `title` != 'Leah' AND `gmt_deleted` IS NULL"
       );
     });
 
@@ -290,25 +311,19 @@ describe('=> Spell', function() {
       assert.equal(
         Post.where({
           is_private: {
-            $not: [
-              1,
-              2
-            ]
+            $not: [ 1, 2, 3 ],
           }
         }).toSqlString(),
-        'SELECT * FROM `articles` WHERE (NOT IN (1,2)) AND `gmt_deleted` IS NULL'
+        'SELECT * FROM `articles` WHERE `is_private` NOT IN (1, 2, 3) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
         Post.where({
           is_private: {
-            $not: [
-              null,
-              2
-            ]
+            $not: [ null, 2 ],
           }
         }).toSqlString(),
-        'SELECT * FROM `articles` WHERE (NOT IN (NULL,2)) AND `gmt_deleted` IS NULL'
+        'SELECT * FROM `articles` WHERE `is_private` NOT IN (NULL, 2) AND `gmt_deleted` IS NULL'
       );
 
       assert.equal(
@@ -320,7 +335,7 @@ describe('=> Spell', function() {
             ]
           }
         }).toSqlString(),
-        'SELECT * FROM `articles` WHERE (NOT (`is_private` = 1 AND `is_private` <= 6)) AND `gmt_deleted` IS NULL'
+        'SELECT * FROM `articles` WHERE NOT (`is_private` = 1 AND `is_private` <= 6) AND `gmt_deleted` IS NULL'
       );
     });
 
@@ -342,7 +357,7 @@ describe('=> Spell', function() {
             ]
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND (`is_private` >= 1 AND `is_private` <= 6) AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND `is_private` >= 1 AND `is_private` <= 6 AND `gmt_deleted` IS NULL"
       );
       assert.equal(
         Post.where({
@@ -367,7 +382,7 @@ describe('=> Spell', function() {
             ]
           }
         }).toSqlString(),
-        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND (`is_private` >= 1 AND `is_private` <= 6) AND (NOT (`author_id` = 100 AND `author_id` <= 2)) AND `gmt_deleted` IS NULL"
+        "SELECT * FROM `articles` WHERE (`title` = 'Leah' OR `title` != 'Leah') AND `is_private` >= 1 AND `is_private` <= 6 AND NOT (`author_id` = 100 AND `author_id` <= 2) AND `gmt_deleted` IS NULL"
       );
     });
   });

@@ -129,8 +129,15 @@ const LOGICAL_OPERATOR_MAP = {
   $not: 'not',
 };
 
-function isLogicalOperator(condition) {
-  return LOGICAL_OPERATOR_MAP.hasOwnProperty(condition);
+function isLogicalOperator(operator) {
+  return LOGICAL_OPERATOR_MAP.hasOwnProperty(operator);
+}
+
+function isLogicalCondition(condition) {
+  for (const name in condition) {
+    if (LOGICAL_OPERATOR_MAP.hasOwnProperty(name)) return true;
+  }
+  return false;
 }
 
 function parseLogicalObjectConditionValue(value) {
@@ -158,11 +165,18 @@ function parseLogicalObjectConditionValue(value) {
 function parseLogicalObjectCondition(name, value) {
   const operator = LOGICAL_OPERATOR_MAP[name];
   const conditions = parseLogicalObjectConditionValue(value);
+
+  // { $not: [ 1, 2, 3 ] }
+  if (operator === 'not' && conditions.every(entry => !isPlainObject(entry))) {
+    return { type: 'op', name: 'not in', args: [ { type: 'literal', value: conditions } ] };
+  }
+
   const args = conditions.reduce((res, condition) => {
     if (!isPlainObject(condition)) {
       return res.concat({
-        type: 'literal',
-        value: condition,
+        type: 'op',
+        name: '=',
+        args: [ { type: 'literal', value: condition } ],
       });
     }
     const [ arg ] = parseObjectConditions(condition);
@@ -175,10 +189,52 @@ function parseLogicalObjectCondition(name, value) {
   if (args.length === 0) {
     throw new Error(`insufficient logical operator value ${value}`);
   }
-  // malformed logical condition: { title: { $or: [ 'Leah' ] } }
+
+  // { title: { $or: [ 'Leah' ] } }
   if (args.length === 1 && operator !== 'not') return args[0];
 
+  // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
+  if (args.length > 1 && operator === 'not') {
+    const result = args.reduce((res, arg) => {
+      if (!res) return arg;
+      return { type: 'op', name: 'and', args: [ res, arg ] };
+    });
+    return { type: 'op', name: operator, args: [ result ] };
+  }
+
   return { type: 'op', name: operator, args };
+}
+
+/**
+ * normalize logical condition objects like below:
+ *
+ *     { createdAt: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }
+ *     { createdAt: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }
+ *     { title: { $not: [ 'Leah', 'Nephalem' ] } }
+ *
+ * into following format
+ *
+ *     { $not: [] }
+ * @param {Object} condition logical condition ast
+ * @param {string} name expression as the left operand
+ */
+function normalizeLogicalCondition(condition, name) {
+  let args;
+  if (condition.name === 'not') {
+    args = condition.args[0].args;
+  } else {
+    args = condition.args;
+  }
+  if (args.length === 1) {
+    args.unshift(parseExpr(name));
+  } else {
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      if (arg.args && arg.args.length === 1) {
+        arg.args.unshift(parseExpr(name));
+      }
+    }
+  }
 }
 
 /**
@@ -209,16 +265,17 @@ function parseObjectConditions(conditions) {
     }
     else if (isOperator(name)) {
       // if name is a common operator
-      /**
-       * {
-       *   $like: '%no%'
-       * }
-       */
+      // { $like: '%no%' }
       result.push({
         type: 'op',
         name: OPERATOR_MAP[name],
-        args: [ parseExpr(name), parseObjectValue(value) ],
+        args: [ parseObjectValue(value) ],
       });
+    }
+    else if (isLogicalCondition(value)) {
+      const condition = parseObjectValue(value);
+      normalizeLogicalCondition(condition, name);
+      result.push(condition);
     }
     else {
       result.push({
