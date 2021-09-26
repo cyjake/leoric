@@ -203,57 +203,6 @@ function formatOpExpr(spell, ast) {
     } else {
       throw new Error(`Invalid operator ${name} against ${args[1].value}`);
     }
-  }
-  else if (args[1].type == 'op' && Array.isArray(args[1].args) && !isLogicalOp(ast) && isLogicalOp(args[1])) {
-    let innerOp = args[1].name;
-    if ([ 'or', 'and' ].includes(innerOp)) {
-      // { title: { $or: [ 'Leah', 'Diablo' ] } }
-      // { title: { $or: [ 'Leah', { $like: '%jjj' } ] } }
-      const expr = [];
-      const leftValue = { type: 'id', value: args[0].value };
-      for (const arg of args[1].args) {
-        if (arg.type === 'literal') {
-          const innerAst = {
-            type: 'op',
-            name: '=',
-            args: [ leftValue, arg ],
-          };
-          expr.push(formatExpr(spell, innerAst));
-        } else {
-          arg.args[0] = leftValue;
-          expr.push(formatExpr(spell, arg));
-        }
-      }
-      return `(${expr.join(` ${innerOp.toUpperCase()} `)})`;
-    } else if ('not' === innerOp) {
-      // { title: { $not: [ 'Leah', 'jss' ] } }
-      const expr = [];
-      const leftValue = { type: 'id', value: args[0].value };
-      // if all args are literal, it should be `NOT IN (?, ?, ?)`
-      const notAllLiteral = args[1].args.find(arg => arg.type !== 'literal');
-      if (!notAllLiteral) {
-        const values = args[1].args.map(arg => arg.value);
-        return `(NOT IN (${values.map(v => {
-          if (v == null) return 'NULL';
-          return '?';
-        })}))`;
-      }
-      for (const arg of args[1].args) {
-        if (arg.type === 'literal') {
-          const innerAst = {
-            type: 'op',
-            name: '=',
-            args: [ leftValue, arg ],
-          };
-          expr.push(formatExpr(spell, innerAst));
-        }
-        else {
-          arg.args[0] = leftValue;
-          expr.push(formatExpr(spell, arg));
-        }
-      }
-      return `(NOT (${expr.join(' AND ')}))`;
-    }
   } else if (params[1] !== '') {
     return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
   }
