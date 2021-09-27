@@ -70,7 +70,7 @@ function parseObjectValue(value) {
   if (value && value.__raw) return { type: 'raw', value: value.value };
   // value maybe an object conditions
   if (isPlainObject(value)) {
-    const [ args ] = parseObjectConditions(value);
+    const args = parseObjectConditions(value);
     return args;
   }
   return parseExpr('?', value);
@@ -274,9 +274,11 @@ function parseObjectConditions(conditions) {
       });
     }
     else if (isLogicalCondition(value)) {
-      const condition = parseObjectValue(value);
-      normalizeLogicalCondition(condition, name);
-      result.push(condition);
+      const conds = parseObjectValue(value);
+      for (const condition of conds) {
+        normalizeLogicalCondition(condition, name);
+        result.push(condition);
+      }
     }
     else {
       result.push({

@@ -115,6 +115,17 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
     );
 
+    assert.equal(
+      Post.where({
+        title: {
+          $like: '%Leah%',
+          $not: [ 'Halo', 'EvalGenius' ],
+          $ne: 'hello'
+        }
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` LIKE '%Leah%' AND `title` NOT IN ('Halo', 'EvalGenius') AND `title` != 'hello' AND `gmt_deleted` IS NULL"
+    );
+
     assert.throws(function() {
       Post.where({
         $or: {},
