@@ -25,6 +25,7 @@ describe('validator', () => {
         isNumeric: false,
         notIn: [ [ 'Yhorm', 'Gwyn' ] ],
         notContains: 'closePease',
+        len: [ 2, 9 ],
       }
     },
     meta: {
@@ -108,13 +109,13 @@ describe('validator', () => {
       await assert.rejects(async () => {
         await User.create({
           email: 'sss@e.cn',
-          nickname: 's',
+          nickname: 's21',
         });
       }, /Validation is on email failed/);
 
       await User.create({
         email: 'sss@e.com',
-        nickname: 's',
+        nickname: 's321',
       });
     });
 
@@ -307,6 +308,20 @@ describe('validator', () => {
       assert(user);
     });
 
+    it('len', async () => {
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+          nickname: 's',
+        });
+      }, /Validation len on nickname failed/);
+      const user = await User.create({
+        email: 'a1@e.com',
+        nickname: 'sss1',
+      });
+      assert(user);
+    });
+
     it('should be a valid validator', async () => {
       await assert.rejects(async () => {
         await User.create({
@@ -319,6 +334,7 @@ describe('validator', () => {
         });
       }, /Invalid validator function: hhh/);
     });
+
   });
 
   describe('create', () => {

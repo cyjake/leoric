@@ -56,6 +56,9 @@ const validators = {
   notEmpty(str) {
     return /[^\s]/.test(str);
   },
+  len(str, min, max) {
+    return Validator.isLength(str, min, max);
+  }
 };
 
 /**
