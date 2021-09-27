@@ -4,14 +4,19 @@ const { setupSingleHook } = require('../setup_hooks');
 const { compose, isPlainObject } = require('../utils');
 
 function translateOptions(spell, options) {
-  const { attributes, where, group, order, offset, limit, include } = options;
+  const { attributes, where, group, order, offset, limit, include, having } = options;
 
   if (attributes) spell.$select(attributes);
   if (include) {
     if (typeof include === 'string') spell.$with(include);
   }
   if (where) spell.$where(where);
-  if (group) spell.$group(group);
+  if (group) {
+    if (Array.isArray(group)) spell.$group(...group);
+    else spell.$group(group);
+  }
+  if (having) spell.$having(having);
+
   if (order) {
     if (typeof order === 'string') {
       spell.$order(order);

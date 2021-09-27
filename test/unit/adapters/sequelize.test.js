@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
-const { Bone, connect, sequelize, DataTypes } = require('../../..');
+const { Bone, connect, sequelize, DataTypes, raw } = require('../../..');
 const { Hint } = require('../../../src/hint');
 const { logger } = require('../../../src/utils');
 
@@ -445,13 +445,52 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
 
-    const result = await Post.findAll({
+    let result = await Post.findAll({
       attributes: 'count(*) AS count',
       group: 'title',
       order: [[ 'title', 'desc' ]],
     });
     assert.deepEqual(result, [
       { title: 'Tyrael', count: 1 },
+      { title: 'Leah', count: 2 },
+    ]);
+
+    result = await Post.findAll({
+      attributes: 'count(*) AS count',
+      group: [ 'title' ],
+      order: [[ 'title', 'desc' ]],
+    });
+    assert.deepEqual(result, [
+      { title: 'Tyrael', count: 1 },
+      { title: 'Leah', count: 2 },
+    ]);
+  });
+
+  it('Model.findAll({ having })', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    let result = await Post.findAll({
+      attributes: 'count(*) AS count',
+      group: 'title',
+      order: [[ 'title', 'desc' ]],
+      having: 'count(*) = 2'
+    });
+    assert.deepEqual(result, [
+      { title: 'Leah', count: 2 },
+    ]);
+
+    result = await Post.findAll({
+      attributes: 'count(*) AS count',
+      group: [ 'title' ],
+      order: [[ 'title', 'desc' ]],
+      having: raw('count(*) = 2')
+    });
+
+    assert.deepEqual(result, [
       { title: 'Leah', count: 2 },
     ]);
   });

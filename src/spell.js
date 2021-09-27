@@ -48,6 +48,7 @@ const AGGREGATOR_MAP = {
  * @returns {Array}
  */
 function parseConditions(conditions, ...values) {
+  if (conditions.__raw) return [ conditions ];
   if (isPlainObject(conditions)) {
     return parseObjectConditions(conditions);
   }
@@ -299,7 +300,8 @@ function parseSelect(spell, ...names) {
 
   const columns = [];
   for (const name of names) {
-    columns.push(...parseExprList(name));
+    if (name.__raw) columns.push(name);
+    else columns.push(...parseExprList(name));
   }
 
   for (const ast of columns) {
@@ -881,6 +883,7 @@ class Spell {
     const { columns, groups } = this;
 
     for (const name of names) {
+      console.log(name, 'name');
       const token = parseExpr(name);
       if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
@@ -972,7 +975,7 @@ class Spell {
     for (const condition of parseConditions(conditions, ...values)) {
       // Postgres can't have alias in HAVING caluse
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
-      if (this.Model.driver.type === 'postgres') {
+      if (this.Model.driver.type === 'postgres' && !condition.__raw) {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {

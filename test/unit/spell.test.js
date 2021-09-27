@@ -441,12 +441,22 @@ describe('=> Spell', function() {
       Post.count().group('authorId').having('count > ?', 10).orHaving('count = 5').toString(),
       'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 OR `count` = 5'
     );
+    // raw
+    assert.equal(
+      Post.count().group('authorId').having(raw('count > 10')).orHaving('count = 5').toString(),
+      'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING count > 10 OR `count` = 5'
+    );
   });
 
   it('count / group by / having / order', function() {
     assert.equal(
       Post.group('authorId').count().having({ count: { $gt: 0 } }).order('count desc').toString(),
       'SELECT `author_id`, COUNT(*) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 0 ORDER BY `count` DESC'
+    );
+    // raw
+    assert.equal(
+      Post.group('authorId').count().having(raw('count > 0')).order('count desc').toString(),
+      'SELECT `author_id`, COUNT(*) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING count > 0 ORDER BY `count` DESC'
     );
   });
 
@@ -643,6 +653,13 @@ describe('=> Spell', function() {
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
       "INSERT INTO `articles` (`id`, `title`, `gmt_create`, `gmt_modified`) VALUES (1, 'New Post', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `title`=VALUES(`title`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+  });
+
+  it('select with raw sql', function () {
+    assert.equal(
+      Post.select('id', raw(`COUNT(title) as count`)).toString(),
+      'SELECT `id`, COUNT(title) as count FROM `articles` WHERE `gmt_deleted` IS NULL'
     );
   });
 
