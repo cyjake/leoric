@@ -438,61 +438,73 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts.length, 0);
   });
 
-  it('Model.findAll({ group })', async () => {
-    await Promise.all([
-      { title: 'Leah' },
-      { title: 'Leah' },
-      { title: 'Tyrael' },
-    ].map(opts => Post.create(opts)));
-
-    let result = await Post.findAll({
-      attributes: 'count(*) AS count',
-      group: 'title',
-      order: [[ 'title', 'desc' ]],
+  describe('Model.findAll({ group })', () => {
+    beforeEach(async () => {
+      await Promise.all([
+        { title: 'Leah' },
+        { title: 'Leah' },
+        { title: 'Tyrael' },
+      ].map(opts => Post.create(opts)));
     });
-    assert.deepEqual(result, [
-      { title: 'Tyrael', count: 1 },
-      { title: 'Leah', count: 2 },
-    ]);
 
-    result = await Post.findAll({
-      attributes: 'count(*) AS count',
-      group: [ 'title' ],
-      order: [[ 'title', 'desc' ]],
+    it('Model.findAll({ group: string })', async () => {
+      let result = await Post.findAll({
+        attributes: 'count(*) AS count',
+        group: 'title',
+        order: [[ 'title', 'desc' ]],
+      });
+      assert.deepEqual(result, [
+        { title: 'Tyrael', count: 1 },
+        { title: 'Leah', count: 2 },
+      ]);
     });
-    assert.deepEqual(result, [
-      { title: 'Tyrael', count: 1 },
-      { title: 'Leah', count: 2 },
-    ]);
+
+    it('Model.findAll({ group: [] })', async () => {
+      let result = await Post.findAll({
+        attributes: 'count(*) AS count',
+        group: [ 'title' ],
+        order: [[ 'title', 'desc' ]],
+      });
+      assert.deepEqual(result, [
+        { title: 'Tyrael', count: 1 },
+        { title: 'Leah', count: 2 },
+      ]);
+    });
   });
 
-  it('Model.findAll({ having })', async () => {
-    await Promise.all([
-      { title: 'Leah' },
-      { title: 'Leah' },
-      { title: 'Tyrael' },
-    ].map(opts => Post.create(opts)));
-
-    let result = await Post.findAll({
-      attributes: 'count(*) AS count',
-      group: 'title',
-      order: [[ 'title', 'desc' ]],
-      having: 'count(*) = 2'
-    });
-    assert.deepEqual(result, [
-      { title: 'Leah', count: 2 },
-    ]);
-
-    result = await Post.findAll({
-      attributes: 'count(*) AS count',
-      group: [ 'title' ],
-      order: [[ 'title', 'desc' ]],
-      having: raw('count(*) = 2')
+  describe('Model.findAll({ having })', () => {
+    beforeEach(async () => {
+      await Promise.all([
+        { title: 'Leah' },
+        { title: 'Leah' },
+        { title: 'Tyrael' },
+      ].map(opts => Post.create(opts)));
     });
 
-    assert.deepEqual(result, [
-      { title: 'Leah', count: 2 },
-    ]);
+    it('Model.findAll({ having: string })', async () => {
+      let result = await Post.findAll({
+        attributes: 'count(*) AS count',
+        group: 'title',
+        order: [[ 'title', 'desc' ]],
+        having: 'count(*) = 2'
+      });
+      assert.deepEqual(result, [
+        { title: 'Leah', count: 2 },
+      ]);
+    });
+
+    it('Model.findAll({ having: rawObject })', async () => {
+      let result = await Post.findAll({
+        attributes: 'count(*) AS count',
+        group: 'title',
+        order: [[ 'title', 'desc' ]],
+        having: raw('count(*) = 2')
+      });
+
+      assert.deepEqual(result, [
+        { title: 'Leah', count: 2 },
+      ]);
+    });
   });
 
   it('Model.findAndCountAll()', async () => {

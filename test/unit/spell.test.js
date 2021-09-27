@@ -115,6 +115,14 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
     );
 
+    assert.throws(function() {
+      Post.where({
+        $or: {},
+      }).toString();
+    }, /insufficient logical operator value/);
+  });
+
+  it('where object condition with multiple operator', async () => {
     assert.equal(
       Post.where({
         title: {
@@ -126,11 +134,15 @@ describe('=> Spell', function() {
       "SELECT * FROM `articles` WHERE `title` LIKE '%Leah%' AND `title` NOT IN ('Halo', 'EvalGenius') AND `title` != 'hello' AND `gmt_deleted` IS NULL"
     );
 
-    assert.throws(function() {
+    assert.equal(
       Post.where({
-        $or: {},
-      }).toString();
-    }, /insufficient logical operator value/);
+        title: {
+          $like: '%Leah%',
+          $ne: 'hello'
+        }
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE `title` LIKE '%Leah%' AND `title` != 'hello' AND `gmt_deleted` IS NULL"
+    );
   });
 
   it('where object condition with logical operator on same column', async function() {
@@ -452,10 +464,19 @@ describe('=> Spell', function() {
       Post.count().group('authorId').having('count > ?', 10).orHaving('count = 5').toString(),
       'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 OR `count` = 5'
     );
-    // raw
+  });
+
+  it('orHaving with raw', function() {
     assert.equal(
       Post.count().group('authorId').having(raw('count > 10')).orHaving('count = 5').toString(),
       'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING count > 10 OR `count` = 5'
+    );
+  });
+
+  it('orHaving with array attr', function() {
+    assert.equal(
+      Post.count().group('authorId').having([ 'count > ?', 10 ]).orHaving('count = 5').toString(),
+      'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 OR `count` = 5'
     );
   });
 
@@ -464,7 +485,9 @@ describe('=> Spell', function() {
       Post.group('authorId').count().having({ count: { $gt: 0 } }).order('count desc').toString(),
       'SELECT `author_id`, COUNT(*) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 0 ORDER BY `count` DESC'
     );
-    // raw
+  });
+
+  it('count / group by / having / order with raw', function() {
     assert.equal(
       Post.group('authorId').count().having(raw('count > 0')).order('count desc').toString(),
       'SELECT `author_id`, COUNT(*) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING count > 0 ORDER BY `count` DESC'

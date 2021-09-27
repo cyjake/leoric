@@ -51,28 +51,25 @@ function parseConditions(conditions, ...values) {
   if (conditions.__raw) return [ conditions ];
   if (isPlainObject(conditions)) {
     return parseObjectConditions(conditions);
-  }
-  else if (typeof conditions == 'string') {
+  } else if (typeof conditions == 'string') {
     return [parseExpr(conditions, ...values)];
-  }
-  else {
+  } else if (Array.isArray(conditions)) {
+    return [parseExpr(...conditions)];
+  } else {
     throw new Error(`unexpected conditions ${conditions}`);
   }
 }
 
 /**
  * Parse object values as literal or subquery
- * @param {*} value
- * @returns {Object}
+ * @param {Object} value
+ * @returns {Array<Object>}
  */
 function parseObjectValue(value) {
   if (value instanceof module.exports) return { type: 'subquery', value };
   if (value && value.__raw) return { type: 'raw', value: value.value };
   // value maybe an object conditions
-  if (isPlainObject(value)) {
-    const args = parseObjectConditions(value);
-    return args;
-  }
+  if (isPlainObject(value)) return parseObjectConditions(value);
   return parseExpr('?', value);
 }
 
@@ -885,7 +882,6 @@ class Spell {
     const { columns, groups } = this;
 
     for (const name of names) {
-      console.log(name, 'name');
       const token = parseExpr(name);
       if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
