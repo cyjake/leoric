@@ -543,6 +543,28 @@ export class Bone {
    * @param opts query options
    */
   restore(opts?: QueryOptions): Promise<Bone>;
+
+  /**
+   * Gets called when `JSON.stringify(instance)` is invoked.
+   * {@link Bone#toJSON} might be called on descents of Bone that does not have attributes defined on them directly, hence for..in is preferred.
+   * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
+   * @example
+   * const post = await Post.first
+   * post.toJSON()  // => { id: 1, ... }
+   * @return {Object}
+   */
+  toJSON(): Record<string, any>;
+
+  /**
+   * This is the loyal twin of {@link Bone#toJSON} because when generating the result object, the raw values of attributes are used, instead of the values returned by custom getters (if any).
+   * {@link Bone#toObject} might be called on descents of Bone that does not have attributes defined on them directly, hence for..in is preferred.
+   * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
+   * @example
+   * const post = await Post.first
+   * post.toObject()  // => { id: 1, ... }
+   * @return {Object}
+   */
+  toObject(): Record<string, any>;
 }
 
 interface ConnectOptions {
