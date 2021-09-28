@@ -1,3 +1,13 @@
+1.11.1 / 2021-09-28
+===================
+
+This version fixes lots of issues regarding logical operator in object conditions.
+
+  * fix: logical operator with multiple conditions such as (#190)
+  * fix: sequelize mode support HAVING, and select fields raw sql support (#187)
+  * fix: support len validator (#188)
+  * fix: normalize logical operator conditions before formatting with spellbook (#186)
+
 1.11.0 / 2021-09-24
 ===================
 
