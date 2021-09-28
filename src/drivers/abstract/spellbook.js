@@ -167,7 +167,7 @@ function isLogicalOp({ type, name }) {
 function formatOpExpr(spell, ast) {
   const { name, args } = ast;
   const params = args.map(arg => {
-    return isLogicalOp(ast) && isLogicalOp(arg) && precedes(name, arg.name) <= 0
+    return isLogicalOp(ast) && isLogicalOp(arg) && precedes(name, arg.name) < 0
       ? `(${formatExpr(spell, arg)})`
       : formatExpr(spell, arg);
   });
