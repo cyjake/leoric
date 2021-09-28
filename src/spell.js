@@ -48,30 +48,28 @@ const AGGREGATOR_MAP = {
  * @returns {Array}
  */
 function parseConditions(conditions, ...values) {
+  if (conditions.__raw) return [ conditions ];
   if (isPlainObject(conditions)) {
     return parseObjectConditions(conditions);
-  }
-  else if (typeof conditions == 'string') {
+  } else if (typeof conditions == 'string') {
     return [parseExpr(conditions, ...values)];
-  }
-  else {
+  } else if (Array.isArray(conditions)) {
+    return [parseExpr(...conditions)];
+  } else {
     throw new Error(`unexpected conditions ${conditions}`);
   }
 }
 
 /**
  * Parse object values as literal or subquery
- * @param {*} value
- * @returns {Object}
+ * @param {Object} value
+ * @returns {Array<Object>}
  */
 function parseObjectValue(value) {
   if (value instanceof module.exports) return { type: 'subquery', value };
   if (value && value.__raw) return { type: 'raw', value: value.value };
   // value maybe an object conditions
-  if (isPlainObject(value)) {
-    const [ args ] = parseObjectConditions(value);
-    return args;
-  }
+  if (isPlainObject(value)) return parseObjectConditions(value);
   return parseExpr('?', value);
 }
 
@@ -273,9 +271,11 @@ function parseObjectConditions(conditions) {
       });
     }
     else if (isLogicalCondition(value)) {
-      const condition = parseObjectValue(value);
-      normalizeLogicalCondition(condition, name);
-      result.push(condition);
+      const conds = parseObjectValue(value);
+      for (const condition of conds) {
+        normalizeLogicalCondition(condition, name);
+        result.push(condition);
+      }
     }
     else {
       result.push({
@@ -299,7 +299,8 @@ function parseSelect(spell, ...names) {
 
   const columns = [];
   for (const name of names) {
-    columns.push(...parseExprList(name));
+    if (name.__raw) columns.push(name);
+    else columns.push(...parseExprList(name));
   }
 
   for (const ast of columns) {
@@ -972,7 +973,7 @@ class Spell {
     for (const condition of parseConditions(conditions, ...values)) {
       // Postgres can't have alias in HAVING caluse
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
-      if (this.Model.driver.type === 'postgres') {
+      if (this.Model.driver.type === 'postgres' && !condition.__raw) {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {
