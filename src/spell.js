@@ -150,18 +150,25 @@ function parseLogicalObjectConditionValue(value) {
   }, []);
 }
 
+function combineMultipleConditions(result) {
+  return result.reduce((res, arg) => {
+    if (!res) return arg;
+    return { type: 'op', name: 'and', args: [ res, arg ] };
+  });
+}
+
 /**
  * @example
  * { $or: { title: 'Leah', content: 'Diablo' } }
  * { $or: [ { title: 'Leah' }, { content: 'Diablo' } ] }
- * { title: { $or: [ 'Leah', 'Diablo' ] } }
- * { title: { $or: [ 'Leah', { $like: '%jjj' } ] } }
- * { title: { $not: [ 'Leah', 'jss' ] } }
- * @param {string} name logical operators, such as `$or`, `$and`
+ * { $or: [ 'Leah', 'Diablo' ] }
+ * { $or: [ 'Leah', { $like: '%jjj' } ] }
+ * { $not: [ 'Leah', 'jss' ] }
+ * @param {string} $op logical operators, such as `$or`, `$and`
  * @param {Object|Object[]} value logical operands
  */
-function parseLogicalObjectCondition(name, value) {
-  const operator = LOGICAL_OPERATOR_MAP[name];
+function parseLogicalObjectCondition($op, value) {
+  const operator = LOGICAL_OPERATOR_MAP[$op];
   const conditions = parseLogicalObjectConditionValue(value);
 
   // { $not: [ 1, 2, 3 ] }
@@ -177,7 +184,7 @@ function parseLogicalObjectCondition(name, value) {
         args: [ { type: 'literal', value: condition } ],
       });
     }
-    const [ arg ] = parseObjectConditions(condition);
+    const arg = combineMultipleConditions(parseObjectConditions(condition));
     if (res.length >= 2) {
       return [ { type: 'op', name: operator, args: res }, arg ];
     }
@@ -193,10 +200,7 @@ function parseLogicalObjectCondition(name, value) {
 
   // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
   if (args.length > 1 && operator === 'not') {
-    const result = args.reduce((res, arg) => {
-      if (!res) return arg;
-      return { type: 'op', name: 'and', args: [ res, arg ] };
-    });
+    const result = combineMultipleConditions(args);
     return { type: 'op', name: operator, args: [ result ] };
   }
 

@@ -185,6 +185,32 @@ describe('=> Spell', function() {
     );
   });
 
+  it('where object condition with logical operator and multiple conditions', async function() {
+    assert.equal(
+      Post.where({
+        $or: [
+          {
+            title: { $like: '%Cain%' },
+            authorId: 1,
+          },
+          {
+            title: { $in: [ 's1', '21' ] },
+            authorId: 2,
+          },
+          {
+            title: { $in: [ 's1' ] },
+            authorId: 2,
+          },
+          {
+            title: { $in: ['sss', 'sss1' ] },
+            authorId: { $in: ['sss', 'sss1' ] },
+          }
+        ],
+      }).toSqlString(),
+      "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' AND `author_id` = 1 OR `title` IN ('s1', '21') AND `author_id` = 2 OR `title` IN ('s1') AND `author_id` = 2 OR `title` IN ('sss', 'sss1') AND `author_id` IN ('sss', 'sss1')) AND `gmt_deleted` IS NULL"
+    );
+  });
+
   describe('multiple logical query conditions within one column', () => {
     it('or', () => {
       assert.equal(
@@ -420,7 +446,7 @@ describe('=> Spell', function() {
   it('where compound string conditions', function() {
     assert.equal(
       Post.where('title like "Arch%" or (title = "New Post" || title = "Skeleton King")').toString(),
-      "SELECT * FROM `articles` WHERE (`title` LIKE 'Arch%' OR (`title` = 'New Post' OR `title` = 'Skeleton King')) AND `gmt_deleted` IS NULL"
+      "SELECT * FROM `articles` WHERE (`title` LIKE 'Arch%' OR `title` = 'New Post' OR `title` = 'Skeleton King') AND `gmt_deleted` IS NULL"
     );
   });
 
