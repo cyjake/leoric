@@ -90,7 +90,6 @@ describe('=> parseObject', function() {
     );
   });
 
-
   it('{ $logical: { field: Literal, field2: Literal } }', function() {
     assert.equal(
       query({ $or: { title: 'Leah', content: 'Diablo' } }),
@@ -102,6 +101,17 @@ describe('=> parseObject', function() {
     assert.equal(
       query({ $or: [ { title: 'Leah', content: 'Diablo' }, { title: 'Stranger' } ] }),
       "`title` = 'Leah' AND `content` = 'Diablo' OR `title` = 'Stranger'"
+    );
+  });
+
+  it('{ $logical: { $logical: [ { field: Literal }, ... ] } }', function() {
+    assert.equal(
+      query({ $not: { $not: { $not: { title: 'Leah', content: 'Diablo' } } } }),
+      "NOT NOT NOT (`title` = 'Leah' AND `content` = 'Diablo')"
+    );
+    assert.equal(
+      query({ $not: { $or: [ { title: 'Leah', content: 'Diablo' }, { title: 'Stranger' } ] } }),
+      "NOT (`title` = 'Leah' AND `content` = 'Diablo' OR `title` = 'Stranger')"
     );
   });
 });

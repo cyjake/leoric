@@ -134,17 +134,18 @@ function parseLogicalOperator($op, value) {
     throw new Error(`unexpected logical operator value ${value}`);
   }
 
+  // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
+  if (operator === 'not') {
+    const args = merge(value.map(entry => merge(parseObject(entry))));
+    return { type: 'op', name: operator, args: [ args ] };
+  }
+
   const result = merge(value.map(entry => merge(parseObject(entry))), operator);
   const { args } = result;
 
   // { title: { $or: [ 'Leah' ] } }
   // { title: { $and: { $ne: 'Leah' } } }
-  if (args.length === 1 && operator !== 'not') return args[0];
-
-  // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
-  if (args.length > 1 && operator === 'not') {
-    return { type: 'op', name: operator, args: [ merge(args) ] };
-  }
+  if (args.length === 1) return args[0];
 
   return result;
 }
