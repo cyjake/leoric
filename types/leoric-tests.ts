@@ -11,7 +11,9 @@ class User extends Bone {
 }
 
 async function main() {
-  await User.create({ name: 'Stranger' })
+  const userBone = await User.create({ name: 'Stranger' });
+  console.log(userBone.toJSON(), userBone.toObject());
+
   const user = await User.first;
   await user.update({ name: 'Tyrael' });
 

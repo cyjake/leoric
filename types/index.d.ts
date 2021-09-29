@@ -564,7 +564,7 @@ export class Bone {
    * post.toObject()  // => { id: 1, ... }
    * @return {Object}
    */
-  toObject(): Record<string, any>;
+  toObject(): Record<string, Literal>;
 }
 
 interface ConnectOptions {
