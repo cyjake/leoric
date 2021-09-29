@@ -119,7 +119,7 @@ describe('=> Spell', function() {
       Post.where({
         $or: {},
       }).toString();
-    }, /insufficient logical operator value/);
+    }, /unexpected logical operator value/);
   });
 
   it('where object condition with multiple operator', async () => {
@@ -496,13 +496,6 @@ describe('=> Spell', function() {
     assert.equal(
       Post.count().group('authorId').having(raw('count > 10')).orHaving('count = 5').toString(),
       'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING count > 10 OR `count` = 5'
-    );
-  });
-
-  it('orHaving with array attr', function() {
-    assert.equal(
-      Post.count().group('authorId').having([ 'count > ?', 10 ]).orHaving('count = 5').toString(),
-      'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 OR `count` = 5'
     );
   });
 
