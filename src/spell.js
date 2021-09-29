@@ -9,34 +9,7 @@ const SqlString = require('sqlstring');
 const { parseExprList, parseExpr, walkExpr } = require('./expr');
 const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
-
-const OPERATOR_MAP = {
-  $between: 'between',
-  $eq: '=',
-  $gt: '>',
-  $gte: '>=',
-  $in: 'in',
-  $like: 'like',
-  $lt: '<',
-  $lte: '<=',
-  $ne: '!=',
-  $nin: 'not in',
-  $notBetween: 'not between',
-  $notLike: 'not like',
-  $notIn: 'not in'
-};
-
-function isOperator(value) {
-  return OPERATOR_MAP.hasOwnProperty(value);
-}
-
-const AGGREGATOR_MAP = {
-  count: 'count',
-  average: 'avg',
-  minimum: 'min',
-  maximum: 'max',
-  sum: 'sum'
-};
+const { parseObject } = require('./query_object');
 
 /**
  * Parse condition expressions
@@ -50,247 +23,12 @@ const AGGREGATOR_MAP = {
 function parseConditions(conditions, ...values) {
   if (conditions.__raw) return [ conditions ];
   if (isPlainObject(conditions)) {
-    return parseObjectConditions(conditions);
+    return parseObject(conditions);
   } else if (typeof conditions == 'string') {
     return [parseExpr(conditions, ...values)];
-  } else if (Array.isArray(conditions)) {
-    return [parseExpr(...conditions)];
   } else {
     throw new Error(`unexpected conditions ${conditions}`);
   }
-}
-
-/**
- * Parse object values as literal or subquery
- * @param {Object} value
- * @returns {Array<Object>}
- */
-function parseObjectValue(value) {
-  if (value instanceof module.exports) return { type: 'subquery', value };
-  if (value && value.__raw) return { type: 'raw', value: value.value };
-  // value maybe an object conditions
-  if (isPlainObject(value)) return parseObjectConditions(value);
-  return parseExpr('?', value);
-}
-
-/**
- * Check if object condition is an operator condition, such as `{ $gte: 100, $lt: 200 }`.
- * @param {Object} condition
- * @returns {boolean}
- */
-function isOperatorCondition(condition) {
-  if (!isPlainObject(condition)) return false;
-  const keys = Object.keys(condition);
-
-  return (
-    keys.length > 0 &&
-    keys.every($op => OPERATOR_MAP.hasOwnProperty($op))
-  );
-}
-
-/**
- * parse operator condition into expression ast
- * @example
- * parseOperatorCondition('id', { $gt: 0, $lt: 999999 });
- * // => { type: 'op', name: 'and', args: [ ... ]}
- * @param {string} name
- * @param {Object} condition
- * @returns {Object}
- */
-function parseOperatorCondition(name, condition) {
-  let node;
-
-  for (const $op in condition) {
-    const op = OPERATOR_MAP[$op];
-    const args = [ parseExpr(name) ];
-    const val = condition[$op];
-
-    if (op == 'between' || op == 'not between') {
-      args.push(parseObjectValue(val[0]), parseObjectValue(val[1]));
-    } else {
-      args.push(parseObjectValue(val));
-    }
-
-    if (node) {
-      node = { type: 'op', name: 'and', args: [node, { type: 'op', name: op, args } ] };
-    } else {
-      node = { type: 'op', name: op, args };
-    }
-  }
-
-  return node;
-}
-
-const LOGICAL_OPERATOR_MAP = {
-  $and: 'and',
-  $or: 'or',
-  $not: 'not',
-};
-
-function isLogicalOperator(operator) {
-  return LOGICAL_OPERATOR_MAP.hasOwnProperty(operator);
-}
-
-function isLogicalCondition(condition) {
-  for (const name in condition) {
-    if (LOGICAL_OPERATOR_MAP.hasOwnProperty(name)) return true;
-  }
-  return false;
-}
-
-function parseLogicalObjectConditionValue(value) {
-  if (value == null || typeof value !== 'object') {
-    throw new Error(`unexpected logical operator value ${value}`);
-  }
-
-  if (Array.isArray(value)) return value;
-
-  return Object.keys(value).reduce((res, key) => {
-    return res.concat({ [key]: value[key] });
-  }, []);
-}
-
-function combineMultipleConditions(result) {
-  return result.reduce((res, arg) => {
-    if (!res) return arg;
-    return { type: 'op', name: 'and', args: [ res, arg ] };
-  });
-}
-
-/**
- * @example
- * { $or: { title: 'Leah', content: 'Diablo' } }
- * { $or: [ { title: 'Leah' }, { content: 'Diablo' } ] }
- * { $or: [ 'Leah', 'Diablo' ] }
- * { $or: [ 'Leah', { $like: '%jjj' } ] }
- * { $not: [ 'Leah', 'jss' ] }
- * @param {string} $op logical operators, such as `$or`, `$and`
- * @param {Object|Object[]} value logical operands
- */
-function parseLogicalObjectCondition($op, value) {
-  const operator = LOGICAL_OPERATOR_MAP[$op];
-  const conditions = parseLogicalObjectConditionValue(value);
-
-  // { $not: [ 1, 2, 3 ] }
-  if (operator === 'not' && conditions.every(entry => !isPlainObject(entry))) {
-    return { type: 'op', name: 'not in', args: [ { type: 'literal', value: conditions } ] };
-  }
-
-  const args = conditions.reduce((res, condition) => {
-    if (!isPlainObject(condition)) {
-      return res.concat({
-        type: 'op',
-        name: '=',
-        args: [ { type: 'literal', value: condition } ],
-      });
-    }
-    const arg = combineMultipleConditions(parseObjectConditions(condition));
-    if (res.length >= 2) {
-      return [ { type: 'op', name: operator, args: res }, arg ];
-    }
-    return res.concat(arg);
-  }, []);
-
-  if (args.length === 0) {
-    throw new Error(`insufficient logical operator value ${value}`);
-  }
-
-  // { title: { $or: [ 'Leah' ] } }
-  if (args.length === 1 && operator !== 'not') return args[0];
-
-  // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
-  if (args.length > 1 && operator === 'not') {
-    const result = combineMultipleConditions(args);
-    return { type: 'op', name: operator, args: [ result ] };
-  }
-
-  return { type: 'op', name: operator, args };
-}
-
-/**
- * normalize logical condition objects like below:
- *
- *     { createdAt: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }
- *     { createdAt: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }
- *     { title: { $not: [ 'Leah', 'Nephalem' ] } }
- *
- * into following format
- *
- *     { $not: [] }
- * @param {Object} condition logical condition ast
- * @param {string} name expression as the left operand
- */
-function normalizeLogicalCondition(condition, name) {
-  let args;
-  if (condition.name === 'not') {
-    args = condition.args[0].args;
-  } else {
-    args = condition.args;
-  }
-  if (args.length === 1) {
-    args.unshift(parseExpr(name));
-  } else {
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
-      if (arg.args && arg.args.length === 1) {
-        arg.args.unshift(parseExpr(name));
-      }
-    }
-  }
-}
-
-/**
- * parse conditions in MongoDB style, which is quite polular in ORMs for JavaScript. See {@link module:src/spell~OPERATOR_MAP} for supported `$op`s.
- * @example
- * { foo: null }
- * { foo: { $gt: new Date(2012, 4, 15) } }
- * { foo: { $between: [1, 10] } }
- * @param {Object} conditions
- */
-function parseObjectConditions(conditions) {
-  const result = [];
-
-  for (const name in conditions) {
-    const value = conditions[name];
-    if (value instanceof module.exports) {
-      result.push({
-        type: 'op',
-        name: 'in',
-        args: [ parseExpr(name), { type: 'subquery', value } ]
-      });
-    }
-    else if (isLogicalOperator(name)) {
-      result.push(parseLogicalObjectCondition(name, value));
-    }
-    else if (isOperatorCondition(value)) {
-      result.push(parseOperatorCondition(name, value));
-    }
-    else if (isOperator(name)) {
-      // if name is a common operator
-      // { $like: '%no%' }
-      result.push({
-        type: 'op',
-        name: OPERATOR_MAP[name],
-        args: [ parseObjectValue(value) ],
-      });
-    }
-    else if (isLogicalCondition(value)) {
-      const conds = parseObjectValue(value);
-      for (const condition of conds) {
-        normalizeLogicalCondition(condition, name);
-        result.push(condition);
-      }
-    }
-    else {
-      result.push({
-        type: 'op',
-        name: '=',
-        args: [ parseExpr(name), parseObjectValue(value) ],
-      });
-    }
-  }
-
-  return result;
 }
 
 function parseSelect(spell, ...names) {
@@ -1167,6 +905,14 @@ class Spell {
     return this.toSqlString();
   }
 }
+
+const AGGREGATOR_MAP = {
+  count: 'count',
+  average: 'avg',
+  minimum: 'min',
+  maximum: 'max',
+  sum: 'sum'
+};
 
 for (const aggregator in AGGREGATOR_MAP) {
   const func = AGGREGATOR_MAP[aggregator];
