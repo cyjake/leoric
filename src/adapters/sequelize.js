@@ -130,6 +130,10 @@ module.exports = Bone => {
       return this;
     }
 
+    static get rawAttributes() {
+      return this.attributes;
+    }
+
     /**
      * add scope see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-addScope
      *

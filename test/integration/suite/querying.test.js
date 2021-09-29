@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
+const { raw } = require('../../../');
 
 const Attachment = require('../../models/attachment');
 const Book = require('../../models/book');
@@ -390,6 +391,16 @@ describe('=> Select', function() {
   it('.select("...name")', async function() {
     const post = await Post.select('id, title').first;
     expect(post.toJSON()).to.eql({ id: 1, title: 'New Post', slug: 'new-post' });
+  });
+
+  it('.select(raw[custom_fileds])', async () => {
+    let post = await Post.select(raw('COUNT(*) as count'));
+    expect(post[0].count).to.eql(1);
+    post = await Post.select(raw('gmt_create as date'));
+    expect(post[0].date instanceof Date);
+    post = await Post.select(raw('title as hTitle'));
+    if (Post.driver.type === 'postgres') expect(post[0].htitle).to.be('New Post');
+    else expect(post[0].hTitle).to.be('New Post');
   });
 });
 

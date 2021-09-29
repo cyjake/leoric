@@ -910,6 +910,11 @@ describe('=> Sequelize adapter', () => {
     assert.equal(Book.Instance, Book);
   });
 
+  it('Model.rawAttributes', () => {
+    // sequelize models export rawAttributes
+    assert.equal(Book.rawAttributes, Book.attributes);
+  });
+
   it('Model.describe()', async function() {
     const result = await Book.describe();
     assert(result.hasOwnProperty('isbn'));

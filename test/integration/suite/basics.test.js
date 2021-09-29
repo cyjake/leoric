@@ -497,6 +497,33 @@ describe('=> Type casting', function() {
     expect(post.deletedAt).to.eql(null);
     expect(post.isNewRecord).to.be(false);
   });
+
+  it('Bone.instantiate(entry) with extra custom attributes', () => {
+    let post = Post.instantiate({
+      id: 1,
+      title: 'Archbishop Lazarus',
+      custom_field: '222',
+    });
+    expect(post).to.be.a(Post);
+    expect(post.title).to.equal('Archbishop Lazarus');
+    expect(post.isNewRecord).to.be(false);
+    expect(post.custom_field).to.be(222);
+    // Date
+    post = Post.instantiate({
+      id: 1,
+      title: 'Archbishop Lazarus',
+      custom_field: '2012-02-12 19:19:19',
+    });
+    expect(post.custom_field instanceof Date);
+
+    post = Post.instantiate({
+      id: 1,
+      title: 'Archbishop Lazarus',
+      custom_field: 'Resident Evil',
+    });
+
+    expect(post.custom_field).to.be('Resident Evil');
+  });
 });
 
 describe('=> Automatic Versioning', function() {
