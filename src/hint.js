@@ -200,9 +200,9 @@ class IndexHint {
 
     const result = [];
     for (const key in grouped) {
-      const indices = grouped[key].reduce((result, index) => {
-        if (!result.includes(index)) result.push(index);
-        return result;
+      const indices = grouped[key].reduce((arr, index) => {
+        if (!arr.includes(index)) arr.push(index);
+        return arr;
       }, []);
       const [type, scope] = key.split('_');
       result.push(new IndexHint(indices, type, scope));
