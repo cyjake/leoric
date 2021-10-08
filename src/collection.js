@@ -1,7 +1,5 @@
 'use strict';
 
-const Spell = require('./spell');
-
 /**
  * An extended Array to represent collections of models.
  */
@@ -14,8 +12,7 @@ class Collection extends Array {
    * @returns {Collection|Array}
    */
   static init({ spell, rows, fields }) {
-    if (isDispatchable(spell)) return dispatch(spell, rows, fields);
-    return convert(spell, rows, fields);
+    return dispatch(spell, rows, fields);
   }
 
   /**
@@ -59,20 +56,20 @@ class Collection extends Array {
  * @param {Spell} spell
  * @returns {boolean}
  */
-function isDispatchable(spell) {
-  const { columns, groups, table } = spell;
+// function isDispatchable(spell) {
+//   const { columns, groups, table } = spell;
 
-  for (const token of columns) {
-    const { type } = token;
-    if (type === 'func') return false;
-    if (type === 'alias' && token.args[0].type === 'func') return false;
-  }
-  if (groups.length > 0) return false;
-  if (table.value instanceof Spell && Object.keys(table.value.joins).length > 0) {
-    return false;
-  }
-  return true;
-}
+//   for (const token of columns) {
+//     const { type } = token;
+//     if (type === 'func') return false;
+//     if (type === 'alias' && token.args[0].type === 'func') return false;
+//   }
+//   if (groups.length > 0) return false;
+//   if (table.value instanceof Spell && Object.keys(table.value.joins).length > 0) {
+//     return false;
+//   }
+//   return true;
+// }
 
 /**
  * Convert the results to collection that consists of models with their associations set up according to `spell.joins`.
@@ -83,63 +80,8 @@ function isDispatchable(spell) {
  * @returns {Collection}
  */
 function dispatch(spell, rows, fields) {
-  const { Model } = spell;
-
-  if (Object.keys(spell.joins).length === 0) {
-    return Collection.from(rows, row => Model.instantiate(Object.values(row)[0]));
-  }
-
-  const results = new Collection();
-  const { tableAlias, table, primaryColumn, primaryKey } = Model;
-
-  for (const row of rows) {
-    // If SQL contains subqueries, such as `SELECT * FROM (SELECT * FROM foo) AS bar`,
-    // the table name of the columns in SQLite is the original table name instead of the alias.
-    // Hence we need to fallback to original table name here.
-    const main = row[tableAlias] || row[table];
-    let current = results.find(result => result[primaryKey] == main[primaryColumn]);
-
-    if (!current) {
-      current = Model.instantiate(main);
-      results.push(current);
-    }
-
-    dispatchJoins(current, spell, row, fields);
-  }
-
-  return results;
-}
-
-function dispatchJoins(current, spell, row, fields) {
-  for (const qualifier in spell.joins) {
-    const { Model, hasMany } = spell.joins[qualifier];
-    // mysql2 nests rows with table name instead of table alias.
-    const values = row[qualifier] || row[Model.table];
-    const id = values[Model.primaryColumn];
-    if (hasMany) {
-      if (!current[qualifier]) current[qualifier] = new Collection();
-      if (!id || current[qualifier].some(item => item[Model.primaryKey] === id)) continue;
-      current[qualifier].push(Model.instantiate(values));
-    } else {
-      current[qualifier] = Object.values(values).some(value => value != null)
-        ? Model.instantiate(values)
-        : null;
-    }
-  }
-}
-
-/**
- * Convert returned rows to result set by translating columns (if found) to attributes.
- * @private
- * @param {Spell} spell
- * @param {Object[]} rows
- * @param {Object[]} fields
- * @returns {Object[]}
- */
-function convert(spell, rows, fields) {
-  const results = [];
-  const { groups, joins, columns } = spell;
-  const { table, tableAlias } = spell.Model;
+  const { groups, joins, columns, Model } = spell;
+  const { tableAlias, table, primaryKey, primaryColumn, driver } = Model;
 
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
@@ -151,40 +93,83 @@ function convert(spell, rows, fields) {
     }
   }
 
+  const joined = Object.keys(joins).length > 0;
+  let shouldFindJoinTarget = !columns.length;
+  if (driver.type === 'sqlite' && joined) {
+    /**
+     * { type: 'alias', value: 'posts:id', args: [ { type: 'id',qualifiers: [], value: 'ss' } ] },
+     */
+    let targetColumns = [];
+    if (columns.length) {
+      const allColumns = [];
+      for (const column of columns) {
+        allColumns.push(...column.args);
+      }
+      targetColumns = allColumns.filter(c => 
+        c.qualifiers && (c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias))
+      );
+    }
+    shouldFindJoinTarget = shouldFindJoinTarget || !targetColumns.length ||
+      (targetColumns.length && targetColumns.find(c => c.value === primaryKey)) ;
+  } else {
+    shouldFindJoinTarget = shouldFindJoinTarget ||
+    columns.length && (
+      !columns.filter(c => !c.qualifiers).length || columns.filter(c => !c.qualifiers || c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias)).includes(primaryKey));
+  }
+  
+  const results = new Collection();
   for (const row of rows) {
-    const result = { '': {} };
-    for (let prop in row) {
+    const result = {};
+    for (const prop in row) {
       const data = row[prop];
-      // mysql2 sometimes nests rows with table name instead of table alias
       const qualifier = prop === table ? tableAlias : prop;
-      const obj = result[qualifier] || (result[qualifier] = {});
-      if (qualifier === '') {
-        Object.assign(obj, data);
-      }
-      else if (qualifier in joins || qualifier == tableAlias) {
-        const { Model } = joins[qualifier] || spell;
-        for (const columnName in data) {
-          const definition = Model.attributeMap[columnName];
-          if (definition) {
-            obj[definition.name] = data[columnName];
-          } else {
-            result[''][columnName] = data[columnName];
-          }
-        }
-      }
-      else {
-        throw new Error(`Unknown qualifier ${qualifier}`);
+      if (qualifier === '' || qualifier === tableAlias) {
+        Object.assign(result, data);
+      } else {
+        if (Object.values(data).some(value => value != null)) result[prop] = data;
       }
     }
-    results.push(result);
+    let current;
+    if (shouldFindJoinTarget && result[primaryColumn] != null) {
+      current = results.find(r => r[primaryKey] == result[primaryColumn]);
+    }
+    if (!current) {
+      current = Model.instantiate(result);
+      results.push(current);
+    }
+    if (joined) {
+      dispatchJoins(current, spell, row, fields);
+    }
   }
 
-  if (Object.keys(joins).length > 0) return results;
-  return results.map(result => {
-    const merged = {};
-    for (const obj of Object.values(result)) Object.assign(merged, obj);
-    return merged;
-  });
+  return results;
+}
+
+function dispatchJoins(current, spell, row, fields) {
+  for (const qualifier in spell.joins) {
+    const { Model, hasMany } = spell.joins[qualifier];
+    // mysql2 nests rows with table name instead of table alias.
+    const values = row[qualifier] || row[Model.table];
+    if (values) {
+      if (hasMany) {
+        const id = values[Model.primaryColumn];
+        if (!current[qualifier]) current[qualifier] = new Collection();
+        if (!Array.isArray(current[qualifier])) {
+          const origin = !(current[qualifier] instanceof Model)? Model.instantiate(current[qualifier]) : current[qualifier];
+          current[qualifier] = new Collection();
+          if (Object.values(values).some(value => value != null)) {
+            current[qualifier].push(origin);
+          }
+        }
+        if (!id || current[qualifier].some(item => item[Model.primaryKey] === id) || Object.values(values).every(value => value == null)) continue;
+        current[qualifier].push(Model.instantiate(values));
+      } else {
+        current[qualifier] = Object.values(values).some(value => value != null)
+          ? Model.instantiate(values)
+          : null;
+      }
+    }
+  }
 }
 
 module.exports = Collection;

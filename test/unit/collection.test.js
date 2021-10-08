@@ -48,7 +48,13 @@ describe('=> Collection', function() {
       fields: [],
     });
     // merge the qualifier layer
-    assert.deepEqual(result, [ { count: 1 } ]);
+    assert(result.every(r => r instanceof Post));
+    assert.deepEqual(Array.from(result.map(r => ({
+      count: r.count
+    }))), [
+      { count: 1 },
+    ]);
+    assert.deepEqual(Array.from(result.map(r => ({ count: r.count }))), [ { count: 1 } ]);
   });
 
   it('should call element.toJSON', async function() {
