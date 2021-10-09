@@ -123,9 +123,10 @@ function shouldFindJoinTarget(spell) {
  * @returns {boolean}
  */
 function instantiatable(spell) {
-  const { Model } = spell;
+  const { Model, groups } = spell;
   const { attributes } = Model;
   const columns = getColumns(spell);
+  if (groups.length > 0) return false;
   if (!columns.length) return true;
   const attributeKeys = Object.keys(attributes);
   return columns.some(r => attributeKeys.includes(r));
@@ -142,7 +143,7 @@ function instantiatable(spell) {
  */
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
-  const { tableAlias, table, primaryKey, primaryColumn } = Model;
+  const { tableAlias, table, primaryKey, primaryColumn, attributes } = Model;
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
     const { type, value, args } = columns[0];
@@ -156,6 +157,7 @@ function dispatch(spell, rows, fields) {
   const joined = Object.keys(joins).length > 0;
   const shouldFindDuplicate = shouldFindJoinTarget(spell);
   const canInstantiate = instantiatable(spell);
+  const attributeKeys = Object.keys(attributes);
 
   const results = new Collection();
   for (const row of rows) {
@@ -174,7 +176,8 @@ function dispatch(spell, rows, fields) {
       current = results.find(r => r[primaryKey] == result[primaryColumn]);
     }
     if (!current) {
-      current = canInstantiate? Model.instantiate(result) : result;
+      const resultKeys = Object.keys(result);
+      current = canInstantiate || (!groups.length && resultKeys.some(c => attributeKeys.includes(c)))? Model.instantiate(result) : result;
       results.push(current);
     }
     if (joined) {
