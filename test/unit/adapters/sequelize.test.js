@@ -454,10 +454,7 @@ describe('=> Sequelize adapter', () => {
         order: [[ 'title', 'desc' ]],
       });
       assert(result.every(r => r instanceof Post));
-      assert.deepEqual(Array.from(result.map(r => ({
-        title: r.title,
-        count: r.count
-      }))), [
+      assert.deepEqual(Array.from(result, r => r.toJSON()), [
         { title: 'Tyrael', count: 1 },
         { title: 'Leah', count: 2 },
       ]);
@@ -470,10 +467,7 @@ describe('=> Sequelize adapter', () => {
         order: [[ 'title', 'desc' ]],
       });
       assert(result.every(r => r instanceof Post));
-      assert.deepEqual(Array.from(result.map(r => ({
-        title: r.title,
-        count: r.count
-      }))), [
+      assert.deepEqual(Array.from(result, r => r.toJSON()), [
         { title: 'Tyrael', count: 1 },
         { title: 'Leah', count: 2 },
       ]);
@@ -497,10 +491,7 @@ describe('=> Sequelize adapter', () => {
         having: 'count(*) = 2'
       });
       assert(result.every(r => r instanceof Post));
-      assert.deepEqual(Array.from(result.map(r => ({
-        title: r.title,
-        count: r.count
-      }))), [
+      assert.deepEqual(Array.from(result, r => r.toJSON()), [
         { title: 'Leah', count: 2 },
       ]);
     });
@@ -513,7 +504,7 @@ describe('=> Sequelize adapter', () => {
         having: raw('count(*) = 2')
       });
 
-      assert.deepEqual(Array.from(result.map(r => ({ title: r.title, count: r.count }))), [
+      assert.deepEqual(Array.from(result, r => r.toJSON()), [
         { title: 'Leah', count: 2 },
       ]);
     });

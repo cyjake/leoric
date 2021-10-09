@@ -51,6 +51,86 @@ class Collection extends Array {
   }
 }
 
+/**
+ * get all columns
+ * @param {Spell} spell 
+ * @returns {Array<String>} columns
+ */
+function getColumns(spell) {
+  const { joins, columns, Model } = spell;
+  const { tableAlias, table, driver } = Model;
+  if (!columns.length) return [];
+  let targetColumns = [];
+  const joined = Object.keys(joins).length > 0;
+  if (driver.type === 'sqlite' && joined) {
+    /**
+     * { type: 'alias', value: 'posts:id', args: [ { type: 'id', qualifiers: [ 'posts' ], value: 'ss' } ] },
+     */
+    if (columns.length) {
+      for (const column of columns) {
+        targetColumns.push(...column.args.filter(
+          c => c.qualifiers && (c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias))
+        ).map(c => c.value));
+      }
+    }
+  } else {
+    targetColumns = columns.filter(c => !c.qualifiers || c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias)).map(v => v.value);
+  }
+  return targetColumns;
+}
+
+/**
+ * join target instantiatable or not
+ * @param {Object} join
+ * @returns {boolean}
+ */
+function joinedInstantiatable(join) {
+  const { on, Model } = join;
+  const { tableAlias, table } = Model;
+  let columns = [];
+  if (on && on.args && on.args.length) {
+    for (const arg of on.args) {
+      const { type } = arg;
+      // { type: 'op', ..., args: [{ value: '', qualifiers: [] }] }
+      if (type === 'op' && arg.args && arg.args.length) {
+        columns.push(...arg.args.filter(
+          c => c.qualifiers && (c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias))
+        ).map(c => c.value));
+      } else if (arg.value && arg.qualifiers && (arg.qualifiers.includes(table) || arg.qualifiers.includes(tableAlias))) {
+        // { type: 'id', value: '', qualifiers: [] }
+        columns.push(arg.value);
+      }
+    }
+  }
+  if (!columns.length) return true;
+  const attributeKeys = Object.keys(Model.attributes);
+  return columns.some(r => attributeKeys.includes(r));
+}
+
+/**
+ * @param {Spell} spell 
+ * @returns duplicate main Model
+ */
+function shouldFindJoinTarget(spell) {
+  const { Model } = spell;
+  const { primaryKey } = Model;
+  const columns = getColumns(spell);
+  return !columns.length || columns.length && columns.includes(primaryKey);
+}
+
+/**
+ * @param {Spell} spell 
+ * @returns {boolean}
+ */
+function instantiatable(spell) {
+  const { Model } = spell;
+  const { attributes } = Model;
+  const columns = getColumns(spell);
+  if (!columns.length) return true;
+  const attributeKeys = Object.keys(attributes);
+  return columns.some(r => attributeKeys.includes(r));
+}
+
 
 /**
  * Convert the results to collection that consists of models with their associations set up according to `spell.joins`.
@@ -62,8 +142,7 @@ class Collection extends Array {
  */
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
-  const { tableAlias, table, primaryKey, primaryColumn, driver } = Model;
-
+  const { tableAlias, table, primaryKey, primaryColumn } = Model;
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
     const { type, value, args } = columns[0];
@@ -75,28 +154,9 @@ function dispatch(spell, rows, fields) {
   }
 
   const joined = Object.keys(joins).length > 0;
-  let shouldFindJoinTarget = !columns.length;
-  let targetColumns = [];
-  if (driver.type === 'sqlite' && joined) {
-    /**
-     * { type: 'alias', value: 'posts:id', args: [ { type: 'id',qualifiers: [], value: 'ss' } ] },
-     */
-    if (columns.length) {
-      const allColumns = [];
-      for (const column of columns) {
-        allColumns.push(...column.args);
-      }
-      targetColumns = allColumns.filter(c => 
-        c.qualifiers && (c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias))
-      );
-    }
-    shouldFindJoinTarget = shouldFindJoinTarget || !targetColumns.length ||
-      (targetColumns.length && targetColumns.find(c => c.value === primaryKey)) ;
-  } else {
-    targetColumns = columns.filter(c => !c.qualifiers || c.qualifiers.includes(table) || c.qualifiers.includes(tableAlias)).map(v => v.value);
-    shouldFindJoinTarget = shouldFindJoinTarget || !targetColumns.length || targetColumns.length && targetColumns.includes(primaryKey);
-  }
-  
+  const shouldFindDuplicate = shouldFindJoinTarget(spell);
+  const canInstantiate = instantiatable(spell);
+
   const results = new Collection();
   for (const row of rows) {
     const result = {};
@@ -110,11 +170,11 @@ function dispatch(spell, rows, fields) {
       }
     }
     let current;
-    if (shouldFindJoinTarget && result[primaryColumn] != null) {
+    if (shouldFindDuplicate && result[primaryColumn] != null) {
       current = results.find(r => r[primaryKey] == result[primaryColumn]);
     }
     if (!current) {
-      current = Model.instantiate(result);
+      current = canInstantiate? Model.instantiate(result) : result;
       results.push(current);
     }
     if (joined) {
@@ -126,8 +186,12 @@ function dispatch(spell, rows, fields) {
 }
 
 function dispatchJoins(current, spell, row, fields) {
+  const instantiatableMap = {};
   for (const qualifier in spell.joins) {
-    const { Model, hasMany } = spell.joins[qualifier];
+    const join = spell.joins[qualifier];
+    const { Model, hasMany } = join;
+    if (instantiatableMap[qualifier] === undefined) instantiatableMap[qualifier] = joinedInstantiatable(join);
+    const joinInstantiatable = instantiatableMap[qualifier];
     // mysql2 nests rows with table name instead of table alias.
     const values = row[qualifier] || row[Model.table];
     if (values) {
@@ -135,17 +199,17 @@ function dispatchJoins(current, spell, row, fields) {
         const id = values[Model.primaryColumn];
         if (!current[qualifier]) current[qualifier] = new Collection();
         if (!Array.isArray(current[qualifier])) {
-          const origin = !(current[qualifier] instanceof Model)? Model.instantiate(current[qualifier]) : current[qualifier];
+          const origin = !(current[qualifier] instanceof Model) && joinInstantiatable? Model.instantiate(current[qualifier]) : current[qualifier];
           current[qualifier] = new Collection();
           if (Object.values(values).some(value => value != null)) {
             current[qualifier].push(origin);
           }
         }
         if (!id || current[qualifier].some(item => item[Model.primaryKey] === id) || Object.values(values).every(value => value == null)) continue;
-        current[qualifier].push(Model.instantiate(values));
+        current[qualifier].push(joinInstantiatable? Model.instantiate(values) : values);
       } else {
         current[qualifier] = Object.values(values).some(value => value != null)
-          ? Model.instantiate(values)
+          ? (joinInstantiatable? Model.instantiate(values) : values)
           : null;
       }
     }

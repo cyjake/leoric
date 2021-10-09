@@ -23,16 +23,16 @@ class Post extends Bone {
   }
 
   get slug() {
-    return this.attribute('title')
-      .replace(/^([A-Z])/, (m, chr) => chr.toLowerCase())
-      .replace(/ ([A-Z])/g, (m, chr) => `-${chr.toLowerCase()}`);
+    if (this.attribute('title')) return this.attribute('title').replace(/^([A-Z])/, (m, chr) => chr.toLowerCase()).replace(/ ([A-Z])/g, (m, chr) => `-${chr.toLowerCase()}`);
   }
 
   // custom getters in class syntax should not make attributes not enumerable
   get title() {
-    return this.attribute('title').replace(/^([a-z])/, function(m, chr) {
-      return chr.toUpperCase();
-    });
+    if (this.attribute('title')){
+      return this.attribute('title').replace(/^([a-z])/, function(m, chr) {
+        return chr.toUpperCase();
+      });
+    }
   }
 
   get settings() {

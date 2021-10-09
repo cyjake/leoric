@@ -2,6 +2,8 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
+const sinon = require('sinon');
+
 const { raw } = require('../../../');
 
 const Attachment = require('../../models/attachment');
@@ -11,9 +13,16 @@ const Like = require('../../models/like');
 const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
+const { logger } = require('../../../src/utils');
 
 describe('=> Query', function() {
+
+  let stub;
+
   before(async function() {
+    stub = sinon.stub(logger, 'warn').callsFake((message) => {
+      throw new Error(message);
+    });
     await Post.remove({}, true);
     await Promise.all([
       Post.create({ id: 1, title: 'New Post', createdAt: new Date(2017, 10) }),
@@ -21,10 +30,12 @@ describe('=> Query', function() {
       Post.create({ id: 3, title: 'Archangel Tyrael', isPrivate: true }),
       Post.create({ id: 4, title: 'Diablo', deletedAt: new Date(2012, 4, 15) })
     ]);
+    
   });
 
   after(async function() {
     await Post.remove({}, true);
+    if (stub) stub.restore();
   });
 
   it('.all', async function() {
@@ -462,7 +473,11 @@ describe('=> Count / Group / Having', function() {
   it('Bone.group().count()', async function() {
     const result = await Post.group('title').count().order('count').order('title');
     expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
-    expect(result.map(r => r.title)).to.eql([ 'Archangel Tyrael', 'Archbishop Lazarus', 'New Post' ]);
+    expect(Array.from(result, d => d.toJSON())).to.eql([
+      { count: 1, slug: 'archangel-tyrael', title: 'Archangel Tyrael' },
+      { count: 1, slug: 'archbishop-lazarus', title: 'Archbishop Lazarus' },
+      { count: 2, slug: 'new-post', title: 'New Post' }
+    ]);
   });
 
   it('Bone.group().having()', async function() {

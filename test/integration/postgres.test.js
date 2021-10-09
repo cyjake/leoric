@@ -39,10 +39,7 @@ describe('=> Date functions (postgres)', function() {
       .group('MONTH(createdAt)')
       .count()
       .order('count', 'desc');
-    assert.deepEqual(Array.from(result.map(r => ({
-      count: r.count,
-      'date_part': r['date_part'],
-    }))), [
+    assert.deepEqual(Array.from(result), [
       { count: 2, 'date_part': 5 },
       { count: 1, 'date_part': 11 }
     ]);
