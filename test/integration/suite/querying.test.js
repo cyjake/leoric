@@ -473,10 +473,10 @@ describe('=> Count / Group / Having', function() {
   it('Bone.group().count()', async function() {
     const result = await Post.group('title').count().order('count').order('title');
     expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
-    expect(Array.from(result, d => d.toJSON())).to.eql([
-      { count: 1, slug: 'archangel-tyrael', title: 'Archangel Tyrael' },
-      { count: 1, slug: 'archbishop-lazarus', title: 'Archbishop Lazarus' },
-      { count: 2, slug: 'new-post', title: 'New Post' }
+    expect(result).to.eql([
+      { count: 1, title: 'Archangel Tyrael' },
+      { count: 1, title: 'Archbishop Lazarus' },
+      { count: 2, title: 'New Post' }
     ]);
   });
 
@@ -547,12 +547,11 @@ describe('=> Group / Join / Subqueries', function() {
       .select('count(comments.id) as count', 'posts.title')
       .group('posts.title')
       .order('count');
-    expect(comments.every((r) => r instanceof Comment && !!r.posts));
-    expect(comments.map(r => ({ count: r.count, posts: { title: r.posts.title } }))).to.eql([
+    expect(comments.map(r => ({ count: r.count, posts: r.posts.toJSON() }))).to.eql([
       { count: 1,
-        posts: { title: 'Archangel Tyrael' } },
+        posts: { title: 'Archangel Tyrael', 'slug': 'archangel-tyrael', } },
       { count: 2,
-        posts: { title: 'Archbishop Lazarus' } }
+        posts: { title: 'Archbishop Lazarus', 'slug': 'archbishop-lazarus' } }
     ]);
   });
 
@@ -576,13 +575,12 @@ describe('=> Group / Join / Subqueries', function() {
       .having('count > 0')
       .order('count');
     let result = await query;
-    expect(result.every((r) => r instanceof Post));
-    expect(result.map(r => ({ count: r.count, title: r.title }))).to.eql([
+    expect(result).to.eql([
       { count: 1, title: 'Archangel Tyrael' },
       { count: 2, title: 'Archbishop Lazarus'}
     ]);
     result = await query.select('posts.title');
-    expect(result.map(r => ({ count: r.count, title: r.title }))).to.eql([
+    expect(result).to.eql([
       { count: 1, title: 'Archangel Tyrael' },
       { count: 2, title: 'Archbishop Lazarus'}
     ]);
