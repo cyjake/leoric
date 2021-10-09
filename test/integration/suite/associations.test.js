@@ -2,12 +2,15 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
+const sinon = require('sinon');
 
 const Attachment = require('../../models/attachment');
 const Comment = require('../../models/comment');
 const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
+const { logger } = require('../../../src/utils');
+
 
 describe('=> Associations', function() {
   // http://diablo.wikia.com/wiki/Archbishop_Lazarus
@@ -27,7 +30,12 @@ describe('=> Associations', function() {
     );
   }
 
+  let stub;
+
   before(async function() {
+    stub = sinon.stub(logger, 'warn').callsFake((message) => {
+      throw new Error(message);
+    });
     const posts = [
       await Post.create({ title: 'Archbishop Lazarus' }),
       await Post.create({ title: 'Leah' })
@@ -54,6 +62,7 @@ describe('=> Associations', function() {
   });
 
   after(async function() {
+    if (stub) stub.restore();
     await Promise.all([
       Post.remove({}, true),
       Attachment.remove({}, true),

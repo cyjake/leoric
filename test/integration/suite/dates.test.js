@@ -18,7 +18,8 @@ describe('=> Date functions', function() {
   });
 
   it('SELECT YEAR(date)', async function() {
-    assert.deepEqual(await Post.select('YEAR(createdAt) as year').order('year'), [
+    const result = await Post.select('YEAR(createdAt) as year').order('year');
+    assert.deepEqual(Array.from(result), [
       { year: 2012 }, { year: 2012 }, { year: 2017 }
     ]);
   });
@@ -29,10 +30,8 @@ describe('=> Date functions', function() {
   });
 
   it('GROUP BY MONTH(date) AS month', async function() {
-    assert.deepEqual(
-      await Post.select('MONTH(createdAt) as month').group('month').count().order('count DESC'),
-      [ { count: 2, month: 5 },
-        { count: 1, month: 11 } ]);
+    const result = await Post.select('MONTH(createdAt) as month').group('month').count().order('count DESC');
+    assert.deepEqual(Array.from(result), [ { count: 2, month: 5 }, { count: 1, month: 11 } ]);
   });
 
   it('ORDER BY DAY(date)', async function() {

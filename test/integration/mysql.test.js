@@ -40,7 +40,7 @@ describe('=> Date functions (mysql)', function() {
       .count()
       .order({ count: 'desc' });
 
-    assert.deepEqual(result, [
+    assert.deepEqual(Array.from(result), [
       { count: 2, 'MONTH(`gmt_create`)': 5 },
       { count: 1, 'MONTH(`gmt_create`)': 11 }
     ]);

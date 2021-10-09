@@ -2,6 +2,8 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
+const sinon = require('sinon');
+
 const { raw } = require('../../../');
 
 const Attachment = require('../../models/attachment');
@@ -11,9 +13,16 @@ const Like = require('../../models/like');
 const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
+const { logger } = require('../../../src/utils');
 
 describe('=> Query', function() {
+
+  let stub;
+
   before(async function() {
+    stub = sinon.stub(logger, 'warn').callsFake((message) => {
+      throw new Error(message);
+    });
     await Post.remove({}, true);
     await Promise.all([
       Post.create({ id: 1, title: 'New Post', createdAt: new Date(2017, 10) }),
@@ -21,10 +30,12 @@ describe('=> Query', function() {
       Post.create({ id: 3, title: 'Archangel Tyrael', isPrivate: true }),
       Post.create({ id: 4, title: 'Diablo', deletedAt: new Date(2012, 4, 15) })
     ]);
+    
   });
 
   after(async function() {
     await Post.remove({}, true);
+    if (stub) stub.restore();
   });
 
   it('.all', async function() {
@@ -461,17 +472,19 @@ describe('=> Count / Group / Having', function() {
 
   it('Bone.group().count()', async function() {
     const result = await Post.group('title').count().order('count').order('title');
-    expect(result).to.eql([
-      { count: 1, title: 'Archangel Tyrael' },
-      { count: 1, title: 'Archbishop Lazarus' },
-      { count: 2, title: 'New Post' }
+    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
+    expect(Array.from(result, d => d.toJSON())).to.eql([
+      { count: 1, slug: 'archangel-tyrael', title: 'Archangel Tyrael' },
+      { count: 1, slug: 'archbishop-lazarus', title: 'Archbishop Lazarus' },
+      { count: 2, slug: 'new-post', title: 'New Post' }
     ]);
   });
 
   it('Bone.group().having()', async function() {
-    expect(await Post.group('title').count().having('count > ?', 1)).to.eql([
-      { count: 2, title: 'New Post' }
-    ]);
+    const result = await Post.group('title').count().having('count > ?', 1);
+    expect(result[0].count).to.be(2);
+    expect(result[0].title).to.be('New Post');
+    expect(result[0] instanceof Post);
   });
 
   it('Bone.group().having().orHaving()', async function() {
@@ -479,15 +492,14 @@ describe('=> Count / Group / Having', function() {
       .having('count > 1')
       .orHaving('title = ?', 'Archangel Tyrael')
       .order('count', 'desc');
-    assert.deepEqual(result, [
-      { count: 2, title: 'New Post' },
-      { count: 1, title: 'Archangel Tyrael'}
-    ]);
+    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
+    assert.deepEqual(Array.from(result.map(r => r.title)), [ 'New Post' , 'Archangel Tyrael' ]);
   });
 });
 
 describe('=> Group / Join / Subqueries', function() {
   before(async function() {
+    await Post.remove({}, true);
     const posts = await Promise.all([
       Post.create({ id: 1, title: 'New Post' }),
       Post.create({ id: 2, title: 'Archbishop Lazarus' }),
@@ -535,10 +547,11 @@ describe('=> Group / Join / Subqueries', function() {
       .select('count(comments.id) as count', 'posts.title')
       .group('posts.title')
       .order('count');
-    expect(comments).to.eql([
-      { '': { count: 1 },
+    expect(comments.every((r) => r instanceof Comment && !!r.posts));
+    expect(comments.map(r => ({ count: r.count, posts: { title: r.posts.title } }))).to.eql([
+      { count: 1,
         posts: { title: 'Archangel Tyrael' } },
-      { '': { count: 2 },
+      { count: 2,
         posts: { title: 'Archbishop Lazarus' } }
     ]);
   });
@@ -562,13 +575,16 @@ describe('=> Group / Join / Subqueries', function() {
       .group('title')
       .having('count > 0')
       .order('count');
-    expect(await query).to.eql([
-      { '': { count: 1 }, posts: { title: 'Archangel Tyrael' } },
-      { '': { count: 2 }, posts: { title: 'Archbishop Lazarus' } }
+    let result = await query;
+    expect(result.every((r) => r instanceof Post));
+    expect(result.map(r => ({ count: r.count, title: r.title }))).to.eql([
+      { count: 1, title: 'Archangel Tyrael' },
+      { count: 2, title: 'Archbishop Lazarus'}
     ]);
-    expect(await query.select('posts.title')).to.eql([
-      { '': { count: 1 }, posts: { title: 'Archangel Tyrael' } },
-      { '': { count: 2 }, posts: { title: 'Archbishop Lazarus' } }
+    result = await query.select('posts.title');
+    expect(result.map(r => ({ count: r.count, title: r.title }))).to.eql([
+      { count: 1, title: 'Archangel Tyrael' },
+      { count: 2, title: 'Archbishop Lazarus'}
     ]);
   });
 

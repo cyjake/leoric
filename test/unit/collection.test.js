@@ -44,11 +44,14 @@ describe('=> Collection', function() {
   it('should not destruct result if query is grouped', async function() {
     const result = Collection.init({
       spell: Post.group('authorId').count(),
-      rows: [ { '': { count: 1 } } ],
+      rows: [ { '': { count: 1 }, articles: { author_id: 1 } } ],
       fields: [],
     });
     // merge the qualifier layer
-    assert.deepEqual(result, [ { count: 1 } ]);
+    assert(result.every(r => r instanceof Post));
+    assert.deepEqual(Array.from(result, r => r.toJSON()), [
+      { authorId: 1, count: 1 },
+    ]);
   });
 
   it('should call element.toJSON', async function() {
