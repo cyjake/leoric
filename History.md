@@ -1,3 +1,10 @@
+1.12.0 / 2021-10-12
+===================
+
+  * feat: support custom fields query and sequelize mode export rawAttributes (#192)
+  * refactor: collection format query result (#194)
+  * refactor: object condition parsing and expression formatting (#191)
+
 1.11.1 / 2021-09-28
 ===================
 
