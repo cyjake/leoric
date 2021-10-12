@@ -1,6 +1,6 @@
 ---
 layout: zh
-title: 帮助手册
+title: 快速上手
 ---
 
 ## 目录

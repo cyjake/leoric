@@ -1,16 +1,72 @@
 ---
 ---
 
-:root {
-  --container-width: 920px;
-  --padding-base: 6px;
-}
+// Override theme color set in primer theme
+$text-blue: var(--theme-color);
 
 @import 'jekyll-theme-primer';
 
+:root {
+  --container-width: 920px;
+  --padding-base: 6px;
+
+  --theme-color: #FF7F61;
+  --color: #24292e;
+  --bg-color: #fff;
+  --border-color: #F4C1B5;
+}
+
+@media (prefers-color-scheme: dark) {
+  @import 'base16-dark';
+
+  :root {
+    --color: #dfdfdf;
+    --bg-color: #130B09;
+    --border-color: #4b251d;
+  }
+
+  .markdown-body {
+    .highlight {
+      background-color: rgba(255, 255, 255, 0.05);
+
+      pre {
+        background-color: inherit;
+      }
+    }
+
+    h1, h2 {
+      border-color: var(--border-color);
+    }
+
+    table {
+      tr {
+        background-color: transparent;
+        border-color: rgba(255, 255, 255, 0.05);
+
+        &:nth-child(2n) {
+          background-color: rgba(255, 255, 255, 0.05);
+        }
+      }
+
+      th, td {
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .border-gray-light {
+    border-color: var(--border-color) !important;
+  }
+}
+
+body {
+  color: var(--color);
+  background: var(--bg-color);
+}
+
 #header {
-  background: #f0f0f0;
-  border-bottom: 1px solid #e0e0e0;
+  background: rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid var(--border-color);
 
   .logo {
     display: inline-block;
@@ -18,7 +74,11 @@
   }
 
   a:link, a:visited {
-    color: #505050;
+    color: var(--color);
+  }
+
+  a:hover, a:active {
+    text-decoration: none;
   }
 
   nav {
@@ -63,10 +123,11 @@
       top: 100%;
       right: -0.5em;
       text-align: right;
-      background: #f0f0f0;
-      border: 1px solid #e0e0e0;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
       z-index: 10;
       padding: 0.25em 0;
+      min-width: 140px;
 
       li {
         list-style: none;
@@ -78,12 +139,6 @@
         padding: 0.25em 0.5em;
       }
     }
-  }
-}
-
-.markdown-body figure {
-  img {
-    background: transparent;
   }
 }
 
@@ -105,6 +160,23 @@
 
   code br {
     display: block;
+  }
+}
+
+.markdown-body {
+  blockquote {
+    border-color: var(--border-color);
+  }
+
+  figure {
+    img {
+      background: transparent;
+    }
+  }
+
+  .text-gray {
+    color: var(--text-color) !important;
+    opacity: 0.75;
   }
 }
 
@@ -134,7 +206,7 @@
       margin-bottom: 12px;
       font-size: 2em;
       font-weight: bold;
-      color: #FF7F61;
+      color: var(--theme-color);
 
       &:hover {
         background-color: transparent;
@@ -143,10 +215,13 @@
 
     a {
       padding: 6px 12px 6px 36px;
+      background-color: transparent;
+      opacity: 0.75;
+      transition: all 0.1s ease-in-out;
 
       &:hover {
-        background-color: #f0f0f0;
-        text-decoration: none;
+        background-color: var(--border-color);
+        opacity: 1;
       }
     }
 
@@ -156,19 +231,33 @@
       .nav-item {
         display: block;
         padding: 0;
+
       }
 
-      .dropdown-trigger:hover:after {
-        display: none;
+      .dropdown-trigger:after {
+        display: block;
+        content: '';
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        bottom: initial;
+        left: initial;
+        background: none;
+        border-width: 4px 7px;
+        border-style: solid;
+        border-color: transparent;
+        border-left-color: var(--theme-color);
+        border-radius: 2px
       }
 
       .dropdown-list {
-        display: block;
+        display: none;
         text-align: left;
         background: none;
         padding: 0;
         position: static;
         border: none;
+        min-width: initial;
 
         li {
           padding-left: 0;
@@ -176,6 +265,23 @@
           a {
             padding: 6px 12px 6px 66px;
           }
+        }
+      }
+
+      .dropdown-trigger:hover {
+        .dropdown-list {
+          display: none;
+        }
+      }
+
+      .dropdown-trigger.active {
+        &::after {
+          transform-origin: 30% 50%;
+          transform: rotate(90deg);
+        }
+
+        .dropdown-list {
+          display: block;
         }
       }
     }
@@ -189,6 +295,10 @@
     overflow: auto;
     max-width: calc(50% - (var(--container-width) / 2));
     padding-right: var(--padding-base);
+
+    a {
+      color: var(--color);
+    }
   }
 
   .no_toc {
@@ -212,7 +322,7 @@
   }
 
   .syntax-table .highlight {
-    width: calc(var(--container-width) / 2 - 38px);
+    width: calc(var(--container-width) / 2 - 44px);
   }
 
   .container-lg {

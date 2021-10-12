@@ -1,6 +1,6 @@
 ---
 layout: en
-title: Guides
+title: Starter
 ---
 
 ## Table of Contents

@@ -53,7 +53,7 @@ class Collection extends Array {
 
 /**
  * get all columns
- * @param {Spell} spell 
+ * @param {Spell} spell
  * @returns {Array<String>} columns
  */
 function getColumns(spell) {
@@ -108,7 +108,7 @@ function joinedInstantiatable(join) {
 }
 
 /**
- * @param {Spell} spell 
+ * @param {Spell} spell
  * @returns duplicate main Model
  */
 function shouldFindJoinTarget(spell) {
@@ -119,7 +119,8 @@ function shouldFindJoinTarget(spell) {
 }
 
 /**
- * @param {Spell} spell 
+ * Check if the query result is instantiatable
+ * @param {Spell} spell
  * @returns {boolean}
  */
 function instantiatable(spell) {
@@ -144,6 +145,7 @@ function instantiatable(spell) {
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
   const { tableAlias, table, primaryKey, primaryColumn, attributes } = Model;
+
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
     const { type, value, args } = columns[0];

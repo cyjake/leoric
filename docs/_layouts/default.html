@@ -9,6 +9,7 @@
   </head>
   <body>
     {{ content }}
+    <script src="{{ 'assets/javascript/app.mjs' | relative_url }}" type="module"></script>
     <script src="{{ 'assets/javascript/anchor-js/anchor.min.js' | relative_url }}"></script>
     <script>anchors.add();</script>
   </body>
