@@ -8,10 +8,10 @@ layout: default
     <nav>
       <ul>
         <li class="nav-item">
-          <a href="{{ '/zh' | relative_url }}">首页</a>
+          <a href="{{ '/zh/starter' | relative_url }}">快速上手</a>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/zh/guides' | relative_url }}">帮助手册</a>
+          <a href="{{ '/zh/basics' | relative_url }}">帮助手册</a>
           <ul class="dropdown-list">
             <li><a href="{{ '/zh/basics' | relative_url }}">基础</a></li>
             <li><a href="{{ '/zh/migrations' | relative_url }}">迁移任务</a></li>
@@ -33,13 +33,23 @@ layout: default
             <li><a href="{{ 'zh/setup/postgres' | relative_url }}">PostgreSQL 配置</a></li>
           </ul>
         </li>
+        <li class="nav-item dropdown-trigger">
+          <a href="{{ '/zh/setup' | relative_url }}">更新日志</a>
+          <ul class="dropdown-list">
+            {% for post in site.categories.updates %}
+            {% if post.categories contains 'zh' %}
+            <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
         <li class="nav-item">
           <a href="{{ '/api' | relative_url }}">API</a>
         </li>
         <li class="nav-item">
           <a href="{{ '/zh/contributing/guides' | relative_url }}">如何参与</a>
         </li>
-        <li class="nav-item dropdown-trigger">
+        <li class="nav-item">
           <a href="{{ page.url | replace: '/zh', '' | relative_url }}">English</a>
         </li>
       </ul>

@@ -8,10 +8,10 @@ layout: default
     <nav>
       <ul>
         <li class="nav-item">
-          <a href="{{ '/' | relative_url }}">Home</a>
+          <a href="{{ '/starter' | relative_url }}">Starter</a>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/guides' | relative_url }}">Guides</a>
+          <a href="{{ '/basics' | relative_url }}">Guides</a>
           <ul class="dropdown-list">
             <li><a href="{{ '/basics' | relative_url }}">Basics</a></li>
             <li><a href="{{ '/migrations' | relative_url }}">Migrations</a></li>
@@ -33,13 +33,27 @@ layout: default
             <li><a href="{{ '/setup/postgres' | relative_url }}">Setup with PostgreSQL</a></li>
           </ul>
         </li>
+        <li class="nav-item dropdown-trigger">
+          {% for post in site.categories.updates %}
+          {% if post.categories.size == 1 %}
+          <a href="{{ post.url | relative_url }}">Updates</a>{% break %}
+          {% endif %}
+          {% endfor %}
+          <ul class="dropdown-list">
+            {% for post in site.categories.updates %}
+            {% if post.categories.size == 1 %}
+            <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
         <li class="nav-item">
           <a href="{{ '/api' | relative_url }}">API</a>
         </li>
         <li class="nav-item">
           <a href="{{ '/contributing/guides' | relative_url }}">How to Contribute</a>
         </li>
-        <li class="nav-item dropdown-trigger">
+        <li class="nav-item">
           <a href="{{ page.url | prepend: '/zh' | relative_url }}">中文</a>
         </li>
       </ul>

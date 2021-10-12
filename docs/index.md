@@ -228,12 +228,14 @@ SELECT id, title FROM posts WHERE title LIKE '%Post%';
   <tr>
     <td>
 {% highlight js %}
-Post.where('title like ? || authorId = ?',  '%Post%', 42)
+Post.where('title like ? || authorId = ?', '%Post%', 42)
 {% endhighlight %}
     </td>
     <td>
 {% highlight sql %}
-SELECT * FROM posts WHERE title LIKE '%Post%' OR author_id = 42;
+SELECT *
+  FROM posts
+ WHERE title LIKE '%Post%' OR author_id = 42;
 {% endhighlight %}
     </td>
   </tr>

@@ -172,17 +172,22 @@ class Bone {
     if (!attributes.hasOwnProperty(name)) {
       throw new Error(`${this.constructor.name} has no attribute "${name}"`);
     }
+
     if (args.length > 1) {
       // execute validators
       this.#raw[name] = value;
       this.#rawUnset.delete(name);
       return this;
     }
-    if (this.#rawUnset.has(name)) logger.warn(`unset attribute "${name}"`);
+
+    if (this.#rawUnset.has(name)) {
+      logger.warn(`unset attribute "${name}"`);
+      return;
+    }
+
     const rawValue = this.#raw[name];
     // make sure null is returned if value is undefined
     return rawValue == null ? null : rawValue;
-
   }
 
   /**
