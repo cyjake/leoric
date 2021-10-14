@@ -218,6 +218,12 @@ class DATE extends DataType {
     return dataType;
   }
 
+  cast(value) {
+    if (value == null) return value;
+    if (value instanceof Date) return value;
+    return new Date(value);
+  }
+
   uncast(value) {
     if (value == null) return value;
     if (typeof value.toDate === 'function') {

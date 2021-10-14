@@ -61,7 +61,7 @@ class Collection extends Array {
  */
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
-  const { tableAlias, table, primaryKey, primaryColumn } = Model;
+  const { tableAlias, table, primaryKey, primaryColumn, attributes } = Model;
 
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
@@ -74,7 +74,8 @@ function dispatch(spell, rows, fields) {
   }
 
   const joined = Object.keys(joins).length > 0;
-  const canInstantiate = groups.length === 0;
+  const canInstantiate = groups.length === 0
+    && (columns.length === 0 || columns.some(({ value }) => attributes[value]));
 
   const results = new Collection();
   for (const row of rows) {

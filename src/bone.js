@@ -1175,16 +1175,16 @@ class Bone {
    * @return {Bone}
    */
   static instantiate(row) {
-    const { attributes, driver, attributeMap } = this;
+    const { attributes, attributeMap } = this;
     const instance = new this();
 
     for (const columnName in row) {
       const value = row[columnName];
       if (attributeMap.hasOwnProperty(columnName)) {
-        const { jsType, name } = attributeMap[columnName];
+        const attribute = attributeMap[columnName];
         // to make sure raw and rawSaved hold two different objects
-        instance._setRaw(name, driver.cast(value, jsType));
-        instance._setRawSaved(name, driver.cast(value, jsType));
+        instance._setRaw(attribute.name, attribute.cast(value));
+        instance._setRawSaved(attribute.name, attribute.cast(value));
       } else {
         if (!isNaN(value)) instance[columnName] = Number(value);
         else if (!isNaN(Date.parse(value))) instance[columnName] = new Date(value);
