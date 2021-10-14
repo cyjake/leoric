@@ -30,7 +30,6 @@ describe('=> Query', function() {
       Post.create({ id: 3, title: 'Archangel Tyrael', isPrivate: true }),
       Post.create({ id: 4, title: 'Diablo', deletedAt: new Date(2012, 4, 15) })
     ]);
-    
   });
 
   after(async function() {

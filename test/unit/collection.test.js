@@ -50,19 +50,35 @@ describe('=> Collection', function() {
     // merge the qualifier layer
     assert.equal(result.every(r => r instanceof Post), false);
     assert.deepEqual(result.toJSON(), [
-      { author_id: 1, count: 1 },
+      { authorId: 1, count: 1 },
     ]);
   });
 
-  it('should map to Model', async function () {
+  it('should map to model', async function () {
     const result = Collection.init({
       spell: Post.select('authorId'),
       rows: [ { articles: { author_id: 1 } } ],
       fields: [],
     });
-    assert(result.every(r => r instanceof Post));
-    assert(result.toJSON(), [
+    assert.ok(result.every(r => r instanceof Post));
+    assert.deepEqual(result.toJSON(), [
       { authorId: 1 },
+    ]);
+  });
+
+  it('should map to model even if aggregated', async function() {
+    const result = Collection.init({
+      spell: Post.group('authorId').count(),
+      rows: [
+        { 'articles': { author_id: 1 }, '': { count: 42 } },
+        { 'articles': { author_id: 2 }, '': { count: 23 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => !(r instanceof Post)));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1, count: 42 },
+      { authorId: 2, count: 23 },
     ]);
   });
 

@@ -329,9 +329,6 @@ class JSON extends DataType {
 
   uncast(value) {
     if (value == null) return value;
-    if (typeof value.toObject === 'function') {
-      value = value.toObject();
-    }
     return global.JSON.stringify(value);
   }
 }

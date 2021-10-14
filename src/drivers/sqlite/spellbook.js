@@ -44,7 +44,10 @@ module.exports = {
   ...spellbook,
 
   formatSelect(spell) {
-    if (Object.keys(spell.joins).length > 0) renameSelectExpr(spell);
+    if (Object.keys(spell.joins).length > 0) {
+      spell = spell.dup;
+      renameSelectExpr(spell);
+    }
     return spellbook.formatSelect(spell);
   }
 };

@@ -180,4 +180,28 @@ describe('=> Bone', function() {
       }, /TypeError: Cannot set property bar/);
     });
   });
+
+  describe('=> Bone.alias()', function() {
+    it('should be able to find attribute name by column name', async function() {
+      class Post extends Bone {}
+      Post.init({ authorId: BIGINT });
+      Post.load([
+        { columnName: 'author_id', columnType: 'bigint', dataType: 'bigint' },
+      ]);
+      assert.equal(Post.alias('author_id'), 'authorId');
+      assert.equal(Post.alias('comment_count'), 'comment_count');
+    });
+
+    it('should be able to translate the whole object', async function() {
+      class Post extends Bone {}
+      Post.init({ authorId: BIGINT });
+      Post.load([
+        { columnName: 'author_id', columnType: 'bigint', dataType: 'bigint' },
+      ]);
+      assert.deepEqual(
+        Post.alias({ author_id: 42, comment_count: 1 }),
+        { authorId: 42, comment_count: 1 }
+      );
+    });
+  });
 });

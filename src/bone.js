@@ -1010,9 +1010,32 @@ class Bone {
   }
 
   /**
+   * Get the attribute name of column, or translate the whole object
+   * @private
+   * @param {string|Record<string, Literal>} name
+   * @return {string|Record<string, Literal>}
+   */
+  static alias(data) {
+    const { attributeMap } = this;
+
+    if (typeof data === 'string') {
+      const result = attributeMap[data];
+      return result ? result.name : data;
+    }
+
+    const result = {};
+    for (const key in data) {
+      const value = data[key];
+      const attribute = attributeMap[key];
+      result[attribute ? attribute.name : key] = value;
+    }
+    return result;
+  }
+
+  /**
    * Get the column name from the attribute name
    * @private
-   * @param   {string} name
+   * @param {string} name
    * @return {string}
    */
   static unalias(name) {
