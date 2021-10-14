@@ -40,7 +40,7 @@ module.exports = {
     const { attributes, primaryColumn } = Model;
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map(column => (attributes[column] && attributes[column].columnName )|| column)
+      columns = updateOnDuplicate.map(column => (attributes[column] && attributes[column].columnName ) || column)
         .filter(column => column !== primaryColumn);
     } else if (!columns.length) {
       columns = Object.values(attributes).map(attribute => attribute.columnName).filter(column => column !== primaryColumn);

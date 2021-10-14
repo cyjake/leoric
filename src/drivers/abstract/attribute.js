@@ -52,9 +52,7 @@ function findJsType(DataTypes, type, dataType) {
  */
 function createType(DataTypes, params) {
   const { dataType, type } = params;
-  if (!type) {
-    return new (DataTypes.findType(dataType));
-  }
+  if (!type) return DataTypes.findType(dataType);
 
   if (type && typeof type === 'function') {
     const DataType = DataTypes[type.name] || type;
@@ -122,6 +120,15 @@ class Attribute {
       }
     }
     return true;
+  }
+
+  cast(value) {
+    return this.type.cast(value);
+  }
+
+  uncast(value) {
+    if (Array.isArray(value)) return value.map(entry => this.type.uncast(entry));
+    return this.type.uncast(value);
   }
 }
 

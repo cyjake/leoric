@@ -68,7 +68,7 @@ function parseOperator(name, condition) {
   for (const $op in condition) {
     const operator = $op === '$not' ? OPERATOR_MAP.$ne : OPERATOR_MAP[$op];
     if (!operator) {
-      throw new Error(util.format('unexpected operator in condition %s', condition));
+      throw new Error(util.format('unexpected operator in condition %j', condition));
     }
     const args = [ parseExpr(name) ];
     const val = condition[$op];

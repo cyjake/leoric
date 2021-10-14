@@ -11,22 +11,28 @@ const invokable = require('./utils/invokable');
  */
 
 class DataType {
-  static findType(dataType) {
-    const { STRING, TEXT, DATE, INTEGER, BIGINT, BOOLEAN, BINARY, VARBINARY, BLOB } = this;
+  static findType(columnType) {
+    const { STRING, TEXT, DATE, DATEONLY, INTEGER, BIGINT, BOOLEAN, BINARY, VARBINARY, BLOB } = this;
+    const [ , dataType, appendix ] = columnType.match(/(\w+)(?:\((\d+)\))?/);
+    const length = appendix && parseInt(appendix, 10);
 
     switch (dataType) {
       case 'varchar':
       case 'char':
-        return STRING;
+        return new STRING(length);
       // longtext is only for MySQL
       case 'longtext':
+        return new TEXT('long');
       case 'mediumtext':
+        return new TEXT('medium');
       case 'text':
-        return TEXT;
+        return new TEXT();
       case 'date':
+        return new DATEONLY();
       case 'datetime':
       case 'timestamp':
-        return DATE;
+        // new DATE(precision)
+        return new DATE(length);
       case 'decimal':
       case 'int':
       case 'integer':
@@ -34,24 +40,44 @@ class DataType {
       case 'mediumint':
       case 'smallint':
       case 'tinyint':
-        return INTEGER;
+        return new INTEGER(length);
       case 'bigint':
-        return BIGINT;
+        return new BIGINT(length);
       case 'boolean':
-        return BOOLEAN;
+        return new BOOLEAN();
       // mysql only
       case 'binary':
       // postgres only
       case 'bytea':
-        return BINARY;
+        return new BINARY(length);
       // mysql only
       case 'varbinary':
-        return VARBINARY;
+        return new VARBINARY(length);
+      case 'longblob':
+        return new BLOB('long');
+      case 'mediumblob':
+        return new BLOB('medium');
       case 'blob':
-        return BLOB;
+        return new BLOB();
+      case 'tinyblob':
+        return new BLOB('tiny');
       default:
         throw new Error(`Unexpected data type ${dataType}`);
     }
+  }
+
+  /**
+   * cast raw data returned from data packet into js type
+   */
+  cast(value) {
+    return value;
+  }
+
+  /**
+   * uncast js value into database type with precision
+   */
+  uncast(value) {
+    return value;
   }
 }
 
@@ -76,6 +102,11 @@ class STRING extends DataType {
     chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
     return chunks.join(' ');
   }
+
+  uncast(value) {
+    if (value == null) return value;
+    return '' + value;
+  }
 }
 
 class BINARY extends DataType {
@@ -91,6 +122,12 @@ class BINARY extends DataType {
     const chunks = [];
     chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
     return chunks.join(' ');
+  }
+
+  cast(value) {
+    if (value == null) return value;
+    if (Buffer.isBuffer(value)) return value;
+    return Buffer.from(value);
   }
 }
 
@@ -137,6 +174,16 @@ class INTEGER extends DataType {
     if (zerofill) chunks.push('ZEROFILL');
     return chunks.join(' ');
   }
+
+  cast(value) {
+    if (value == null) return value;
+    return Number(value);
+  }
+
+  uncast(value) {
+    if (typeof value === 'string') return parseInt(value, 10);
+    return value;
+  }
 }
 
 /**
@@ -170,6 +217,42 @@ class DATE extends DataType {
     if (precision > 0) return `${dataType}(${precision})`;
     return dataType;
   }
+
+  uncast(value) {
+    if (value == null) return value;
+    if (typeof value.toDate === 'function') {
+      value = value.toDate();
+    }
+
+    const { precision } = this;
+    if (value instanceof Date && precision < 3) {
+      const result = new Date(value);
+      result.setMilliseconds(result.getMilliseconds() % (10 ** precision));
+      return result;
+    }
+
+    return value instanceof Date ? value : new Date(value);
+  }
+}
+
+class DATEONLY extends DataType {
+  constructor() {
+    super();
+    this.dataType = 'date';
+  }
+
+  toSqlString() {
+    return this.dataType.toUpperCase();
+  }
+
+  uncast(value) {
+    if (value == null) return value;
+    if (typeof value.toDate === 'function') {
+      value = value.toDate();
+    }
+
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  }
 }
 
 class BOOLEAN extends DataType {
@@ -180,6 +263,11 @@ class BOOLEAN extends DataType {
 
   toSqlString() {
     return this.dataType.toUpperCase();
+  }
+
+  cast(value) {
+    if (value == null) return value;
+    return Boolean(value);
   }
 }
 
@@ -213,6 +301,12 @@ class BLOB extends DataType {
   toSqlString() {
     return [ this.length, this.dataType ].join('').toUpperCase();
   }
+
+  cast(value) {
+    if (value == null) return value;
+    if (Buffer.isBuffer(value)) return value;
+    return Buffer.from(value);
+  }
 }
 
 // JSON text type
@@ -225,12 +319,27 @@ class JSON extends DataType {
   toSqlString() {
     return 'TEXT';
   }
+
+  cast(value) {
+    if (!value) return value;
+    // type === JSONB
+    if (typeof value === 'object') return value;
+    return global.JSON.parse(value);
+  }
+
+  uncast(value) {
+    if (value == null) return value;
+    if (typeof value.toObject === 'function') {
+      value = value.toObject();
+    }
+    return global.JSON.stringify(value);
+  }
 }
 
 // JSON binary type, available in postgreSQL or mySQL 5.7 +
 // - https://dev.mysql.com/doc/refman/8.0/en/json.html
 // - https://www.postgresql.org/docs/9.4/datatype-json.html
-class JSONB extends DataType {
+class JSONB extends JSON {
   constructor() {
     super();
     this.dataType = 'json';
@@ -246,6 +355,7 @@ const DataTypes = {
   INTEGER,
   BIGINT,
   DATE,
+  DATEONLY,
   BOOLEAN,
   TEXT,
   BLOB,

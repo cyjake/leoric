@@ -72,20 +72,22 @@ function formatValueSet(spell, obj, strict = true) {
   const { timestamps } = Model;
   const sets = {};
   for (const name in obj) {
-    if (!Model.attributes.hasOwnProperty(name)) {
-      if (strict) {
-        throw new Error(`Undefined attribute "${name}"`);
-      } else {
-        continue;
-      }
+    const attribute = Model.attributes[name];
+    const value = obj[name];
+
+    if (!attribute && strict) {
+      throw new Error(`Undefined attribute "${name}"`);
     }
 
-    if (silent && timestamps.updatedAt && name === timestamps.updatedAt && command === 'update') continue;
+    if (silent && timestamps.updatedAt && name === timestamps.updatedAt && command === 'update') {
+      continue;
+    }
+
     // raw sql don't need to uncast
-    if (obj[name] && obj[name].__raw) {
-      sets[name] = obj[name];
+    if (value && value.__raw) {
+      sets[name] = value;
     } else {
-      sets[name] = Model.driver.uncast(obj[name], Model.attributes[name].jsType);
+      sets[name] = attribute.uncast(value);
     }
   }
   return sets;
