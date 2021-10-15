@@ -176,9 +176,13 @@ function formatConditions(spell, conditions) {
  * @param {Object} ast the abstract syntax tree
  * @returns {Array} values
  */
-function collectLiteral(values, ast) {
-  walkExpr(ast, ({ type, value }) => {
-    if (type == 'literal' && value != null) {
+function collectLiteral(spell, ast, values) {
+  walkExpr(ast, function(itr) {
+    const { type, value } = itr;
+
+    if (type === 'op' && !isLogicalOp(itr)) {
+      coerceLiteral(spell, itr);
+    } else if (type == 'literal' && value != null) {
       if (Array.isArray(value)) {
         values.push(...value);
       } else {
@@ -187,6 +191,24 @@ function collectLiteral(values, ast) {
     }
   });
   return values;
+}
+
+function coerceLiteral(spell, ast) {
+  const { args } = ast;
+  const firstArg = args[0];
+
+  if (firstArg.type === 'id') {
+    const model = findModel(spell, firstArg.qualifiers);
+    const attribute = model && model.attributeMap[firstArg.value];
+
+    if (attribute) {
+      for (const arg of args.slice(1)) {
+        if (arg.type === 'literal') {
+          arg.value = attribute.uncast(arg.value);
+        }
+      }
+    }
+  }
 }
 
 module.exports = { formatExpr, formatConditions, collectLiteral };

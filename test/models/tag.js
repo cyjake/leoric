@@ -23,7 +23,7 @@ class Tag extends Bone {
     createdAt: { type: DataTypes.DATE, columnName: 'gmt_create' },
     updatedAt: { type: DataTypes.DATE, columnName: 'gmt_modified' },
     deletedAt: { type: DataTypes.DATE, columnName: 'gmt_deleted' },
-    type:  DataTypes.INT,
+    type:  DataTypes.INTEGER,
     name: DataTypes.STRING,
     uuid: {
       type: DataTypes.STRING,

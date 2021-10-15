@@ -30,7 +30,7 @@ describe('=> parseObject', function() {
   function query(object) {
     const values = [];
     const conditions = parseObject(object);
-    for (const condition of conditions) collectLiteral(values, condition);
+    for (const condition of conditions) collectLiteral(spell, condition, values);
     return SqlString.format(formatConditions(spell, conditions), values);
   }
 

@@ -167,7 +167,7 @@ describe('=> Data types - BINARY', () => {
     assert.ok(metac.type instanceof BLOB);
 
     if (Note.driver.type === 'mysql') {
-      // mysql binary types are fixed length，will be filled with \x00 
+      // mysql binary types are fixed length，will be filled with \x00
       assert.deepEqual(foundNote.meta.subarray(0, 4), metaData);
       assert.deepEqual(foundNote.metab.subarray(0, 5), metabData);
     } else {

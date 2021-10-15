@@ -34,7 +34,7 @@ function formatSelectWithoutJoin(spell) {
   }
 
   if (columns.length > 0) {
-    columns.reduce(collectLiteral, values);
+    for (const column of columns) collectLiteral(spell, column, values);
     const selects = [];
     for (const token of columns) {
       const column = formatExpr(spell, token);
@@ -58,7 +58,7 @@ function formatSelectWithoutJoin(spell) {
   }
 
   if (whereConditions.length > 0) {
-    whereConditions.reduce(collectLiteral, values);
+    for (const condition of whereConditions) collectLiteral(spell, condition, values);
     chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
   }
 
@@ -68,13 +68,13 @@ function formatSelectWithoutJoin(spell) {
   }
 
   if (havingConditions.length > 0) {
-    havingConditions.reduce(collectLiteral, values);
+    for (const condition of havingConditions) collectLiteral(spell, condition, values);
     chunks.push(`HAVING ${formatConditions(spell, havingConditions)}`);
   }
 
   if (orders.length > 0) {
     // ORDER BY FIND_IN_SET(`id`, '1,2,3')
-    for (const [ expr ] of orders) collectLiteral(values, expr);
+    for (const [ expr ] of orders) collectLiteral(spell, expr, values);
     chunks.push(`ORDER BY ${formatOrders(spell, orders).join(', ')}`);
   }
   if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
@@ -179,7 +179,7 @@ function formatSelectExpr(spell, values) {
   const map = {};
 
   for (const token of columns) {
-    collectLiteral(values, token);
+    collectLiteral(spell, token, values);
     const selectExpr = formatExpr(spell, token);
     const qualifier = token.qualifiers ? token.qualifiers[0] : '';
     const list = map[qualifier] || (map[qualifier] = []);
@@ -237,7 +237,7 @@ function formatSelectWithJoin(spell) {
 
   for (const qualifier in joins) {
     const { Model: RefModel, on } = joins[qualifier];
-    collectLiteral(values, on);
+    collectLiteral(spell, on, values);
     chunks.push(`LEFT JOIN ${escapeId(RefModel.table)} AS ${escapeId(qualifier)} ON ${formatExpr(spell, on)}`);
   }
 
@@ -248,7 +248,7 @@ function formatSelectWithJoin(spell) {
   }
 
   if (whereConditions.length > 0) {
-    whereConditions.reduce(collectLiteral, values);
+    for (const condition of whereConditions) collectLiteral(spell, condition, values);
     chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
   }
 
@@ -257,7 +257,7 @@ function formatSelectWithJoin(spell) {
   }
 
   if (havingConditions.length > 0) {
-    havingConditions.reduce(collectLiteral, values);
+    for (const condition of havingConditions) collectLiteral(spell, condition, values);
     chunks.push(`HAVING ${formatConditions(spell, havingConditions)}`);
   }
 
@@ -311,7 +311,8 @@ function formatDelete(spell) {
   chunks.push(`FROM ${table}`);
 
   if (whereConditions.length > 0) {
-    const values = whereConditions.reduce(collectLiteral, []);
+    const values = [];
+    for (const condition of whereConditions) collectLiteral(spell, condition, values);
     chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
     return {
       sql: chunks.join(' '),
@@ -441,7 +442,7 @@ function formatUpdate(spell) {
     const value = sets[name];
     if (value && value.__expr) {
       assigns.push(`${escapeId(Model.unalias(name))} = ${formatExpr(spell, value)}`);
-      collectLiteral(values, value);
+      collectLiteral(spell, value, values);
     } else if (value && value.__raw) {
       assigns.push(`${escapeId(Model.unalias(name))} = ${value.value}`);
     } else {
@@ -450,7 +451,7 @@ function formatUpdate(spell) {
     }
   }
 
-  whereConditions.reduce(collectLiteral, values);
+  for (const condition of whereConditions) collectLiteral(spell, condition, values);
   // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
   const hintStr = this.formatOptimizerHints(spell);
   // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html

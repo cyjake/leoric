@@ -553,19 +553,19 @@ class Bone {
    * @private
    */
   syncRaw(changes) {
-    const { attributes, driver } = this.constructor;
+    const { attributes } = this.constructor;
     this.isNewRecord = false;
     for (const name of Object.keys(changes || attributes)) {
-      const { jsType } = attributes[name];
+      const attribute = attributes[name];
       // Take advantage of uncast/cast to create new copy of value
-      const value = driver.uncast(this.#raw[name], jsType);
+      const value = attribute.uncast(this.#raw[name]);
       if (this.#rawSaved[name] !== undefined) {
         this.#rawPrevious[name] = this.#rawSaved[name];
       } else if (!changes && this.#rawPrevious[name] === undefined) {
         // first persisting
-        this.#rawPrevious[name] = driver.cast(value, jsType);
+        this.#rawPrevious[name] = attribute.cast(value);
       }
-      this.#rawSaved[name] = driver.cast(value, jsType);
+      this.#rawSaved[name] = attribute.cast(value);
     }
   }
 
@@ -884,11 +884,14 @@ class Bone {
    * }
    */
   static attribute(name, meta = {}) {
-    if (!this.attributes[name]) {
+    const attribute = this.attributes[name];
+    if (!attribute) {
       throw new Error(`${this.name} has no attribute called ${name}`);
     }
     const { type: jsType } = meta;
-    Object.assign(this.attributes[name], { jsType });
+    // TODO: needs better approach
+    if (jsType === global.JSON) attribute.type = new this.driver.DataTypes.JSON();
+    Object.assign(attribute, { jsType });
   }
 
   static normalize(attributes) {
@@ -1131,9 +1134,6 @@ class Bone {
    * @param {boolean} opts.hasMany
    */
   static associate(name, opts = {}) {
-    if (name in this.associations) {
-      throw new Error(`duplicated association "${name}" on model ${this.name}`);
-    }
     const { className } = opts;
     const Model = this.models[className];
     if (!Model) throw new Error(`unable to find model "${className}"`);
