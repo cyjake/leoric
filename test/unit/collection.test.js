@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, Collection, connect } = require('../..');
+const { Bone, Collection, connect, raw } = require('../..');
 
 describe('=> Collection', function() {
   class Post extends Bone {
@@ -79,6 +79,22 @@ describe('=> Collection', function() {
     assert.deepEqual(result.toJSON(), [
       { authorId: 1, count: 42 },
       { authorId: 2, count: 23 },
+    ]);
+  });
+
+  it('should map to model when SELECT DISTICT field', async function() {
+    const result = Collection.init({
+      spell: Post.select(raw('DISTICT author_id')),
+      rows: [
+        { 'articles': { author_id: 1 } },
+        { 'articles': { author_id: 2 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => r instanceof Post));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1 },
+      { authorId: 2 },
     ]);
   });
 

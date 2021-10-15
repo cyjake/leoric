@@ -61,7 +61,7 @@ class Collection extends Array {
  */
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
-  const { tableAlias, table, primaryKey, primaryColumn, attributes } = Model;
+  const { tableAlias, table, primaryKey, primaryColumn, attributes, attributeMap } = Model;
 
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
@@ -94,7 +94,9 @@ function dispatch(spell, rows, fields) {
       current = results.find(r => r[primaryKey] == result[primaryColumn]);
     }
     if (!current) {
-      current = canInstantiate ? Model.instantiate(result) : Model.alias(result);
+      current = canInstantiate || Object.keys(result).every(key => attributeMap[key])
+        ? Model.instantiate(result)
+        : Model.alias(result);
       results.push(current);
     }
     if (joined) {
