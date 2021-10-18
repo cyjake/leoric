@@ -1,3 +1,12 @@
+1.13.1 / 2021-10-18
+===================
+
+## What's Changed
+* fix: skip connecting if models are synchronized already by @cyjake in https://github.com/cyjake/leoric/pull/200
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.0...v1.13.1
+
 1.13.0 / 2021-10-18
 ===================
 
