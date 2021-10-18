@@ -72,6 +72,12 @@ describe('=> Associations', function() {
     ]);
   });
 
+  it('Bone.hasOne should throw if association exists', async function() {
+    assert.throws(function() {
+      Post.hasOne('attachment'); // exists
+    }, /duplicated association/);
+  });
+
   it('Bone.hasOne', async function() {
     const post = await Post.first.with('attachment');
     expect(post.attachment).to.be.a(Attachment);
