@@ -54,7 +54,7 @@ describe('=> Collection', function() {
     ]);
   });
 
-  it('should map to model', async function () {
+  it('should instantiate', async function () {
     const result = Collection.init({
       spell: Post.select('authorId'),
       rows: [ { articles: { author_id: 1 } } ],
@@ -66,7 +66,7 @@ describe('=> Collection', function() {
     ]);
   });
 
-  it('should map to model even if aggregated', async function() {
+  it('should not instantiate if grouped', async function() {
     const result = Collection.init({
       spell: Post.group('authorId').count(),
       rows: [
@@ -82,7 +82,27 @@ describe('=> Collection', function() {
     ]);
   });
 
-  it('should map to model when SELECT DISTICT field', async function() {
+  it('should not instantiate if grouped without aggregation', async function() {
+    const result = Collection.init({
+      spell: Post.group('authorId').count(),
+      rows: [
+        { 'articles': { author_id: 1 } },
+        { 'articles': { author_id: 2 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => !(r instanceof Post)));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1 },
+      { authorId: 2 },
+    ]);
+  });
+
+  /**
+   * Currently SELECT DISTINCT queries are treated different than group queries even though most SELECT DISTINCT queries are equivalent to group queries.
+   * - https://dev.mysql.com/doc/refman/8.0/en/distinct-optimization.html
+   */
+  it('should instantiate when SELECT DISTINCT field', async function() {
     const result = Collection.init({
       spell: Post.select(raw('DISTICT author_id')),
       rows: [

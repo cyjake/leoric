@@ -94,7 +94,7 @@ function dispatch(spell, rows, fields) {
       current = results.find(r => r[primaryKey] == result[primaryColumn]);
     }
     if (!current) {
-      current = canInstantiate || Object.keys(result).every(key => attributeMap[key])
+      current = canInstantiate || (groups.length === 0 && Object.keys(result).every(key => attributeMap[key]))
         ? Model.instantiate(result)
         : Model.alias(result);
       results.push(current);
