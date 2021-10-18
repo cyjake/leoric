@@ -1,3 +1,12 @@
+1.13.2 / 2021-10-18
+===================
+
+## What's Changed
+* fix: attribute.uncast([]) and realm.connect with synchronized models by @cyjake in https://github.com/cyjake/leoric/pull/201
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.1...v1.13.2
+
 1.13.1 / 2021-10-18
 ===================
 
