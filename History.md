@@ -1,3 +1,14 @@
+1.13.0 / 2021-10-18
+===================
+
+## What's Changed
+* docs: monthly updates of 2021.09; support dark mode by @cyjake in https://github.com/cyjake/leoric/pull/196
+* feat: coerce literal values into accurate attribute type by @cyjake in https://github.com/cyjake/leoric/pull/197
+* fix: dispatched result should be in attribute names by @cyjake in https://github.com/cyjake/leoric/pull/198
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.12.0...v1.13.0
+
 1.12.0 / 2021-10-12
 ===================
 
