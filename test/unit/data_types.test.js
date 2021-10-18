@@ -13,10 +13,6 @@ describe('=> Data Types', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
-
-    assert.equal(new STRING().uncast(null), null);
-    assert.equal(new STRING().uncast(undefined), undefined);
-    assert.equal(new STRING().uncast(1), '1');
   });
 
   it('BINARY', () => {
@@ -33,32 +29,11 @@ describe('=> Data Types', () => {
     assert.equal(new DATE().toSqlString(), 'DATETIME');
     // This one varies drastically across databases
     assert.equal(new DATE(6).toSqlString(), 'DATETIME(6)');
-
-    assert.equal(new DATE().uncast(null), null);
-    assert.equal(new DATE().uncast(undefined), undefined);
-    const today = new Date();
-    const result = new DATE(0).uncast(today);
-    today.setMilliseconds(0);
-    assert.equal(result.getTime(), today.getTime());
-
-    assert.equal(new DATE().uncast(dayjs(today)).getTime(), today.getTime());
   });
 
   it('DATEONLY', () => {
     assert.equal(new DATEONLY().dataType, 'date');
     assert.equal(new DATEONLY().toSqlString(), 'DATE');
-
-    assert.equal(new DATEONLY().uncast(null), null);
-    assert.equal(new DATEONLY().uncast(undefined), undefined);
-    const today = new Date();
-    const result = new DATEONLY().uncast(today);
-    today.setMilliseconds(0);
-    today.setSeconds(0);
-    today.setMinutes(0);
-    today.setHours(0);
-    assert.equal(result.getTime(), today.getTime());
-
-    assert.equal(new DATE().uncast(dayjs(today)).getTime(), today.getTime());
   });
 
   it('INTEGER', () => {
@@ -87,15 +62,6 @@ describe('=> Data Types', () => {
     // JSON type is actually stored as TEXT
     assert.equal(new JSON().dataType, 'text');
     assert.equal(new JSON().toSqlString(), 'TEXT');
-
-    assert.equal(new JSON().cast(null), null);
-    assert.equal(new JSON().cast(undefined), undefined);
-    assert.deepEqual(new JSON().cast('{"a":1}'), { a: 1 });
-    assert.deepEqual(new JSON().cast({ a: 1 }), { a: 1 });
-
-    assert.equal(new JSON().uncast(null), null);
-    assert.equal(new JSON().uncast(undefined), undefined);
-    assert.equal(new JSON().uncast({ a: 2 }), '{"a":2}');
   });
 
   it('JSONB', () => {
@@ -111,11 +77,78 @@ describe('=> Data Types', () => {
     assert.equal(new BLOB('long').toSqlString(), 'LONGBLOB');
     // invalid length
     await assert.rejects(async () => new BLOB('error'), /invalid blob length: error/);
+  });
+});
 
+describe('=> DataTypes type casting', function() {
+  const { STRING, BLOB, DATE, DATEONLY, JSON } = DataTypes;
+
+  it('STRING', async function() {
+    assert.equal(new STRING().uncast(null), null);
+    assert.equal(new STRING().uncast(undefined), undefined);
+    assert.equal(new STRING().uncast(1), '1');
+  });
+
+  it('DATE', async function() {
+    assert.equal(new DATE().uncast(null), null);
+    assert.equal(new DATE().uncast(undefined), undefined);
+
+    assert.equal(new DATE().uncast(1625743838518).getTime(), 1625743838518);
+    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02,548'), new Date('2021-10-15T15:50:02.548Z'));
+    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02.548'), new Date('2021-10-15T15:50:02.548Z'));
+
+    const today = new Date();
+    const result = new DATE(0).uncast(today);
+    today.setMilliseconds(0);
+    assert.equal(result.getTime(), today.getTime());
+  });
+
+  it('DATE toDate()', async function() {
+    const today = new Date();
+    const result = new DATE(0).uncast(dayjs(today));
+    today.setMilliseconds(0);
+    assert.equal(result.getTime(), today.getTime());
+  });
+
+  it('DATEONLY', async function() {
+    assert.equal(new DATEONLY().uncast(null), null);
+    assert.equal(new DATEONLY().uncast(undefined), undefined);
+    const today = new Date();
+    const result = new DATEONLY().uncast(today);
+    today.setMilliseconds(0);
+    today.setSeconds(0);
+    today.setMinutes(0);
+    today.setHours(0);
+    assert.equal(result.getTime(), today.getTime());
+  });
+
+  it('DATEONLY toDate()', async function() {
+    const today = new Date();
+    const result = new DATEONLY().uncast(dayjs(today));
+    today.setMilliseconds(0);
+    today.setSeconds(0);
+    today.setMinutes(0);
+    today.setHours(0);
+    assert.equal(result.getTime(), today.getTime());
+  });
+
+  it('JSON', async function() {
+    assert.equal(new JSON().cast(null), null);
+    assert.equal(new JSON().cast(undefined), undefined);
+    assert.deepEqual(new JSON().cast('{"a":1}'), { a: 1 });
+    assert.deepEqual(new JSON().cast({ a: 1 }), { a: 1 });
+
+    assert.equal(new JSON().uncast(null), null);
+    assert.equal(new JSON().uncast(undefined), undefined);
+    assert.equal(new JSON().uncast({ a: 2 }), '{"a":2}');
+  });
+
+  it('BLOB', async function() {
     assert.equal(new BLOB().cast(null), null);
     assert.equal(new BLOB().cast(undefined), undefined);
     const buffer = Buffer.from('<!doctype html>');
     assert.equal(new BLOB().cast(buffer), buffer);
+    assert.equal(new BLOB().cast(buffer).toString(), '<!doctype html>');
     assert.ok(new BLOB().cast('<!doctype html>') instanceof Buffer);
   });
 });

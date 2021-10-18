@@ -82,7 +82,7 @@ function formatExpr(spell, ast) {
     case 'alias':
       return `${formatExpr(spell, args[0])} AS ${formatIdentifier(spell, ast)}`;
     case 'mod':
-      return `${name.to.toUpperCase()} ${formatExpr(spell, args[0])}`;
+      return `${name.toUpperCase()} ${formatExpr(spell, args[0])}`;
     case 'id':
       return formatIdentifier(spell, ast);
     case 'op':

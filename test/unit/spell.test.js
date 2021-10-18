@@ -534,6 +534,13 @@ describe('=> Spell', function() {
     );
   });
 
+  it('select distinct', function() {
+    assert.equal(
+      Post.select('DISTINCT title').toString(),
+      'SELECT DISTINCT `title` FROM `articles` WHERE `gmt_deleted` IS NULL'
+    );
+  });
+
   it('predefined hasOne join', function() {
     assert.equal(
       Post.select('title', 'createdAt').with('attachment').toString(),

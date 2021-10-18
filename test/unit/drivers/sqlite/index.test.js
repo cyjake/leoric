@@ -126,20 +126,6 @@ describe('=> SQLite driver', () => {
     const result = await driver.query('SELECT * FROM notes');
     assert.equal(result.rows.length, 1);
   });
-
-  it('driver.cast(buffer, Buffer)', async function() {
-    const buf = Buffer.from('yes');
-    const data = driver.cast(buf, Buffer);
-    assert.ok(data instanceof Buffer);
-    assert.equal(data.toString(), 'yes');
-  });
-
-  it('driver.uncast(buffer, Buffer)', async function() {
-    const buf = Buffer.from('yes');
-    const data = driver.uncast(buf, Buffer);
-    assert.ok(Buffer.isBuffer(data));
-    assert.equal(data.toString(), 'yes');
-  });
 });
 
 describe('=> SQLite driver.query()', () => {

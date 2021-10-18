@@ -276,6 +276,9 @@ export class Bone {
    */
   static renameAttribute(originalName: string, newName: string): void;
 
+  static alias(name: string): string;
+  static alias(data: Record<string, Literal>): Record<string, Literal>;
+
   static hasOne(name: string, opts?: RelateOptions): void;
   static hasMany(name: string, opts?: RelateOptions): void;
   static belongsTo(name: string, opts?: RelateOptions): void;

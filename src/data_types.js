@@ -201,6 +201,8 @@ class BIGINT extends INTEGER {
   }
 }
 
+const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6})?$/;
+
 class DATE extends DataType {
   constructor(precision, timezone = true) {
     super();
@@ -218,6 +220,12 @@ class DATE extends DataType {
     return dataType;
   }
 
+  cast(value) {
+    if (value == null) return value;
+    if (value instanceof Date) return value;
+    return new Date(value);
+  }
+
   uncast(value) {
     if (value == null) return value;
     if (typeof value.toDate === 'function') {
@@ -231,6 +239,14 @@ class DATE extends DataType {
       return result;
     }
 
+    if (typeof value === 'string') {
+      // vaguely standard date formats such as 2021-10-15 15:50:02,548
+      if (rDateFormat.test(value)) {
+        return new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
+      }
+      // Date.parse('2021-10-15T08:38:43.877Z')
+      return new Date(value);
+    }
     return value instanceof Date ? value : new Date(value);
   }
 }
@@ -329,9 +345,6 @@ class JSON extends DataType {
 
   uncast(value) {
     if (value == null) return value;
-    if (typeof value.toObject === 'function') {
-      value = value.toObject();
-    }
     return global.JSON.stringify(value);
   }
 }
