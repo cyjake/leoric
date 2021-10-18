@@ -18,6 +18,7 @@ describe('=> Data types', () => {
       publishedAt: DATE(6),
     }
   };
+
   before(async () => {
     await Note.driver.dropTable('notes');
     await Note.sync();
@@ -79,15 +80,15 @@ describe('=> Data types - JSON', () => {
   }
 
   beforeEach(async () => {
+    Object.defineProperties(Note, {
+      columns: { value: [], configurable: true },
+      synchronized: { value: undefined, configurable: true }
+    });
     await Note.driver.dropTable('notes');
-  });
-
-  afterEach(async () => {
-    await Note.driver.dropTable('notes');
+    await Note.sync();
   });
 
   it('=> init', async () => {
-    await Note.sync();
     await Note.create({ title: 'Leah',  meta: { foo: 1, baz: 'baz' }, metab: { foo: 2, baz: 'baz1' } });
     const foundNote = await Note.first;
     const { meta, metab } = Note.attributes;
@@ -103,6 +104,11 @@ describe('=> Data types - JSON', () => {
 
     assert.deepEqual(foundNote.meta, { foo: 1, baz: 'baz' });
     assert.deepEqual(foundNote.metab, { foo: 2, baz: 'baz1' });
+  });
+
+  it('=> type casting', async function() {
+    await Note.create({ meta: {} });
+    await Note.create({ meta: [] });
   });
 });
 
@@ -132,11 +138,11 @@ describe('=> Data types - BINARY', () => {
   });
 
   beforeEach(async () => {
-    (Note && await Note.driver.dropTable('notes'));
+    if (Note) await Note.driver.dropTable('notes');
   });
 
   afterEach(async () => {
-    (Note && await Note.driver.dropTable('notes'));
+    if (Note) await Note.driver.dropTable('notes');
   });
 
   it('=> init', async () => {

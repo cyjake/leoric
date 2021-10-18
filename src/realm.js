@@ -130,8 +130,11 @@ class Realm {
       models = Object.values(this.models);
     }
 
+    // models could be connected already if cached
+    models = models.filter(model => !model.synchronized);
+
     if (models.length > 0) {
-      await loadModels(this.Bone, models.filter(model => !model.synchronized), this.options);
+      await loadModels(this.Bone, models, this.options);
     }
     this.connected = true;
     return this.Bone;

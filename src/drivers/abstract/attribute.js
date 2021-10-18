@@ -127,7 +127,9 @@ class Attribute {
   }
 
   uncast(value) {
-    if (Array.isArray(value)) return value.map(entry => this.type.uncast(entry));
+    if (Array.isArray(value) && this.jsType !== JSON) {
+      return value.map(entry => this.type.uncast(entry));
+    }
     return this.type.uncast(value);
   }
 }
