@@ -875,6 +875,16 @@ describe('=> Realm', () => {
       });
       await realm.connect();
 
+      await assert.doesNotReject(async function() {
+        const realm2 = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User ],
+        });
+        await realm2.connect();
+      });
+
       class Post extends Bone {
         static table = 'articles'
       }
