@@ -131,7 +131,7 @@ class Realm {
     }
 
     if (models.length > 0) {
-      await loadModels(this.Bone, models, this.options);
+      await loadModels(this.Bone, models.filter(model => !model.synchronized), this.options);
     }
     this.connected = true;
     return this.Bone;

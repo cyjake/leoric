@@ -860,4 +860,34 @@ describe('=> Realm', () => {
       });
     });
   });
+
+  describe('realm.connect', function() {
+    /**
+     * If models are cached and connected already, skip connecting them again because it would raise issues like duplicated associations or redundant class property definition etc.
+     */
+    it('should skip synchronized models', async function() {
+      class User extends Bone {}
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ User ],
+      });
+      await realm.connect();
+
+      class Post extends Bone {
+        static table = 'articles'
+      }
+      await assert.doesNotReject(async function() {
+        const realm2 = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: [ User, Post ],
+        });
+        await realm2.connect();
+      });
+      assert.ok(Post.synchronized);
+    });
+  });
 });

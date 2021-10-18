@@ -1157,6 +1157,9 @@ class Bone {
    * @param {boolean} opts.hasMany
    */
   static associate(name, opts = {}) {
+    if (name in this.associations) {
+      throw new Error(`duplicated association "${name}" on model ${this.name}`);
+    }
     const { className } = opts;
     const Model = this.models[className];
     if (!Model) throw new Error(`unable to find model "${className}"`);
