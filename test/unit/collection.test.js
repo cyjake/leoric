@@ -98,13 +98,61 @@ describe('=> Collection', function() {
     ]);
   });
 
+  it('should not instantiate when SELECT field AS another_field', async function() {
+    const result = Collection.init({
+      spell: Post.select(raw('author_id AS authorId')),
+      rows: [
+        { 'articles': { authorId: 1 } },
+        { 'articles': { authorId: 2 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => !(r instanceof Post)));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1 },
+      { authorId: 2 },
+    ]);
+  });
+
   /**
    * Currently SELECT DISTINCT queries are treated different than group queries even though most SELECT DISTINCT queries are equivalent to group queries.
    * - https://dev.mysql.com/doc/refman/8.0/en/distinct-optimization.html
    */
   it('should instantiate when SELECT DISTINCT field', async function() {
     const result = Collection.init({
-      spell: Post.select(raw('DISTICT author_id')),
+      spell: Post.select(raw('DISTINCT author_id')),
+      rows: [
+        { 'articles': { author_id: 1 } },
+        { 'articles': { author_id: 2 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => r instanceof Post));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1 },
+      { authorId: 2 },
+    ]);
+  });
+
+  it('should instantiate when SELECT DISTINCT field AS field', async function() {
+    const result = Collection.init({
+      spell: Post.select(raw('DISTINCT author_id AS author_id')),
+      rows: [
+        { 'articles': { author_id: 1 } },
+        { 'articles': { author_id: 2 } },
+      ],
+      fields: [],
+    });
+    assert.ok(result.every(r => r instanceof Post));
+    assert.deepEqual(result.toJSON(), [
+      { authorId: 1 },
+      { authorId: 2 },
+    ]);
+  });
+
+  it('should instantiate when SELECT DISTINCT field with built-in parser', async function() {
+    const result = Collection.init({
+      spell: Post.select('DISTINCT authorId'),
       rows: [
         { 'articles': { author_id: 1 } },
         { 'articles': { author_id: 2 } },

@@ -52,6 +52,24 @@ class Collection extends Array {
 }
 
 /**
+ * Check if the query result of spell is instantiatable by examining the query structure.
+ * - https://www.yuque.com/leoric/blog/ciiard#XoI4O (zh-CN)
+ * @param {Spell} spell
+ * @returns {boolean}
+ */
+function instantiatable(spell) {
+  const { columns, groups, Model } = spell;
+  const { attributes, tableAlias } = Model;
+
+  if (groups.length > 0) return false;
+  if (columns.length === 0) return true;
+
+  return columns
+    .filter(({ qualifiers }) => (!qualifiers || qualifiers.includes(tableAlias)))
+    .every(({ value }) => attributes[value]);
+}
+
+/**
  * Convert the results to collection that consists of models with their associations set up according to `spell.joins`.
  * @private
  * @param {Spell} spell
@@ -61,7 +79,7 @@ class Collection extends Array {
  */
 function dispatch(spell, rows, fields) {
   const { groups, joins, columns, Model } = spell;
-  const { tableAlias, table, primaryKey, primaryColumn, attributes, attributeMap } = Model;
+  const { tableAlias, table, primaryKey, primaryColumn, attributeMap } = Model;
 
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
@@ -74,8 +92,7 @@ function dispatch(spell, rows, fields) {
   }
 
   const joined = Object.keys(joins).length > 0;
-  const canInstantiate = groups.length === 0
-    && (columns.length === 0 || columns.some(({ value }) => attributes[value]));
+  const canInstantiate = instantiatable(spell);
 
   const results = new Collection();
   for (const row of rows) {

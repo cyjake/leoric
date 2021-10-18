@@ -1180,8 +1180,8 @@ class Bone {
 
     for (const columnName in row) {
       const value = row[columnName];
-      if (attributeMap.hasOwnProperty(columnName)) {
-        const attribute = attributeMap[columnName];
+      const attribute = attributeMap[columnName];
+      if (attribute) {
         // to make sure raw and rawSaved hold two different objects
         instance._setRaw(attribute.name, attribute.cast(value));
         instance._setRawSaved(attribute.name, attribute.cast(value));
