@@ -137,17 +137,27 @@ class Shop extends Bone {
 }
 ```
 
-You can rename the attribute names too. By default, these names are transformed from column names by calling `static renameAttribute(oldName, newName)` in the `static describe()` method.
+We can rename the attribute names too. By default, these names are transformed from column names by converting them into camel case. If the names don't match, we can specify the column names manually in `static attributes`, such as:
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static attributes = {
+    deletedAt: { type: DATE, columnName: 'removed_at' },
+  }
+}
+```
+
+We can also rename the attribute in the `static initialize()` method, which gets called after models are loaded.
+
+```js
+class Shop extends Bone {
+  static initialize() {
     this.renameAttribute('removedAt', 'deletedAt')
   }
 }
 ```
 
-A lot of schema settings can be done within the `static describe()` method. We'll get to that later.
+A lot of schema settings can be done within the `static initialize()` method. We'll get to that later.
 
 ## Connecting Models to Database
 

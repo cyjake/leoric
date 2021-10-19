@@ -10,7 +10,7 @@ const { Bone, connect } = require('leoric')
 
 // define model
 class Post extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('author', { Model: 'User' })
     this.hasMany('comments')
   }

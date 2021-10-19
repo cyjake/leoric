@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>IndexHint - Documentation</title>
+    <title>src/expr - Documentation</title>
     <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -23,7 +23,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">IndexHint</h1>
+    <h1 class="page-title">src/expr</h1>
     
 
     
@@ -35,9 +35,8 @@
 
 <header>
     
-        <h2>
-        IndexHint
-        </h2>
+        
+            
         
     
 </header>
@@ -46,18 +45,1021 @@
     <div class="container-overview">
     
         
+            <div class="description"><p>This module contains a simple SQL expression parser which parses <code>select_expr</code> and <code>expr</code> in <code>WHERE</code>/<code>HAVING</code>/<code>ON</code> conditions. Most of <a href="Spell.html"><code>Spell</code></a>'s functionalities are made possible because of this parser. Currently, it cannot parse a full SQL.</p></div>
+        
+
+        
+            
+<div class="section-method">
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>parseExpr('COUNT(1) AS count')
+// => { type: 'alias', value: 'count',
+//      args: [ { type: 'func', name: 'count', args: [ ... ] } ] }</code></pre>
+
+</div>
+
+</div>
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~BINARY_OPERATORS"><span class="type-signature">(inner, constant) </span>BINARY_OPERATORS<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A (modestly) simplified list of binary operators.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~LOGICAL_OPERATORS"><span class="type-signature">(inner, constant) </span>LOGICAL_OPERATORS<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A list of binary logical operators.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~MODIFIERS"><span class="type-signature">(inner, constant) </span>MODIFIERS<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A (drastically) simplified list of supported modifiers.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~OPERATOR_ALIAS_MAP"><span class="type-signature">(inner, constant) </span>OPERATOR_ALIAS_MAP<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A map of operator alias. Operators like <code>&amp;&amp;</code> will be translated into <code>and</code> to make ast handling a bit easier.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~PRECEDENCES"><span class="type-signature">(inner, constant) </span>PRECEDENCES<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A (drastically) simplified list of operators ordered in priority precedences.</p>
+<ul>
+<li>https://dev.mysql.com/doc/refman/5.7/en/operator-precedence.html</li>
+</ul>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id="~UNARY_OPERATORS"><span class="type-signature">(inner, constant) </span>UNARY_OPERATORS<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>A (drastically) simplified list of unary operators.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+</div>
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
 <div class="section-method">
 
     
 
-    <h4 class="name" id="IndexHint"><span class="type-signature"></span>new IndexHint<span class="signature">(index, type, scope<span class="signature-attributes">nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~copyExpr"><span class="type-signature">(inner) </span>copyExpr<span class="signature">(ast, fn)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Creates an instance of IndexHint.</p>
+    <p>Walk through an ast with returned tokens preferred over the originals, which is convenient to update the ast.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ast</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>function</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>// update all of the identifiers' qualifiers:
+copyExpr(ast, ({ type, value }) => {
+  if (type == 'id') return { type, qualifiers: ['posts'], value }
+});</code></pre>
+
+</div>
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~findExpr"><span class="type-signature">(inner) </span>findExpr<span class="signature">(spell, opts)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Traversing ast to find expresssion that matches <code>opts</code>.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>spell</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code><a href="Spell.html">Spell</a></code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~parseExpr"><span class="type-signature">(inner) </span>parseExpr<span class="signature">(str, &hellip;values)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>str</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>values</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>*</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code>Object</code></span>
+
+
+    </dd>
+</dl>
+
+
+    
+</div>
+
+
+
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>parseExpr('COUNT(id) + 1')
+  -> { type: 'op',
+       name: '+',
+       args:
+        [ { type: 'func',
+            name: 'count',
+            args: [ { type: 'id', value: 'id' } ] },
+          { type: 'literal', value: 1 } ] }
+
+// Logical operators can be used in conditional expressions too.
+parseExpr('YEAR(createdAt) &lt;= 2017 AND MONTH(createdAt) BETWEEN 4 AND 9')
+  -> { type: 'op',
+       name: 'and',
+       args:
+        [ { type: 'op',
+            name: '&lt;=',
+            args:
+             [ { type: 'func', name: 'year',
+                 args: [ { type: 'id', value: 'createdAt' } ] },
+               { type: 'literal', value: 2017 } ] },
+          { type: 'op',
+            name: 'between',
+            args:
+             [ { type: 'func',
+                 name: 'month',
+                 args: [ { type: 'id', value: 'createdAt' } ] },
+               { type: 'literal', value: 4 },
+               { type: 'literal', value: 9 } ] } ] }</code></pre>
+
+</div>
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~parseExprList"><span class="type-signature">(inner) </span>parseExprList<span class="signature">(str, &hellip;values)</span><span class="type-signature"> &rarr; {Array.&lt;Object>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Parse sql expressions into ast for validations and sanitizations.</p>
 </div>
 
 
@@ -134,15 +1136,12 @@
 
         <tr>
             
-                <td class="name"><code>index</code></td>
+                <td class="name"><code>str</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><code>Array.&lt;string></code></span>
-|
-
 <span class="param-type"><code>string</code></span>
 
 
@@ -171,13 +1170,13 @@
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>values</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><code><a href="global.html#INDEX_HINT_TYPE">INDEX_HINT_TYPE</a></code></span>
+<span class="param-type"><code>*</code></span>
 
 
             
@@ -190,7 +1189,327 @@
                 
 
                 
+                    &lt;repeatable><br>
+                
                 </td>
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code>Array.&lt;Object></code></span>
+
+
+    </dd>
+</dl>
+
+
+    
+</div>
+
+
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~precedes"><span class="type-signature">(inner) </span>precedes<span class="signature">(left, right)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Compare the precedence of two operators. Operators with lower indices have higher priorities.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>left</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>name of the left operator</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>right</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>name of the right operator</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>precedes('and', 'or')  // => -1
+precedes('and', 'and') // => 0
+precedes('+', '/') // => 1</code></pre>
+
+</div>
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~walkExpr"><span class="type-signature">(inner) </span>walkExpr<span class="signature">(ast, fn)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Walk through an ast, starting from the root token.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ast</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
             
 
             
@@ -205,28 +1524,18 @@
 
         <tr>
             
-                <td class="name"><code>scope</code></td>
+                <td class="name"><code>fn</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><code><a href="global.html#INDEX_HINT_SCOPE">INDEX_HINT_SCOPE</a></code></span>
+<span class="param-type"><code>function</code></span>
 
 
             
             </td>
 
-            
-                <td class="attributes">
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
             
 
             
@@ -258,21 +1567,7 @@
 
 </div>
 
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
+        
     
 
     

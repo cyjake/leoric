@@ -431,7 +431,7 @@ Leoric 提供两种构建 JOIN 查询的方式：
 
 ```js
 class Post extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('comments')
     this.belongsTo('author', { foreignKey: 'authorId', Model: 'User' })
   }

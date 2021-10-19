@@ -47,7 +47,7 @@ Leoric 支持四种关联关系：
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop')
   }
 }
@@ -57,7 +57,7 @@ Leoric 会把关联关系的名称 `shop` 转为驼峰、首字母大写，再�
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop', { className: 'Seller' })
   }
 }
@@ -73,7 +73,7 @@ class Item extends Bone {
 
 ```js
 class Item extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('shop', { foreignKey: 'sellerId' })
   }
 }
@@ -89,7 +89,7 @@ class Item extends Bone {
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items')
   }
 }
@@ -103,7 +103,7 @@ Leoric 寻找对应数据模型的方式都是差不多的。首先将关联关�
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items', { className: 'Commodity' })
   }
 }
@@ -113,7 +113,7 @@ class Shop extends Bone {
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('items', { foreignKey: 'sellerId' })
   }
 }
@@ -137,7 +137,7 @@ class Shop extends Bone {
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     // the extra where is needed if you fancy this generic tag system
     this.hasMany('tagMaps', { foreignKey: 'targetId', where: { targetType: 0 } })
     this.hasMany('tags', { through: 'tagMaps' })
@@ -149,7 +149,7 @@ class Shop extends Bone {
 
 ```js
 class Tag extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
   }
@@ -160,7 +160,7 @@ class Tag extends Bone {
 
 ```diff
 class Tag extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
 +   this.hasMany('itemTagMaps', { className: 'TagMap', where: { targetType: 1 } })
@@ -185,7 +185,7 @@ class Tag extends Bone {
 
 ```js
 class User extends Bone {
-  static describe() {
+  static initialize() {
     this.hasOne('shop', { foreignKey: 'ownerId' })
   }
 }
@@ -195,7 +195,7 @@ class User extends Bone {
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('owner', { className: 'User' })
   }
 }

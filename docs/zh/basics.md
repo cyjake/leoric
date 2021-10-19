@@ -120,11 +120,11 @@ await Shop.create({ name: 'Horadric Cube' })
 
 ## 覆盖命名约定
 
-绝大部分命名约定都有对应的覆盖方法，我们可以使用 `static get table()` 覆盖表名：
+绝大部分命名约定都有对应的覆盖方法，我们可以使用 `static table` 覆盖表名：
 
 ```js
 class Shop extends Bone {
-  static get table() { return 'stores' }
+  static table = 'stores'
 }
 ```
 
@@ -132,21 +132,31 @@ class Shop extends Bone {
 
 ```js
 class Shop extends Bone {
-  static get primaryKey() { return 'shopId' }
+  static primaryKey = 'shopId' }
 }
 ```
 
-也可以重命名属性名，在 `static describe()` 方法中调用 `static renameAttribute(oldName, newName)` 即可：
+以及使用 `static attributes` 自定义数据模型属性对应的字段名：
 
 ```js
 class Shop extends Bone {
-  static describe() {
+  static attributes = {
+    deletedAt: { type: DATE, columnName: 'removed_at' },
+  }
+}
+```
+
+如果数据模型的属性信息不在模型中直接维护，也可以等数据模型信息从数据库加载后，在 `static initialize()` 方法中重命名属性名：
+
+```js
+class Shop extends Bone {
+  static initialize() {
     this.renameAttribute('removedAt', 'deletedAt')
   }
 }
 ```
 
-`static describe()` 方法中可配置的项目有很多。我们之后再详细讨论。
+`static initialize()` 方法中可配置的项目有很多。我们之后再详细讨论。
 
 ## 连接数据模型和数据库
 
