@@ -1,5 +1,6 @@
 'use strict';
 
+const util = require('util');
 const invokable = require('./utils/invokable');
 
 /**
@@ -64,6 +65,15 @@ class DataType {
       default:
         throw new Error(`Unexpected data type ${dataType}`);
     }
+  }
+
+  /**
+   * Check if params is instance of DataType or not
+   * @param {*} params
+   * @returns {boolean}
+   */
+  static is(params) {
+    return params instanceof DataType;
   }
 
   /**
@@ -181,7 +191,10 @@ class INTEGER extends DataType {
   }
 
   uncast(value) {
-    if (typeof value === 'string') return parseInt(value, 10);
+    const originValue = value;
+    if (value == null) return value;
+    if (typeof value === 'string') value = parseInt(value, 10);
+    if (isNaN(value)) throw new Error(util.format('invalid integer: %s', originValue));
     return value;
   }
 }
@@ -227,27 +240,31 @@ class DATE extends DataType {
   }
 
   uncast(value) {
+    const originValue = value;
+
     if (value == null) return value;
     if (typeof value.toDate === 'function') {
       value = value.toDate();
     }
 
+    // @deprecated
+    // vaguely standard date formats such as 2021-10-15 15:50:02,548
+    if (typeof value === 'string' && rDateFormat.test(value)) {
+      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
+    }
+
+    // 1634611135776
+    // '2021-10-15T08:38:43.877Z'
+    if (!(value instanceof Date)) value = new Date(value);
+    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
+
     const { precision } = this;
-    if (value instanceof Date && precision < 3) {
+    if (precision < 3) {
       const result = new Date(value);
       result.setMilliseconds(result.getMilliseconds() % (10 ** precision));
       return result;
     }
-
-    if (typeof value === 'string') {
-      // vaguely standard date formats such as 2021-10-15 15:50:02,548
-      if (rDateFormat.test(value)) {
-        return new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
-      }
-      // Date.parse('2021-10-15T08:38:43.877Z')
-      return new Date(value);
-    }
-    return value instanceof Date ? value : new Date(value);
+    return value;
   }
 }
 
@@ -261,11 +278,28 @@ class DATEONLY extends DataType {
     return this.dataType.toUpperCase();
   }
 
+  cast(value) {
+    if (value == null) return value;
+    if (value instanceof Date) return value;
+    return new Date(value);
+  }
+
   uncast(value) {
+    const originValue = value;
+
     if (value == null) return value;
     if (typeof value.toDate === 'function') {
       value = value.toDate();
     }
+
+    // @deprecated
+    // vaguely standard date formats such as 2021-10-15 15:50:02,548
+    if (typeof value === 'string' && rDateFormat.test(value)) {
+      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
+    }
+
+    if (!(value instanceof Date)) value = new Date(value);
+    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));;
 
     return new Date(value.getFullYear(), value.getMonth(), value.getDate());
   }

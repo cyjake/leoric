@@ -1,9 +1,10 @@
 'use strict';
 
 const assert = require('assert').strict;
+const strftime = require('strftime');
 
 const { Bone, DataTypes } = require('../../..');
-const { INTEGER, STRING, DATE, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
+const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
 
 
 describe('=> Data types', () => {
@@ -79,11 +80,7 @@ describe('=> Data types - JSON', () => {
     }
   }
 
-  beforeEach(async () => {
-    Object.defineProperties(Note, {
-      columns: { value: [], configurable: true },
-      synchronized: { value: undefined, configurable: true }
-    });
+  before(async () => {
     await Note.driver.dropTable('notes');
     await Note.sync();
   });
@@ -107,8 +104,20 @@ describe('=> Data types - JSON', () => {
   });
 
   it('=> type casting', async function() {
-    await Note.create({ meta: {} });
-    await Note.create({ meta: [] });
+    const note = await Note.create({ meta: {} });
+    assert.deepEqual(note.meta, {});
+    await note.reload();
+    assert.deepEqual(note.meta, {});
+
+    const note2 = await Note.create({ meta: [] });
+    assert.deepEqual(note2.meta, []);
+    await note2.reload();
+    assert.deepEqual(note2.meta, []);
+
+    const note3 = await Note.create({ meta: [ 1, 2, 3 ] });
+    assert.deepEqual(note3.meta, [ 1, 2, 3 ]);
+    await note3.reload();
+    assert.deepEqual(note3.meta, [ 1, 2, 3 ]);
   });
 });
 
@@ -146,7 +155,6 @@ describe('=> Data types - BINARY', () => {
   });
 
   it('=> init', async () => {
-
     const metaData = Buffer.from('meta');
     const metabData = Buffer.from('metab');
     const metacData = Buffer.from('metac');
@@ -181,5 +189,122 @@ describe('=> Data types - BINARY', () => {
       assert.equal(foundNote.metab.toString(), 'metab');
     }
     assert.equal(foundNote.metac.toString(), 'metac');
+  });
+});
+
+describe('=> Data Types - INTEGER', function() {
+  class Note extends Bone {
+    static attributes = {
+      word_count: INTEGER,
+    }
+  }
+
+  before(async function() {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const note = await Note.create({ word_count: '800' });
+    await note.reload();
+    assert.equal(note.word_count, 800);
+
+    const note2 = await Note.findOne({ word_count: '800' });
+    assert.equal(note2.word_count, 800);
+
+    const result = await Note.where({ word_count: [ 800, null ] });
+    assert.equal(result.length, 1);
+    assert.deepEqual(result.toJSON(), [ note2.toJSON() ]);
+
+    await assert.rejects(async function() {
+      await Note.where({ word_count: [ 'foo' ] });
+    }, /invalid integer/i);
+  });
+});
+
+describe('=> Data types - DATE', function() {
+  class Note extends Bone {
+    static attributes = {
+      createdAt: DATE(6),
+      updatedAt: DATE(6),
+    }
+  }
+
+  before(async function() {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const date = new Date('2021-10-15T08:38:43.877Z');
+    const note = await Note.create({ createdAt: date, updatedAt: date });
+    await note.reload();
+    assert.equal(note.createdAt.toISOString(), '2021-10-15T08:38:43.877Z');
+
+    await assert.doesNotReject(async function() {
+      const result = await Note.where({ createdAt: date });
+      assert.equal(result.length, 1);
+    });
+
+    await assert.doesNotReject(async function() {
+      const result = await Note.where({ createdAt: '2021-10-15 08:38:43,877' });
+      assert.equal(result.length, 1);
+    });
+
+    // MySQL throws on invalid date string in SELECT, others neglect.
+    await assert.rejects(async function() {
+      const result = await Note.where({ createdAt: 'invalid date' });
+      assert.equal(result.length, 0);
+    }, /invalid date/i);
+
+    // SQLite neglects invalid date string in INSERT, others throw.
+    await assert.rejects(async function() {
+      const note2 = await Note.create({ createdAt: 'invalid date' });
+      await note2.reload();
+      assert.equal(note2.createdAt, null);
+    }, /invalid date/i);
+  });
+});
+
+describe('=> Data types - DATEONLY', function() {
+  class Note extends Bone {
+    static attributes = {
+      createdAt: DATEONLY,
+    }
+  }
+
+  before(async function() {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const date = new Date('2021-10-15T08:38:43.877Z');
+    const note = await Note.create({ createdAt: date });
+    await note.reload();
+    assert.equal(strftime('%Y-%m-%d', note.createdAt), '2021-10-15');
+
+    await assert.doesNotReject(async function() {
+      const result = await Note.where({ createdAt: date });
+      assert.equal(result.length, 1);
+    });
+
+    await assert.doesNotReject(async function() {
+      const result = await Note.where({ createdAt: '2021-10-15 08:38:43,877' });
+      assert.equal(result.length, 1);
+    });
+
+    // MySQL throws on invalid date string in SELECT, others neglect.
+    await assert.rejects(async function() {
+      const result = await Note.where({ createdAt: 'invalid date' });
+      assert.equal(result.length, 0);
+    }, /invalid date/i);
+
+    // SQLite neglects invalid date string in INSERT, others throw.
+    await assert.rejects(async function() {
+      const note2 = await Note.create({ createdAt: 'invalid date' });
+      await note2.reload();
+      assert.equal(note2.createdAt, null);
+    }, /invalid date/i);
   });
 });

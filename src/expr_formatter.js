@@ -199,7 +199,7 @@ function coerceLiteral(spell, ast) {
 
   if (firstArg.type === 'id') {
     const model = findModel(spell, firstArg.qualifiers);
-    const attribute = model && model.attributeMap[firstArg.value];
+    const attribute = model && model.attributes[firstArg.value];
 
     if (attribute) {
       for (const arg of args.slice(1)) {
