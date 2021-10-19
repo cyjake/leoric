@@ -820,7 +820,7 @@ class Bone {
    * restore rows
    * @param {Object} conditions query conditions
    * @param {Object?} opts query options
-   * @returns
+   * @returns {Spell}
    */
   static restore(conditions, opts = {}) {
     const { deletedAt } = this.timestamps;

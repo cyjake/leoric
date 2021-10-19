@@ -65,7 +65,7 @@ function parseSelect(spell, ...names) {
  * @param {Spell} spell
  * @param {Object} obj - key-value pairs of attributes
  * @param {boolean} strict - check attribute exist or not
- * @returns
+ * @returns {Object}
  */
 function formatValueSet(spell, obj, strict = true) {
   const { Model, silent = false, command } = spell;

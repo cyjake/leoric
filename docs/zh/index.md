@@ -10,7 +10,7 @@ const { Bone, connect } = require('leoric')
 
 // 基于 Bone 定义模型，映射关系表
 class Post extends Bone {
-  static describe() {
+  static initialize() {
     this.belongsTo('author', { Model: 'User' })
     this.hasMany('comments')
   }

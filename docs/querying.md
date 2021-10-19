@@ -437,7 +437,7 @@ Predefined associations can be found by examining `Model.relations`, which is ge
 
 ```js
 class Post extends Bone {
-  static describe() {
+  static initialize() {
     this.hasMany('comments')
     this.belongsTo('author', { foreignKey: 'authorId', Model: 'User' })
   }
