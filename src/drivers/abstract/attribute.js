@@ -86,7 +86,7 @@ class Attribute {
 
     // { foo: STRING }
     // { foo: STRING(255) }
-    if (typeof params === 'function' || params instanceof DataTypes) {
+    if (typeof params === 'function' || DataTypes.is(params)) {
       params = { type: params };
     }
     const type = createType(DataTypes, params);

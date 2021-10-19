@@ -81,12 +81,12 @@ describe('=> parseObject', function() {
       "`title` = 'Leah' OR `title` LIKE '%Leah%'"
     );
     assert.equal(
-      query({ createdAt: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }),
-      "NOT (`gmt_create` = '2021-09-30' AND `gmt_create` >= '2021-10-07')"
+      query({ title: { $not: [ 'Leah', { $like: '%Leah%' } ] } }),
+      "NOT (`title` = 'Leah' AND `title` LIKE '%Leah%')"
     );
     assert.equal(
-      query({ createdAt: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }),
-      "NOT (`gmt_create` > '2021-01-01' AND `gmt_create` <= '2021-12-31')"
+      query({ title: { $not: { $like: '%Leah%', $gt: 'L' } } }),
+      "NOT (`title` LIKE '%Leah%' AND `title` > 'L')"
     );
   });
 

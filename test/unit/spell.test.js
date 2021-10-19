@@ -202,12 +202,12 @@ describe('=> Spell', function() {
             authorId: 2,
           },
           {
-            title: { $in: ['sss', 'sss1' ] },
-            authorId: { $in: ['sss', 'sss1' ] },
+            title: { $in: [ 'sss', 'sss1' ] },
+            authorId: { $in: [ 1, 2 ] },
           }
         ],
       }).toSqlString(),
-      "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' AND `author_id` = 1 OR `title` IN ('s1', '21') AND `author_id` = 2 OR `title` IN ('s1') AND `author_id` = 2 OR `title` IN ('sss', 'sss1') AND `author_id` IN ('sss', 'sss1')) AND `gmt_deleted` IS NULL"
+      "SELECT * FROM `articles` WHERE (`title` LIKE '%Cain%' AND `author_id` = 1 OR `title` IN ('s1', '21') AND `author_id` = 2 OR `title` IN ('s1') AND `author_id` = 2 OR `title` IN ('sss', 'sss1') AND `author_id` IN (1, 2)) AND `gmt_deleted` IS NULL"
     );
   });
 
