@@ -8,6 +8,9 @@ describe('=> formatExpr', function() {
 
   class Post extends Bone {
     static table = 'articles'
+    static initialize() {
+      this.attribute('settings', { type: JSON });
+    }
   }
 
   class User extends Bone {}
@@ -36,6 +39,13 @@ describe('=> formatExpr', function() {
     assert.equal(
       User.where({ birthday: today }).toSqlString(),
       "SELECT * FROM `users` WHERE `birthday` = '" + formatted + " 00:00:00.000'"
+    );
+  });
+
+  it('should not double escape string in queries on JSON attribute', async function() {
+    assert.equal(
+      Post.where({ settings: { $like: '%foo%' } }).toString(),
+      "SELECT * FROM `articles` WHERE `settings` LIKE '%foo%' AND `gmt_deleted` IS NULL"
     );
   });
 });

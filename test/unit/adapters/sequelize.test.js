@@ -1133,15 +1133,11 @@ describe('=> Sequelize adapter', () => {
 describe('Model scope', () => {
   const Spine = sequelize(Bone);
   class Post extends Spine {
-    static get table() {
-      return 'articles';
-    }
+    static table = 'articles';
   };
 
   class User extends Spine {
-    static get table() {
-      return 'users';
-    }
+    static table = 'users';
   };
 
   User.init(userAttributes, {
@@ -1170,6 +1166,8 @@ describe('Model scope', () => {
     }
   });
 
+  class MyPost extends Post {};
+
   before(async () => {
     await connect({
       Bone: Spine,
@@ -1187,8 +1185,7 @@ describe('Model scope', () => {
     Bone.driver = null;
   });
 
-  it('addScope and scope should work', () => {
-    class MyPost extends Post {};
+  it('addScope({ where }) should work', () => {
     // object
     MyPost.addScope('NioH', {
       where: {
@@ -1200,7 +1197,9 @@ describe('Model scope', () => {
       MyPost.scope('NioH').where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL'
     );
+  });
 
+  it('addScope({ where, order, limit }) should work', function() {
     MyPost.addScope('MHW', {
       where: {
         type: 1
@@ -1212,8 +1211,9 @@ describe('Model scope', () => {
       MyPost.scope('MHW').where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL ORDER BY "id" DESC LIMIT 1'
     );
+  });
 
-    // function
+  it('addScope(function) should work', function() {
     MyPost.addScope('IceBorne', (type, limit) => ({
       where: {
         type
@@ -1224,13 +1224,16 @@ describe('Model scope', () => {
       MyPost.scope('IceBorne', 2, 4).where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 2 AND "gmt_deleted" IS NULL LIMIT 4'
     );
+  });
 
-    // unscoped
+  it('unscoped() should work', function() {
     assert.equal(
       MyPost.scope('MHW').unscoped().where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL'
     );
+  });
 
+  it('scope(function) should work', function() {
     // function should work
     const randNum = Math.floor(Math.random() * 100);
     assert.equal(
@@ -1256,7 +1259,9 @@ describe('Model scope', () => {
       }, 1, 'title desc', 10).where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL ORDER BY "title" DESC LIMIT 10'
     );
+  });
 
+  it('scope(object[]) should work', function() {
     // array should work
     const scopes = [{
       where: {
@@ -1271,6 +1276,10 @@ describe('Model scope', () => {
       MyPost.scope(scopes).where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "id" = 1 AND "author_id" = 1 AND "gmt_deleted" IS NULL'
     );
+  });
+
+  it('scope() should retain constructor name', function() {
+    assert.equal(MyPost.scope('MHW').name, MyPost.name);
   });
 
   it('init should work', async () => {
