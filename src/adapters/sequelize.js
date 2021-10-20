@@ -154,7 +154,10 @@ module.exports = Bone => {
     }
 
     static scope(name, ...args) {
-      class ScopeClass extends this {};
+      const parentName = this.name;
+      class ScopeClass extends this {
+        static name = parentName;
+      };
       ScopeClass.setScope(name, ...args);
       return ScopeClass;
     }

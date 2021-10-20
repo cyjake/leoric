@@ -197,16 +197,18 @@ function coerceLiteral(spell, ast) {
   const { args } = ast;
   const firstArg = args[0];
 
-  if (firstArg.type === 'id') {
-    const model = findModel(spell, firstArg.qualifiers);
-    const attribute = model && model.attributes[firstArg.value];
+  if (firstArg.type !== 'id') return;
 
-    if (attribute) {
-      for (const arg of args.slice(1)) {
-        if (arg.type === 'literal') {
-          arg.value = attribute.uncast(arg.value);
-        }
-      }
+  const model = findModel(spell, firstArg.qualifiers);
+  const attribute = model && model.attributes[firstArg.value];
+
+  if (!attribute) return;
+
+  for (const arg of args.slice(1)) {
+    if (arg.type === 'literal') {
+      // { params: { $like: '%foo%' } }
+      if (attribute.jsType === JSON && typeof arg.value === 'string') continue;
+      arg.value = attribute.uncast(arg.value);
     }
   }
 }
