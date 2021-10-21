@@ -1,3 +1,14 @@
+1.13.3 / 2021-10-21
+===================
+
+## What's Changed
+* refactor: persist edge cases of type casting in integration tests by @cyjake in https://github.com/cyjake/leoric/pull/202
+* docs: renaming attributes by @cyjake in https://github.com/cyjake/leoric/pull/203
+* fix: JSON.uncast(string) should not serialize twice by @cyjake in https://github.com/cyjake/leoric/pull/205
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.2...v1.13.3
+
 1.13.2 / 2021-10-18
 ===================
 
