@@ -26,6 +26,13 @@ function integration {
   for file in $(ls test/integration/*.test.js); do run ${file}; done
 }
 
+##
+# definition type tests
+function dts {
+  npx tsc
+  run "$(ls test/types/*.test.js)";
+}
+
 case $1 in
   unit)
     args=("${@:2}")
@@ -35,6 +42,10 @@ case $1 in
     args=("${@:2}")
     integration
     ;;
+  dts)
+    args=("${@:2}")
+    dts
+    ;;
   *.js)
     args=("${@:1}")
     run $1
@@ -43,5 +54,6 @@ case $1 in
     args="$@"
     unit
     integration
+    dts
     ;;
 esac

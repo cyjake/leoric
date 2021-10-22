@@ -81,8 +81,8 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
   `gmt_create` timestamp(3) NULL,
-  `email` varchar(256) NOT NULL UNIQUE,
-  `nickname` varchar(256) NOT NULL,
+  `email` varchar(255) NOT NULL UNIQUE,
+  `nickname` varchar(255) NOT NULL,
   `meta` text,
   `status` int NOT NULL,
   `fingerprint` text,

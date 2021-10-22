@@ -91,6 +91,10 @@ class Realm {
     const Spine = createSpine(opts);
     const models = {};
 
+    if (Array.isArray(opts.models)) {
+      for (const model of opts.models) models[model.name] = model;
+    }
+
     const driver = new (findDriver(dialect))({
       client,
       database,

@@ -31,88 +31,108 @@ const attributes = {
 };
 
 describe('=> Realm', () => {
-  it('should export foundational modules', async () => {
-    assert.ok(connect);
-    assert.ok(Bone);
-    assert.ok(DataTypes);
-    assert.ok(Logger);
-    assert.ok(Spell);
-  });
-
-  it('should not subclass Bone unless asked specifically', async () => {
-    const arda = new Realm();
-    assert.equal(arda.Bone, Bone);
-
-    const realm = new Realm({ subclass: true });
-    assert.ok(realm.Bone.prototype instanceof Bone);
-  });
-
-  it('should subclass with sequelize api if opts.sequelize', async () => {
-    const realm = new Realm({ sequelize: true });
-    const { Bone: Spine } = realm;
-    assert.ok(typeof Spine.prototype.setDataValue === 'function');
-  });
-
-  it('should accept opts.Bone if it is subclass of Bone', async function() {
-    class Spine extends Bone {}
-    const realm = new Realm({ Bone: Spine });
-    assert.ok(realm.Bone);
-    assert.notEqual(realm.Bone, Bone);
-    assert.equal(realm.Bone, Spine);
-  });
-
-  it('should rename opts.db to opts.database', async () => {
-    const realm = new Realm({ db: 'leoric' });
-    assert.equal(realm.options.database, 'leoric');
-  });
-
-  it('should rename opts.storage to opts.database', async () => {
-    const realm = new Realm({ dialect: 'sqlite', storage: '/tmp/leoric.sqlite3' });
-    assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
-  });
-
-  it('should be able to customize logger with function', async () => {
-    const queries = [];
-    const realm = new Realm({
-      port: process.env.MYSQL_PORT,
-      user: 'root',
-      database: 'leoric',
-      logger(sql) {
-        queries.push(sql);
-      }
+  describe('exports', function() {
+    it('should export foundational modules', async () => {
+      assert.ok(connect);
+      assert.ok(Bone);
+      assert.ok(DataTypes);
+      assert.ok(Logger);
+      assert.ok(Spell);
     });
-    await realm.connect();
-    await realm.driver.query('SELECT 1');
-    assert.equal(queries[0], 'SELECT 1');
   });
 
-  it('should be able to customize logger with object', async () => {
-    const queries = [];
-    const realm = new Realm({
-      port: process.env.MYSQL_PORT,
-      user: 'root',
-      database: 'leoric',
-      logger: {
-        logQuery(sql) {
-          queries.push(sql);
-        }
-      }
+  describe('constructor(opts)', function() {
+    it('should not subclass Bone unless asked specifically', async () => {
+      const arda = new Realm();
+      assert.equal(arda.Bone, Bone);
+
+      const realm = new Realm({ subclass: true });
+      assert.ok(realm.Bone.prototype instanceof Bone);
     });
-    await realm.connect();
-    await realm.driver.query('SELECT 1');
-    assert.equal(queries[0], 'SELECT 1');
-  });
 
-  it('should reject if models option is not valid', async function() {
-    await assert.rejects(async function() {
+    it('should subclass with sequelize api if opts.sequelize', async () => {
+      const realm = new Realm({ sequelize: true });
+      const { Bone: Spine } = realm;
+      assert.ok(typeof Spine.prototype.setDataValue === 'function');
+    });
+
+    it('should accept opts.Bone if it is subclass of Bone', async function() {
+      class Spine extends Bone {}
+      const realm = new Realm({ Bone: Spine });
+      assert.ok(realm.Bone);
+      assert.notEqual(realm.Bone, Bone);
+      assert.equal(realm.Bone, Spine);
+    });
+
+    it('should rename opts.db to opts.database', async () => {
+      const realm = new Realm({ db: 'leoric' });
+      assert.equal(realm.options.database, 'leoric');
+    });
+
+    it('should rename opts.storage to opts.database', async () => {
+      const realm = new Realm({ dialect: 'sqlite', storage: '/tmp/leoric.sqlite3' });
+      assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
+    });
+
+    it('should be able to customize logger with function', async () => {
+      const queries = [];
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
         database: 'leoric',
-        models: true,
+        logger(sql) {
+          queries.push(sql);
+        }
       });
       await realm.connect();
-    }, /Unexpected models dir/);
+      await realm.driver.query('SELECT 1');
+      assert.equal(queries[0], 'SELECT 1');
+    });
+
+    it('should be able to customize logger with object', async () => {
+      const queries = [];
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        }
+      });
+      await realm.connect();
+      await realm.driver.query('SELECT 1');
+      assert.equal(queries[0], 'SELECT 1');
+    });
+
+    it('should reject if models option is not valid', async function() {
+      await assert.rejects(async function() {
+        const realm = new Realm({
+          port: process.env.MYSQL_PORT,
+          user: 'root',
+          database: 'leoric',
+          models: true,
+        });
+        await realm.connect();
+      }, /Unexpected models dir/);
+    });
+
+    it('should hold models as object in realm.models', async function() {
+      class User extends Bone {}
+      class Post extends Bone {
+        static table = 'articles'
+      }
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ Post, User ],
+      });
+      assert.equal(Object.keys(realm.models).length, 2);
+      assert.equal(realm.models.User, User);
+      assert.equal(realm.models.Post, Post);
+    });
   });
 
   describe('realm.query', async () => {

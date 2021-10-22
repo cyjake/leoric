@@ -44,8 +44,6 @@ interface SpellOptions {
   rowCount: 0;
 }
 
-type SpellFactory = (spell: Spell) => Promise<null | number | Collection<Bone> | ResultSet>;
-
 type OrderOptions = { [name: string]: 'desc' | 'asc' };
 
 type SetOptions = { [key: string]: Literal };
@@ -54,63 +52,65 @@ type WithOptions = {
   [qualifier: string]: { select: string[], throughRelation: string }
 }
 
-declare class Spell {
-  constructor(Model: Bone, factory: SpellFactory, opts: SpellOptions);
+declare class Spell<T extends typeof Bone> extends Promise<InstanceType<T> | Collection<InstanceType<T>> | ResultSet> {
+  constructor(Model: T, opts: SpellOptions);
 
-  select(...names: string[]): Spell & Promise<Bone>;
-  insert(opts: SetOptions): Spell & Promise<number>;
-  update(opts: SetOptions): Spell & Promise<number>;
-  upsert(opts: SetOptions): Spell & Promise<number>;
-  delete(): Spell & Promise<number>;
+  select(...names: string[]): Spell<T>;
+  insert(opts: SetOptions): Spell<T> & Promise<number>;
+  update(opts: SetOptions): Spell<T> & Promise<number>;
+  upsert(opts: SetOptions): Spell<T> & Promise<number>;
+  delete(): Spell<T> & Promise<number>;
 
-  from(table: string | Spell): Spell & Promise<Bone>;
+  from(table: string | Spell<T>): Spell<T>;
 
-  with(opts: WithOptions): Spell & Promise<Bone>;
-  with(...qualifiers: string[]): Spell & Promise<Bone>;
+  with(opts: WithOptions): Spell<T>;
+  with(...qualifiers: string[]): Spell<T>;
 
-  join(Model: Bone, onConditions: string, ...values: Literal[]): Spell & Promise<Bone>;
-  join(Model: Bone, onConditions: WhereConditions): Spell & Promise<Bone>;
+  join<U extends typeof Bone>(Model: U, onConditions: string, ...values: Literal[]): Spell<T>;
+  join<U extends typeof Bone>(Model: U, onConditions: WhereConditions): Spell<T>;
 
-  where(conditions: string, ...values: Literal[]): Spell & Promise<Bone>;
-  where(conditions: WhereConditions): Spell & Promise<Bone>;
+  $where(conditions: string, ...values: Literal[]): this;
+  $where(conditions: WhereConditions): this;
+  where(conditions: string, ...values: Literal[]): Spell<T>;
+  where(conditions: WhereConditions): Spell<T>;
 
-  orWhere(conditions: string, ...values: Literal[]): Spell & Promise<Bone>;
-  orWhere(conditions: WhereConditions): Spell & Promise<Bone>;
+  orWhere(conditions: string, ...values: Literal[]): Spell<T>;
+  orWhere(conditions: WhereConditions): Spell<T>;
 
-  group(...names: string[]): Spell & Promise<ResultSet>;
+  group(...names: string[]): Spell<T> & Promise<ResultSet>;
 
-  having(conditions: string, ...values: Literal[]): Spell & Promise<ResultSet>;
-  having(conditions: WhereConditions): Spell & Promise<ResultSet>;
+  having(conditions: string, ...values: Literal[]): Spell<T> & Promise<ResultSet>;
+  having(conditions: WhereConditions): Spell<T> & Promise<ResultSet>;
 
-  orHaving(conditions: string, ...values: Literal[]): Spell & Promise<ResultSet>;
-  orHaving(conditions: WhereConditions): Spell & Promise<ResultSet>;
+  orHaving(conditions: string, ...values: Literal[]): Spell<T> & Promise<ResultSet>;
+  orHaving(conditions: WhereConditions): Spell<T> & Promise<ResultSet>;
 
-  order(name: string, order?: 'desc' | 'asc'): Spell & Promise<Bone>;
-  order(opts: OrderOptions): Spell & Promise<Bone>;
+  order(name: string, order?: 'desc' | 'asc'): Spell<T>;
+  order(opts: OrderOptions): Spell<T>;
 
-  offset(skip: number): Spell & Promise<Bone>;
-  limit(skip: number): Spell & Promise<Bone>;
+  offset(skip: number): Spell<T>;
+  limit(skip: number): Spell<T>;
 
-  count(name?: string): Spell & Promise<ResultSet>;
-  average(name?: string): Spell & Promise<ResultSet>;
-  minimum(name?: string): Spell & Promise<ResultSet>;
-  maximum(name?: string): Spell & Promise<ResultSet>;
-  sum(name?: string): Spell & Promise<ResultSet>;
+  count(name?: string): Spell<T> & Promise<ResultSet>;
+  average(name?: string): Spell<T> & Promise<ResultSet>;
+  minimum(name?: string): Spell<T> & Promise<ResultSet>;
+  maximum(name?: string): Spell<T> & Promise<ResultSet>;
+  sum(name?: string): Spell<T> & Promise<ResultSet>;
 
-  batch(size?: number): AsyncIterable<Bone>;
+  batch(size?: number): AsyncIterable<T>;
 
   toSqlString(): string;
   toString(): string;
 }
 
-type Literal = null | boolean | number | string | Date | JSON | ArrayBuffer;
+type Literal = null | undefined | boolean | number | string | Date | object | ArrayBuffer;
 
 type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
 } & {
   [key in '$in' | '$nin' | '$notIn']?: Literal[] | Set<Literal>;
 } & {
-  [key in '$like' | '$notLike']?: Literal[];
+  [key in '$like' | '$notLike']?: string;
 } & {
   [key in '$gt' | '$gte' | '$lt' | '$lte']?: number;
 } & {
@@ -188,18 +188,16 @@ declare class Driver {
   /**
    * Grab a connection and query the database
    */
-  query(sql: string, values: Array<Literal>): ResultSet;
+  query(sql: string, values: Array<Literal>): Promise<ResultSet>;
 }
 
-type ResultSet = Values[] | { [qualifier: string]: Values }[]
+type ResultSet = Values[];
 
 declare class Collection<Bone> extends Array<Bone> {
   save(): Promise<void>;
   toJSON(): Object[];
   toObject(): Object[];
 }
-
-type Query = Spell & Promise<Collection<Bone>>;
 
 export class Bone {
   /**
@@ -218,7 +216,7 @@ export class Bone {
   static model: { [key: string]: Bone };
 
   /**
-   * The table name of current model, which needs to be specified by the model subclass.
+   * The table name of the model, which needs to be specified by the model subclass.
    */
   static table: string;
 
@@ -228,9 +226,14 @@ export class Bone {
   static tableAlias: string;
 
   /**
-   * The primary key of current model, defaults to `id`.
+   * The primary key of the model, defaults to `id`.
    */
   static primaryKey: string;
+
+  /**
+   * The primary column of the table, defaults to `id`. This is {@link Bone.primaryKey} in snake case.
+   */
+  static primaryColumn: string;
 
   /**
    * The attribute definitions of the model.
@@ -260,7 +263,7 @@ export class Bone {
    * @param conditions query conditions
    * @param opts query options
    */
-  static restore(conditions: Object, opts?: QueryOptions): Spell & Promise<number>;
+  static restore<T extends typeof Bone>(this: T, conditions: Object, opts?: QueryOptions): Spell<T> & Promise<number>;
 
   /**
    * Override attribute metadata
@@ -288,7 +291,7 @@ export class Bone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create(values: Values, options?: QueryOptions): Promise<Bone>;
+  static create<T extends typeof Bone>(this: T, values: Values, options?: QueryOptions): Promise<InstanceType<T>>;
 
   /**
    * INSERT or UPDATE rows
@@ -297,12 +300,12 @@ export class Bone {
    * @param values values
    * @param opt query options
    */
-  static upsert(values: Object, options?: QueryOptions): Spell & Promise<number>;
+  static upsert<T extends typeof Bone>(this: T, values: Object, options?: QueryOptions): Spell<T> & Promise<number>;
 
   /**
    * Batch INSERT
    */
-  static bulkCreate(records: Array<Record<string, Literal>>, options?: QueryOptions): Promise<Array<Bone>>;
+  static bulkCreate<T extends typeof Bone>(this: T, records: Array<Record<string, Literal>>, options?: QueryOptions): Promise<Array<InstanceType<T>>>;
 
   /**
    * SELECT rows
@@ -310,21 +313,21 @@ export class Bone {
    * Bone.find('foo = ?', 1)
    * Bone.find({ foo: { $eq: 1 } })
    */
-  static find(whereConditions: string, ...values: Literal[]): Query;
-  static find(whereConditions: WhereConditions): Query;
-  static find(): Query;
+  static find<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T> & Promise<Collection<InstanceType<T>>>;
+  static find<T extends typeof Bone>(this: T, whereConditions: WhereConditions): Spell<T> & Promise<Collection<InstanceType<T>>>;
+  static find<T extends typeof Bone>(this: T, ): Spell<T> & Promise<Collection<InstanceType<T>>>;
 
   /**
    * SELECT all rows. In production, when the table is at large, it is not recommended to access records in this way. To iterate over all records, {@link Bone.batch} shall be considered as the better alternative. For tables with soft delete enabled, which means they've got `deletedAt` attribute, use {@link Bone.unscoped} to discard the default scope.
    */
-  static all: Query;
+  static all: Spell<typeof Bone> & Promise<(typeof Bone)[]>;
 
   /**
    * Discard all the applied scopes.
    * @example
    * Bone.all.unscoped  // includes soft deleted rows
    */
-  static unscoped: Query;
+  static unscoped: Spell<typeof Bone>;
 
   /**
    * SELECT rows LIMIT 1. Besides limiting the results to one rows, the type of the return value is different from {@link Bone.find} too. If no results were found, {@link Bone.findOne} returns null. If results were found, it returns the found record instead of wrapping them as a collection.
@@ -332,9 +335,9 @@ export class Bone {
    * Bone.findOne('foo = ?', 1)
    * Bone.findOne({ foo: { $eq: 1 } })
    */
-  static findOne(whereConditions: string, ...values: Literal[]): Spell & Promise<Bone | null>;
-  static findOne(whereConditions: WhereConditions): Spell & Promise<Bone | null>;
-  static findOne(): Spell & Promise<Bone | null>;
+  static findOne<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T> & Promise<InstanceType<T> | null>;
+  static findOne<T extends typeof Bone>(this: T, whereConditions: WhereConditions): Spell<T> & Promise<InstanceType<T> | null>;
+  static findOne<T extends typeof Bone>(this: T, ): Spell<T> & Promise<InstanceType<T> | null>;
 
   /**
    * SELECT rows OFFSET index LIMIT 1
@@ -342,24 +345,24 @@ export class Bone {
    * Bone.get(8)
    * Bone.find({ foo: { $gt: 1 } }).get(42)
    */
-  static get(index: number): Spell & Promise<Bone | null>;
+  static get<T extends typeof Bone>(this: T, index: number): Spell<T> & Promise<InstanceType<T> | null>;
 
   /**
    * SELECT rows ORDER BY id ASC LIMIT 1
    */
-  static first: Spell & Promise<Bone | null>;
+  static first: Spell<typeof Bone> & Promise<Bone | null>;
 
   /**
    * SELECT rows ORDER BY id DESC LIMIT 1
    */
-  static last: Spell & Promise<Bone | null>;
+  static last: Spell<typeof Bone> & Promise<Bone | null>;
 
   /**
    * Short of `Bone.find().with(...names)`
    * @example
    * Post.include('author', 'comments').where('posts.id = ?', 1)
    */
-  static include(...names: string[]) : Query;
+  static include<T extends typeof Bone>(this: T, ...names: string[]) : Spell<T>;
 
   /**
    * Whitelist SELECT fields by names or filter function
@@ -370,16 +373,16 @@ export class Bone {
    * Bone.select('MONTH(date), foo + 1')
    * Bone.select(name => name !== foo)
    */
-  static select(...names: string[]): Query;
-  static select(filter: (name: string) => boolean): Query;
+  static select<T extends typeof Bone>(this: T, ...names: string[]): Spell<T>;
+  static select<T extends typeof Bone>(this: T, filter: (name: string) => boolean): Spell<T>;
 
   /**
    * JOIN arbitrary models with given ON conditions
    * @example
    * Bone.join(Muscle, 'bones.id == muscles.boneId')
    */
-  static join(Model: Bone, onConditions: string, ...values: Literal[]): Query;
-  static join(Model: Bone, onConditions: WhereConditions): Query;
+  static join<T extends typeof Bone>(this: T, Model: Bone, onConditions: string, ...values: Literal[]): Spell<T>;
+  static join<T extends typeof Bone>(this: T, Model: Bone, onConditions: WhereConditions): Spell<T>;
 
   /**
    * Set WHERE conditions
@@ -387,8 +390,8 @@ export class Bone {
    * Bone.where('foo = ?', 1)
    * Bone.where({ foo: { $eq: 1 } })
    */
-  static where(whereConditions: string, ...values: Literal[]): Query;
-  static where(whereConditions: WhereConditions): Query;
+  static where<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T>;
+  static where<T extends typeof Bone>(this: T, whereConditions: WhereConditions): Spell<T>;
 
   /**
    * Set GROUP fields
@@ -396,7 +399,7 @@ export class Bone {
    * Bone.group('foo')
    * Bone.group('MONTH(createdAt)')
    */
-  static group(...names: string[]): Spell & Promise<ResultSet>;
+  static group<T extends typeof Bone>(this: T, ...names: string[]): Spell<T> & Promise<ResultSet>;
 
   /**
    * Set ORDER fields
@@ -405,24 +408,24 @@ export class Bone {
    * Bone.order('foo', 'desc')
    * Bone.order({ foo: 'desc' })
    */
-  static order(name: string, order?: 'desc' | 'asc'): Query;
-  static order(opts: OrderOptions): Query;
+  static order<T extends typeof Bone>(this: T, name: string, order?: 'desc' | 'asc'): Spell<T>;
+  static order<T extends typeof Bone>(this: T, opts: OrderOptions): Spell<T>;
 
-  static count(name?: string): Spell & Promise<ResultSet>;
-  static average(name?: string): Spell & Promise<ResultSet>;
-  static minimum(name?: string): Spell & Promise<ResultSet>;
-  static maximum(name?: string): Spell & Promise<ResultSet>;
-  static sum(name?: string): Spell & Promise<ResultSet>;
+  static count<T extends typeof Bone>(this: T, name?: string): Spell<T> & Promise<ResultSet>;
+  static average<T extends typeof Bone>(this: T, name?: string): Spell<T> & Promise<ResultSet>;
+  static minimum<T extends typeof Bone>(this: T, name?: string): Spell<T> & Promise<ResultSet>;
+  static maximum<T extends typeof Bone>(this: T, name?: string): Spell<T> & Promise<ResultSet>;
+  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T> & Promise<ResultSet>;
 
   /**
    * UPDATE rows.
    */
-  static update(whereConditions: WhereConditions, values?: Object, opts?: QueryOptions): Spell & Promise<number>;
+  static update<T extends typeof Bone>(this: T, whereConditions: WhereConditions, values?: Object, opts?: QueryOptions): Spell<T> & Promise<number>;
 
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
-  static remove(whereConditions: WhereConditions, forceDelete?: boolean, opt?: QueryOptions): Spell & Promise<number>;
+  static remove<T extends typeof Bone>(this: T, whereConditions: WhereConditions, forceDelete?: boolean, opt?: QueryOptions): Spell<T> & Promise<number>;
 
   /**
    * Grabs a connection and starts a transaction process. Both GeneratorFunction and AsyncFunction are acceptable. If GeneratorFunction is used, the connection of the transaction process will be passed around automatically.
@@ -511,8 +514,8 @@ export class Bone {
    * bone.remove(true)  // => DELETE FROM ... WHERE ...
    * bone.remove(true, { hooks: false })
    */
-  remove(forceDelete?: boolean): Spell & Promise<number>;
-  remove(forceDelete?: boolean, opts?: QueryOptions): Spell & Promise<number>;
+  remove(forceDelete?: boolean): Promise<number>;
+  remove(forceDelete?: boolean, opts?: QueryOptions): Promise<number>;
 
   /**
    * update or insert record.
@@ -521,31 +524,31 @@ export class Bone {
    * bone.upsert({ hooks: false })
    * @param opts queryOptions
    */
-  upsert(opts?: QueryOptions): Spell & Promise<number>;
+  upsert(opts?: QueryOptions): Promise<number>;
 
   /**
    * update rows
    * @param changes data changes
    * @param opts query options
    */
-  update(changes: Object, opts?: QueryOptions): Spell & Promise<number>;
+  update(changes: Object, opts?: QueryOptions): Promise<number>;
 
   /**
    * create instance
    * @param opts query options
    */
-  create(opts?: QueryOptions): Spell & Promise<Bone>;
+  create(opts?: QueryOptions): Promise<this>;
 
   /**
    * reload instance
    */
-  reload(): Promise<Bone>;
+  reload(): Promise<this>;
 
   /**
    * restore data
    * @param opts query options
    */
-  restore(opts?: QueryOptions): Promise<Bone>;
+  restore(opts?: QueryOptions): Promise<this>;
 
   /**
    * Gets called when `JSON.stringify(instance)` is invoked.
@@ -556,7 +559,7 @@ export class Bone {
    * post.toJSON()  // => { id: 1, ... }
    * @return {Object}
    */
-  toJSON(): Record<string, any>;
+  toJSON(): Record<string, Literal>;
 
   /**
    * This is the loyal twin of {@link Bone#toJSON} because when generating the result object, the raw values of attributes are used, instead of the values returned by custom getters (if any).
@@ -576,7 +579,7 @@ interface ConnectOptions {
   host?: string;
   user?: string;
   database: string;
-  models?: string | Bone[];
+  models?: string | (typeof Bone)[];
 }
 
 interface InitOptions {
