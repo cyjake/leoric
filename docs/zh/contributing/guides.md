@@ -37,6 +37,8 @@ $ npm run test
 $ npm run test:unit
 # 仅运行集成测试
 $ npm run test:integration
+# TypeScript 定义
+$ npm run test:dts
 ```
 
 还可以执行单个测试文件，或者使用 `--grep` 选项进一步限定执行范围：
