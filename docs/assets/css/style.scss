@@ -52,6 +52,10 @@ $text-blue: var(--theme-color);
         border-color: rgba(255, 255, 255, 0.15);
       }
     }
+
+    code, tt {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
   }
 
   .border-gray-light {
@@ -171,6 +175,15 @@ body {
   figure {
     img {
       background: transparent;
+    }
+  }
+
+  .belongs-to-erd,
+  .has-many-erd,
+  .has-one-erd,
+  .has-many-through-erd {
+    img {
+      background: rgba(255, 255, 255, 0.8);
     }
   }
 
