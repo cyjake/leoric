@@ -1,3 +1,16 @@
+1.13.4 / 2021-10-25
+===================
+
+## What's Changed
+* docs: spell & model methods should be generic  by @cyjake in https://github.com/cyjake/leoric/pull/206
+* docs: enhance query options, instance type, and toJSON() result type by @cyjake in https://github.com/cyjake/leoric/pull/207
+
+This version brings correct (and hopefully better) typescript definitions, with the dts checked continuously at test/types tests. With this version, users that have model types correctly pinned at Bone will get code completion including class fields. Such as:
+
+![image](https://user-images.githubusercontent.com/252317/138683240-98ee9e79-4b3e-449c-bc95-a449d457d64f.png)
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.3...v1.13.4
+
 1.13.3 / 2021-10-21
 ===================
 
