@@ -35,6 +35,8 @@ $ npm run test
 $ npm run test:unit
 # run integration tests
 $ npm run test:integration
+# run typescript definition tests
+$ npm run test:dts
 ```
 
 To be more specific, we can filter test files and cases:

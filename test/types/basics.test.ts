@@ -1,11 +1,27 @@
 import { strict as assert } from 'assert';
-import { Bone, connect } from '../..';
+import { Bone, DataTypes, connect } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
+  const { BIGINT, STRING, TEXT, DATE, BOOLEAN } = DataTypes;
   class Post extends Bone {
     static table = 'articles';
 
-    // TODO: generate definitions or deduce from model attributes
+    static attributes = {
+      id: BIGINT,
+      createdAt: { type: DATE, columnName: 'gmt_create' },
+      updatedAt: { type: DATE, columnName: 'gmt_modified' },
+      deletedAt: { type: DATE, columnName: 'gmt_deleted' },
+      title: STRING,
+      content: TEXT,
+      extra: TEXT,
+      thumb: STRING,
+      authorId: BIGINT,
+      isPrivate: BOOLEAN,
+      summary: TEXT,
+      settings: TEXT,
+    }
+
+    // TODO: should be generated or automated with decorator
     id: number;
     createdAt: Date;
     updatedAt: Date;
@@ -14,7 +30,7 @@ describe('=> Basics (TypeScript)', function() {
     content: string;
     extra: string;
     thumb: string;
-    authroId: number;
+    authorId: number;
     isPrivate: boolean;
     summary: string;
     settings: string;
@@ -64,7 +80,10 @@ describe('=> Basics (TypeScript)', function() {
   });
 
   describe('=> Collection', function() {
-
+    it('collection.toJSON()', async function() {
+      const posts = await Post.all;
+      assert.deepEqual(posts.toJSON(), []);
+    });
   });
 
   describe('=> Create', function() {
@@ -116,6 +135,11 @@ describe('=> Basics (TypeScript)', function() {
     it('Post.findOne()', async function() {
       const post = await Post.findOne({ title: 'Leah' });
       assert.equal(post.title, 'Leah');
+    });
+
+    it('Post.where()', async function() {
+      const posts = await Post.where({ title: { $like: '%a%' } }).select('title');
+      assert.equal(posts.length, 3);
     });
   });
 
