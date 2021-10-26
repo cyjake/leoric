@@ -49,7 +49,7 @@ type OrderOptions = { [name: string]: 'desc' | 'asc' };
 type SetOptions = { [key: string]: Literal };
 
 type WithOptions = {
-  [qualifier: string]: { select: string[], throughRelation: string }
+  [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
 declare class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
@@ -91,11 +91,11 @@ declare class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Inst
   offset(skip: number): Spell<T, U>;
   limit(skip: number): Spell<T, U>;
 
-  count(name?: string): Spell<T, ResultSet>;
-  average(name?: string): Spell<T, ResultSet>;
-  minimum(name?: string): Spell<T, ResultSet>;
-  maximum(name?: string): Spell<T, ResultSet>;
-  sum(name?: string): Spell<T, ResultSet>;
+  count(name?: string): Spell<T, Extract<U, ResultSet | number>>;
+  average(name?: string): Spell<T, Extract<U, ResultSet | number>>;
+  minimum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
+  maximum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
+  sum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
 
   batch(size?: number): AsyncIterable<T>;
 
@@ -161,8 +161,8 @@ interface QueryOptions {
 interface QueryResult {
   insertId?: number;
   affectedRows?: number;
-  rows?: Record<string, Literal>,
-  fields?: { table: string, name: string },
+  rows?: Array<Record<string, Literal>>,
+  fields?: Array<{ table: string, name: string }>,
 }
 
 interface Connection {
@@ -423,11 +423,11 @@ export class Bone {
   static order<T extends typeof Bone>(this: T, name: string, order?: 'desc' | 'asc'): Spell<T>;
   static order<T extends typeof Bone>(this: T, opts: OrderOptions): Spell<T>;
 
-  static count<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet>;
-  static average<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet>;
-  static minimum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet>;
-  static maximum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet>;
-  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet>;
+  static count<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static average<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static minimum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static maximum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
 
   /**
    * UPDATE rows.
