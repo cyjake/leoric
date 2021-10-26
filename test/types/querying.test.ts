@@ -4,6 +4,15 @@ import { Bone, connect } from '../..'
 describe('=> Querying (TypeScript)', function() {
   class Post extends Bone {
     static table = 'articles'
+    title: string;
+  }
+
+  class User extends Bone {
+    static initialize() {
+      this.hasMany('posts', { foreignKey: 'authorId' });
+    }
+    id: number;
+    posts?: Post[];
   }
 
   before(async function() {
@@ -11,12 +20,13 @@ describe('=> Querying (TypeScript)', function() {
     await connect({
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
-      models: [ Post ],
+      models: [ Post, User ],
     });
   });
 
   beforeEach(async function() {
     await Post.truncate();
+    await User.truncate();
   });
 
   describe('=> Driver', function() {
@@ -31,6 +41,42 @@ describe('=> Querying (TypeScript)', function() {
       );
       assert.equal(affectedRows, 1);
       assert.ok(insertId);
+    });
+  });
+
+  describe('=> Associations', function() {
+    it('Bone.findOne().with()', async function() {
+      const author = await User.create({
+        email: 'hi@there.com',
+        nickname: 'Hey',
+        status: 0,
+      });
+      await Post.bulkCreate([
+        { title: 'Leah' },
+        { title: 'Stranger', authorId: author.id }
+      ])
+      const user = await User.findOne({}).with({ posts: { select: 'title' } });
+      assert.equal(user.id, author.id);
+      assert.ok(Array.isArray(user.posts));
+      assert.equal(user.posts.length, 1);
+      assert.equal(user.posts[0].title, 'Stranger');
+    });
+  });
+
+  describe('=> Aggregations', function() {
+    it('Bone.count()', async function() {
+      const count = await Post.count();
+      assert.equal(count, 0);
+    });
+
+    it('Bone.group().count()', async function() {
+      const result = await Post.group('title').count();
+      assert.ok(Array.isArray(result));
+    });
+
+    it('Bone.where().count()', async function() {
+      const count = await Post.where({ title: 'Leah' }).count();
+      assert.equal(count, 0);
     });
   });
 });
