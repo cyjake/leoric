@@ -9,6 +9,7 @@ const { escapeId, escape } = require('./sqlstring');
 const schema = require('./schema');
 const spellbook = require('./spellbook');
 const Pool = require('./pool');
+
 class SqliteDriver extends AbstractDriver {
   constructor(opts = {}) {
     super(opts);

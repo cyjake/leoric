@@ -55,7 +55,7 @@ type WithOptions = {
 declare class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
-  select(...names: string[]): Spell<T, U>;
+  select(...names: Array<string | RawSql>): Spell<T, U>;
   insert(opts: SetOptions): Spell<T, number>;
   update(opts: SetOptions): Spell<T, number>;
   upsert(opts: SetOptions): Spell<T, number>;
@@ -77,7 +77,7 @@ declare class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Inst
   orWhere(conditions: WhereConditions<T>): Spell<T, U>;
   orWhere(conditions: string, ...values: Literal[]): Spell<T, U>;
 
-  group(...names: string[]): Spell<T, ResultSet>;
+  group(...names: Array<string | RawSql>): Spell<T, ResultSet>;
 
   having(conditions: string, ...values: Literal[]): Spell<T, ResultSet>;
   having(conditions: WhereConditions<T>): Spell<T, ResultSet>;
@@ -152,10 +152,17 @@ interface RelateOptions {
 }
 
 interface QueryOptions {
-  validate?: boolean,
-  individualHooks?: boolean,
-  hooks?: boolean,
-  paranoid?: boolean,
+  validate?: boolean;
+  individualHooks?: boolean;
+  hooks?: boolean;
+  paranoid?: boolean;
+}
+
+interface QueryResult {
+  insertId?: number;
+  affectedRows?: number;
+  rows?: Record<string, Literal>,
+  fields?: { table: string, name: string },
 }
 
 interface Connection {
@@ -164,9 +171,8 @@ interface Connection {
    */
   query(
     query: string,
-    values: Array<Literal>,
-    callback: (err: Error|null, results: ResultSet, fields: Array<string>) => void
-  ): void;
+    values: Array<Literal | Literal[]>,
+  ): Promise<QueryResult>;
 }
 
 declare class Pool {
@@ -192,7 +198,7 @@ declare class Driver {
   /**
    * Grab a connection and query the database
    */
-  query(sql: string, values: Array<Literal>): Promise<ResultSet[]>;
+  query(sql: string, values?: Array<Literal | Literal[]>): Promise<QueryResult>;
 }
 
 type ResultSet = {

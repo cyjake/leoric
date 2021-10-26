@@ -75,4 +75,9 @@ describe('=> MySQL driver', () => {
     assert.equal((await driver.query('SELECT count(*) AS count FROM notes')).rows[0].count, 0);
   });
 
+  it('driver.query()', async function() {
+    const { affectedRows, insertId } = await driver.query('INSERT INTO articles (title) VALUES ("Leah")');
+    assert.ok(insertId);
+    assert.equal(affectedRows, 1);
+  });
 });
