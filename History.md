@@ -1,3 +1,12 @@
+1.13.5 / 2021-10-26
+===================
+
+## What's Changed
+* docs: enhance aggregation query types & fix raw query result type by @cyjake in https://github.com/cyjake/leoric/pull/208
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.4...v1.13.5
+
 1.13.4 / 2021-10-25
 ===================
 
