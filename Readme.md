@@ -48,7 +48,7 @@ If table structures were intended to be maintained in the models, Leoric can be 
 const { BIGINT, STRING } = Bone.DataTypes;
 class Post extends Bone {
   static attributes = {
-    id: { type: BIGINT, primayKey: true },
+    id: { type: BIGINT, primaryKey: true },
     email: { type: STRING, allowNull: false },
     nickname: { type: STRING, allowNull: false },
   }
