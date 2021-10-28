@@ -243,8 +243,13 @@ class Bone {
   }
 
   // protected
-  _setRaw(key, value) {
-    this.#raw[key] = value;
+  _setRaw(...args) {
+    const [ name, value ] = args;
+    if (args.length > 1) {
+      this.#raw[name] = value;
+    } else if (args.length === 1 && name !== undefined && typeof name === 'object') {
+      this.#raw = name;
+    }
   }
 
   // protected
@@ -626,13 +631,31 @@ class Bone {
   /**
    * Persist changes on current instance back to database with `UPDATE`.
    * @public
-   * @param {Object} changes
+   * @param {Object} values
    * @param {Object?} options
    * @returns {number} affected rows
    * @memberof Bone
    */
-  update(changes, options = {}) {
-    return this._update(changes, options);
+  async update(values, options = {}) {
+    const changes = {};
+    const originalValues = Object.assign({}, this.#raw);
+    if (typeof values === 'object') {
+      for (const name in values) {
+        if (values[name] !== undefined && this.hasAttribute(name)) {
+          // exec custom setters in case it exist
+          this[name] = values[name];
+          changes[name] = this.attribute(name);
+        }
+      }
+    }
+    try {
+      const res = await this._update(Object.keys(changes).length? changes : values, options);
+      return res;
+    } catch (error) {
+      // revert value in case update failed
+      this._setRaw(originalValues);
+      throw error;
+    }
   }
 
   /**
@@ -640,23 +663,19 @@ class Bone {
    * @private
    * @return {number}
    */
-  _update(values, options = {}) {
-    const changes = {};
+  async _update(values, options = {}) {
     const Model = this.constructor;
     const { attributes, primaryKey, shardingKey } = Model;
-
+    let changes = {};
     if (values == null) {
       for (const name in attributes) {
         if (this.changed(name)) changes[name] = this.attribute(name);
       }
-    } else if (typeof values === 'object') {
-      for (const name in values) {
-        const originValue = this.attribute(name);
-        // exec custom setters in case it exist
-        this[name] = values[name];
-        changes[name] = this.attribute(name);
-        // revert value in case update failed
-        this.attribute(name, originValue);
+    } else {
+      for (const key in values) {
+        if (values[key] !== undefined && this.hasAttribute(key)) {
+          changes[key] = values[key];
+        }
       }
     }
 
@@ -676,7 +695,7 @@ class Bone {
       this._validateAttributes(changes);
     }
     const spell = new Spell(Model, options).$where(where).$update(changes);
-    return spell.later(result => {
+    return await spell.later(result => {
       // sync changes (changes has been formatted by custom setters, use this.attribute(name, value) directly)
       for (const key in changes) {
         this.attribute(key, changes[key]);

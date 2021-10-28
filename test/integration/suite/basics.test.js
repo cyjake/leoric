@@ -685,6 +685,21 @@ describe('=> Basic', () => {
       assert.deepEqual(post.extra, { versions: [ 2, 3 ] });
     });
 
+    it('bone.update(values, options)', async () => {
+      const post = await Post.create({ title: 'New Post' });
+      await post.update({ extra: { versions: [ 2, 3 ] } });
+      await post.reload();
+      assert.deepEqual(post.extra, { versions: [ 2, 3 ] });
+      await post.update({ extra: { versions: [ 2, 3, 4 ], title: undefined } });
+      await post.reload();
+      assert.deepEqual(post.extra, { versions: [ 2, 3, 4 ] });
+      assert.deepEqual(post.title, 'New Post');
+
+      await post.update({ extra: { versions: [ 2, 3, 4, 5 ] }, notAttribute: 'not' });
+      await post.reload();
+      assert.deepEqual(post.extra, { versions: [ 2, 3, 4, 5 ] });
+    });
+
     it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
       const post = await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2010, 9, 11) });
       const updatedAtWas = post.updatedAt;

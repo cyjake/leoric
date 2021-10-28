@@ -974,10 +974,14 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('model.update()', async () => {
-    const post = await Post.create({ title: 'By three they come' });
+    const post = await Post.create({ title: 'By three they come', authorId: 1 });
     await post.update({ title: 'By three thy way opens' });
-    const result = await Post.first;
+    let result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
+    await post.update({ title: 'By three thy way opened', authorId: undefined });
+    result = await Post.first;
+    assert.equal(result.title, 'By three thy way opened');
+    assert.equal(result.authorId, 1);
   });
 
   it('model.changed(key)', async () => {
@@ -1018,6 +1022,7 @@ describe('=> Sequelize adapter', () => {
     await post.update({ title: 'By four thy way opens' });
     const result1 = await Post.findByPk(post.id, { paranoid: false });
     assert.equal(result1.title, 'By four thy way opens');
+
   });
 
   it('model.changed(key)', async () => {
@@ -1328,6 +1333,7 @@ describe('Model.init with getterMethods and setterMethods', () => {
   }
 
   const Spine = sequelize(Bone);
+  const email = 'shouldupdatemeta@leoric.com';
 
   class User extends Spine {
     get i () {
@@ -1362,6 +1368,12 @@ describe('Model.init with getterMethods and setterMethods', () => {
       },
       fingerprint(value) {
         this.attribute('fingerprint', encrypt(value));
+      },
+      email(value) {
+        this.attribute('email', value);
+        if (value === email) {
+          this.meta.email = value;
+        }
       }
     }
   });
@@ -1434,6 +1446,17 @@ describe('Model.init with getterMethods and setterMethods', () => {
     });
     assert.equal(user.desc, 'HELLO');
     assert.equal(user.specDesc, 'HELLO');
+  });
+
+  it('should update side effect field in custom setter', async () => {
+    const user = await User.create({
+      nickname: 'testy', email: 'a@a.com', meta: { foo: 1, bar: 'baz'}, status: 1, specDesc: 'hello'
+    });
+    await user.update({
+      email,
+    });
+    await user.reload();
+    assert(user.meta.email === email);
   });
 
 });
