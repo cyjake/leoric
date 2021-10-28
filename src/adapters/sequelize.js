@@ -496,29 +496,46 @@ module.exports = Bone => {
     async update(values = {}, options = {}) {
       const { fields } = options;
       const changeValues = {};
+      const originalValues = Object.assign({}, this.getRaw());
+      for (const name in values) {
+        if (values[name] !== undefined && this.hasAttribute(name)) {
+          // exec custom setters in case it exist
+          this[name] = values[name];
+          changeValues[name] = this.attribute(name);
+        }
+      }
+
       const changedKeys = this.changed();
       if (changedKeys) {
         for (const name of changedKeys) {
           // custom getter should be executed in case there is a custom setter
-          changeValues[name] = this[name];
+          if (!(name in changeValues)) changeValues[name] = this[name];
         }
       }
 
       let changes = {};
       if (fields && fields.length) {
         fields.map(key => {
-          if (values[key] !== undefined) changes[key] = values[key];
-          else changes[key] = changeValues[key] || this.attribute(key);
+          if (changeValues[key] !== undefined) changes[key] = changeValues[key];
+          else if (values[key] !== undefined) changes[key] = values[key];
+          else changes[key] = this.attribute(key);
         });
       } else {
         changes = {
-          ...changeValues,
           ...values,
+          ...changeValues,
         };
       }
-      const spell = super._update(changes, options);
       // instance update don't need to be paranoid
-      return spell.unparanoid;
+      options.paranoid = false;
+      try {
+        const res = await super._update(changes, options);
+        return res;
+      } catch (err) {
+        // revert value in case update failed
+        this._setRaw(originalValues);
+        throw err;
+      }
     }
 
     // EXISTS
