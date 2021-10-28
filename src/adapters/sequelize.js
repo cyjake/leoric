@@ -331,6 +331,7 @@ module.exports = Bone => {
       let spell = this._find({}, filterOptions(options));
       translateOptions(spell, options);
       let spellCount = this._find({}, filterOptions(options));
+      delete options.attributes;
       translateOptions(spellCount, options);
       delete spellCount.rowCount;
       delete spellCount.skip;

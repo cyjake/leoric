@@ -532,6 +532,19 @@ describe('=> Sequelize adapter', () => {
 
     assert.equal(rows1.length, 0);
     assert.equal(count1, 1);
+
+    //ignore attributes
+
+    const { rows: rows2, count: count2 } = await Post.findAndCountAll({
+      where: {
+        title: { $like: '%ea%' },
+      },
+      attributes: [ 'id' ],
+    });
+
+    assert.equal(rows2.length, 1);
+    assert.equal(count2, 1);
+    assert.deepEqual(Object.keys(rows2[0].getRaw()), [ 'id' ]);
   });
 
   it('Model.findAndCountAll(opt) with paranoid = false', async () => {
