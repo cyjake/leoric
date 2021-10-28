@@ -1,3 +1,11 @@
+import DataType from './data_types';
+
+export { DataType as DataTypes };
+
+type DataTypes<T> = {
+  [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
+}
+
 interface ExprIdentifier {
   type: 'id';
   value: string;
@@ -129,21 +137,15 @@ type InstanceValues<T> = {
   [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
 }
 
-declare class DataType {}
-
-export const DataTypes: {
-  [key in 'STRING' | 'INTEGER' | 'BIGINT' | 'DATE' | 'BOOLEAN' | 'TEXT' | 'BLOB' | 'JSON' | 'JSONB' | 'BINARY' | 'VARBINARY' ]: DataType;
-};
-
 interface AttributeMeta {
-  column: string;
-  columnType: string;
-  allowNull: boolean;
-  defaultValue: Literal;
-  primaryKey: boolean;
-  dataType: string;
-  jsType: Literal;
-  type: DataType;
+  column?: string;
+  columnType?: string;
+  allowNull?: boolean;
+  defaultValue?: Literal;
+  primaryKey?: boolean;
+  dataType?: string;
+  jsType?: Literal;
+  type: DataTypes<DataType>;
 }
 
 interface RelateOptions {
@@ -212,8 +214,10 @@ declare class Collection<T extends Bone> extends Array<T> {
 }
 
 export class Bone {
+  static DataTypes: DataType;
+
   /**
-   * The connection pool of the specified client, with few `Leoric_` prefixed methods extended to eliminate client differences.
+   * get the connection pool of the driver
    */
   static pool: Pool;
 
@@ -250,7 +254,7 @@ export class Bone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: DataType | AttributeMeta };
+  static attributes: { [key: string]: DataTypes<DataType> | AttributeMeta };
 
   /**
    * The schema info of current model.
@@ -617,7 +621,7 @@ interface RawQueryOptions {
 }
 
 export default class Realm {
-  Bone: Bone;
+  Bone: typeof Bone;
   driver: Driver;
   models: Record<string, Bone>;
 
