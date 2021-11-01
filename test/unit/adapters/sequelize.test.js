@@ -1146,6 +1146,19 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.Model, Book);
     assert.equal(book.Model.name, 'Book');
   });
+
+  it('instance.reload()', async function() {
+    const [ , book ] = await Book.bulkCreate([
+      { name: 'Book of Cain', price: 42 },
+      { name: 'Book of Tyrael', price: 24 },
+    ]);
+    await Book.update({ name: 'Book of Justice' }, {
+      where: { isbn: book.isbn },
+    });
+    assert.equal(book.name, 'Book of Tyrael');
+    await book.reload();
+    assert.equal(book.name, 'Book of Justice');
+  });
 });
 
 describe('Model scope', () => {
