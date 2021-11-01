@@ -1,3 +1,12 @@
+1.14.1 / 2021-11-01
+===================
+
+## What's Changed
+* docs: export { Collection } by @cyjake in https://github.com/cyjake/leoric/pull/220
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.14.0...v1.14.1
+
 1.14.0 / 2021-11-01
 ===================
 
