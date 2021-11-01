@@ -15,12 +15,6 @@ const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
 
-const LEGACY_TIMESTAMP_MAP = {
-  gmtCreate: 'createdAt',
-  gmtModified: 'updatedAt',
-  gmtDeleted: 'deletedAt',
-};
-
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
     result[name] = {
@@ -913,27 +907,6 @@ class Bone {
     Object.assign(attribute, { jsType });
   }
 
-  static normalize(attributes) {
-    for (const name in LEGACY_TIMESTAMP_MAP) {
-      const newName = LEGACY_TIMESTAMP_MAP[name];
-      if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
-        attributes[newName] = attributes[name];
-        delete attributes[name];
-      }
-    }
-
-    // if there is no primaryKey added, add it to attributes automatically
-    if (Object.values(attributes).every(attribute => !attribute.primaryKey)) {
-      attributes[this.primaryKey] = {
-        type: new DataTypes.BIGINT(),
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        columnName: snakeCase(this.primaryKey),
-      };
-    }
-  }
-
   /**
    * Generate attributes from column definitions.
    * @private
@@ -946,7 +919,18 @@ class Bone {
     const table = this.table || snakeCase(pluralize(this.name));
     const tableAlias = camelCase(pluralize(this.name || table));
 
-    this.normalize(attributes);
+    // if there is no primaryKey added, add it to attributes automatically
+    if (Object.values(attributes).every(attribute => !attribute.primaryKey)) {
+      attributes[this.primaryKey] = {
+        type: new DataTypes.BIGINT(),
+        allowNull: false,
+        autoIncrement: true,
+        columnName: snakeCase(this.primaryKey),
+        ...attributes[this.primaryKey],
+        primaryKey: true,
+      };
+    }
+
     for (const name of Object.keys(attributes)) {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
@@ -955,13 +939,14 @@ class Bone {
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
     const timestamps = {};
-    for (const name of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
-      if (attributes.hasOwnProperty(name)) timestamps[name] = name;
-      if (attributes.hasOwnProperty(snakeCase(name))) {
-        timestamps[name] = snakeCase(name);
+    for (const key of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
+      const name = attributes.hasOwnProperty(key) ? key : snakeCase(key);
+      const attribute = attributes[name];
+      if (!attribute) continue;
+      if (columns.some(column => column.columnName === attribute.columnName)) {
+        timestamps[key] = name;
       }
     }
-
     for (const name in attributes) this.loadAttribute(name);
 
     Object.defineProperties(this, looseReadonly({
@@ -1517,13 +1502,23 @@ class Bone {
   }
 
   static init(attributes = {}, opts = {}, overrides = {}) {
-    const { hooks, tableName: table } = {
+    const { hooks, tableName: table, timestamps, underscored } = {
       underscored: true,
+      timestamps: true,
       tableName: this.table,
       hooks: {},
       ...(this.options && this.options.define),
       ...opts,
     };
+
+    if (timestamps) {
+      for (const key of [ 'createdAt', 'updatedAt' ]) {
+        const name = underscored ? snakeCase(key) : key;
+        if (!attributes.hasOwnProperty(name)) {
+          attributes[name] = DataTypes.DATE;
+        }
+      }
+    }
 
     const customDescriptors = Object.getOwnPropertyDescriptors(overrides);
     Object.defineProperties(this.prototype, customDescriptors);

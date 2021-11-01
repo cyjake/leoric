@@ -144,7 +144,7 @@ describe('=> Bone.sync()', () => {
     await Bone.driver.dropTable('notes');
   });
 
-  it('should create table if not exists', async () => {
+  it('should create table if not exist', async () => {
     class Note extends Bone {};
     Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
@@ -157,7 +157,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should add column if not exists', async () => {
+  it('should add column if not exist', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
     });
@@ -270,6 +270,6 @@ describe('=> Bone.describe()', function() {
 
     await Temp.sync();
     const result = await Temp.describe();
-    assert.deepEqual(Object.keys(result), [ 'id', 'foo' ]);
+    assert.deepEqual(Object.keys(result), [ 'id', 'foo', 'created_at', 'updated_at' ]);
   });
 });

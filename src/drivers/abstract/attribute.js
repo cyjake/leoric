@@ -105,17 +105,17 @@ class Attribute {
     });
   }
 
-  equals(targetAttribute) {
-    if (!targetAttribute) return false;
-    const props = [ 'dataType', 'allowNull', 'primaryKey' ];
+  equals(columnInfo) {
+    if (!columnInfo) return false;
+    const props = [ 'allowNull', 'dataType', 'primaryKey' ];
     for (const prop of props) {
       // SQLite has default value as string even if data type is integer
-      if (this[prop] != targetAttribute[prop]) {
+      if (this[prop] != columnInfo[prop]) {
         debug('[attribute] [%s] %s not equal (defined: %s, actual: %s)',
           this.columnName,
           prop,
           this[prop],
-          targetAttribute[prop]);
+          columnInfo[prop]);
         return false;
       }
     }

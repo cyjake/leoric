@@ -1,5 +1,7 @@
 'use strict';
 
+const debug = require('debug')('leoric');
+
 const Attribute = require('../abstract/attribute');
 const DataTypes = require('./data_types');
 const { escape, escapeId } = require('./sqlstring');
@@ -31,6 +33,30 @@ class PostgresAttribute extends Attribute {
       chunks.push(`DEFAULT ${escape(defaultValue)}`);
     }
     return chunks.join(' ');
+  }
+
+
+  equals(columnInfo) {
+    if (!columnInfo) return false;
+    if (this.type.toSqlString() !== columnInfo.columnType.toUpperCase()) {
+      debug('[attribute] [%s] columnType not equal (defined: %s, actual: %s)',
+        this.columnName,
+        this.type.toSqlString(),
+        columnInfo.columnType.toUpperCase());
+      return false;
+    }
+    const props = [ 'allowNull', 'defaultValue', 'primaryKey' ];
+    for (const prop of props) {
+      if (this[prop] != columnInfo[prop]) {
+        debug('[attribute] [%s] %s not equal (defined: %s, actual: %s)',
+          this.columnName,
+          prop,
+          this[prop],
+          columnInfo[prop]);
+        return false;
+      }
+    }
+    return true;
   }
 }
 
