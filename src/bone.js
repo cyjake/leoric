@@ -753,7 +753,9 @@ class Bone {
     const { primaryKey, shardingKey } = this.constructor;
     const conditions = { [primaryKey]: this[primaryKey] };
     if (shardingKey) conditions[shardingKey] = this[shardingKey];
-    const instance = await this.constructor.findOne(conditions).unscoped;
+    const spell = this.constructor._find(conditions).$get(0);
+    spell.scopes = [];
+    const instance = await spell;
     if (instance) this._clone(instance);
     return instance;
   }
@@ -942,6 +944,7 @@ class Bone {
     for (const key of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
       const name = attributes.hasOwnProperty(key) ? key : snakeCase(key);
       const attribute = attributes[name];
+
       if (!attribute) continue;
       if (columns.some(column => column.columnName === attribute.columnName)) {
         timestamps[key] = name;
@@ -1502,7 +1505,7 @@ class Bone {
   }
 
   static init(attributes = {}, opts = {}, overrides = {}) {
-    const { hooks, tableName: table, timestamps, underscored } = {
+    const { hooks, paranoid, tableName: table, timestamps } = {
       underscored: true,
       timestamps: true,
       tableName: this.table,
@@ -1512,11 +1515,10 @@ class Bone {
     };
 
     if (timestamps) {
-      for (const key of [ 'createdAt', 'updatedAt' ]) {
-        const name = underscored ? snakeCase(key) : key;
-        if (!attributes.hasOwnProperty(name)) {
-          attributes[name] = DataTypes.DATE;
-        }
+      const names = [ 'createdAt', 'updatedAt' ];
+      if (paranoid) names.push('deletedAt');
+      for (const name of names) {
+        if (!attributes.hasOwnProperty(name)) attributes[name] = DataTypes.DATE;
       }
     }
 
@@ -1528,6 +1530,7 @@ class Bone {
       if (typeof method === 'function') result[key] = method;
       return result;
     }, {});
+
     Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
   }
 

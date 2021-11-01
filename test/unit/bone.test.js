@@ -38,6 +38,29 @@ describe('=> Bone', function() {
       assert.ok(User.attributes.name);
       assert.equal(User.table, 'people');
     });
+
+    it('should append timestamps', async function() {
+      class User extends Bone {}
+      User.init({ name: STRING });
+      assert.ok(User.attributes.createdAt);
+      assert.ok(User.attributes.updatedAt);
+    });
+
+    it('should append more timestamps if paranoid', async function() {
+      class User extends Bone {}
+      User.init({ name: STRING }, { paranoid: true });
+      assert.ok(User.attributes.createdAt);
+      assert.ok(User.attributes.updatedAt);
+      assert.ok(User.attributes.deletedAt);
+    });
+
+    it('should not append timestamps if disabled', async function() {
+      class User extends Bone {}
+      User.init({ name: STRING }, { timestamps: false });
+      assert.equal(User.attributes.createdAt, undefined);
+      assert.equal(User.attributes.updatedAt, undefined);
+      assert.equal(User.attributes.deletedAt, undefined);
+    });
   });
 
   describe('=> Bone.load()', function() {
