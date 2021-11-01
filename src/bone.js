@@ -15,12 +15,6 @@ const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
 
-const LEGACY_TIMESTAMP_MAP = {
-  gmtCreate: 'createdAt',
-  gmtModified: 'updatedAt',
-  gmtDeleted: 'deletedAt',
-};
-
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
     result[name] = {
@@ -935,14 +929,6 @@ class Bone {
         ...attributes[this.primaryKey],
         primaryKey: true,
       };
-    }
-
-    for (const name in LEGACY_TIMESTAMP_MAP) {
-      const newName = LEGACY_TIMESTAMP_MAP[name];
-      if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
-        attributes[newName] = attributes[name];
-        delete attributes[name];
-      }
     }
 
     for (const name of Object.keys(attributes)) {

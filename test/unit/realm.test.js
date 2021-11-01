@@ -934,5 +934,24 @@ describe('=> Realm', () => {
       // without adding extra timestamps
       assert.equal(User.attributes.updatedAt, undefined);
     });
+
+    it('should rename legacy timestamp attributes', async function() {
+      class Post extends Bone {
+        static table = 'articles';
+      }
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ Post ],
+      });
+      await realm.connect();
+      assert.ok(Post.attributes.createdAt);
+      assert.ok(Post.attributes.updatedAt);
+      assert.ok(Post.attributes.deletedAt);
+      assert.equal(Post.attributes.createdAt.columnName, 'gmt_create');
+      assert.equal(Post.attributes.updatedAt.columnName, 'gmt_modified');
+      assert.equal(Post.attributes.deletedAt.columnName, 'gmt_deleted');
+    });
   });
 });

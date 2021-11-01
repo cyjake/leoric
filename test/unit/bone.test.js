@@ -66,28 +66,6 @@ describe('=> Bone', function() {
       assert.equal(User.attributes.id, undefined);
     });
 
-    it('should rename legacy timestamps', async function() {
-      class User extends Bone {
-        static attributes = {
-          gmtCreate: DATE,
-          gmtModified: DATE,
-          gmtDeleted: DATE,
-        }
-      };
-      await User.load([
-        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
-        { columnName: 'created_at', columnType: 'timestamp', dataType: 'timestamp' },
-        { columnName: 'updated_at', columnType: 'timestamp', dataType: 'timestamp' },
-        { columnName: 'deleted_at', columnType: 'timestamp', dataType: 'timestamp' },
-      ]);
-      assert.ok(User.attributes.createdAt);
-      assert.ok(User.attributes.updatedAt);
-      assert.ok(User.attributes.deletedAt);
-      assert.equal(User.attributes.gmtCreate, undefined);
-      assert.equal(User.attributes.gmtModified, undefined);
-      assert.equal(User.attributes.gmtDeleted, undefined);
-    });
-
     it('should make sure attributes are initialized before load', async function() {
       class User extends Bone {
         static attributes = {

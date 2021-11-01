@@ -38,6 +38,12 @@ async function findModels(dir) {
   return models;
 }
 
+const LEGACY_TIMESTAMP_MAP = {
+  gmtCreate: 'createdAt',
+  gmtModified: 'updatedAt',
+  gmtDeleted: 'deletedAt',
+};
+
 /**
  * construct model attributes entirely from column definitions
  * @param {Bone} model
@@ -55,6 +61,14 @@ function initAttributes(model, columns) {
       columnName,
       type: model.driver.DataTypes.findType(columnType),
     };
+  }
+
+  for (const name in LEGACY_TIMESTAMP_MAP) {
+    const newName = LEGACY_TIMESTAMP_MAP[name];
+    if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
+      attributes[newName] = attributes[name];
+      delete attributes[name];
+    }
   }
 
   model.init(attributes, { timestamps: false });
