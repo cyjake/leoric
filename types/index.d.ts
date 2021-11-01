@@ -60,7 +60,7 @@ type WithOptions = {
   [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
-declare class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
+export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
   select(...names: Array<string | RawSql>): Spell<T, U>;
@@ -207,7 +207,7 @@ type ResultSet = {
   [key: string]: Literal
 };
 
-declare class Collection<T extends Bone> extends Array<T> {
+export class Collection<T extends Bone> extends Array<T> {
   save(): Promise<void>;
   toJSON(): Object[];
   toObject(): Object[];
