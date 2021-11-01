@@ -1,3 +1,38 @@
+1.14.0 / 2021-11-01
+===================
+
+Two options regarding `Model.init()` were added in this release:
+
+```js
+class User extends Bone {}
+User.init({ name: STRING }, {
+  timestamps: true,  // which is the default
+  paranoid: true,    // which default to `false`
+});
+assert.deepEqual(Object.keys(User.attributes), [
+  'id',
+  'name',
+  'createdAt',
+  'updatedAt',
+  'deletedAt',
+]);
+```
+
+## What's Changed
+* docs: update 'primayKey' typos by @freshgum-bubbles in https://github.com/cyjake/leoric/pull/211
+* docs: DataTypes definitions in d.ts by @cyjake in https://github.com/cyjake/leoric/pull/210
+* fix: fix#209 sequelize mode should update all changed fields in instance update method by @JimmyDaddy in https://github.com/cyjake/leoric/pull/212
+* fix: fix #213 findAndCountAll should ignore attributes by @JimmyDaddy in https://github.com/cyjake/leoric/pull/214
+* fix: opts.connectTimeout by @cyjake in https://github.com/cyjake/leoric/pull/216
+* fix: reload instance with sharding key should not throw by @cyjake in https://github.com/cyjake/leoric/pull/217
+* feat: timestamps should be defined by default by @cyjake in https://github.com/cyjake/leoric/pull/218
+* fix: instance.reload() should not rely on `static findOne()` by @cyjake in https://github.com/cyjake/leoric/pull/219
+
+## New Contributors
+* @freshgum-bubbles made their first contribution in https://github.com/cyjake/leoric/pull/211
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.13.5...v1.14.0
+
 1.13.5 / 2021-10-26
 ===================
 
