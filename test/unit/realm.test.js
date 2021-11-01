@@ -822,7 +822,7 @@ describe('=> Realm', () => {
       });
       await realm.sync();
       const columns = await Client.describe();
-      assert.deepEqual(Object.keys(columns), [ 'id', 'name' ]);
+      assert.deepEqual(Object.keys(columns), [ 'id', 'name', 'created_at', 'updated_at' ]);
     });
 
     it('should not reset model associations after sync', async function() {
@@ -918,6 +918,21 @@ describe('=> Realm', () => {
         await realm2.connect();
       });
       assert.ok(Post.synchronized);
+    });
+
+    it('should init attributes if attributes not defined', async function() {
+      class User extends Bone {}
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ User ],
+      });
+      await realm.connect();
+      assert.ok(User.attributes.createdAt);
+      assert.equal(User.attributes.createdAt.columnName, 'gmt_create');
+      // without adding extra timestamps
+      assert.equal(User.attributes.updatedAt, undefined);
     });
   });
 });

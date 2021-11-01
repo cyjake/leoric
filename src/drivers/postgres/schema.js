@@ -53,7 +53,7 @@ module.exports = {
     for (const row of rows) {
       const tableName = row.table_name;
       const columns = schemaInfo[tableName] || (schemaInfo[tableName] = []);
-      let { data_type: dataType, character_octet_length: length } = row;
+      let { data_type: dataType, character_maximum_length: length } = row;
 
       if (dataType === 'character varying') dataType = 'varchar';
       if (dataType === 'timestamp without time zone') dataType = 'timestamp';

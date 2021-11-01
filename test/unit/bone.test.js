@@ -40,42 +40,53 @@ describe('=> Bone', function() {
     });
   });
 
-  describe('=> Bone.normalize(attributes)', function() {
+  describe('=> Bone.load()', function() {
     it('should append primary key if no primary key were found', async function() {
-      const attributes = {};
-      Bone.normalize(attributes);
-      assert.ok(attributes.id);
-      assert.ok(attributes.id.primaryKey);
-      assert.equal(attributes.id.type.toSqlString(), 'BIGINT');
+      class User extends Bone {
+        static attributes = {};
+      }
+      await User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+      ]);
+      assert.ok(User.attributes.id);
+      assert.ok(User.attributes.id.primaryKey);
+      assert.equal(User.attributes.id.type.toSqlString(), 'BIGINT');
     });
 
     it('should not append primary key if primary key exists', async function() {
-      const attributes = {
-        iid: { type: BIGINT, primaryKey: true },
+      class User extends Bone {
+        static attributes = {
+          iid: { type: BIGINT, primaryKey: true },
+        }
       };
-      Bone.normalize(attributes);
-      assert.equal(attributes.iid.primaryKey, true);
-      assert.equal(attributes.id, undefined);
+      await User.load([
+        { columnName: 'iid', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+      ]);
+      assert.equal(User.attributes.iid.primaryKey, true);
+      assert.equal(User.attributes.id, undefined);
     });
 
     it('should rename legacy timestamps', async function() {
-      const attributes = {
-        gmtCreate: DATE,
-        gmtModified: DATE,
-        gmtDeleted: DATE,
+      class User extends Bone {
+        static attributes = {
+          gmtCreate: DATE,
+          gmtModified: DATE,
+          gmtDeleted: DATE,
+        }
       };
-      Bone.normalize(attributes);
-      assert.ok(attributes.createdAt);
-      assert.ok(attributes.updatedAt);
-      assert.ok(attributes.deletedAt);
-      assert.equal(attributes.gmtCreate, undefined);
-      assert.equal(attributes.gmtModified, undefined);
-      assert.equal(attributes.gmtDeleted, undefined);
+      await User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'created_at', columnType: 'timestamp', dataType: 'timestamp' },
+        { columnName: 'updated_at', columnType: 'timestamp', dataType: 'timestamp' },
+        { columnName: 'deleted_at', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+      assert.ok(User.attributes.createdAt);
+      assert.ok(User.attributes.updatedAt);
+      assert.ok(User.attributes.deletedAt);
+      assert.equal(User.attributes.gmtCreate, undefined);
+      assert.equal(User.attributes.gmtModified, undefined);
+      assert.equal(User.attributes.gmtDeleted, undefined);
     });
-  });
-
-  describe('=> Bone.load()', function() {
-
 
     it('should make sure attributes are initialized before load', async function() {
       class User extends Bone {
@@ -110,6 +121,45 @@ describe('=> Bone', function() {
       assert.equal(User.timestamps.createdAt, 'createdAt');
       assert.equal(User.timestamps.updatedAt, 'updatedAt');
       assert.equal(User.timestamps.deletedAt, 'deletedAt');
+    });
+
+    it('should mark timestamps if undescored', async function() {
+      class Spine extends Bone {}
+      Spine.options = { underscored: true };
+      class User extends Bone {
+        static attributes = {
+          created_at: DATE,
+          updated_at: DATE,
+          deleted_at: DATE,
+        }
+      }
+      User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'created_at', columnType: 'timestamp', dataType: 'timestamp' },
+        { columnName: 'updated_at', columnType: 'timestamp', dataType: 'timestamp' },
+        { columnName: 'deleted_at', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+      assert.ok(User.timestamps);
+      assert.equal(User.timestamps.createdAt, 'created_at');
+      assert.equal(User.timestamps.updatedAt, 'updated_at');
+      assert.equal(User.timestamps.deletedAt, 'deleted_at');
+    });
+
+    it('should skip timestamps if not actually defined', async function() {
+      class User extends Bone {
+        static attributes = {
+          createdAt: DATE,
+          updatedAt: DATE,
+          deletedAt: DATE,
+        }
+      }
+      User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'created_at', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+      assert.ok(User.timestamps.createdAt);
+      assert.equal(User.timestamps.updatedAt, undefined);
+      assert.equal(User.timestamps.deletedAt, undefined);
     });
 
     it('should mark primaryKey', async function() {

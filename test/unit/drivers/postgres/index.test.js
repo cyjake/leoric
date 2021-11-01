@@ -57,6 +57,12 @@ describe('=> PostgreSQL driver', () => {
       for (const prop of props) assert.ok(column.hasOwnProperty(prop));
       assert.equal(column.primaryKey, column.columnName === 'id');
     }
+    const columnMap = columns.reduce((result, column) => {
+      result[column.columnName] = column;
+      return result;
+    }, {});
+    assert.equal(columnMap.title.columnType, 'varchar(1000)');
+    assert.equal(columnMap.is_private.columnType, 'boolean');
   });
 
   it('driver.querySchemaInfo() after init with primaryKey', async () => {

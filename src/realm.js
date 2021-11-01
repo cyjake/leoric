@@ -38,6 +38,11 @@ async function findModels(dir) {
   return models;
 }
 
+/**
+ * construct model attributes entirely from column definitions
+ * @param {Bone} model
+ * @param {Array<string, Object>} columns column definitions
+ */
 function initAttributes(model, columns) {
   const attributes = {};
 
@@ -52,7 +57,7 @@ function initAttributes(model, columns) {
     };
   }
 
-  model.init(attributes);
+  model.init(attributes, { timestamps: false });
 }
 
 async function loadModels(Spine, models, opts) {
