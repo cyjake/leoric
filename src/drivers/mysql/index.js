@@ -18,6 +18,8 @@ class MysqlDriver extends AbstractDriver {
    * @param {string} opts.appName         - In some RDMS, appName is used as the actual name of the database
    * @param {string} opts.database
    * @param {string} opts.connectionLimit
+   * @param {number} opts.connectTimeout  - The milliseconds before a timeout occurs during the initial connection to the MySQL server. (Default: `10000`)
+   * @param {string} opts.charset
    * @param {boolean} opts.stringifyObjects  - stringify object value in dataValues
    */
   constructor(opts = {}) {
@@ -37,7 +39,7 @@ class MysqlDriver extends AbstractDriver {
     const client = opts.client || 'mysql';
     const {
       host, port, user, password,
-      connectionLimit, charset, stringifyObjects = false,
+      connectTimeout, connectionLimit, charset, stringifyObjects = true,
     } = opts;
 
     if (client !== 'mysql' && client !== 'mysql2') {
@@ -46,6 +48,7 @@ class MysqlDriver extends AbstractDriver {
 
     return require(client).createPool({
       connectionLimit,
+      connectTimeout,
       host,
       port,
       user,
