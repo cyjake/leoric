@@ -1518,7 +1518,9 @@ class Bone {
       const names = [ 'createdAt', 'updatedAt' ];
       if (paranoid) names.push('deletedAt');
       for (const name of names) {
-        if (!attributes.hasOwnProperty(name)) attributes[name] = DataTypes.DATE;
+        if (!attributes[name] && !attributes[snakeCase(name)]) {
+          attributes[name] = DataTypes.DATE;
+        }
       }
     }
 

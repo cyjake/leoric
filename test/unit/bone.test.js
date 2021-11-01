@@ -61,6 +61,16 @@ describe('=> Bone', function() {
       assert.equal(User.attributes.updatedAt, undefined);
       assert.equal(User.attributes.deletedAt, undefined);
     });
+
+    it('should not append timestamps if underscored', async function() {
+      class User extends Bone {}
+      User.init({ name: STRING, created_at: DATE, updated_at: DATE });
+      assert.equal(User.attributes.createdAt, undefined);
+      assert.equal(User.attributes.updatedAt, undefined);
+      assert.equal(User.attributes.deletedAt, undefined);
+      assert.ok(User.attributes.created_at);
+      assert.ok(User.attributes.updated_at);
+    });
   });
 
   describe('=> Bone.load()', function() {
