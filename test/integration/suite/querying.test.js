@@ -750,7 +750,7 @@ describe('=> Sharding', function() {
     }, /sharding key/i);
   });
 
-  it('should append sharding key to DELETE condition automatically', async function() {
+  it('should append sharding key to DELETE condition', async function() {
     const like = await Like.create({ articleId: 1, userId: 1 });
     await assert.doesNotReject(async () => {
       await like.remove();
@@ -758,12 +758,19 @@ describe('=> Sharding', function() {
     }, /sharding key/i);
   });
 
-  it('should append sharding key to UPDATE condition automatically', async function() {
+  it('should append sharding key to UPDATE condition', async function() {
     const like = await Like.create({ articleId: 1, userId: 1});
     like.articleId = 2;
     await assert.doesNotReject(async () => {
       await like.update();
     }, /sharding key/i);
+  });
+
+  it('should append sharking key to SELECT condition', async function() {
+    const like = await Like.create({ articleId: 1, userId: 1});
+    await assert.doesNotReject(async () => {
+      await like.reload();
+    }, /sharding key/);
   });
 });
 

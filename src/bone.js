@@ -756,11 +756,11 @@ class Bone {
   }
 
   async reload() {
-    const { primaryKey } = this.constructor;
-    const instance = await this.constructor.findOne(this[primaryKey]).unscoped;
-    if (instance) {
-      this._clone(instance);
-    }
+    const { primaryKey, shardingKey } = this.constructor;
+    const conditions = { [primaryKey]: this[primaryKey] };
+    if (shardingKey) conditions[shardingKey] = this[shardingKey];
+    const instance = await this.constructor.findOne(conditions).unscoped;
+    if (instance) this._clone(instance);
     return instance;
   }
 
