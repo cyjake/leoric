@@ -1,3 +1,12 @@
+1.14.2 / 2021-11-01
+===================
+
+## What's Changed
+* fix: accept timestamps in snake case by @cyjake in https://github.com/cyjake/leoric/pull/221
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.14.1...v1.14.2
+
 1.14.1 / 2021-11-01
 ===================
 
