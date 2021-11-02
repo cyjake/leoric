@@ -106,22 +106,6 @@ describe('=> Realm', () => {
       assert.equal(queries[0], 'SELECT 1');
     });
 
-    it('should be able to customize logger , even though logQuery will throw error', async () => {
-      const realm = new Realm({
-        port: process.env.MYSQL_PORT,
-        user: 'root',
-        database: 'leoric',
-        logger: {
-          logQuery(sql) {
-            throw new Error('asdf');
-          }
-        }
-      });
-      await realm.connect();
-      const res = await realm.driver.query('SELECT 1');
-      assert(res.rows);
-    });
-
 
     it('should reject if models option is not valid', async function() {
       await assert.rejects(async function() {

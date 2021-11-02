@@ -52,7 +52,7 @@ class SqliteDriver extends AbstractDriver {
       if (!opts.connection) connection.release();
     }
 
-    logger.logQuery(sql, Date.now() - start, opts);
+    logger.tryLogQuery(sql, Date.now() - start, opts);
     return result;
   }
 

@@ -141,7 +141,7 @@ class PostgresDriver extends AbstractDriver {
         if (!spell.connection) connection.release();
       }
 
-      logger.logQuery(formatted, Date.now() - start, spell);
+      logger.tryLogQuery(formatted, Date.now() - start, spell);
       return result;
     }
 
