@@ -24,6 +24,14 @@ class Logger {
     return SqlString.format(query.sql || query, values);
   }
 
+  tryLogQuery() {
+    try {
+      this.logQuery(...arguments);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   logQuery(sql, duration, opts) {
     debug('[query] [%s] %s', duration, sql);
   }
