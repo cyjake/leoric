@@ -27,7 +27,7 @@ describe('=> AbstractDriver#logger', function () {
     assert.ok(driver.logger);
     assert.ok(driver.logger instanceof Logger);
     assert.throws(() => {
-      driver.logger.logQuery('xx')
+      driver.logger.logQuery('xx');
     }, /logQuery error/i);
     assert.doesNotThrow(() => driver.logger.tryLogQuery('xx'));
   });
