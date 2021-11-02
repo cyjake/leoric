@@ -13,7 +13,7 @@ class Logger {
   format(query, values, opts = {}) {
     const { command, sets } = opts;
 
-    if ([ 'insert', 'upsert', 'update' ].includes(command) && sets) {
+    if (['insert', 'upsert', 'update'].includes(command) && sets) {
       const { hideKeys } = this;
       const keys = Object.keys(sets);
       values = values.map((entry, i) => {
@@ -38,11 +38,17 @@ class Logger {
   }
 
   logQueryError(sql, err, duration, opts) {
+    if (this._opts.logQueryError) {
+      return this._opts.logQueryError(sql, err, duration, opts);
+    }
     // err is thrown by default hence not logged here
     console.error('[query] [%s] %s', duration, sql);
   }
 
   logMigration(name) {
+    if (this._opts.logMigration) {
+      return this._opts.logMigration(name);
+    }
     debug('[migration] %s', name);
   }
 }
