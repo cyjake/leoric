@@ -106,7 +106,6 @@ describe('=> Realm', () => {
       assert.equal(queries[0], 'SELECT 1');
     });
 
-
     it('should reject if models option is not valid', async function() {
       await assert.rejects(async function() {
         const realm = new Realm({

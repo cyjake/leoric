@@ -12,7 +12,7 @@ class Logger {
   format(query, values, opts = {}) {
     const { command, sets } = opts;
 
-    if (['insert', 'upsert', 'update'].includes(command) && sets) {
+    if ([ 'insert', 'upsert', 'update' ].includes(command) && sets) {
       const { hideKeys } = this;
       const keys = Object.keys(sets);
       values = values.map((entry, i) => {
