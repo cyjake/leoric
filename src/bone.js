@@ -1562,6 +1562,8 @@ class Bone {
         await driver.createTable(table, attributes);
       } else if (alter){
         await driver.alterTable(table, compare(attributes, columns));
+      } else {
+        console.warn('[synchronize_fail] %s couldn\'t be synchronized, please use force or alter to specify execution', this.name);
       }
     }
 

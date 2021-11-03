@@ -163,12 +163,12 @@ class Realm {
     return this.Bone;
   }
 
-  async sync(optins) {
+  async sync(options) {
     if (!this.connected) await this.connect();
     const { models } = this;
 
     for (const model of Object.values(models)) {
-      await model.sync(optins);
+      await model.sync(options);
     }
   }
 
