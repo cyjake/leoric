@@ -135,7 +135,7 @@ describe('=> Table definitions', () => {
   });
 });
 
-describe.only('=> Bone.sync()', () => {
+describe('=> Bone.sync()', () => {
   beforeEach(async () => {
     await Bone.driver.dropTable('notes');
   });
