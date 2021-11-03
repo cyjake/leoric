@@ -135,7 +135,7 @@ describe('=> Table definitions', () => {
   });
 });
 
-describe('=> Bone.sync()', () => {
+describe.only('=> Bone.sync()', () => {
   beforeEach(async () => {
     await Bone.driver.dropTable('notes');
   });
@@ -157,7 +157,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should add column if not exist', async () => {
+  it('should not add column if table already exist', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
     });
@@ -166,6 +166,19 @@ describe('=> Bone.sync()', () => {
     assert(!Note.synchronized);
 
     await Note.sync();
+    assert(!Note.synchronized);
+    assert.deepEqual(Object.keys(await Note.describe()), ['title']);
+  });
+
+  it('should add column with force', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING, allowNull: false },
+    });
+    class Note extends Bone {};
+    Note.init({ title: STRING, body: TEXT });
+    assert(!Note.synchronized);
+
+    await Note.sync({ force: true });
     assert(Note.synchronized);
     await checkDefinitions('notes', {
       title: { dataType: 'varchar', allowNull: true },
@@ -173,7 +186,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should add multiple columns if not exist', async () => {
+  it('should not add multiple columns if table already exist', async () => {
     await Bone.driver.createTable('notes', {
       title: STRING,
     });
@@ -186,6 +199,24 @@ describe('=> Bone.sync()', () => {
     assert(!Note.synchronized);
 
     await Note.sync();
+    assert(!Note.synchronized);
+    assert.deepEqual(Object.keys(await Note.describe()), ['title']);
+  });
+
+  it('should add multiple column with force', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING, allowNull: false },
+    });
+    class Note extends Bone {};
+    Note.init({
+      title: STRING,
+      body: TEXT,
+      bodyDraft: TEXT,
+    });
+
+    assert(!Note.synchronized);
+
+    await Note.sync({ force: true });
     assert(Note.synchronized);
     await checkDefinitions('notes', {
       title: { dataType: 'varchar' },
@@ -194,7 +225,7 @@ describe('=> Bone.sync()', () => {
     });
   });
 
-  it('should change column if modified', async () => {
+  it('should change column if modified with alter', async () => {
     await Bone.driver.createTable('notes', {
       title: { type: STRING, allowNull: false },
       body: { type: STRING },
@@ -203,7 +234,7 @@ describe('=> Bone.sync()', () => {
     Note.init({ title: STRING, body: TEXT });
     assert(!Note.synchronized);
 
-    await Note.sync();
+    await Note.sync({ alter: true });
     assert(Note.synchronized);
     await checkDefinitions('notes', {
       body: { dataType: 'text' },
