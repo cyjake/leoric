@@ -379,7 +379,7 @@ module.exports = Bone => {
         // findAll maybe override by developer, that will make it return a non-Spell object
         spell = this._find({}, filterOptions(options));
         translateOptions(spell, { ...options, limit: 1 });
-        spell = spell.later(result => result[0]);
+        spell = spell.later(result => result[0] != null? result[0]: null);
       }
       if (options && options.paranoid === false) return spell.unparanoid;
       return spell;

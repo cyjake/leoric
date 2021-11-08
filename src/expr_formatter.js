@@ -11,7 +11,7 @@ const { precedes, walkExpr } = require('./expr');
  * @param {Spell} spell
  * @param {string[]} qualifiers
  */
- function findModel(spell, qualifiers) {
+function findModel(spell, qualifiers) {
   const qualifier = qualifiers && qualifiers[0];
   const Model = qualifier && qualifier != spell.Model.tableAlias
     ? (spell.joins.hasOwnProperty(qualifier) ? spell.joins[qualifier].Model : null)
