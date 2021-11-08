@@ -360,7 +360,7 @@ describe('=> Sequelize adapter', () => {
 
     await Post.destroy({ title: 'Leah' });
     const post = await Post.findOne({ where: { title: 'Leah' } });
-    assert(!post);
+    assert.equal(post, null);
 
     posts = await Post.findAll({
       order: [[ 'createdAt', 'desc' ]],
@@ -554,7 +554,7 @@ describe('=> Sequelize adapter', () => {
     ].map(opts => Post.create(opts)));
     await Post.destroy({ title: 'Leah' });
     const post = await Post.findOne({ where: { title: 'Leah' } });
-    assert(!post);
+    assert.equal(post, null);
     const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
     assert.equal(post1.title, 'Leah');
 
@@ -579,6 +579,9 @@ describe('=> Sequelize adapter', () => {
 
     const post2 = await Post.findOne({ where: { title: 'Leah' } });
     assert.equal(post2.title, 'Leah');
+
+    const shouldNull = await Post.findOne({ where: { title: 'null' } });
+    assert.equal(shouldNull, null);
   });
 
   it('Model.find()', async () => {
@@ -615,7 +618,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post.title, 'Leah');
     await post.remove();
     const post1 = await Post.findOne();
-    assert(!post1);
+    assert.equal(post1, null);
     const post2 = await Post.findOne({ paranoid: false });
     assert.equal(post2.isNewRecord, false);
     assert(post2);
@@ -625,7 +628,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post3.isNewRecord, false);
     await post3.destroy({ force: true });
     const post4 = await Post.findOne({ where: { id }, paranoid: false });
-    assert(!post4);
+    assert.equal(post4, null);
   });
 
   it('Model.findByPk(pk)', async () => {
@@ -644,13 +647,13 @@ describe('=> Sequelize adapter', () => {
 
     await post.remove();
     const post1 = await Post.findByPk(id);
-    assert(!post1);
+    assert.equal(post1, null);
 
     const post2 = await Post.findByPk(id, { paranoid: false });
     assert.equal(post2.title, 'Leah');
     await post2.destroy({ force: true });
     const post3 = await Post.findOne({ where: { id }, paranoid: false });
-    assert(!post3);
+    assert.equal(post3, null);
   });
 
   it('Model.findOrBuild()', async function() {
@@ -864,7 +867,6 @@ describe('=> Sequelize adapter', () => {
     await Book.increment('price', { where: { isbn }, silent: true });
     await book.reload();
     assert.equal(book.price, 11);
-    console.log(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
     assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
   });
 

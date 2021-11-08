@@ -69,14 +69,17 @@ describe('=> Query', function() {
   });
 
   it('.findOne()', async function() {
-    const post = await Post.findOne();
+    let post = await Post.findOne();
     expect(post).to.be.a(Post);
     expect(post.id).to.be.ok();
+    post = await Post.findOne({ title: 'null' });
+    expect(post).to.be(null);
   });
 
   it('.findOne(id)', async function() {
     const post = await Post.first;
     expect(await Post.findOne(post.id)).to.eql(post);
+    expect(await Post.findOne(1000)).to.be(null);
   });
 
   // the same as Model.all

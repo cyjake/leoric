@@ -272,7 +272,7 @@ describe('hooks', function() {
       const updatedUser = await User.findOne({
         id: user.id,
       });
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(beforeProbe === 'before');
       assert(afterProbe === 'after');
 
@@ -299,7 +299,7 @@ describe('hooks', function() {
       const updatedUser = await User.findOne({
         id: user.id,
       });
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(beforeProbe === 'before');
       assert(afterProbe === 'after');
     });
@@ -314,7 +314,7 @@ describe('hooks', function() {
       const updatedUser = await User.findOne({
         id: user.id,
       });
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(!beforeProbe);
       assert(!afterProbe);
     });
@@ -461,7 +461,7 @@ describe('hooks', function() {
       assert.equal(user.email, 'ho@y.com');
       assert.equal(user.status, 11);
       const updatedUser = await User.findOne(user.id);
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(beforeProbe === 'before');
       assert(afterProbe === 'after');
 
@@ -488,7 +488,7 @@ describe('hooks', function() {
         }
       });
       const updatedUser = await User.findOne(user.id);
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(beforeProbe === 'before');
       assert(afterProbe === 'after');
     });
@@ -504,7 +504,7 @@ describe('hooks', function() {
         hooks: false,
       });
       const updatedUser = await User.findOne(user.id);
-      assert(!updatedUser);
+      assert.equal(updatedUser, null);
       assert(!beforeProbe);
       assert(!afterProbe);
     });
@@ -729,7 +729,7 @@ describe('hooks', function() {
           id: user.id,
         });
         const updatedUser = await User.findOne(user.id);
-        assert(!updatedUser);
+        assert.equal(updatedUser, null);
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
         // skip hook should work
@@ -742,7 +742,7 @@ describe('hooks', function() {
         }, false, { hooks: false });
         const updatedUser1 = await User.findOne(user1.id);
 
-        assert(!updatedUser1);
+        assert.equal(updatedUser1, null);
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
       });
