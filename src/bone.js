@@ -1544,7 +1544,7 @@ class Bone {
     Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
   }
 
-  static async sync() {
+  static async sync({ force = false, alter = false } = {}) {
     const { driver, physicTable: table } = this;
     const { database } = this.options;
 
@@ -1569,7 +1569,14 @@ class Bone {
     if (columns.length === 0) {
       await driver.createTable(table, attributes);
     } else {
-      await driver.alterTable(table, compare(attributes, columnMap));
+      if (force) {
+        await driver.dropTable(table);
+        await driver.createTable(table, attributes);
+      } else if (alter){
+        await driver.alterTable(table, compare(attributes, columnMap));
+      } else {
+        console.warn('[synchronize_fail] %s couldn\'t be synchronized, please use force or alter to specify execution', this.name);
+      }
     }
 
     const schemaInfo = await driver.querySchemaInfo(database, table);
