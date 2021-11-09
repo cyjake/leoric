@@ -825,6 +825,65 @@ describe('=> Realm', () => {
       assert.deepEqual(Object.keys(columns), [ 'id', 'name', 'created_at', 'updated_at' ]);
     });
 
+    it('should be not to alter tables if tables already exists', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.driver.createTable('clients', {
+        id: DataTypes.BIGINT,
+      });
+      const Client = realm.define('Client', {
+        id: DataTypes.BIGINT,
+        name: DataTypes.STRING,
+      });
+      await realm.sync();
+      const columns = await Client.describe();
+      assert.deepEqual(Object.keys(columns), ['id']);
+    });
+
+    it('should alter work', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.driver.createTable('clients', {
+        id: DataTypes.BIGINT,
+      });
+      await realm.driver.query('INSERT INTO clients (id) VALUES (1);');
+      const Client = realm.define('Client', {
+        id: DataTypes.BIGINT,
+        name: DataTypes.STRING,
+      });
+      await realm.sync({ alter: true });
+      const columns = await Client.describe();
+      const { rows } = await realm.driver.query('SELECT * FROM clients');
+      assert.deepEqual(Object.keys(columns), [ 'id', 'name', 'created_at', 'updated_at' ]);
+      assert(rows.length === 1);
+      assert(rows[0].id === 1);
+      assert.deepEqual(Object.keys(rows[0]), [ 'id', 'name', 'created_at', 'updated_at' ]);
+    });
+
+    it('should force work', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.driver.createTable('clients', {
+        id: DataTypes.BIGINT,
+      });
+      const Client = realm.define('Client', {
+        id: DataTypes.BIGINT,
+        name: DataTypes.STRING,
+      });
+      await realm.sync({ force: true });
+      const columns = await Client.describe();
+      assert.deepEqual(Object.keys(columns), [ 'id', 'name', 'created_at', 'updated_at' ]);
+    });
+
     it('should not reset model associations after sync', async function() {
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
