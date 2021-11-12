@@ -1,3 +1,14 @@
+1.14.3 / 2021-11-12
+===================
+
+## What's Changed
+* fix: logger.logQuery should be guarded in case of error by @SmartOrange in https://github.com/cyjake/leoric/pull/222
+* fix: findOne without result should return null by @JimmyDaddy in https://github.com/cyjake/leoric/pull/225
+* fix: Literal should support bigint type by @fengmk2 in https://github.com/cyjake/leoric/pull/226
+* fix: select((name: string) => boolean) by @cyjake in https://github.com/cyjake/leoric/pull/227
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.14.2...v1.14.3
+
 1.14.2 / 2021-11-01
 ===================
 
