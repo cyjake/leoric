@@ -20,6 +20,15 @@ describe('=> Collection (TypeScript)', function() {
     });
   });
 
+  beforeEach(async function() {
+    await User.truncate();
+  });
+
+  it('collection.toJSON()', async function() {
+    const uesrs = await User.all;
+    assert.deepEqual(uesrs.toJSON(), []);
+  });
+
   it('collection.save()', async function() {
     const users = new Collection(
       new User({ nickname: 'siri', email: 'siri@me.com', status: 0 }),

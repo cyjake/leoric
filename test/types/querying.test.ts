@@ -4,6 +4,7 @@ import { Bone, connect } from '../..'
 describe('=> Querying (TypeScript)', function() {
   class Post extends Bone {
     static table = 'articles'
+    id: bigint;
     title: string;
   }
 
@@ -78,5 +79,15 @@ describe('=> Querying (TypeScript)', function() {
       const count = await Post.where({ title: 'Leah' }).count();
       assert.equal(count, 0);
     });
+  });
+
+  describe('=> Select', async function() {
+    before(async function() {
+      await Post.bulkCreate([
+        { title: 'There And Back Again' },
+      ]);
+    })
+    const post = await Post.findOne().select(name => [ 'id', 'title' ].includes(name));
+    assert.deepEqual(post.toJSON(), { id: post.id, title: 'There And Back Again' })
   });
 });
