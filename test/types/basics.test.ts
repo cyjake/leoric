@@ -22,7 +22,7 @@ describe('=> Basics (TypeScript)', function() {
     }
 
     // TODO: should be generated or automated with decorator
-    id: number;
+    id: bigint;
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date;
@@ -135,6 +135,8 @@ describe('=> Basics (TypeScript)', function() {
     it('Post.findOne()', async function() {
       const post = await Post.findOne({ title: 'Leah' });
       assert.equal(post.title, 'Leah');
+      const post1 = await Post.findOne({ id: post.id });
+      assert.equal(post1.id, post.id);
     });
 
     it('Post.where()', async function() {

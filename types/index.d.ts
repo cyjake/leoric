@@ -111,7 +111,7 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
   toString(): string;
 }
 
-type Literal = null | undefined | boolean | number | string | Date | object | ArrayBuffer;
+type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
 
 type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
