@@ -63,7 +63,7 @@ type WithOptions = {
 export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
-  select(...names: Array<string | RawSql>): Spell<T, U>;
+  select(...names: Array<string | RawSql> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions): Spell<T, number>;
   update(opts: SetOptions): Spell<T, number>;
   upsert(opts: SetOptions): Spell<T, number>;

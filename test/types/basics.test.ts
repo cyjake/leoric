@@ -79,13 +79,6 @@ describe('=> Basics (TypeScript)', function() {
     });
   });
 
-  describe('=> Collection', function() {
-    it('collection.toJSON()', async function() {
-      const posts = await Post.all;
-      assert.deepEqual(posts.toJSON(), []);
-    });
-  });
-
   describe('=> Create', function() {
     it('Bone.create()', async function() {
       const post = await Post.create({ title: 'Tyrael' });
