@@ -36,10 +36,10 @@ describe('=> Associations', function() {
     stub = sinon.stub(logger, 'warn').callsFake((message) => {
       throw new Error(message);
     });
-    const posts = [
-      await Post.create({ title: 'Archbishop Lazarus' }),
-      await Post.create({ title: 'Leah' })
-    ];
+    const posts = await Post.bulkCreate([
+      { title: 'Archbishop Lazarus' },
+      { title: 'Leah' },
+    ]);
     const tags = await Promise.all(tagNames.map(name => Tag.create({ name, type: 0 })));
     const topics = await Promise.all(topicNames.map(name => Tag.create({ name, type: 1 })));
 
@@ -153,7 +153,7 @@ describe('=> Associations', function() {
   });
 });
 
-describe('scattered associations', function() {
+describe('=> Associations offset / limit', function() {
   before(async function() {
     const post1 = await Post.create({ title: 'New Post' });
     await Comment.create({ content: 'Abandon your foolish request!', articleId: post1.id });
@@ -170,10 +170,26 @@ describe('scattered associations', function() {
   });
 
   it('should return duplicated records', async function() {
-    const posts = await Post.all.with('comments');
+    const posts = await Post.include('comments');
     assert.deepEqual(Array.from(posts[0].comments, comment => comment.content).sort(), [
       'Abandon your foolish request!',
       "Now you'll join them"
     ]);
+  });
+
+  it('should not limit subquery if query criteria is complicated', async function() {
+    const posts = await Post.include('comments').where({
+      'comments.content': { $like: '%child%' },
+    }).limit(1);
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'New Post 2');
+  });
+
+  it('should still limit the query if subquery limit is off', async function() {
+    const posts = await Post.include('comments').where({
+      'comments.content': { $like: '%oo%' },
+    }).limit(1);
+    // both posts have comments with content containing `oo` but only one should return
+    assert.equal(posts.length, 1);
   });
 });
