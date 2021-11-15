@@ -117,21 +117,12 @@ function createSubspell(spell) {
   subspell.groups = [];
 
   subspell.whereConditions = [];
-  for (let i = whereConditions.length - 1; i >= 0; i--) {
-    const condition = whereConditions[i];
-    let internal = true;
-    walkExpr(condition, ({ type, qualifiers }) => {
-      if (type == 'id' && qualifiers[0] != baseName) {
-        internal = false;
-      }
+  while (whereConditions.length > 0) {
+    const condition = whereConditions.shift();
+    const token = copyExpr(condition, ({ type, value }) => {
+      if (type === 'id') return { type, value };
     });
-    if (internal) {
-      const token = copyExpr(condition, ({ type, value }) => {
-        if (type === 'id') return { type, value };
-      });
-      subspell.whereConditions.unshift(token);
-      whereConditions.splice(i, 1);
-    }
+    subspell.whereConditions.push(token);
   }
 
   subspell.orders = [];
@@ -226,7 +217,18 @@ function formatSelectWithJoin(spell) {
   }
   chunks.push(selects.join(', '));
 
-  if (skip > 0 || rowCount > 0) {
+  let hoistable = skip > 0 || rowCount > 0;
+  if (hoistable) {
+    for (const condition of whereConditions) {
+      walkExpr(condition, ({ type, qualifiers }) => {
+        if (type === 'id' && qualifiers.length> 0 && !qualifiers.includes(baseName)) {
+          hoistable = false;
+        }
+      });
+    }
+  }
+
+  if (hoistable) {
     const subspell = createSubspell(spell);
     const subquery = this.formatSelectWithoutJoin(subspell);
     values.push(...subquery.values);
@@ -262,6 +264,10 @@ function formatSelectWithJoin(spell) {
   }
 
   if (orders.length > 0) chunks.push(`ORDER BY ${formatOrders(spell, orders).join(', ')}`);
+  if (!hoistable) {
+    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    if (skip > 0) chunks.push(`OFFSET ${skip}`);
+  }
   return { sql: chunks.join(' '), values };
 }
 
