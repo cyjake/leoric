@@ -502,23 +502,23 @@ describe('=> Count / Group / Having', function() {
 describe('=> Group / Join / Subqueries', function() {
   before(async function() {
     await Post.remove({}, true);
-    const posts = await Promise.all([
-      Post.create({ id: 1, title: 'New Post' }),
-      Post.create({ id: 2, title: 'Archbishop Lazarus' }),
-      Post.create({ id: 3, title: 'Archangel Tyrael' }),
-      Post.create({ id: 4, title: 'New Post 2' })
+    const posts = await Post.bulkCreate([
+      { id: 1, title: 'New Post' },
+      { id: 2, title: 'Archbishop Lazarus' },
+      { id: 3, title: 'Archangel Tyrael' },
+      { id: 4, title: 'New Post 2' },
     ]);
 
-    await Promise.all([
-      Attachment.create({ postId: posts[0].id }),
-      Attachment.create({ postId: posts[0].id }),
-      Attachment.create({ postId: posts[1].id })
+    await Attachment.bulkCreate([
+      { postId: posts[0].id },
+      { postId: posts[0].id },
+      { postId: posts[1].id },
     ]);
 
-    await Promise.all([
-      Comment.create({ articleId: posts[1].id, content: 'foo' }),
-      Comment.create({ articleId: posts[1].id, content: 'bar' }),
-      Comment.create({ articleId: posts[2].id, content: 'baz' })
+    await Comment.bulkCreate([
+      { articleId: posts[1].id, content: 'foo' },
+      { articleId: posts[1].id, content: 'bar' },
+      { articleId: posts[2].id, content: 'baz' },
     ]);
   });
 
@@ -567,6 +567,16 @@ describe('=> Group / Join / Subqueries', function() {
     expect(posts[0].attachment).to.be(null);
     expect(posts[1].attachment).to.be.an(Attachment);
     expect(posts[1].attachment.postId).to.equal(posts[1].id);
+  });
+
+  it('Bone.join().limit()', async function() {
+    // https://github.com/cyjake/leoric/issues/228
+    const post = await Post.include('comments').where({
+      'posts.title': { $like: 'Arch%' },
+      'comments.content': 'baz',
+    }).first;
+    assert.ok(post);
+    assert.equal(post.title, 'Archangel Tyrael');
   });
 
   it('Bone.include().group()', async function() {
