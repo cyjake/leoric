@@ -1,3 +1,14 @@
+1.14.4 / 2021-11-15
+===================
+
+## What's Changed
+
+* test: PostgreSQL v14 test case compatibility by @cyjake https://github.com/cyjake/leoric/pull/230
+* fix: turn off subquery optimization if query criteria contains other column by @cyjake https://github.com/cyjake/leoric/pull/229
+* fix: bone.changed() return `false | string[]` type by @fengmk2 https://github.com/cyjake/leoric/pull/231
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.14.3...v1.14.4
+
 1.14.3 / 2021-11-12
 ===================
 
