@@ -59,6 +59,18 @@ describe('=> Basics (TypeScript)', function() {
       post.attribute('title', 'Cain');
       assert.equal(post.title, 'Cain');
     });
+
+    it('bone.changed()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.changed(), [ 'title' ]);
+      assert.equal(post.changed('title'), true);
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.equal(post.changed(), false);
+      assert.equal(post.changed('title'), false);
+    });
   });
 
   describe('=> Accessors', function() {
