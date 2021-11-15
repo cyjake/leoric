@@ -35,13 +35,15 @@ describe('=> Date functions (postgres)', function() {
   });
 
   it('GROUP BY MONTH(date)', async function() {
-    const result = await Post.select('MONTH(createdAt')
-      .group('MONTH(createdAt)')
+    const result = await Post.select('MONTH(createdAt) AS month')
+      .group('MONTH(createdAt) AS month')
       .count()
       .order('count', 'desc');
+    // PostgreSQL v14 returns string instead
+    for (const entry of result) entry.month = parseInt(entry.month);
     assert.deepEqual(result.toJSON(), [
-      { count: 2, 'date_part': 5 },
-      { count: 1, 'date_part': 11 }
+      { count: 2, month: 5 },
+      { count: 1, month: 11 },
     ]);
   });
 });
