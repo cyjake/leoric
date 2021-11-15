@@ -494,7 +494,7 @@ export class Bone {
    * Get changed attributes or check if given attribute is changed or not
    */
   changed(name: string): boolean;
-  changed(): Array<string>;
+  changed(): Array<string> | false;
 
   /**
    * Get attribute changes
