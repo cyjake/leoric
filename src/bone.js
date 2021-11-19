@@ -1322,6 +1322,7 @@ class Bone {
   }
 
   static async bulkCreate(records, options = {}) {
+    if (!records || !records.length) return records;
     const { driver, attributes, primaryKey, primaryColumn } = this;
 
     const { createdAt, updatedAt } = this.timestamps;
