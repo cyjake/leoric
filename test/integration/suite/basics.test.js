@@ -889,6 +889,13 @@ describe('=> Basic', () => {
       await User.remove({}, true);
     });
 
+    it('Bone.bulkCreate() should work while insert empty array', async () => {
+      let res = await Post.bulkCreate([]);
+      assert.deepEqual(res, []);
+      res = await Post.bulkCreate(null);
+      assert.deepEqual(res, null);
+    });
+
     it('Bone.bulkCreate() should return bulk created instances', async () => {
       // distractor
       await Post.create({ id: 1, title: 'Mipha' });
