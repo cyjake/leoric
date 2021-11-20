@@ -1,6 +1,7 @@
 'use strict';
 
 const { Pool } = require('pg');
+const { performance } = require('perf_hooks');
 
 const AbstractDriver = require('../abstract');
 const Attribute = require('./attribute');
@@ -8,6 +9,7 @@ const DataTypes = require('./data_types');
 const { escape, escapeId } = require('./sqlstring');
 const spellbook = require('./spellbook');
 const schema = require('./schema');
+const { calculateDuration } = require('../../utils');
 
 /**
  * The actual column type can be found by mapping the `oid` (which is called `dataTypeID`) in the `RowDescription`.
@@ -129,19 +131,19 @@ class PostgresDriver extends AbstractDriver {
 
     async function tryQuery(...args) {
       const formatted = logger.format(sql, values, spell);
-      const start = new Date();
+      const start = performance.now();
       let result;
 
       try {
         result = await connection.query(...args);
       } catch (err) {
-        logger.logQueryError(formatted, err, Date.now() - start, spell);
+        logger.logQueryError(formatted, err, calculateDuration(start), spell);
         throw err;
       } finally {
         if (!spell.connection) connection.release();
       }
 
-      logger.tryLogQuery(formatted, Date.now() - start, spell);
+      logger.tryLogQuery(formatted, calculateDuration(start), spell);
       return result;
     }
 
