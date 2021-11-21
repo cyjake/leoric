@@ -107,6 +107,9 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
 
   batch(size?: number): AsyncIterable<T>;
 
+  increment(name: string, by?: number, options?: QueryOptions): Spell<T, number>;
+  decrement(name: string, by?: number, options?: QueryOptions): Spell<T, number>;
+
   toSqlString(): string;
   toString(): string;
 }
@@ -158,6 +161,7 @@ interface QueryOptions {
   individualHooks?: boolean;
   hooks?: boolean;
   paranoid?: boolean;
+  silent?: boolean;
 }
 
 interface QueryResult {
