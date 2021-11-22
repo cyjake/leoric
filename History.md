@@ -1,3 +1,13 @@
+1.15.0 / 2021-11-22
+===================
+
+## What's Changed
+* feat: make duration in precise milliseconds by @fengmk2 in https://github.com/cyjake/leoric/pull/236
+* fix: spell.increment() & spell.decrement() @cyjake https://github.com/cyjake/leoric/pull/234
+* fix: bulkCreate should adapte empty data @JimmyDaddy  https://github.com/cyjake/leoric/pull/232
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.14.4...v1.14.5
+
 1.14.4 / 2021-11-15
 ===================
 
