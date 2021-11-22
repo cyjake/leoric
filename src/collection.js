@@ -11,7 +11,8 @@ class Collection extends Array {
    * @param {Array} fields
    * @returns {Collection|Array}
    */
-  static init({ spell, rows, fields }) {
+  static init({ spell, rows, fields, insertId, affectedRows}) {
+    if (spell.command !== 'select') return { insertId, affectedRows };
     return dispatch(spell, rows, fields);
   }
 
