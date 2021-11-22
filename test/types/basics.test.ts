@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import { Bone, DataTypes, connect } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
-  const { BIGINT, STRING, TEXT, DATE, BOOLEAN } = DataTypes;
+  const { BIGINT, INTEGER, STRING, TEXT, DATE, BOOLEAN } = DataTypes;
   class Post extends Bone {
     static table = 'articles';
 
@@ -19,6 +19,7 @@ describe('=> Basics (TypeScript)', function() {
       isPrivate: BOOLEAN,
       summary: TEXT,
       settings: TEXT,
+      wordCount: INTEGER,
     }
 
     // TODO: should be generated or automated with decorator
@@ -34,6 +35,7 @@ describe('=> Basics (TypeScript)', function() {
     isPrivate: boolean;
     summary: string;
     settings: string;
+    wordCount: number;
   }
 
   before(async function() {
@@ -169,6 +171,23 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(result, 1);
       await post.reload();
       assert.equal(post.title, 'Stranger');
+    });
+
+    it('spell.increment()', async function() {
+      const [ post, post2 ] = await Post.bulkCreate([
+        { title: 'Leah', wordCount: 20 },
+        { title: 'Cain', wordCount: 10 },
+      ]);
+
+      await Post.where({ title: 'Leah' }).increment('wordCount');
+      await post.reload();
+      assert.equal(post.wordCount, 21);
+
+      await Post.all.increment('wordCount', 20);
+      await post.reload();
+      assert.equal(post.wordCount, 41);
+      await post2.reload();
+      assert.equal(post2.wordCount, 30);
     });
   });
 
