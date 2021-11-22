@@ -1,5 +1,7 @@
 'use strict';
 
+const { performance } = require('perf_hooks');
+
 function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]';
 }
@@ -28,6 +30,11 @@ function getPropertyNames(obj) {
   return Array.from(propertyNamesSet);
 }
 
+// microseconds to millisecond, 10.456
+function calculateDuration(starttime) {
+  return Math.floor((performance.now() - starttime) * 1000) / 1000;
+}
+
 const logger = {};
 
 [ 'log', 'warn', 'debug', 'info', 'error' ].forEach(key => {
@@ -40,5 +47,6 @@ module.exports = {
   isPlainObject,
   compose,
   getPropertyNames,
+  calculateDuration,
   logger,
 };

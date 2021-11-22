@@ -1,10 +1,13 @@
 'use strict';
 
+const { performance } = require('perf_hooks');
+
 const AbstractDriver = require('../abstract');
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const spellbook = require('./spellbook');
 const schema = require('./schema');
+const { calculateDuration } = require('../../utils');
 
 class MysqlDriver extends AbstractDriver {
   /**
@@ -84,19 +87,19 @@ class MysqlDriver extends AbstractDriver {
       });
     });
     const sql = logger.format(query, values, opts);
-    const start = Date.now();
+    const start = performance.now();
     let result;
 
     try {
       result = await promise;
     } catch (err) {
-      logger.logQueryError(sql, err, Date.now() - start, opts);
+      logger.logQueryError(sql, err, calculateDuration(start), opts);
       throw err;
     } finally {
       if (!opts.connection) connection.release();
     }
 
-    logger.tryLogQuery(sql, Date.now() - start, opts);
+    logger.tryLogQuery(sql, calculateDuration(start), opts);
     const [ results, fields ] = result;
     if (fields) return { rows: results, fields };
     return results;

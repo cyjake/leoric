@@ -1,6 +1,7 @@
 'use strict';
 
 const strftime = require('strftime');
+const { performance } = require('perf_hooks');
 
 const AbstractDriver = require('../abstract');
 const Attribute = require('./attribute');
@@ -9,6 +10,7 @@ const { escapeId, escape } = require('./sqlstring');
 const schema = require('./schema');
 const spellbook = require('./spellbook');
 const Pool = require('./pool');
+const { calculateDuration } = require('../../utils');
 
 class SqliteDriver extends AbstractDriver {
   constructor(opts = {}) {
@@ -40,19 +42,19 @@ class SqliteDriver extends AbstractDriver {
 
     const { logger } = this;
     const sql = logger.format(query, values, opts);
-    const start = Date.now();
+    const start = performance.now();
     let result;
 
     try {
       result = await connection.query(query, values, opts);
     } catch (err) {
-      logger.logQueryError(sql, err, Date.now() - start, opts);
+      logger.logQueryError(sql, err, calculateDuration(start), opts);
       throw err;
     } finally {
       if (!opts.connection) connection.release();
     }
 
-    logger.tryLogQuery(sql, Date.now() - start, opts);
+    logger.tryLogQuery(sql, calculateDuration(start), opts);
     return result;
   }
 
