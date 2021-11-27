@@ -64,10 +64,10 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
   constructor(Model: T, opts: SpellOptions);
 
   select(...names: Array<string | RawSql> | Array<(name: string) => boolean>): Spell<T, U>;
-  insert(opts: SetOptions): Spell<T, number>;
-  update(opts: SetOptions): Spell<T, number>;
-  upsert(opts: SetOptions): Spell<T, number>;
-  delete(): Spell<T, number>;
+  insert(opts: SetOptions): Spell<T, QueryResult>;
+  update(opts: SetOptions): Spell<T, QueryResult>;
+  upsert(opts: SetOptions): Spell<T, QueryResult>;
+  delete(): Spell<T, QueryResult>;
 
   from(table: string | Spell<T>): Spell<T, U>;
 
@@ -107,8 +107,8 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
 
   batch(size?: number): AsyncIterable<T>;
 
-  increment(name: string, by?: number, options?: QueryOptions): Spell<T, number>;
-  decrement(name: string, by?: number, options?: QueryOptions): Spell<T, number>;
+  increment(name: string, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
+  decrement(name: string, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
 
   toSqlString(): string;
   toString(): string;
