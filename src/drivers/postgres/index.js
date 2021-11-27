@@ -137,7 +137,7 @@ class PostgresDriver extends AbstractDriver {
       try {
         result = await connection.query(...args);
       } catch (err) {
-        logger.logQueryError(formatted, err, calculateDuration(start), spell);
+        logger.logQueryError(err, formatted, calculateDuration(start), spell);
         throw err;
       } finally {
         if (!spell.connection) connection.release();
