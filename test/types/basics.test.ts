@@ -179,7 +179,9 @@ describe('=> Basics (TypeScript)', function() {
         { title: 'Cain', wordCount: 10 },
       ]);
 
-      await Post.where({ title: 'Leah' }).increment('wordCount');
+      const result = await Post.where({ title: 'Leah' }).increment('wordCount');
+      assert.equal(result.affectedRows, 1);
+
       await post.reload();
       assert.equal(post.wordCount, 21);
 
@@ -188,6 +190,17 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.wordCount, 41);
       await post2.reload();
       assert.equal(post2.wordCount, 30);
+    });
+
+    it('spell.update()', async function() {
+      const post = await Post.create({ title: 'Leah', wordCount: 20 });
+      assert.equal(post.title, 'Leah');
+
+      const result = await Post.where({ title: 'Leah' }).update({ title: 'Diablo' });
+      assert.equal(result.affectedRows, 1);
+
+      await post.reload();
+      assert.equal(post.title, 'Diablo');
     });
   });
 
@@ -206,6 +219,19 @@ describe('=> Basics (TypeScript)', function() {
       const post = await Post.create({ title: 'Untitled' });
       await post.remove();
       assert.equal((await Post.find()).length, 0);
+    });
+
+    it('spell.delete()', async function() {
+      const [ post, post2 ] = await Post.bulkCreate([
+        { title: 'Leah', wordCount: 20 },
+        { title: 'Cain', wordCount: 10 },
+      ]);
+
+      const result = await Post.where({ title: 'Leah' }).delete();
+      assert.equal(result.affectedRows, 1);
+
+      assert.equal(await Post.count(), 1);
+      assert.equal((await Post.findOne()).title, 'Cain');
     });
   });
 
