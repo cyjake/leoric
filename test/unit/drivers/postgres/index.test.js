@@ -38,7 +38,7 @@ describe('=> PostgreSQL driver', () => {
       },
     });
     await assert.rejects(async () => await driver2.query('SELECT x'));
-    const [ sql, err ] = result[0];
+    const [ err, sql ] = result[0];
     assert.equal(sql, 'SELECT x');
     assert.ok(err);
     assert.ok(/column "x" does not exist/.test(err.message));
