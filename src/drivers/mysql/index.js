@@ -93,7 +93,7 @@ class MysqlDriver extends AbstractDriver {
     try {
       result = await promise;
     } catch (err) {
-      logger.logQueryError(sql, err, calculateDuration(start), opts);
+      logger.logQueryError(err, sql, calculateDuration(start), opts);
       throw err;
     } finally {
       if (!opts.connection) connection.release();
