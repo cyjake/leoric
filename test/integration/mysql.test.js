@@ -12,7 +12,8 @@ before(async function() {
     port: process.env.MYSQL_PORT,
     user: 'root',
     database: 'leoric',
-    models: path.resolve(__dirname, '../models')
+    models: path.resolve(__dirname, '../models'),
+    charset: 'utf8mb4',
   });
 });
 

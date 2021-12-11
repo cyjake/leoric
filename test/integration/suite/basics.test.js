@@ -601,6 +601,12 @@ describe('=> Basic', () => {
       const foundPost = await Post.findOne({});
       expect(foundPost.id).to.equal(post.id);
       expect(foundPost.title).to.equal(post.title);
+      // utf8mb4
+      const post2 = await Post.create({ title: 'New Post with with utf8mb4 💩, 𝌆 utf8_unicode_ci, foo𝌆bar 🍻', extra: { a: 1, b: 1} });
+      expect(post2.id).to.be.above(0);
+      expect(post2.title).to.equal('New Post with with utf8mb4 💩, 𝌆 utf8_unicode_ci, foo𝌆bar 🍻');
+      const foundPost2 = await Post.findOne({ id: post2.id });
+      expect(foundPost2.title).to.equal('New Post with with utf8mb4 💩, 𝌆 utf8_unicode_ci, foo𝌆bar 🍻');
     });
 
     it('Bone.create(values) should handle timestamps', async function() {
