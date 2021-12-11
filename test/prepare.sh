@@ -7,7 +7,8 @@ fi
 ##
 # MySQL
 cat <<EOF | mysql -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot
-CREATE DATABASE IF NOT EXISTS leoric;
+DROP DATABASE IF EXISTS leoric;
+CREATE DATABASE leoric CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE leoric;
 source test/dumpfile.sql;
 ALTER TABLE articles CHANGE COLUMN summary summary MEDIUMTEXT;
