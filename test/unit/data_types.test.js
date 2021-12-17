@@ -96,6 +96,7 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new DATE().uncast(1625743838518).getTime(), 1625743838518);
     assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02,548'), new Date('2021-10-15T15:50:02.548Z'));
     assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02.548'), new Date('2021-10-15T15:50:02.548Z'));
+    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02'), new Date('2021-10-15 15:50:02'));
 
     const today = new Date();
     const result = new DATE(0).uncast(today);
