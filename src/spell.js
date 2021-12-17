@@ -68,8 +68,7 @@ function parseSelect(spell, ...names) {
  * @returns {Object}
  */
 function formatValueSet(spell, obj, strict = true) {
-  const { Model, silent = false, command } = spell;
-  const { timestamps } = Model;
+  const { Model } = spell;
   const sets = {};
   for (const name in obj) {
     const attribute = Model.attributes[name];
@@ -77,10 +76,6 @@ function formatValueSet(spell, obj, strict = true) {
 
     if (!attribute && strict) {
       throw new Error(`Undefined attribute "${name}"`);
-    }
-
-    if (silent && timestamps.updatedAt && name === timestamps.updatedAt && command === 'update') {
-      continue;
     }
 
     // raw sql don't need to uncast
@@ -402,7 +397,6 @@ class Spell {
       hints: [...this.hints],
       // used by transaction
       connection: this.connection,
-      silent: this.silent,
     });
   }
 
@@ -530,8 +524,8 @@ class Spell {
   }
 
   $increment(name, by = 1, opts = {}) {
-    let { Model, silent = false } = this;
-    if (opts.silent != null) silent = opts.silent;
+    const { Model } = this;
+    const silent = opts.silent;
     const { timestamps } = Model;
     this.command = 'update';
     if (!Number.isFinite(by)) throw new Error(`unexpected increment value ${by}`);
