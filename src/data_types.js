@@ -214,7 +214,7 @@ class BIGINT extends INTEGER {
   }
 }
 
-const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6})?$/;
+const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6})$/;
 
 class DATE extends DataType {
   constructor(precision, timezone = true) {
