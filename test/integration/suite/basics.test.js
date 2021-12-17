@@ -691,6 +691,27 @@ describe('=> Basic', () => {
       assert.deepEqual(post.extra, { versions: [ 2, 3 ] });
     });
 
+    it('Bone.update(where, values) silent should work', async () => {
+      const post = await Post.create({ title: 'New Post', createdAt: new Date(2010, 9, 11) });
+      await Post.update({ title: 'New Post' }, { title: 'Skeleton King' });
+      const foundPost = await Post.findOne({ title: 'Skeleton King' });
+      expect(foundPost.id).to.equal(post.id);
+      expect(foundPost.updatedAt.getTime()).to.be.above(post.updatedAt.getTime());
+      await Post.update({ title: 'Skeleton King' }, { title: 'Leoric' }, { silent: true });
+      const foundPost1 = await Post.findOne({ title: 'Leoric' });
+      expect(foundPost1.id).to.equal(post.id);
+      expect(foundPost1.updatedAt.getTime()).equal(foundPost.updatedAt.getTime());
+      await Post.update({ title: 'Leoric' }, { title: 'Yhorm' }, { silent: false });
+      const foundPost2 = await Post.findOne({ title: 'Yhorm' });
+      expect(foundPost2.id).to.equal(post.id);
+      expect(foundPost2.updatedAt.getTime()).to.be.above(foundPost1.updatedAt.getTime());
+
+      await Post.update({ title: 'Yhorm' }, { updatedAt: new Date() }, { silent: true });
+      const foundPost3 = await Post.findOne({ title: 'Yhorm' });
+      expect(foundPost3.id).to.equal(post.id);
+      expect(foundPost3.updatedAt.getTime()).to.be.above(foundPost2.updatedAt.getTime());
+    });
+
     it('bone.update(values, options)', async () => {
       const post = await Post.create({ title: 'New Post' });
       await post.update({ extra: { versions: [ 2, 3 ] } });
@@ -704,6 +725,28 @@ describe('=> Basic', () => {
       await post.update({ extra: { versions: [ 2, 3, 4, 5 ] }, notAttribute: 'not' });
       await post.reload();
       assert.deepEqual(post.extra, { versions: [ 2, 3, 4, 5 ] });
+    });
+
+    it('bone.update(values, options) silent should work', async () => {
+      const post = await Post.create({ title: 'New Post' });
+      const oldUpdatedAt = post.updatedAt.getTime();
+      await post.update({ title: 'Midir' });
+      await post.reload();
+      const updatedAt1 = post.updatedAt.getTime();
+      expect(updatedAt1).to.be.above(oldUpdatedAt);
+      await post.update({ title: 'Gymn' }, { silent: true });
+      await post.reload();
+      const updatedAt2 = post.updatedAt.getTime();
+      expect(updatedAt2).equal(updatedAt1);
+      await post.update({ title: 'BlackW' }, { silent: false });
+      await post.reload();
+      const updatedAt3 = post.updatedAt.getTime();
+      expect(updatedAt3).to.be.above(updatedAt2);
+
+      await post.update({ updatedAt: new Date() }, { silent: true });
+      await post.reload();
+      const updatedAt4 = post.updatedAt.getTime();
+      expect(updatedAt4).to.be.above(updatedAt3);
     });
 
     it('Bone.update({}, values) should work', async function() {
