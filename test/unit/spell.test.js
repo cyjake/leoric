@@ -756,9 +756,8 @@ describe('=> Spell', function() {
       );
 
       const spell1 = Book.find({ name: 'hello' });
-      spell1.silent = true;
       assert.equal(
-        spell1.decrement('price', 1).toString(),
+        spell1.decrement('price', 1, { silent: true }).toString(),
         "UPDATE `books` SET `price` = `price` - 1 WHERE `name` = 'hello' AND `gmt_deleted` IS NULL"
       );
       assert.equal(

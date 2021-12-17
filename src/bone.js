@@ -682,7 +682,7 @@ class Bone {
     if (shardingKey) where[shardingKey] = this[shardingKey];
 
     const { updatedAt, deletedAt } = Model.timestamps;
-    if (attributes[updatedAt] && !changes[updatedAt] && !changes[deletedAt]) {
+    if (attributes[updatedAt] && !changes[updatedAt] && !changes[deletedAt] && !options.silent) {
       changes[updatedAt] = new Date();
     }
     if (options.validate !== false ) {
@@ -1416,7 +1416,7 @@ class Bone {
     // values should be immutable
     const data = Object.assign({}, values);
     const { updatedAt, deletedAt } = this.timestamps;
-    if (attributes[updatedAt] && !data[updatedAt] && !data[deletedAt]) {
+    if (attributes[updatedAt] && !data[updatedAt] && !data[deletedAt] && !options.silent) {
       data[updatedAt] = new Date();
     }
 
