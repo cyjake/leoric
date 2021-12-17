@@ -457,7 +457,6 @@ function formatUpdate(spell) {
     }
   }
 
-  for (const condition of whereConditions) collectLiteral(spell, condition, values);
   // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
   const hintStr = this.formatOptimizerHints(spell);
   // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
@@ -472,7 +471,10 @@ function formatUpdate(spell) {
   }
 
   chunks.push(`SET ${assigns.join(', ')}`);
-  chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
+  if (whereConditions.length > 0) {
+    for (const condition of whereConditions) collectLiteral(spell, condition, values);
+    chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
+  }
   return {
     sql: chunks.join(' '),
     values,

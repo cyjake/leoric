@@ -706,6 +706,17 @@ describe('=> Basic', () => {
       assert.deepEqual(post.extra, { versions: [ 2, 3, 4, 5 ] });
     });
 
+    it('Bone.update({}, values) should work', async function() {
+      const posts = await Promise.all([
+        Post.create({ title: 'New Post' }),
+        Post.create({ title: 'New Post 2'})
+      ]);
+      const affectedRows = await Post.update({}, { title: 'Untitled' });
+      expect(posts.length).to.equal(affectedRows);
+      const newPosts = await Post.all;
+      assert(newPosts.every(p => p.title === 'Untitled'));
+    });
+
     it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
       const post = await Post.create({ id: 1, title: 'New Post', createdAt: new Date(2010, 9, 11) });
       const updatedAtWas = post.updatedAt;
