@@ -229,14 +229,24 @@ class DATE extends DataType {
   toSqlString() {
     const { precision } = this;
     const dataType = this.dataType.toUpperCase();
-    if (precision > 0) return `${dataType}(${precision})`;
+    if (precision != null && precision >= 0) return `${dataType}(${precision})`;
     return dataType;
+  }
+
+  _round(value) {
+    const { precision } = this;
+    if (precision != null && precision < 3 && value instanceof Date) {
+      const result = new Date(value);
+      result.setMilliseconds(result.getMilliseconds() % (10 ** precision));
+      return result;
+    }
+    return value;
   }
 
   cast(value) {
     if (value == null) return value;
-    if (value instanceof Date) return value;
-    return new Date(value);
+    if (!(value instanceof Date)) value = new Date(value);
+    return this._round(value);
   }
 
   uncast(value) {
@@ -258,13 +268,7 @@ class DATE extends DataType {
     if (!(value instanceof Date)) value = new Date(value);
     if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
 
-    const { precision } = this;
-    if (precision < 3) {
-      const result = new Date(value);
-      result.setMilliseconds(result.getMilliseconds() % (10 ** precision));
-      return result;
-    }
-    return value;
+    return this._round(value);
   }
 }
 
@@ -278,10 +282,17 @@ class DATEONLY extends DataType {
     return this.dataType.toUpperCase();
   }
 
+  _round(value) {
+    if (value instanceof Date) {
+      return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    }
+    return value;
+  }
+
   cast(value) {
     if (value == null) return value;
-    if (value instanceof Date) return value;
-    return new Date(value);
+    if (!(value instanceof Date)) value = new Date(value);
+    return this._round(value);
   }
 
   uncast(value) {
@@ -301,7 +312,7 @@ class DATEONLY extends DataType {
     if (!(value instanceof Date)) value = new Date(value);
     if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));;
 
-    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    return this._round(value);
   }
 }
 
@@ -374,7 +385,12 @@ class JSON extends DataType {
     if (!value) return value;
     // type === JSONB
     if (typeof value === 'object') return value;
-    return global.JSON.parse(value);
+    try {
+      return global.JSON.parse(value);
+    } catch (err) {
+      console.error(new Error(`unable to cast ${value} to JSON`));
+      return value;
+    }
   }
 
   uncast(value) {

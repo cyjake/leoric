@@ -138,6 +138,7 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new JSON().cast(undefined), undefined);
     assert.deepEqual(new JSON().cast('{"a":1}'), { a: 1 });
     assert.deepEqual(new JSON().cast({ a: 1 }), { a: 1 });
+    assert.equal(new JSON().cast('foo'), 'foo');
 
     assert.equal(new JSON().uncast(null), null);
     assert.equal(new JSON().uncast(undefined), undefined);

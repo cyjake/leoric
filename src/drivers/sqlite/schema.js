@@ -101,19 +101,24 @@ module.exports = {
     });
     const results = await Promise.all(queries);
     const schemaInfo = {};
+    const rColumnType = /^(\w+)(?:\(([^)]+)\))?/i;
+    const rDateType = /(?:date|datetime|timestamp)/i;
+
     for (let i = 0; i < tables.length; i++) {
       const table = tables[i];
       const { rows } = results[i];
       const columns = rows.map(({ name, type, notnull, dflt_value, pk }) => {
         const columnType = type.toLowerCase();
+        const [, dataType, precision ] = columnType.match(rColumnType);
         const primaryKey = pk === 1;
         const result = {
           columnName: name,
           columnType,
           defaultValue: parseDefaultValue(dflt_value),
-          dataType: columnType.split('(')[0],
+          dataType: dataType,
           allowNull: primaryKey ? false : notnull == 0,
           primaryKey,
+          datetimePrecision: rDateType.test(dataType) ? parseInt(precision, 10) : null,
         };
         return result;
       });

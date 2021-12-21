@@ -4,6 +4,7 @@ const SqlString = require('sqlstring');
 
 const { copyExpr, findExpr, walkExpr } = require('../../expr');
 const { formatExpr, formatConditions, collectLiteral } = require('../../expr_formatter');
+const Raw = require('../../raw');
 
 /**
  * Format orders into ORDER BY clause in SQL
@@ -386,7 +387,7 @@ function formatInsert(spell) {
       const value = sets[name];
       // upsert should not update createdAt
       columns.push(Model.unalias(name));
-      if (value && value.__raw) {
+      if (value instanceof Raw) {
         values.push(SqlString.raw(value.value));
       } else {
         values.push(value);
@@ -449,7 +450,7 @@ function formatUpdate(spell) {
     if (value && value.__expr) {
       assigns.push(`${escapeId(Model.unalias(name))} = ${formatExpr(spell, value)}`);
       collectLiteral(spell, value, values);
-    } else if (value && value.__raw) {
+    } else if (value instanceof Raw) {
       assigns.push(`${escapeId(Model.unalias(name))} = ${value.value}`);
     } else {
       assigns.push(`${escapeId(Model.unalias(name))} = ?`);

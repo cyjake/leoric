@@ -10,6 +10,7 @@ const { parseExprList, parseExpr, walkExpr } = require('./expr');
 const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
+const Raw = require('./raw');
 
 /**
  * Parse condition expressions
@@ -21,7 +22,7 @@ const { parseObject } = require('./query_object');
  * @returns {Array}
  */
 function parseConditions(conditions, ...values) {
-  if (conditions.__raw) return [ conditions ];
+  if (conditions instanceof Raw) return [ conditions ];
   if (isPlainObject(conditions)) {
     return parseObject(conditions);
   } else if (typeof conditions == 'string') {
@@ -41,7 +42,7 @@ function parseSelect(spell, ...names) {
 
   const columns = [];
   for (const name of names) {
-    if (name.__raw) columns.push(name);
+    if (name instanceof Raw) columns.push(name);
     else columns.push(...parseExprList(name));
   }
 
@@ -79,7 +80,7 @@ function formatValueSet(spell, obj, strict = true) {
     }
 
     // raw sql don't need to uncast
-    if (value && value.__raw) {
+    if (value instanceof Raw) {
       sets[name] = value;
     } else {
       sets[name] = attribute.uncast(value);
@@ -646,7 +647,7 @@ class Spell {
    */
   $order(name, direction) {
     if (isPlainObject(name)) {
-      if (name.__raw) {
+      if (name instanceof Raw) {
         this.orders.push([
           name,
         ]);
@@ -711,7 +712,7 @@ class Spell {
     for (const condition of parseConditions(conditions, ...values)) {
       // Postgres can't have alias in HAVING caluse
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
-      if (this.Model.driver.type === 'postgres' && !condition.__raw) {
+      if (this.Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {
