@@ -1,6 +1,5 @@
 'use strict';
 
-
 const Logger = require('./src/drivers/abstract/logger');
 const Spell = require('./src/spell');
 const Bone = require('./src/bone');

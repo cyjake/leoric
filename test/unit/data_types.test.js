@@ -93,15 +93,17 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new DATE().uncast(null), null);
     assert.equal(new DATE().uncast(undefined), undefined);
 
-    assert.equal(new DATE().uncast(1625743838518).getTime(), 1625743838518);
-    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02,548'), new Date('2021-10-15T15:50:02.548Z'));
-    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02.548'), new Date('2021-10-15T15:50:02.548Z'));
+    assert.equal(new DATE().uncast(1625743838518).getTime(), 1625743838000);
+    assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02,548'), new Date('2021-10-15T15:50:02.000Z'));
+    assert.deepEqual(new DATE(3).uncast('2021-10-15 15:50:02,548'), new Date('2021-10-15T15:50:02.548Z'));
     assert.deepEqual(new DATE().uncast('2021-10-15 15:50:02'), new Date('2021-10-15 15:50:02'));
 
     const today = new Date();
     const result = new DATE(0).uncast(today);
     today.setMilliseconds(0);
     assert.equal(result.getTime(), today.getTime());
+
+    assert.deepEqual(new DATE().cast('2021-10-15 15:50:02.121'), new Date('2021-10-15 15:50:02'));
   });
 
   it('DATE toDate()', async function() {

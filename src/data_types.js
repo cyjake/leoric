@@ -220,7 +220,7 @@ class DATE extends DataType {
   constructor(precision, timezone = true) {
     super();
     this.dataType = 'datetime';
-    this.precision = precision;
+    this.precision = precision || 0;
     // PostgreSQL enables timestamp with or without time zone
     // - https://www.postgresql.org/docs/9.5/datatype-datetime.html
     this.timezone = timezone;
@@ -234,9 +234,14 @@ class DATE extends DataType {
   }
 
   cast(value) {
-    if (value == null) return value;
-    if (value instanceof Date) return value;
-    return new Date(value);
+    if (value == null || (typeof value === 'object' && value.__raw === true)) return value;
+    const { precision } = this;
+    let res = value;
+    if (!(value instanceof Date)) res = new Date(value);
+    if (precision < 3) {
+      res.setMilliseconds(res.getMilliseconds() % (10 ** precision));
+    }
+    return res;
   }
 
   uncast(value) {
@@ -374,7 +379,11 @@ class JSON extends DataType {
     if (!value) return value;
     // type === JSONB
     if (typeof value === 'object') return value;
-    return global.JSON.parse(value);
+    try {
+      return global.JSON.parse(value);
+    } catch (error) {
+      return value;
+    }
   }
 
   uncast(value) {

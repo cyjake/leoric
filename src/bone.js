@@ -169,7 +169,7 @@ class Bone {
 
     if (args.length > 1) {
       // execute validators
-      this.#raw[name] = value;
+      this.#raw[name] = attributes[name].cast(value);
       this.#rawUnset.delete(name);
       return this;
     }

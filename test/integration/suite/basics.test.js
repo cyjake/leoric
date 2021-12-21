@@ -180,13 +180,13 @@ describe('=> Basic', () => {
       // isPrivate has default value in DSL
       assert.equal(post.previousChanged(), false);
       post.extra = 'hello2';
-      await sleep(10);
+      await sleep(1000);
       await post.save();
       // should return updated attributes' name after updating
       assert.deepEqual(post.previousChanged().sort(), ['extra', 'updatedAt']);
       post.title = 'monster hunter';
       post.extra = 'hello3';
-      await sleep(10);
+      await sleep(1000);
       await post.save();
       // should return updated attributes' name after updating
       assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title', 'updatedAt' ]);
@@ -211,7 +211,7 @@ describe('=> Basic', () => {
       assert.deepEqual(post.previousChanges(), {});
       post.title = 'MHW';
       const prevUpdatedAt = post.updatedAt;
-      await sleep(10);
+      await sleep(1000);
       await post.save();
       assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
     });
@@ -695,11 +695,12 @@ describe('=> Basic', () => {
       const foundPost1 = await Post.findOne({ title: 'Leoric' });
       expect(foundPost1.id).to.equal(post.id);
       expect(foundPost1.updatedAt.getTime()).equal(foundPost.updatedAt.getTime());
+      await sleep(1000);
       await Post.update({ title: 'Leoric' }, { title: 'Yhorm' }, { silent: false });
       const foundPost2 = await Post.findOne({ title: 'Yhorm' });
       expect(foundPost2.id).to.equal(post.id);
       expect(foundPost2.updatedAt.getTime()).to.be.above(foundPost1.updatedAt.getTime());
-
+      await sleep(1000);
       await Post.update({ title: 'Yhorm' }, { updatedAt: new Date() }, { silent: true });
       const foundPost3 = await Post.findOne({ title: 'Yhorm' });
       expect(foundPost3.id).to.equal(post.id);
@@ -724,19 +725,22 @@ describe('=> Basic', () => {
     it('bone.update(values, options) silent should work', async () => {
       const post = await Post.create({ title: 'New Post' });
       const oldUpdatedAt = post.updatedAt.getTime();
+      await sleep(1000);
       await post.update({ title: 'Midir' });
       await post.reload();
       const updatedAt1 = post.updatedAt.getTime();
       expect(updatedAt1).to.be.above(oldUpdatedAt);
+      await sleep(1000);
       await post.update({ title: 'Gymn' }, { silent: true });
       await post.reload();
       const updatedAt2 = post.updatedAt.getTime();
       expect(updatedAt2).equal(updatedAt1);
+      await sleep(1000);
       await post.update({ title: 'BlackW' }, { silent: false });
       await post.reload();
       const updatedAt3 = post.updatedAt.getTime();
       expect(updatedAt3).to.be.above(updatedAt2);
-
+      await sleep(1000);
       await post.update({ updatedAt: new Date() }, { silent: true });
       await post.reload();
       const updatedAt4 = post.updatedAt.getTime();
