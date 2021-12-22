@@ -340,6 +340,7 @@ describe('=> Data types - complementary', function() {
     const date = new Date();
     const note = await Note.create({ createdAt: date });
     const expected = new Date(date);
+    if (expected.getMilliseconds() > 500) expected.setSeconds(expected.getSeconds() + 1);
     expected.setMilliseconds(0);
     assert.equal(note.createdAt.getTime(), expected.getTime());
   });

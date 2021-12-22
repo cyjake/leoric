@@ -236,9 +236,8 @@ class DATE extends DataType {
   _round(value) {
     const { precision } = this;
     if (precision != null && precision < 3 && value instanceof Date) {
-      const result = new Date(value);
-      result.setMilliseconds(result.getMilliseconds() % (10 ** precision));
-      return result;
+      const divider = 10 ** (3 - precision);
+      return new Date(Math.round(value.getTime() / divider) * divider);
     }
     return value;
   }
