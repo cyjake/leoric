@@ -134,7 +134,7 @@ describe('=> Bone', function() {
       assert.equal(User.timestamps.deletedAt, 'deletedAt');
     });
 
-    it('should mark timestamps if undescored', async function() {
+    it('should mark timestamps if underscored', async function() {
       class Spine extends Bone {}
       Spine.options = { underscored: true };
       class User extends Bone {
@@ -184,6 +184,22 @@ describe('=> Bone', function() {
       ]);
       assert.equal(User.primaryKey, 'ssn');
       assert.equal(User.primaryColumn, 'ssn');
+    });
+
+    it('should complement datetime precision if not defiend', async function() {
+      class User extends Bone {
+        static attributes = {
+          createdAt: new DATE,
+          updatedAt: new DATE(0),
+        }
+      }
+      User.load([
+        { columnName: 'created_at', columnType: 'timestamp(3)', dataType: 'timestamp', datetimePrecision: 3 },
+        { columnName: 'updated_at', columnType: 'timestamp(3)', dataType: 'timestamp', datetimePrecision: 3 },
+      ]);
+      assert.equal(User.attributes.createdAt.type.precision, 3);
+      // should not override existing one
+      assert.equal(User.attributes.updatedAt.type.precision, 0);
     });
   });
 

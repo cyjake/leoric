@@ -17,7 +17,8 @@ module.exports = {
     tables = [].concat(tables);
     const sql = heresql(`
       SELECT table_name, column_name, column_type, data_type, is_nullable,
-             column_default, column_key, column_comment
+             column_default, column_key, column_comment,
+             datetime_precision
         FROM information_schema.columns
        WHERE table_schema = ? AND table_name in (?)
        ORDER BY table_name, column_name
@@ -43,6 +44,7 @@ module.exports = {
         allowNull: row.is_nullable === 'YES',
         primaryKey: row.column_key == 'PRI',
         unique: row.column_key == 'PRI' || row.column_key == 'UNI',
+        datetimePrecision: row.datetime_precision,
       });
     }
 
