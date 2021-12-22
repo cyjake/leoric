@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const strftime = require('strftime');
 
 const { Bone, DataTypes } = require('../../..');
-const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB } = DataTypes;
+const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB, BIGINT } = DataTypes;
 
 
 describe('=> Data types', () => {
@@ -123,7 +123,6 @@ describe('=> Data types - JSON', () => {
     assert.deepEqual(note3.toJSON(), note4.toJSON());
   });
 });
-
 
 describe('=> Data types - BINARY', () => {
   let Note, BINARY, VARBINARY, BLOB;
@@ -309,5 +308,40 @@ describe('=> Data types - DATEONLY', function() {
       await note2.reload();
       assert.equal(note2.createdAt, null);
     }, /invalid date/i);
+  });
+});
+
+describe('=> Data types - complementary', function() {
+  class Note extends Bone {
+    static attributes = {
+      createdAt: DATE,
+      updatedAt: new DATE(3),
+    }
+  }
+
+  before(async function() {
+    const { driver } = Note;
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true },
+      createdAt: { type: DATE(0) },
+      updatedAt: { type: DATE(0) },
+    });
+    const schemaInfo = await driver.querySchemaInfo(driver.options.database, 'notes');
+    Note.load(schemaInfo.notes);
+  });
+
+  it('should complement datatime precision', async function() {
+    assert.equal(Note.attributes.createdAt.type.precision, 0);
+    assert.equal(Note.attributes.updatedAt.type.precision, 3);
+  });
+
+  it('should round values by precision', async function() {
+    const date = new Date();
+    const note = await Note.create({ createdAt: date });
+    const expected = new Date(date);
+    if (expected.getMilliseconds() > 500) expected.setSeconds(expected.getSeconds() + 1);
+    expected.setMilliseconds(0);
+    assert.equal(note.createdAt.getTime(), expected.getTime());
   });
 });

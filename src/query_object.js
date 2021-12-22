@@ -3,6 +3,7 @@
 const util = require('util');
 const { isPlainObject } = require('./utils');
 const { parseExpr } = require('./expr');
+const Raw = require('./raw');
 // deferred to break cyclic dependencies
 let Spell;
 
@@ -29,7 +30,7 @@ const OPERATOR_MAP = {
  */
 function parseValue(value) {
   if (value instanceof Spell) return { type: 'subquery', value };
-  if (value && value.__raw) return { type: 'raw', value: value.value };
+  if (value instanceof Raw) return { type: 'raw', value: value.value };
   return parseExpr('?', value);
 }
 

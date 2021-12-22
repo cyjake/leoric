@@ -63,6 +63,9 @@ describe('=> PostgreSQL driver', () => {
     }, {});
     assert.equal(columnMap.title.columnType, 'varchar(1000)');
     assert.equal(columnMap.is_private.columnType, 'boolean');
+
+    assert.equal(columnMap.gmt_create.datetimePrecision, 3);
+    assert.equal(columnMap.gmt_modified.datetimePrecision, 3);
   });
 
   it('driver.querySchemaInfo() after init with primaryKey', async () => {
