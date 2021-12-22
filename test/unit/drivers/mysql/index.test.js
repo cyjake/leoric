@@ -50,16 +50,20 @@ describe('=> MySQL driver', () => {
     const columns = schemaInfo.articles;
     const props = [
       'columnName', 'columnType', 'dataType',
-      // 'defaultValue',
+      'defaultValue',
       'allowNull',
       'primaryKey', 'unique',
+      'datetimePrecision',
     ];
     for (const column of columns) {
       for (const prop of props) assert.ok(column.hasOwnProperty(prop));
     }
-    const definition = columns.find(entry => entry.columnName === 'id');
-    assert.equal(definition.primaryKey, true);
-    assert.equal(definition.unique, true);
+    let columnInfo = columns.find(entry => entry.columnName === 'id');
+    assert.equal(columnInfo.primaryKey, true);
+    assert.equal(columnInfo.unique, true);
+
+    columnInfo = columns.find(entry => entry.columnName === 'gmt_create');
+    assert.equal(columnInfo.datetimePrecision, 3);
   });
 
   it('driver.truncateTable(table)', async () => {

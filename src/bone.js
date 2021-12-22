@@ -11,6 +11,7 @@ const { executeValidator, LeoricValidateError } = require('./validator');
 const DataTypes = require('./data_types');
 const Collection = require('./collection');
 const Spell = require('./spell');
+const Raw = require('./raw');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
@@ -27,12 +28,8 @@ function looseReadonly(props) {
   }, {});
 }
 
-function compare(attributes, columns) {
+function compare(attributes, columnMap) {
   const diff = {};
-  const columnMap = columns.reduce((result, entry) => {
-    result[entry.columnName] = entry;
-    return result;
-  }, {});
 
   for (const name in attributes) {
     const attribute = attributes[name];
@@ -71,7 +68,7 @@ function copyValues(values) {
     for (const key in values) {
       if (Object.hasOwnProperty.call(values, key)) {
         const v = values[key];
-        if (v && (v.__raw || v.__expr || (v instanceof Spell))) continue;
+        if (v && ((v instanceof Raw) || v.__expr || (v instanceof Spell))) continue;
         copyValue[key] = v;
       }
     }
@@ -162,14 +159,15 @@ class Bone {
   attribute(...args) {
     const [ name, value ] = args;
     const { attributes } = this.constructor;
+    const attribute = attributes[name];
 
-    if (!attributes.hasOwnProperty(name)) {
+    if (!attribute) {
       throw new Error(`${this.constructor.name} has no attribute "${name}"`);
     }
 
     if (args.length > 1) {
       // execute validators
-      this.#raw[name] = value;
+      this.#raw[name] = value instanceof Raw ? value : attribute.cast(value);
       this.#rawUnset.delete(name);
       return this;
     }
@@ -933,10 +931,20 @@ class Bone {
       };
     }
 
+    const columnMap = columns.reduce((result, entry) => {
+      result[entry.columnName] = entry;
+      return result;
+    }, {});
+
     for (const name of Object.keys(attributes)) {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
       attributes[name] = attribute;
+      const columnInfo = columnMap[attribute.columnName];
+      // if datetime or timestamp precision not defined, default to column info
+      if (columnInfo && attribute.type instanceof DataTypes.DATE && attribute.type.precision == null) {
+        attribute.type.precision = columnInfo.datetimePrecision;
+      }
     }
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
@@ -945,8 +953,7 @@ class Bone {
       const name = attributes.hasOwnProperty(key) ? key : snakeCase(key);
       const attribute = attributes[name];
 
-      if (!attribute) continue;
-      if (columns.some(column => column.columnName === attribute.columnName)) {
+      if (attribute && columnMap[attribute.columnName]) {
         timestamps[key] = name;
       }
     }
@@ -960,7 +967,7 @@ class Bone {
       attributeMap,
       associations,
       tableAlias,
-      synchronized: Object.keys(compare(attributes, columns)).length === 0,
+      synchronized: Object.keys(compare(attributes, columnMap)).length === 0,
     }));
 
     for (const hookName of hookNames) {
@@ -1554,6 +1561,10 @@ class Bone {
     }
 
     const { attributes, columns } = this;
+    const columnMap = columns.reduce((result, entry) => {
+      result[entry.columnName] = entry;
+      return result;
+    }, {});
 
     if (columns.length === 0) {
       await driver.createTable(table, attributes);
@@ -1562,7 +1573,7 @@ class Bone {
         await driver.dropTable(table);
         await driver.createTable(table, attributes);
       } else if (alter){
-        await driver.alterTable(table, compare(attributes, columns));
+        await driver.alterTable(table, compare(attributes, columnMap));
       } else {
         console.warn('[synchronize_fail] %s couldn\'t be synchronized, please use force or alter to specify execution', this.name);
       }

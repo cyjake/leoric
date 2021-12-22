@@ -100,13 +100,18 @@ describe('=> DataTypes type casting', function() {
 
     const today = new Date();
     const result = new DATE(0).uncast(today);
+    if (today.getMilliseconds() > 500) today.setSeconds(today.getSeconds() + 1);
     today.setMilliseconds(0);
     assert.equal(result.getTime(), today.getTime());
+
+    assert.deepEqual(new DATE(1).uncast('2021-10-15T15:50:02.586Z'), new Date('2021-10-15T15:50:02.600Z'));
+    assert.deepEqual(new DATE(0).uncast('2021-10-15T15:50:02.586Z'), new Date('2021-10-15T15:50:03.000Z'));
   });
 
   it('DATE toDate()', async function() {
     const today = new Date();
     const result = new DATE(0).uncast(dayjs(today));
+    if (today.getMilliseconds() > 500) today.setSeconds(today.getSeconds() + 1);
     today.setMilliseconds(0);
     assert.equal(result.getTime(), today.getTime());
   });
@@ -138,6 +143,7 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new JSON().cast(undefined), undefined);
     assert.deepEqual(new JSON().cast('{"a":1}'), { a: 1 });
     assert.deepEqual(new JSON().cast({ a: 1 }), { a: 1 });
+    assert.equal(new JSON().cast('foo'), 'foo');
 
     assert.equal(new JSON().uncast(null), null);
     assert.equal(new JSON().uncast(undefined), undefined);

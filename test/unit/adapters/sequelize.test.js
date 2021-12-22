@@ -1057,6 +1057,7 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.changed(), [ 'title' ]);
     post.content = 'a';
     assert.deepEqual(post.changed(), [ 'title', 'content' ]);
+    await new Promise(resolve => setTimeout(resolve, 10));
     await post.update();
     assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
   });

@@ -7,6 +7,7 @@ const Bone = require('./bone');
 const { findDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const sequelize = require('./adapters/sequelize');
+const Raw = require('./raw');
 
 /**
  *
@@ -239,11 +240,7 @@ class Realm {
     if (typeof sql !== 'string') {
       throw new TypeError('sql must be a string');
     }
-    return {
-      __raw: true,
-      value: sql,
-      type: 'raw',
-    };
+    return new Raw(sql);
   }
 
   // instance.raw

@@ -155,15 +155,15 @@ describe('=> Basic', () => {
     });
 
     it('Bone.previousChanged(key): raw VS rawPrevious', async function () {
-      const post = new Post({ title: 'Untitled', extra: 'hello' });
+      const post = new Post({ title: 'Untitled', extra: { greeting: 'hello' } });
       expect(post.createdAt).to.not.be.ok();
       // should return false before persisting
       expect(post.previousChanged('extra')).to.be(false);
-      post.extra = 'hello1';
+      post.extra = { greeting: 'hi' };
       await post.save();
       // should return false after first persisting
       expect(post.previousChanged('extra')).to.be(false);
-      post.extra = 'hello2';
+      post.extra = { greeting: 'ohayo' };
       await post.save();
       // should return true after updating
       expect(post.previousChanged('extra')).to.be(true);
@@ -172,20 +172,20 @@ describe('=> Basic', () => {
     });
 
     it('Bone.previousChanged(): raw VS rawPrevious', async function () {
-      const post = new Post({ title: 'Unknown', extra: 'hello' });
+      const post = new Post({ title: 'Unknown', extra: { greeting: 'hello' } });
       expect(post.createdAt).to.not.be.ok();
       assert.deepEqual(post.previousChanged(), false);
-      post.extra = 'hello1';
+      post.extra = { greeting: 'hi' };
       await post.save();
       // isPrivate has default value in DSL
       assert.equal(post.previousChanged(), false);
-      post.extra = 'hello2';
+      post.extra = { greeting: 'ohayo' };
       await sleep(10);
       await post.save();
       // should return updated attributes' name after updating
       assert.deepEqual(post.previousChanged().sort(), ['extra', 'updatedAt']);
       post.title = 'monster hunter';
-      post.extra = 'hello3';
+      post.extra = { greeting: 'yo' };
       await sleep(10);
       await post.save();
       // should return updated attributes' name after updating
@@ -730,6 +730,7 @@ describe('=> Basic', () => {
     it('bone.update(values, options) silent should work', async () => {
       const post = await Post.create({ title: 'New Post' });
       const oldUpdatedAt = post.updatedAt.getTime();
+      await new Promise(resolve => setTimeout(resolve, 10));
       await post.update({ title: 'Midir' });
       await post.reload();
       const updatedAt1 = post.updatedAt.getTime();

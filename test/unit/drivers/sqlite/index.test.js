@@ -52,12 +52,22 @@ describe('=> SQLite driver', () => {
     const columns = schemaInfo.articles;
     const props = [
       'columnName', 'columnType', 'dataType',
-      // 'defaultValue',
+      'defaultValue',
       'allowNull',
     ];
     for (const column of columns) {
       for (const prop of props) assert.ok(column.hasOwnProperty(prop));
     }
+
+    const columnMap = columns.reduce((result, column) => {
+      result[column.columnName] = column;
+      return result;
+    }, {});
+    assert.equal(columnMap.title.columnType, 'varchar(1000)');
+    assert.equal(columnMap.is_private.columnType, 'boolean');
+
+    assert.equal(columnMap.gmt_create.datetimePrecision, 3);
+    assert.equal(columnMap.gmt_modified.datetimePrecision, 3);
   });
 
   it('driver.createTable(table, definitions)', async () => {
@@ -97,7 +107,8 @@ describe('=> SQLite driver', () => {
       dataType: 'json',
       allowNull: true,
       defaultValue: null,
-      primaryKey: false
+      primaryKey: false,
+      datetimePrecision: null,
     });
   });
 
@@ -122,6 +133,7 @@ describe('=> SQLite driver', () => {
       allowNull: true,
       defaultValue: null,
       primaryKey: false,
+      datetimePrecision: null,
     });
     const result = await driver.query('SELECT * FROM notes');
     assert.equal(result.rows.length, 1);

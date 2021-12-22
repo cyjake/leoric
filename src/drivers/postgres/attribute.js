@@ -35,7 +35,6 @@ class PostgresAttribute extends Attribute {
     return chunks.join(' ');
   }
 
-
   equals(columnInfo) {
     if (!columnInfo) return false;
     if (this.type.toSqlString() !== columnInfo.columnType.toUpperCase()) {

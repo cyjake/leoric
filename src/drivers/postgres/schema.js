@@ -58,6 +58,8 @@ module.exports = {
       if (dataType === 'character varying') dataType = 'varchar';
       if (dataType === 'timestamp without time zone') dataType = 'timestamp';
       const primaryKey = row.constraint_type === 'PRIMARY KEY';
+      const precision = row.datetime_precision;
+
       columns.push({
         columnName: row.column_name,
         columnType: length > 0 ? `${dataType}(${length})` : dataType,
@@ -67,6 +69,7 @@ module.exports = {
         // https://www.postgresql.org/docs/9.5/infoschema-table-constraints.html
         primaryKey,
         unique: row.constraint_type === 'UNIQUE',
+        datetimePrecision: precision === 6 ? null : precision,
       });
     }
 
