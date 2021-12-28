@@ -143,7 +143,7 @@ describe('=> Associations', function() {
   });
 
   it('.with(...names).order()', async function() {
-    const post = await Post.include('comments').order('comments.content asc').first;
+    const [ post ] = await Post.include('comments').order('posts.id asc').order('comments.content asc');
     expect(post.comments.map(comment => comment.content)).to.eql(comments.sort());
 
     const posts = await Post.include('comments').order({ 'posts.title': 'desc', 'comments.content': 'desc' });
@@ -153,7 +153,7 @@ describe('=> Associations', function() {
   });
 });
 
-describe('=> Associations offset / limit', function() {
+describe('=> Associations order / offset / limit', function() {
   before(async function() {
     const post1 = await Post.create({ title: 'New Post' });
     await Comment.create({ content: 'Abandon your foolish request!', articleId: post1.id });
@@ -181,6 +181,12 @@ describe('=> Associations offset / limit', function() {
     const posts = await Post.include('comments').where({
       'comments.content': { $like: '%child%' },
     }).limit(1);
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].title, 'New Post 2');
+  });
+
+  it('should not limit subquery if ordered by joined columns', async function() {
+    const posts = await Post.include('comments').order('comments.content', 'desc').limit(1);
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'New Post 2');
   });

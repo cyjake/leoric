@@ -220,13 +220,13 @@ function formatSelectWithJoin(spell) {
 
   let hoistable = skip > 0 || rowCount > 0;
   if (hoistable) {
-    for (const condition of whereConditions) {
-      walkExpr(condition, ({ type, qualifiers }) => {
-        if (type === 'id' && qualifiers.length> 0 && !qualifiers.includes(baseName)) {
-          hoistable = false;
-        }
-      });
+    function checkQualifier({ type, qualifiers }) {
+      if (type === 'id' && qualifiers.length> 0 && !qualifiers.includes(baseName)) {
+        hoistable = false;
+      }
     }
+    for (const condition of whereConditions) walkExpr(condition, checkQualifier);
+    for (const orderExpr of orders) walkExpr(orderExpr[0], checkQualifier);
   }
 
   if (hoistable) {
