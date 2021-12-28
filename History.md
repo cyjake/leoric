@@ -1,3 +1,17 @@
+2.0.0 / 2021-12-28
+==================
+
+## What's Changed
+* breaking: model.sync add force/alter option by @SmartOrange in https://github.com/cyjake/leoric/pull/224
+* breaking: logQueryError(err, sql, duration, options) by @cyjake in https://github.com/cyjake/leoric/pull/237
+* test: add utf8mb4 test cases by @fengmk2 in https://github.com/cyjake/leoric/pull/239
+* Merge 1.x changes by @cyjake in https://github.com/cyjake/leoric/pull/249
+
+## New Contributors
+* @SmartOrange made their first contribution in https://github.com/cyjake/leoric/pull/222
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.15.1...v2.0.0
+
 1.15.1 / 2021-12-28
 ===================
 
