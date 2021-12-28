@@ -1,3 +1,16 @@
+1.15.1 / 2021-12-28
+===================
+
+## What's Changed
+* fix: fix #242 date string format by @JimmyDaddy in https://github.com/cyjake/leoric/pull/243
+* fix: update with empty conditions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/241
+* fix: silent option's priority should be lower than valueSet by @JimmyDaddy in https://github.com/cyjake/leoric/pull/244
+* fix: information_schema.columns.datetime_precision by @cyjake in https://github.com/cyjake/leoric/pull/246
+* fix: should not hoist subquery if query is ordered by external columns by @cyjake in https://github.com/cyjake/leoric/pull/247
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.15.0...v1.15.1
+
 1.15.0 / 2021-11-22
 ===================
 
