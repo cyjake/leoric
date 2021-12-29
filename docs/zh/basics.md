@@ -193,7 +193,7 @@ await connect({
   host: 'example.com',
   port: 3306,
   user: 'john',
-  password: 'doe',
+  password: 'inputYourCodeHere',
   db: 'tmall',
   models: [Shop]
 });

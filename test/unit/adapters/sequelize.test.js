@@ -1342,12 +1342,12 @@ describe('Model scope', () => {
 describe('Model.init with getterMethods and setterMethods', () => {
 
   const algorithm = 'aes-256-ctr';
-  const password = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
+  const key = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
   const iv = 'iceiceiceiceicei';
 
   function encrypt(text){
     if (!text) return null;
-    const cipher = crypto.createCipheriv(algorithm, password, iv);
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
     let crypted = cipher.update(text,'utf8','hex');
     crypted += cipher.final('hex');
     return crypted;
@@ -1355,7 +1355,7 @@ describe('Model.init with getterMethods and setterMethods', () => {
 
   function decrypt(text){
     if (!text) return null;
-    const decipher = crypto.createCipheriv(algorithm, password, iv);
+    const decipher = crypto.createCipheriv(algorithm, key, iv);
     let dec = decipher.update(text,'hex','utf8');
     dec += decipher.final('utf8');
     return dec;
