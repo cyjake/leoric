@@ -1,5 +1,8 @@
 'use strict';
 
+const { AGGREGATOR_MAP } = require('./contants');
+
+const AGGREGATORS = Object.values(AGGREGATOR_MAP);
 /**
  * An extended Array to represent collections of models.
  */
@@ -88,7 +91,11 @@ function dispatch(spell, rows, fields) {
     if (type === 'alias' && args && args[0].type === 'func') {
       const row = rows[0];
       const result = row && (row[''] || row[table]);
-      return result && result[value] || 0;
+      // see https://www.w3schools.com/mysql/mysql_ref_functions.asp
+      if (AGGREGATORS.includes(args[0].name)) {
+        return Number(result && result[value]) || 0;
+      }
+      return result && result[value];
     }
   }
 

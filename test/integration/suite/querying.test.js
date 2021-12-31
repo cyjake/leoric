@@ -623,26 +623,31 @@ describe('=> Calculations', function() {
 
   it('Bone.count() should count records', async function() {
     const count = await Book.count();
+    assert.equal(typeof count, 'number');
     expect(count).to.equal(3);
   });
 
   it('Bone.average() should return the average of existing records', async function() {
     const average = await Book.average('price');
+    assert.equal(typeof average, 'number');
     expect(Math.abs((22.95 + 29.95 + 21) / 3 - average)).to.be.within(0, 1);
   });
 
   it('Bone.minimum() should return the minimum value of existing records', async function() {
     const minimum = await Book.minimum('price');
+    assert.equal(typeof minimum, 'number');
     expect(parseFloat(minimum)).to.equal(21);
   });
 
   it('Bone.maximum() should return the maximum value of existing records', async function() {
     const maximum = await Book.maximum('price');
+    assert.equal(typeof maximum, 'number');
     expect(Math.floor(maximum)).to.equal(Math.floor(29.95));
   });
 
   it('Bone.sum()', async function() {
     const sum = await Book.sum('price');
+    assert.equal(typeof sum, 'number');
     expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21));
   });
 });
