@@ -12,8 +12,8 @@ describe('=> Logger', function() {
   it('should mask values when INSERT', async () => {
     const sets = {
       name: 'Golum',
-      password: 'My precious',
-      confirm_password: 'My precious',
+      password: 'inputYourCodeHere',
+      confirm_password: 'inputYourCodeHere',
     };
     const sql = logger.format(
       'INSERT INTO users (name, password, confirm_password) VALUES (?, ?, ?)',
@@ -29,8 +29,8 @@ describe('=> Logger', function() {
   it('should mask values when INSERT ... ON DUPLICATE KEY UPDATE ...', async () => {
     const sets = {
       id: 1,
-      password: 'hakuna matata',
-      confirm_password: 'hakuna matata',
+      password: 'inputYourCodeHere',
+      confirm_password: 'inputYourCodeHere',
     };
     const sql = logger.format(
       heresql(`
@@ -51,8 +51,8 @@ describe('=> Logger', function() {
 
   it('should mask values when UPDATE', async () => {
     const sets = {
-      password: 'hakuna matata',
-      confirm_password: 'hakuna matata',
+      password: 'inputYourCodeHere',
+      confirm_password: 'inputYourCodeHere',
     };
     const sql = logger.format(
       'UPDATE users SET password = ?, confirm_password = ? WHERE id = ?',
