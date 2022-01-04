@@ -11,6 +11,7 @@ const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
 const Raw = require('./raw');
+const { AGGREGATOR_MAP } = require('./contants');
 
 /**
  * Parse condition expressions
@@ -902,14 +903,6 @@ class Spell {
     return this.toSqlString();
   }
 }
-
-const AGGREGATOR_MAP = {
-  count: 'count',
-  average: 'avg',
-  minimum: 'min',
-  maximum: 'max',
-  sum: 'sum'
-};
 
 for (const aggregator in AGGREGATOR_MAP) {
   const func = AGGREGATOR_MAP[aggregator];
