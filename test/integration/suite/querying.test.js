@@ -623,8 +623,7 @@ describe('=> Calculations', function() {
 
   it('Bone.count() should count records', async function() {
     const count = await Book.count();
-    assert.equal(typeof count, 'number');
-    expect(count).to.equal(3);
+    assert.equal(count, 3);
   });
 
   it('Bone.average() should return the average of existing records', async function() {
@@ -635,8 +634,16 @@ describe('=> Calculations', function() {
 
   it('Bone.minimum() should return the minimum value of existing records', async function() {
     const minimum = await Book.minimum('price');
-    assert.equal(typeof minimum, 'number');
-    expect(parseFloat(minimum)).to.equal(21);
+    assert.equal(parseFloat(minimum), 21);
+  });
+
+  it('Bone.minimum() should prefer returning number', async function() {
+    await Book.create({
+      isbn: 9787121364259,
+      name: 'Finite and Infinite Games: A Vision of Life as Play and Possibility',
+      price: 0,
+    });
+    assert.equal(await Book.minimum('price'), 0);
   });
 
   it('Bone.maximum() should return the maximum value of existing records', async function() {
