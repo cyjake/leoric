@@ -1,3 +1,12 @@
+2.0.1 / 2022-01-05
+==================
+
+## What's Changed
+* fix: format numeric result by @JimmyDaddy in https://github.com/cyjake/leoric/pull/253
+* fix: should still return number if value is '0.000' by @cyjake in https://github.com/cyjake/leoric/pull/254
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v1.15.1...v2.0.1
+
 2.0.0 / 2021-12-28
 ==================
 
