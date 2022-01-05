@@ -90,12 +90,14 @@ function dispatch(spell, rows, fields) {
     const { type, value, args } = columns[0];
     if (type === 'alias' && args && args[0].type === 'func') {
       const row = rows[0];
-      const result = row && (row[''] || row[table]);
+      const record = row && (row[''] || row[table]);
+      const result = record && record[value];
       // see https://www.w3schools.com/mysql/mysql_ref_functions.asp
       if (AGGREGATORS.includes(args[0].name)) {
-        return Number(result && result[value]) || result[value];
+        const num = Number(result);
+        return isNaN(num) ? result : num;
       }
-      return result && result[value];
+      return result;
     }
   }
 
