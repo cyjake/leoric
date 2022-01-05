@@ -198,4 +198,9 @@ describe('=> Associations order / offset / limit', function() {
     // both posts have comments with content containing `oo` but only one should return
     assert.equal(posts.length, 1);
   });
+
+  it('should not throw if select and order by alias', async function() {
+    const result = await Post.include('comments').select('content as cnt').order('cnt', 'desc').limit(1);
+    assert.equal(result.length, 1);
+  });
 });
