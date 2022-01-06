@@ -129,7 +129,7 @@ function createSubspell(spell) {
   subspell.orders = [];
   for (const order of orders) {
     const [token, direction] = order;
-    const { type, qualifiers, value } = token;
+    const { type, qualifiers = [], value } = token;
     if (type == 'id' && qualifiers[0] == baseName) {
       subspell.orders.push([{ type, value }, direction]);
     }
@@ -220,7 +220,7 @@ function formatSelectWithJoin(spell) {
 
   let hoistable = skip > 0 || rowCount > 0;
   if (hoistable) {
-    function checkQualifier({ type, qualifiers }) {
+    function checkQualifier({ type, qualifiers = [] }) {
       if (type === 'id' && qualifiers.length> 0 && !qualifiers.includes(baseName)) {
         hoistable = false;
       }
