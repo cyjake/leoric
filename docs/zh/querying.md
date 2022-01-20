@@ -386,16 +386,25 @@ SELECT COUNT(*) as count, DATE(created_at) FROM posts GROUP BY DATE(created_at) 
 
 > 由于缺乏 `LOCK` 支持，当前的事务实现还比较初级。希望我们可以尽快解决这个问题。
 
-可以使用 `Model.transaction()` 从数据库连接池（`Model.pool`）获取连接，再通过所获取的连接执行 `BEGIN` 和 `COMMIT`/`ROLLBACK` 实现事务。以下面这段代码为例：
+可以使用 `Model.transaction()` 执行事务，执行这个方法时会从数据库连接池获取连接，再通过所获取的连接执行 `BEGIN` 和 `COMMIT`/`ROLLBACK`。`Model.transaction()` 支持传入 `AsyncFunction` 或者 `GeneratorFunction`，以前者为例：
+
+```js
+Post.transaction(async function({ connection }) {
+  await Comment.create({ content: 'tl;dr', articleId: 1 }, { connection });
+  await Post.findOne({ id: 1 }).increment('commentCount', { connection });
+});
+```
+
+若以后者为例，使用方式则是：
 
 ```js
 Post.transaction(function* () {
-  yield Comment.create({ content: 'tl;dr', articleId: 1 })
-  yield Post.findOne({ id: 1 }).increment('commentCount')
-})
+  yield Comment.create({ content: 'tl;dr', articleId: 1 });
+  yield Post.findOne({ id: 1 }).increment('commentCount');
+});
 ```
 
-对应的 SQL 如下：
+后者省却了 `connection` 显式传递，其余大同小异，对应的 SQL 都是：
 
 ```sql
 BEGIN
@@ -404,7 +413,9 @@ UPDATE posts SET comment_count = comment_count + 1 WHERE id = 1;
 COMMIT
 ```
 
-乍一看会觉得这里的 `function* () {}` 很扎眼。选择使用 Generator 作为事务的回调函数格式是因为 Generator 能提供非常细粒度的控制。上面这段 js 代码背后的逻辑如下：
+如果回调函数抛出异常，`Model.transaction()` 将执行 `ROLLBACK` 回滚事务并将异常继续向上抛出。
+
+使用生成器可以省却 `connection` 传递是因为 generator 可以控制执行过程：
 
 1. 从数据库连接池获取连接；
 2. `BEGIN`
@@ -414,9 +425,7 @@ COMMIT
 6. 如此迭代直到异步流程结束；
 7. `COMMIT`
 
-通过这种方式，我们实现了自动传递事务当前连接，省去人肉传参的麻烦。
-
-如果 Generator 迭代过程中出现异常，`Model.transaction()` 将执行 `ROLLBACK` 并抛出异常。
+如果不太习惯，使用默认的 `AsyncFunction` 格式，确保 `connection` 准确传入即可。
 
 ## Joining Tables
 
