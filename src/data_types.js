@@ -2,6 +2,7 @@
 
 const util = require('util');
 const invokable = require('./utils/invokable');
+const Raw = require('./raw');
 
 /**
  * @example
@@ -114,7 +115,7 @@ class STRING extends DataType {
   }
 
   uncast(value) {
-    if (value == null) return value;
+    if (value == null || value instanceof Raw) return value;
     return '' + value;
   }
 }
@@ -192,7 +193,7 @@ class INTEGER extends DataType {
 
   uncast(value) {
     const originValue = value;
-    if (value == null) return value;
+    if (value == null || value instanceof Raw) return value;
     if (typeof value === 'string') value = parseInt(value, 10);
     if (isNaN(value)) throw new Error(util.format('invalid integer: %s', originValue));
     return value;
@@ -251,7 +252,7 @@ class DATE extends DataType {
   uncast(value) {
     const originValue = value;
 
-    if (value == null) return value;
+    if (value == null || value instanceof Raw) return value;
     if (typeof value.toDate === 'function') {
       value = value.toDate();
     }
@@ -297,7 +298,7 @@ class DATEONLY extends DataType {
   uncast(value) {
     const originValue = value;
 
-    if (value == null) return value;
+    if (value == null || value instanceof Raw) return value;
     if (typeof value.toDate === 'function') {
       value = value.toDate();
     }
@@ -393,7 +394,7 @@ class JSON extends DataType {
   }
 
   uncast(value) {
-    if (value == null) return value;
+    if (value == null || value instanceof Raw) return value;
     return global.JSON.stringify(value);
   }
 }
