@@ -3,6 +3,8 @@
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const DataTypes = require('../../src/data_types');
+const Raw = require('../../src/raw');
+
 
 describe('=> Data Types', () => {
   const {
@@ -87,6 +89,7 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new STRING().uncast(null), null);
     assert.equal(new STRING().uncast(undefined), undefined);
     assert.equal(new STRING().uncast(1), '1');
+    assert.deepEqual(new STRING().uncast(new Raw(`REPLACE(name, 'Yhorm', 'Leoric')`)), new Raw(`REPLACE(name, 'Yhorm', 'Leoric')`));
   });
 
   it('DATE', async function() {
@@ -106,6 +109,9 @@ describe('=> DataTypes type casting', function() {
 
     assert.deepEqual(new DATE(1).uncast('2021-10-15T15:50:02.586Z'), new Date('2021-10-15T15:50:02.600Z'));
     assert.deepEqual(new DATE(0).uncast('2021-10-15T15:50:02.586Z'), new Date('2021-10-15T15:50:03.000Z'));
+
+    // raw
+    assert.deepEqual(new DATE().uncast(new Raw(`NOW()`)), new Raw(`NOW()`));
   });
 
   it('DATE toDate()', async function() {
@@ -126,6 +132,7 @@ describe('=> DataTypes type casting', function() {
     today.setMinutes(0);
     today.setHours(0);
     assert.equal(result.getTime(), today.getTime());
+    assert.deepEqual(new DATEONLY().uncast(new Raw(`NOW()`)), new Raw(`NOW()`));
   });
 
   it('DATEONLY toDate()', async function() {
@@ -148,6 +155,8 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new JSON().uncast(null), null);
     assert.equal(new JSON().uncast(undefined), undefined);
     assert.equal(new JSON().uncast({ a: 2 }), '{"a":2}');
+    assert.deepEqual(new JSON().uncast(new Raw('Yahaha')), new Raw(`Yahaha`));
+
   });
 
   it('BLOB', async function() {
