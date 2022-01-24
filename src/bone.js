@@ -76,6 +76,23 @@ function copyValues(values) {
   return copyValue;
 }
 
+function valuesValidate(values, attributes, ctx) {
+  for (const valueKey in values) {
+    const attribute = attributes[valueKey];
+    if (!attribute) continue;
+    const { validate = {}, name, allowNull, defaultValue } = attribute;
+    const value = values[valueKey];
+    if (value == null && defaultValue == null) {
+      if (allowNull === false) throw new LeoricValidateError('notNull', name);
+      if ((allowNull === true || allowNull === undefined) && validate.notNull === undefined ) continue;
+    }
+    if (!validate) continue;
+    for (const key in validate) {
+      if (validate.hasOwnProperty(key)) executeValidator(ctx, key, attribute, value);
+    }
+  }
+}
+
 /**
  * The base class that provides Object-relational mapping. This class is never intended to be used directly. We need to create models that extends from Bone. Most of the query features of Bone is implemented by {@link Spell} such as {@link Spell#$group} and {@link Spell#$join}. With Bone, you can create models like this:
  *
@@ -280,21 +297,7 @@ class Bone {
 
     // merge all changed values
     changedValues = Object.assign(changedValues, values);
-
-    for (const valueKey in changedValues) {
-      const attribute = attributes[valueKey];
-      if (!attribute) continue;
-      const { validate = {}, name, allowNull, defaultValue } = attribute;
-      const value = changedValues[valueKey];
-      if (value == null && defaultValue == null) {
-        if (allowNull === false) throw new LeoricValidateError('notNull', name);
-        if ((allowNull === true || allowNull === undefined) && validate.notNull === undefined ) return;
-      }
-      if (!validate) return;
-      for (const key in validate) {
-        if (validate.hasOwnProperty(key)) executeValidator(this, key, attribute, value);
-      }
-    }
+    valuesValidate(changedValues, attributes, this);
   }
 
   /**
@@ -306,22 +309,7 @@ class Bone {
    */
   static _validateAttributes(values = {}) {
     const { attributes } = this;
-    for (const valueKey in values) {
-      const attribute = attributes[valueKey];
-      // If valueKey is not an attribute of the Model, go to the next loop instead of throw 'No Such Attribute' Error,
-      // in case it is a custom property of the Model which defined by custom setters/getters.
-      if (!attribute) return;
-      const { validate = {}, name, allowNull, defaultValue } = attribute;
-      const value = values[valueKey];
-      if (value == null && defaultValue == null) {
-        if (allowNull === false) throw new LeoricValidateError('notNull', name);
-        if ((allowNull === true || allowNull === undefined) && validate.notNull === undefined) return;
-      }
-      if (!validate) return;
-      for (const key in validate) {
-        if (validate.hasOwnProperty(key)) executeValidator(this, key, attribute, value);
-      }
-    }
+    valuesValidate(values, attributes, this);
   }
 
   /**
@@ -736,7 +724,12 @@ class Bone {
     }
 
     if (opts.validate !== false) {
-      this._validateAttributes();
+      const validateValues = {};
+      for (const key in attributes) {
+        if (attributes[key].primaryKey) continue;
+        validateValues[key] = this[key];
+      }
+      this._validateAttributes(validateValues);
     }
 
     const spell = new Spell(Model, opts).$insert(data);
@@ -1318,13 +1311,9 @@ class Bone {
   static create(values, opts = {}) {
     const data = Object.assign({}, values);
     const instance = new this(data);
-    if (opts.validate !== false) {
-      instance._validateAttributes(data); // call instance._validateAttributes manually to validate the raw value
-    }
     // static create proxy to instance.create
     return instance.create({
       ...opts,
-      validate: false, // should not validate again
     });
   }
 

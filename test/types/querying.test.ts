@@ -51,6 +51,7 @@ describe('=> Querying (TypeScript)', function() {
         email: 'hi@there.com',
         nickname: 'Hey',
         status: 0,
+        level: 5,
       });
       await Post.bulkCreate([
         { title: 'Leah' },

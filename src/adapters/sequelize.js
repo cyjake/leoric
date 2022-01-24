@@ -238,9 +238,6 @@ module.exports = Bone => {
     }
 
     static build(values, options = {}) {
-      if (options.validate !== false) {
-        this._validateAttributes(values);
-      }
       const { raw } = Object.assign({ raw: false, isNewRecord: true }, options);
       const { attributes } = this;
 
@@ -256,6 +253,7 @@ module.exports = Bone => {
       } else {
         instance = new this(values, options);
       }
+
       return instance;
     }
 

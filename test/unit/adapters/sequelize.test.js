@@ -1549,29 +1549,6 @@ describe('validator should work', () => {
   });
 
   describe('build', () => {
-    it('build should work', async () => {
-      await assert.rejects(async () => {
-        User.build({
-          email: 'a@e.com',
-          nickname: 'sss',
-          fingerprint: 'aaa'
-        });
-      }, /Validation contains on fingerprint failed/);
-    });
-
-    it('build skip validate should work', async () => {
-      const user = User.build({
-        email: 'a@e.com',
-        nickname: 'sss',
-        fingerprint: 'aaa',
-      }, { validate: false });
-      assert(user);
-      assert(user.email);
-      assert(user.nickname);
-      assert(user.fingerprint);
-    });
-
-
     it('build validate should work', async () => {
       const user = User.build({
         email: 'a@e.com',
@@ -1585,6 +1562,21 @@ describe('validator should work', () => {
       assert(user.id);
       assert(user.email);
       assert(user.nickname);
+
+      // validate should work when insert data
+      const user1 = User.build({
+        email: 'a1@e.com',
+        nickname: '1sss',
+        level: 11,
+      });
+      assert(user1);
+      assert(user1.email);
+      assert(user1.nickname);
+      assert(user1.level);
+
+      await assert.rejects(async () => {
+        await user1.save();
+      }, /LeoricValidateError: Validation max on level failed/);
     });
   });
 
@@ -1827,6 +1819,7 @@ describe('Transaction', function() {
           email: 'justice@heaven.com',
           nickname: 'Tyrael',
           status: 1,
+          level: 1,
         }, { transaction });
         throw new Error('what could possibly go wrong?');
       });
