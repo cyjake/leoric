@@ -391,13 +391,22 @@ And the results might be:
 
 > The transaction ability is a bit premature currently due to the lack of `LOCK`. Hopefully we'll see to it soon.
 
-We can use `Model.transaction()` to obtain a connection from the connection pool, which is available at `Model.pool`, and wrap the queries between `BEGIN` and `COMMIT`/`ROLLBACK` through the obtained connection. Take following transaction for example:
+We can use `Model.transaction()` to obtain a connection from the connection pool, and wrap the queries between `BEGIN` and `COMMIT`/`ROLLBACK` through the obtained connection. `Model.transaction()` takes either `AsyncFunction` or `GeneratorFunction` as argument. Take following transaction for example:
+
+```js
+Post.transaction(async function({ connection }) {
+  await Comment.create({ content: 'tl;dr', articleId: 1 }, { connection });
+  await Post.findOne({ id: 1 }).increment('commentCount', { connection });
+});
+```
+
+the equivalent generator function version is like below:
 
 ```js
 Post.transaction(function* () {
-  yield Comment.create({ content: 'tl;dr', articleId: 1 })
-  yield Post.findOne({ id: 1 }).increment('commentCount')
-})
+  yield Comment.create({ content: 'tl;dr', articleId: 1 });
+  yield Post.findOne({ id: 1 }).increment('commentCount');
+});
 // => Promise
 ```
 
@@ -410,7 +419,9 @@ UPDATE posts SET comment_count = comment_count + 1 WHERE id = 1;
 COMMIT
 ```
 
-The use of `function* () {}` might be a bit absurd at first glance. It is chosen as the function type for transaction factory because of its ability to create fine grained asynchronous procedure. Behind the curtain,
+If there were any exceptions thrown during iteration, `Model.transaction()` forwards the exception after executing `ROLLBACK`.
+
+The use of `function* () {}` might be a bit absurd at first glance. Behind the curtain,
 
 1. A connection is obtained from the pool before the generator function is called.
 2. `BEGIN`
@@ -421,8 +432,6 @@ The use of `function* () {}` might be a bit absurd at first glance. It is chosen
 7. `COMMIT`
 
 In this way we make sure all the related SQLs are queried through the same connection.
-
-If there were any exceptions thrown during iteration, `Model.transaction()` forwards the exception after executing `ROLLBACK`.
 
 ## Joining Tables
 
