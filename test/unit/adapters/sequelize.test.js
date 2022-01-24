@@ -1577,6 +1577,10 @@ describe('validator should work', () => {
       await assert.rejects(async () => {
         await user1.save();
       }, /LeoricValidateError: Validation max on level failed/);
+
+      await assert.rejects(async () => {
+        await user1.validate();
+      }, /LeoricValidateError: Validation max on level failed/);
     });
   });
 

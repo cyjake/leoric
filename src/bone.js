@@ -713,6 +713,7 @@ class Bone {
       this[updatedAt] = this[createdAt];
     }
 
+    const validateValues = {};
     for (const name in attributes) {
       const value = this.attribute(name);
       const { defaultValue } = attributes[name];
@@ -721,14 +722,11 @@ class Bone {
       } else if (value === undefined && defaultValue != null) {
         data[name] = defaultValue;
       }
+      if (attributes[name].primaryKey) continue;
+      validateValues[name] = data[name];
     }
 
     if (opts.validate !== false) {
-      const validateValues = {};
-      for (const key in attributes) {
-        if (attributes[key].primaryKey) continue;
-        validateValues[key] = this[key];
-      }
       this._validateAttributes(validateValues);
     }
 
