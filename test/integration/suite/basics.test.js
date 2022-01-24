@@ -682,6 +682,21 @@ describe('=> Basic', () => {
       expect(posts.length).to.equal(affectedRows);
     });
 
+    it('Bone.update(where, values) should work with limit/offset and order', async function() {
+      if (Post.driver.type === 'mysql') {
+        await Promise.all([
+          Post.create({ title: 'New Post' }),
+          Post.create({ title: 'New Post 2'})
+        ]);
+        let affectedRows = await Post.update({ title: { $like: '%Post%' } }, { title: 'Untitled' }).limit(1);
+        expect(affectedRows).to.equal(1);
+        affectedRows = await Post.update({}, { title: 'Untitled1' }).limit(1);
+        expect(affectedRows).to.equal(1);
+        affectedRows = await Post.update({}, { title: 'Untitled2' }).order('id ASC').limit(2);
+        expect(affectedRows).to.equal(2);;
+      }
+    });
+
     it('Bone.update(where, values) should support customized type', async () => {
       const { id } = await Post.create({ title: 'New Post' });
       await Post.update({ id }, {

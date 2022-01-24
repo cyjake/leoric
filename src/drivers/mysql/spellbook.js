@@ -58,4 +58,14 @@ module.exports = {
   formatReturning() {
     return '';
   },
+
+  formatUpdateExtraOptions(spell) {
+    const { rowCount, orders } = spell;
+
+    const chunks = [];
+    if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
+
+    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    return chunks;
+  }
 };

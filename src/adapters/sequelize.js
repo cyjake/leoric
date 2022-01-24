@@ -469,6 +469,7 @@ module.exports = Bone => {
       const { where, paranoid, individualHooks } = options;
       if (individualHooks) {
         let findSpell = this._find(where, options);
+        translateOptions(findSpell, options);
         if (paranoid === false) findSpell = findSpell.unparanoid;
         const instances = await findSpell;
         if (instances.length) {
@@ -484,6 +485,7 @@ module.exports = Bone => {
       const { where, paranoid = false, validate } = options;
       const whereConditions = where || {};
       const spell = super.update(whereConditions, values, { validate, hooks: false, ...options });
+      translateOptions(spell, options);
       if (!paranoid) return spell.unparanoid;
       return spell;
     }
