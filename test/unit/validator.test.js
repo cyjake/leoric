@@ -116,6 +116,7 @@ describe('validator', () => {
       await User.create({
         email: 'sss@e.com',
         nickname: 's321',
+        desc: '22222',
       });
     });
 
@@ -124,12 +125,14 @@ describe('validator', () => {
       await assert.rejects(async () => {
         await User.create({
           email: 'a@e.com',
-          nickname: 1
+          nickname: 1,
+          desc: '22222',
         });
       }, /Validation isNumeric:false on nickname failed/);
       const user = await User.create({
         email: 'a@e.com',
-        nickname: 'sss'
+        nickname: 'sss',
+        desc: '22222',
       });
       assert(user);
       assert(user.email);
@@ -140,6 +143,7 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
+        desc: '22222',
       });
       await user.save();
       user.nickname = null;
@@ -156,6 +160,12 @@ describe('validator', () => {
           desc: null,
         });
       }, /Validation notNull on desc failed/);
+
+      await assert.rejects(async () => {
+        await User.create({
+          email: 'a@e.com',
+        });
+      }, /Validation notNull on nickname failed/);
     });
 
     it('notIn', async () => {
@@ -167,7 +177,8 @@ describe('validator', () => {
       }, /Validation notIn on nickname failed/);
       const user = await User.create({
         email: 'a@e.com',
-        nickname: 'sss'
+        nickname: 'sss',
+        desc: '22222',
       });
       assert(user);
       assert(user.email);
@@ -204,6 +215,7 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'yes',
+          desc: '22222',
           fingerprint: '123yellowfingersss12',
         });
       }, /Validation notRegex on fingerprint failed/);
@@ -212,6 +224,7 @@ describe('validator', () => {
         email: 'a@e.com',
         nickname: 'yes',
         fingerprint: 'yellofingerwsss12',
+        desc: '22222',
       });
     });
 
@@ -220,6 +233,7 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'yes',
+          desc: '22222',
           fingerprint: 'yellowfingersss',
         });
       }, /Validation is on fingerprint failed/);
@@ -228,6 +242,7 @@ describe('validator', () => {
         email: 'a@e.com',
         nickname: 'yes',
         fingerprint: 'yellofingerwsss12',
+        desc: '22222',
       });
     });
 
@@ -252,14 +267,16 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
-          status: 3
+          status: 3,
+          desc: '22222',
         });
       }, /Error status/);
 
       const user = await User.create({
         email: 'a2@e.com',
         nickname: 'sss',
-        status: 1
+        status: 1,
+        desc: '22222',
       });
       assert(user);
     });
@@ -297,13 +314,15 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 'sss',
-          fingerprint: 'aaa12'
+          fingerprint: 'aaa12',
+          desc: '22222',
         });
       }, /Validation contains on fingerprint failed/);
       const user = await User.create({
         email: 'a1@e.com',
         nickname: 'sss1',
-        fingerprint: 'fingerprints12'
+        fingerprint: 'fingerprints12',
+        desc: '22222',
       });
       assert(user);
     });
@@ -313,11 +332,13 @@ describe('validator', () => {
         await User.create({
           email: 'a@e.com',
           nickname: 's',
+          desc: '22222',
         });
       }, /Validation len on nickname failed/);
       const user = await User.create({
         email: 'a1@e.com',
         nickname: 'sss1',
+        desc: '22222',
       });
       assert(user);
     });
@@ -365,7 +386,8 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
-        fingerprint: 'finger111'
+        fingerprint: 'finger111',
+        desc: '22222',
       });
       await user.create();
       await assert.rejects(async () => {
@@ -378,6 +400,7 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
+        desc: '22222',
       });
       await user.create();
       await User.update({ email: 'a@e.com', }, { fingerprint: 'aaa' }, { validate: false });
@@ -389,7 +412,8 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
-        fingerprint: 'finger111'
+        fingerprint: 'finger111',
+        desc: '22222',
       });
       await user.create();
       await assert.rejects(async () => {
@@ -403,6 +427,7 @@ describe('validator', () => {
       const user = new User({
         email: 'a@e.com',
         nickname: 'sss',
+        desc: '22222',
       });
       await user.create();
       await user.update({ fingerprint: 'aaa' }, { validate: false });

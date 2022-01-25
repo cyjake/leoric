@@ -942,6 +942,13 @@ describe('=> Basic', () => {
       expect(effected).to.eql(1);
       expect((await TagMap.find({})).length).to.eql(0);
     });
+
+    it('should throw error while not persist', async function () {
+      const tagMap = new TagMap({  targetId: 1, targetType: 1, tagId: 1 });
+      await assert.rejects(async () => {
+        await tagMap.remove();
+      }, /Error: instance is not persisted yet./);
+    });
   });
 
   describe('=> Bulk', () => {
@@ -1207,6 +1214,13 @@ describe('=> Basic', () => {
         await User.restore({ nickname: 'Company Captain Yorshka' });
       }, /Model is not paranoid/);
       assert(!await User.findOne({ nickname: 'Company Captain Yorshka' }));
+    });
+
+    it('should error while restore a un-persisted instance', async () => {
+      const gywn = new User({ nickname: 'Gywn', email: 'Lord@DK.com', status: 1, deletedAt: new Date() });
+      await assert.rejects(async () => {
+        await gywn.restore();
+      }, /Error: instance is not persisted yet./);
     });
   });
 });

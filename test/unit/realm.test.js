@@ -755,6 +755,14 @@ describe('=> Realm', () => {
       all = await User.all;
       assert(all.length === 0);
     });
+
+    it('should error with wrong type of callback', async () => {
+      await assert.rejects(async () => {
+        await Bone.transaction(({ connection }) => {
+          console.log('should not be executed');
+        });
+      }, /Error: unexpected transaction function, should be GeneratorFunction or AsyncFunction./);
+    });
   });
 
   describe('realm.define', () => {

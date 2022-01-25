@@ -79,15 +79,15 @@ describe('hooks', function() {
 
     it('create', async () => {
       const user = await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 });
-      assert(user.email === 'hello@yo.com');
-      assert(user.meta.foo === 1);
-      assert(user.status === 10);
+      assert.equal(user.email, 'hello@yo.com');
+      assert.equal(user.meta.foo, 1);
+      assert.equal(user.status, 10);
     });
 
     it('create skip hooks', async () => {
       await assert.rejects(async () => {
-        await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 }, { hooks: false });
-      }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
+        await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1, }, { hooks: false });
+      }, /LeoricValidateError: Validation notNull on email failed/);
     });
 
     describe('bulkCreate', () => {
@@ -558,7 +558,7 @@ describe('hooks', function() {
       await assert.rejects(async () => {
         const user = new User({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1 });
         await user.save({ hooks: false });
-      }, /Error: ER_NO_DEFAULT_FOR_FIELD: Field 'email' doesn't have a default value/);
+      }, /LeoricValidateError: Validation notNull on email failed/);
     });
   });
 

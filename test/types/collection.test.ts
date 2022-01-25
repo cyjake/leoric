@@ -31,8 +31,8 @@ describe('=> Collection (TypeScript)', function() {
 
   it('collection.save()', async function() {
     const users = new Collection(
-      new User({ nickname: 'siri', email: 'siri@me.com', status: 0 }),
-      new User({ nickname: 'xiaoai', email: 'xiaoai@mi.com', status: 1 })
+      new User({ nickname: 'siri', email: 'siri@me.com', status: 0, level: 3 }),
+      new User({ nickname: 'xiaoai', email: 'xiaoai@mi.com', status: 1, level: 2 })
     );
     await users.save();
     assert.equal(await User.count(), 2);

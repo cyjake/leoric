@@ -741,7 +741,7 @@ describe('=> Sharding', function() {
 
   it('should throw if sharding key is defined but not set when INSERT', async function() {
     await assert.rejects(async () => {
-      await new Like({ articleId: 1 }).create();
+      await new Like({ articleId: 1, userId: null }).create({ validate: false });
     }, /sharding key/i);
   });
 
