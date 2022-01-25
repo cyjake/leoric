@@ -635,6 +635,23 @@ describe('=> Spell', function() {
     assert(/UPDATE `articles` SET `gmt_deleted` = '[\s\S]*' WHERE `title` LIKE '%Post%' AND `gmt_deleted` = '[\s\S]*'$/.test(sqlString));
   });
 
+  it('update with order, limit and offset', function () {
+    assert.equal(
+      User.update({}, { level: 2 }).limit(5).toString(),
+      'UPDATE `users` SET `level` = 2 LIMIT 5'
+    );
+
+    assert.equal(
+      User.update({ title: { $like: '%halo%' } }, { level: 2 }).limit(5).toString(),
+      'UPDATE `users` SET `level` = 2 WHERE `title` LIKE \'%halo%\' LIMIT 5'
+    );
+
+    assert.equal(
+      User.update({ title: { $like: '%halo%' } }, { level: 2 }).limit(5).order('id DESC').toString(),
+      'UPDATE `users` SET `level` = 2 WHERE `title` LIKE \'%halo%\' ORDER BY `id` DESC LIMIT 5'
+    );
+  });
+
   it('update with raw sql', function() {
     assert.equal(
       User.update({ id: 1 }, { level: raw('level + 1') }).toString(),

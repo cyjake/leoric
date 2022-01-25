@@ -1816,6 +1816,11 @@ describe('Transaction', function() {
     });
   });
 
+  after(async () => {
+    await User.truncate();
+    Bone.driver = null;
+  });
+
   it('should be able to manage transaction', async function() {
     await assert.rejects(async function() {
       await Spine.transaction(async function(transaction) {
@@ -1830,4 +1835,66 @@ describe('Transaction', function() {
     }, /go wrong/);
     assert.equal(await User.count(), 0);
   });
+});
+
+describe('Model.update with order, limit (mysql only)', () => {
+
+  const Spine = sequelize(Bone);
+
+  class Post extends Spine {
+    static get table() {
+      return 'articles';
+    }
+  };
+
+  before(async function() {
+    await connect({
+      Model: Spine,
+      models: [ Post ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
+    });
+  });
+
+  after(async () => {
+    await Post.truncate();
+    Bone.driver = null;
+  });
+
+  it('should work', async () => {
+
+    let i = 0;
+    while (i <= 5) {
+      await Post.create({ title: 'Throne' });
+      i += 1;
+    }
+    await Post.update({ title: 'Game' }, {
+      where: {},
+      limit: 2,
+      order: 'id ASC',
+      silent: true,
+    });
+    let allPosts = await Post.findAll({ order: 'id ASC' });
+    assert.equal(allPosts[0].title, 'Game');
+    assert.equal(allPosts[1].title, 'Game');
+    assert.equal(allPosts[2].title, 'Throne');
+    assert.equal(allPosts[3].title, 'Throne');
+
+    await Post.bulkUpdate({ title: 'Pilot' }, {
+      where: {},
+      limit: 2,
+      order: 'id ASC',
+      silent: true,
+    });
+    allPosts = await Post.findAll({ order: 'id ASC' });
+    assert.equal(allPosts[0].title, 'Pilot');
+    assert.equal(allPosts[1].title, 'Pilot');
+    assert.equal(allPosts[2].title, 'Throne');
+    assert.equal(allPosts[3].title, 'Throne');
+
+  
+  });
+
+
 });
