@@ -1495,8 +1495,6 @@ describe('validator should work', () => {
 
   const attributes = {
     id: DataTypes.BIGINT,
-    gmt_create: DataTypes.DATE,
-    gmt_deleted: DataTypes.DATE,
     email: {
       type: DataTypes.STRING(256),
       allowNull: false,
@@ -1743,11 +1741,22 @@ describe('validator should work', () => {
         status: 1,
       }, { validate: false });
 
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(true);
+        }, 1000);
+      });
+
       assert(user);
 
       const users = await User.findAll();
+
       assert.equal(users.length, 1);
       assert.equal(users[0].id, user.id);
+
+      // created should not be updated
+      assert.equal(users[0].createdAt.getTime(), user.createdAt.getTime());
+      assert.notEqual(users[0].level, user.level);
       await user.reload();
       assert.equal(users[0].level, user.level);
     });

@@ -8,6 +8,7 @@ const { findDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
+const { LEGACY_TIMESTAMP_MAP } = require('./contants');
 
 /**
  *
@@ -38,12 +39,6 @@ async function findModels(dir) {
 
   return models;
 }
-
-const LEGACY_TIMESTAMP_MAP = {
-  gmtCreate: 'createdAt',
-  gmtModified: 'updatedAt',
-  gmtDeleted: 'deletedAt',
-};
 
 /**
  * construct model attributes entirely from column definitions

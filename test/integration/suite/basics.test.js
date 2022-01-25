@@ -912,6 +912,13 @@ describe('=> Basic', () => {
           count = await Tag.count();
           assert.equal(count, 1);
         });
+
+        it('Bone.upsert should assigne defaultValue automatically', async () => {
+          await User.upsert({ email: 'yes@yes', nickname: 'halo' });
+          const user = await User.findOne({ nickname: 'halo' });
+          assert.equal(user.attribute('status'), 1);
+          assert.equal(user.level, 1);
+        });
       });
     });
 
