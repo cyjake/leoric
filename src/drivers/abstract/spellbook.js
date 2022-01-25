@@ -477,19 +477,10 @@ function formatUpdate(spell) {
     chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
   }
 
-  const extraOptions = this.formatUpdateExtraOptions(spell);
-  if (extraOptions.length) {
-    chunks.push(...extraOptions);
-  }
-
   return {
     sql: chunks.join(' '),
     values,
   };
-}
-
-function formatUpdateExtraOptions() {
-  return [];
 }
 
 /**
@@ -616,6 +607,5 @@ module.exports = {
   formatSelectWithoutJoin,
   formatUpdateOnDuplicate,
   formatReturning,
-  formatUpdateExtraOptions,
   formatOrders
 };
