@@ -814,10 +814,10 @@ class Bone {
 
     const conditions = {
       [primaryKey]: this[primaryKey],
-      deletedAt: { $ne: null },
+      [deletedAt]: { $ne: null },
     };
     if (shardingKey) conditions[shardingKey] = this[shardingKey];
-    await this.update({ deletedAt: null }, { ...opts, paranoid: false });
+    await this.update({ [deletedAt]: null }, { ...opts, paranoid: false });
     return this;
   }
 
@@ -832,7 +832,7 @@ class Bone {
     if (deletedAt == null) {
       throw new Error('Model is not paranoid');
     }
-    return Bone.update.call(this, conditions, { deletedAt: null }, { ...opts, paranoid: false });
+    return Bone.update.call(this, conditions, { [deletedAt]: null }, { ...opts, paranoid: false });
   }
 
   /**

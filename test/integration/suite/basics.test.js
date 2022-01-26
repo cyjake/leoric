@@ -5,7 +5,7 @@ const assert = require('assert').strict;
 const expect = require('expect.js');
 const sinon = require('sinon');
 
-const { Collection } = require('../../..');
+const { Collection, Bone } = require('../../..');
 const Book = require('../../models/book');
 const Comment = require('../../models/comment');
 const Post = require('../../models/post');
@@ -1195,9 +1195,27 @@ describe('=> Basic', () => {
   });
 
   describe('=> restore', () => {
+
+    class Note extends Bone {}
+    Note.init({
+      id: { type: Bone.DataTypes.INTEGER, primaryKey: true },
+      name: Bone.DataTypes.STRING,
+      deleted_at: Bone.DataTypes.DATE,
+    });
+
+    before(async () => {
+      await Bone.driver.dropTable('notes');
+      await Note.sync();
+    });
+
+    after(async () => {
+      await Bone.driver.dropTable('notes');
+    });
+
     beforeEach(async () => {
       await Post.remove({}, true);
       await User.remove({}, true);
+      await Note.remove({}, true);
     });
 
     it('bone.restore()', async function() {
@@ -1208,6 +1226,14 @@ describe('=> Basic', () => {
       await post.restore();
       assert.ok(await Post.first);
       assert(!post.deletedAt);
+
+      const note = await Note.create({ name: 'yes' });
+      await note.remove();
+      assert.equal(await Note.first, null);
+      assert(note.deleted_at);
+      await note.restore();
+      assert.ok(await Note.first);
+      assert(!note.deleted_at);
     });
 
     it('Bone.restore()', async function() {
@@ -1217,6 +1243,13 @@ describe('=> Basic', () => {
       assert(post.deletedAt);
       await Post.restore({ title: 'Gwyn, Lord of Cinder' });
       assert.ok(await Post.first);
+
+      const note = await Note.create({ name: 'yes' });
+      await note.remove();
+      assert.equal(await Note.first, null);
+      assert(note.deleted_at);
+      await Note.restore({ name: 'yes' });
+      assert.ok(await Note.first);
     });
 
     it('should not work with no paranoid attribute', async function() {
