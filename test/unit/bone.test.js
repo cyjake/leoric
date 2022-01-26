@@ -201,6 +201,21 @@ describe('=> Bone', function() {
       // should not override existing one
       assert.equal(User.attributes.updatedAt.type.precision, 0);
     });
+
+    it('should adapt legacy timestamps', async () => {
+      class User extends Bone {
+        static attributes = {
+          createdAt: DATE,
+        }
+      }
+      User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'gmt_create', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+
+      assert.ok(User.timestamps.createdAt);
+      assert.equal(User.attributes.createdAt.columnName, 'gmt_create');
+    });
   });
 
   describe('=> Bone.loadAttribute()', function() {

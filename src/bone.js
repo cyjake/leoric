@@ -15,6 +15,7 @@ const Raw = require('./raw');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
+const { TIMESTAMP_NAMES, LEGACY_TIMESTAMP_COLUMN_MAP } = require('./constants');
 
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
@@ -846,9 +847,13 @@ class Bone {
     const data = {};
     const Model = this;
     const { attributes } = Model;
-    for (const name in values) {
-      if (this.hasAttribute(name)) {
-        data[name] = values[name];
+    for (const key in attributes) {
+      const attribute = attributes[key];
+      if (attribute.primaryKey) continue;
+      if (values[key] == null && attribute.defaultValue != null) {
+        data[key] = attribute.defaultValue;
+      } else if (values[key] !== undefined){
+        data[key] = values[key];
       }
     }
 
@@ -931,6 +936,15 @@ class Bone {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
       attributes[name] = attribute;
+      if (TIMESTAMP_NAMES.includes(name)) {
+        const { columnName } = attribute;
+        const legacyColumnName = LEGACY_TIMESTAMP_COLUMN_MAP[columnName];
+        if (!columnMap[columnName] && legacyColumnName && columnMap[legacyColumnName]) {
+          // correct columname
+          attribute.columnName = legacyColumnName;
+          attributeMap[attribute.columnName] = attribute;
+        }
+      }
       const columnInfo = columnMap[attribute.columnName];
       // if datetime or timestamp precision not defined, default to column info
       if (columnInfo && attribute.type instanceof DataTypes.DATE && attribute.type.precision == null) {
@@ -940,7 +954,7 @@ class Bone {
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
     const timestamps = {};
-    for (const key of [ 'createdAt', 'updatedAt', 'deletedAt' ]) {
+    for (const key of TIMESTAMP_NAMES) {
       const name = attributes.hasOwnProperty(key) ? key : snakeCase(key);
       const attribute = attributes[name];
 

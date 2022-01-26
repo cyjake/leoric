@@ -1,6 +1,6 @@
 'use strict';
 
-const { AGGREGATOR_MAP } = require('./contants');
+const { AGGREGATOR_MAP } = require('./constants');
 
 const AGGREGATORS = Object.values(AGGREGATOR_MAP);
 /**
