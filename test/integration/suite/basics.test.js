@@ -913,7 +913,7 @@ describe('=> Basic', () => {
           assert.equal(count, 1);
         });
 
-        it('Bone.upsert should assigne defaultValue automatically', async () => {
+        it('Bone.upsert should assign defaultValue automatically', async () => {
           await User.upsert({ email: 'yes@yes', nickname: 'halo' });
           const user = await User.findOne({ nickname: 'halo' });
           assert.equal(user.attribute('status'), 1);

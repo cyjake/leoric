@@ -11,7 +11,7 @@ const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
 const Raw = require('./raw');
-const { AGGREGATOR_MAP } = require('./contants');
+const { AGGREGATOR_MAP } = require('./constants');
 
 /**
  * Parse condition expressions

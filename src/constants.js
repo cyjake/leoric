@@ -14,17 +14,17 @@ const LEGACY_TIMESTAMP_MAP = {
   gmtDeleted: 'deletedAt',
 };
 
-const LEGACY_TIMESTAMP_CLOUMN_MAP = {
+const LEGACY_TIMESTAMP_COLUMN_MAP = {
   created_at: 'gmt_create',
   updated_at: 'gmt_modified',
   deleted_at: 'gmt_deleted',
 };
 
-const TIMESTAMPS_ATTRNAME = [ 'createdAt', 'updatedAt', 'deletedAt' ];
+const TIMESTAMP_NAMES = [ 'createdAt', 'updatedAt', 'deletedAt' ];
 
 module.exports = {
   AGGREGATOR_MAP,
   LEGACY_TIMESTAMP_MAP,
-  TIMESTAMPS_ATTRNAME,
-  LEGACY_TIMESTAMP_CLOUMN_MAP
+  TIMESTAMP_NAMES,
+  LEGACY_TIMESTAMP_COLUMN_MAP
 };

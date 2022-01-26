@@ -15,7 +15,7 @@ const Raw = require('./raw');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const { logger } = require('./utils/index');
-const { TIMESTAMPS_ATTRNAME, LEGACY_TIMESTAMP_CLOUMN_MAP } = require('./contants');
+const { TIMESTAMP_NAMES, LEGACY_TIMESTAMP_COLUMN_MAP } = require('./constants');
 
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
@@ -850,7 +850,7 @@ class Bone {
     for (const key in attributes) {
       const attribute = attributes[key];
       if (attribute.primaryKey) continue;
-      if (!values[key] && attribute.defaultValue != null) {
+      if (values[key] == null && attribute.defaultValue != null) {
         data[key] = attribute.defaultValue;
       } else if (values[key] !== undefined){
         data[key] = values[key];
@@ -936,9 +936,9 @@ class Bone {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
       attributes[name] = attribute;
-      if (TIMESTAMPS_ATTRNAME.includes(name)) {
+      if (TIMESTAMP_NAMES.includes(name)) {
         const { columnName } = attribute;
-        const legacyColumnName = LEGACY_TIMESTAMP_CLOUMN_MAP[columnName];
+        const legacyColumnName = LEGACY_TIMESTAMP_COLUMN_MAP[columnName];
         if (!columnMap[columnName] && legacyColumnName && columnMap[legacyColumnName]) {
           // correct columname
           attribute.columnName = legacyColumnName;
@@ -954,7 +954,7 @@ class Bone {
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
     const timestamps = {};
-    for (const key of TIMESTAMPS_ATTRNAME) {
+    for (const key of TIMESTAMP_NAMES) {
       const name = attributes.hasOwnProperty(key) ? key : snakeCase(key);
       const attribute = attributes[name];
 

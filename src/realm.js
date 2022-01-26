@@ -8,7 +8,7 @@ const { findDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
-const { LEGACY_TIMESTAMP_MAP } = require('./contants');
+const { LEGACY_TIMESTAMP_MAP } = require('./constants');
 
 /**
  *
