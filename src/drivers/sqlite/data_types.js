@@ -7,8 +7,42 @@ class Sqlite_DATE extends DataTypes.DATE {
     super(precision, timezone);
     this.dataType = 'datetime';
   }
+
+  uncast(value) {
+    try {
+      return super.uncast(value);
+    } catch (error) {
+      console.error(new Error(`unable to cast ${value} to DATE`));
+      return value;
+    }
+  }
 }
 
+class Sqlite_DATEONLY extends DataTypes.DATEONLY {
+  constructor() {
+    super();
+  }
+
+  uncast(value) {
+    try {
+      return super.uncast(value);
+    } catch (error) {
+      console.error(new Error(`unable to cast ${value} to DATEONLY`));
+      return value;
+    }
+  }
+}
+
+class Sqlite_INTEGER extends DataTypes.INTEGER {
+  constructor(length) {
+    super(length);
+  }
+
+  uncast(value) {
+    return super.uncast(value, false);
+  }
+
+}
 class Sqlite_BIGINT extends DataTypes.BIGINT {
   constructor() {
     super();
@@ -57,6 +91,14 @@ class Sqlite_DataTypes extends DataTypes {
 
   static get VARBINARY() {
     return Sqlite_VARBINARY;
+  }
+
+  static get DATEONLY() {
+    return Sqlite_DATEONLY;
+  }
+
+  static get INTEGER() {
+    return Sqlite_INTEGER;
   }
 }
 

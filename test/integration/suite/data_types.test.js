@@ -198,6 +198,7 @@ describe('=> Data Types - INTEGER', function() {
   class Note extends Bone {
     static attributes = {
       word_count: INTEGER,
+      createdAt: DATE,
     }
   }
 
@@ -218,9 +219,27 @@ describe('=> Data Types - INTEGER', function() {
     assert.equal(result.length, 1);
     assert.deepEqual(result.toJSON(), [ note2.toJSON() ]);
 
-    await assert.rejects(async function() {
-      await Note.where({ word_count: [ 'foo' ] });
-    }, /invalid integer/i);
+    if (Bone.driver.type === 'postgres') {
+      await assert.rejects(async function() {
+        await Note.where({ word_count: [ 'foo' ] });
+      }, /invalid integer/i);
+    } else {
+      await assert.doesNotReject(async () => {
+        await Note.where({ word_count: [ 'foo' ] });
+        return true;
+      });
+    }
+    if (Bone.driver.type === 'sqlite') {
+      await assert.doesNotReject(async () => {
+        const note1 = await Note.create({ word_count: 'foo' });
+        assert.equal(note1.word_count, 'foo');
+      });
+    } else {
+      await assert.rejects(async function() {
+        await Note.create({ word_count: 'foo' });
+      }, /invalid integer: foo/i);
+    }
+    
   });
 });
 
@@ -253,18 +272,32 @@ describe('=> Data types - DATE', function() {
       assert.equal(result.length, 1);
     });
 
-    // MySQL throws on invalid date string in SELECT, others neglect.
-    await assert.rejects(async function() {
-      const result = await Note.where({ createdAt: 'invalid date' });
-      assert.equal(result.length, 0);
-    }, /invalid date/i);
+    if (Bone.driver.type === 'sqlite') { 
+      await assert.doesNotReject(async function() {
+        await Note.where({ createdAt: 'invalid date' });
+        return true;
+      });
 
-    // SQLite neglects invalid date string in INSERT, others throw.
-    await assert.rejects(async function() {
-      const note2 = await Note.create({ createdAt: 'invalid date' });
-      await note2.reload();
-      assert.equal(note2.createdAt, null);
-    }, /invalid date/i);
+      await assert.doesNotReject(async function() {
+        const note2 = await Note.create({ createdAt: 'halo' });
+        await note2.reload();
+        assert.equal(note2.createdAt, 'halo');
+      });
+    } else {
+      // MySQL throws on invalid date string in SELECT, others neglect.
+      await assert.rejects(async function() {
+        const result = await Note.where({ createdAt: 'halo' });
+        assert.equal(result.length, 0);
+      }, /invalid date: halo/i);
+
+      // SQLite neglects invalid date string in INSERT, others throw.
+      await assert.rejects(async function() {
+        const note2 = await Note.create({ createdAt: 'halo' });
+        await note2.reload();
+        assert.equal(note2.createdAt, null);
+      }, /invalid date: halo/i);
+    }
+
   });
 });
 
@@ -296,18 +329,31 @@ describe('=> Data types - DATEONLY', function() {
       assert.equal(result.length, 1);
     });
 
-    // MySQL throws on invalid date string in SELECT, others neglect.
-    await assert.rejects(async function() {
-      const result = await Note.where({ createdAt: 'invalid date' });
-      assert.equal(result.length, 0);
-    }, /invalid date/i);
+    if (Bone.driver.type === 'sqlite') { 
+      await assert.doesNotReject(async function() {
+        await Note.where({ createdAt: 'invalid date' });
+        return true;
+      });
 
-    // SQLite neglects invalid date string in INSERT, others throw.
-    await assert.rejects(async function() {
-      const note2 = await Note.create({ createdAt: 'invalid date' });
-      await note2.reload();
-      assert.equal(note2.createdAt, null);
-    }, /invalid date/i);
+      await assert.doesNotReject(async function() {
+        const note2 = await Note.create({ createdAt: 'halo' });
+        await note2.reload();
+        assert.equal(note2.createdAt, 'halo');
+      });
+    } else {
+      // MySQL throws on invalid date string in SELECT, others neglect.
+      await assert.rejects(async function() {
+        const result = await Note.where({ createdAt: 'halo' });
+        assert.equal(result.length, 0);
+      }, /invalid date: halo/i);
+
+      // SQLite neglects invalid date string in INSERT, others throw.
+      await assert.rejects(async function() {
+        const note2 = await Note.create({ createdAt: 'halo' });
+        await note2.reload();
+        assert.equal(note2.createdAt, null);
+      }, /invalid date: halo/i);
+    }
   });
 });
 

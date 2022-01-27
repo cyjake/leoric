@@ -1,6 +1,9 @@
 'use strict';
 
 const DataTypes = require('../../data_types');
+const util = require('util');
+const Raw = require('../../raw');
+
 
 class Postgres_DATE extends DataTypes.DATE {
   constructor(precision, timezone = true) {
@@ -37,12 +40,35 @@ class Postgres_BINARY extends DataTypes {
   }
 }
 
+class Postgres_INTEGER extends DataTypes.INTEGER {
+  constructor(length) {
+    super(length);
+  }
+
+  uncast(value) {
+    const originValue = value;
+    if (value == null || value instanceof Raw) return value;
+    if (typeof value === 'string') value = parseInt(value, 10);
+    if (isNaN(value)) throw new Error(util.format('invalid integer: %s', originValue));
+    return value;
+  }
+}
+
+class Postgres_BIGINT extends Postgres_INTEGER {
+  constructor() {
+    super();
+    this.dataType = 'bigint';
+  }
+}
+
 class Postgres_DataTypes extends DataTypes {
   static DATE = Postgres_DATE;
   static JSONB = Postgres_JSONB;
   static BINARY = Postgres_BINARY;
   static VARBINARY = Postgres_BINARY;
   static BLOB = Postgres_BINARY;
+  static INTEGER = Postgres_INTEGER;
+  static BIGINT =  Postgres_BIGINT;
 }
 
 module.exports = Postgres_DataTypes;
