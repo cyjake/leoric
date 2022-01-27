@@ -208,7 +208,7 @@ function coerceLiteral(spell, ast) {
     if (arg.type === 'literal') {
       // { params: { $like: '%foo%' } }
       if (attribute.jsType === JSON && typeof arg.value === 'string') continue;
-      arg.value = attribute.uncast(arg.value);
+      arg.value = attribute.uncast(arg.value, false);
     }
   }
 }

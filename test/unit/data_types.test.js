@@ -4,6 +4,9 @@ const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const DataTypes = require('../../src/data_types');
 const Raw = require('../../src/raw');
+const Postgres_DataTypes = require('../../src/drivers/postgres/data_types');
+const SQLite_DataTypes = require('../../src/drivers/sqlite/data_types');
+
 
 
 describe('=> Data Types', () => {
@@ -83,7 +86,27 @@ describe('=> Data Types', () => {
 });
 
 describe('=> DataTypes type casting', function() {
-  const { STRING, BLOB, DATE, DATEONLY, JSON } = DataTypes;
+  const { STRING, BLOB, DATE, DATEONLY, JSON, INTEGER } = DataTypes;
+
+  it('INTEGER', async () => {
+    assert.equal(new INTEGER().uncast(null), null);
+    assert.equal(new INTEGER().uncast(undefined), undefined);
+    assert.equal(new INTEGER().uncast('1'), 1);
+    assert.equal(new INTEGER().uncast(1), 1);
+
+    await assert.rejects(async () => {
+      new Postgres_DataTypes.INTEGER().uncast('yes?');
+    }, /Error: invalid integer: yes?/);
+
+    assert.equal(new SQLite_DataTypes.INTEGER().uncast('yes?'), 'yes?');
+
+    await assert.rejects(async () => {
+      new INTEGER().uncast('yes?');
+    }, /Error: invalid integer: yes?/);
+  
+    assert.equal(new INTEGER().uncast('yes?', false), 'yes?');
+
+  });
 
   it('STRING', async function() {
     assert.equal(new STRING().uncast(null), null);
@@ -112,6 +135,13 @@ describe('=> DataTypes type casting', function() {
 
     // raw
     assert.deepEqual(new DATE().uncast(new Raw(`NOW()`)), new Raw(`NOW()`));
+
+    await assert.rejects(async () => {
+      new DATE().uncast('yes?');
+    }, /Error: invalid date: yes?/);
+
+    assert.deepEqual(new SQLite_DataTypes.DATE().uncast('yes?'), 'yes?');
+
   });
 
   it('DATE toDate()', async function() {
@@ -133,6 +163,12 @@ describe('=> DataTypes type casting', function() {
     today.setHours(0);
     assert.equal(result.getTime(), today.getTime());
     assert.deepEqual(new DATEONLY().uncast(new Raw(`NOW()`)), new Raw(`NOW()`));
+
+    await assert.rejects(async () => {
+      new DATEONLY().uncast('yes?');
+    }, /Error: invalid date: yes?/);
+
+    assert.deepEqual(new SQLite_DataTypes.DATEONLY().uncast('yes?'), 'yes?');
   });
 
   it('DATEONLY toDate()', async function() {

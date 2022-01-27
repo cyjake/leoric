@@ -187,15 +187,18 @@ class INTEGER extends DataType {
   }
 
   cast(value) {
-    if (value == null) return value;
+    if (value == null || isNaN(value)) return value;
     return Number(value);
   }
 
-  uncast(value) {
+  uncast(value, strict = true) {
     const originValue = value;
     if (value == null || value instanceof Raw) return value;
     if (typeof value === 'string') value = parseInt(value, 10);
-    if (isNaN(value)) throw new Error(util.format('invalid integer: %s', originValue));
+    if (isNaN(value)) {
+      if (strict) throw new Error(util.format('invalid integer: %s', originValue));
+      return originValue;
+    }
     return value;
   }
 }
@@ -244,8 +247,10 @@ class DATE extends DataType {
   }
 
   cast(value) {
+    const original = value;
     if (value == null) return value;
     if (!(value instanceof Date)) value = new Date(value);
+    if (isNaN(value.getTime())) return original;
     return this._round(value);
   }
 
@@ -290,8 +295,10 @@ class DATEONLY extends DataType {
   }
 
   cast(value) {
+    const original = value;
     if (value == null) return value;
     if (!(value instanceof Date)) value = new Date(value);
+    if (isNaN(value.getTime())) return original;
     return this._round(value);
   }
 
@@ -310,7 +317,7 @@ class DATEONLY extends DataType {
     }
 
     if (!(value instanceof Date)) value = new Date(value);
-    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));;
+    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
 
     return this._round(value);
   }
