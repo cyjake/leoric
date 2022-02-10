@@ -1,3 +1,20 @@
+2.0.2 / 2021-02-10
+==================
+
+## What's Changed
+* fix: order by alias should not throw by @cyjake in https://github.com/cyjake/leoric/pull/255
+* fix: fix #257 DataType.uncast should skip Raw type at type checking by @JimmyDaddy in https://github.com/cyjake/leoric/pull/258
+* docs: async function in transaction by @cyjake in https://github.com/cyjake/leoric/pull/259
+* fix: fixed #256 static create instance should check all default attri… by @JimmyDaddy in https://github.com/cyjake/leoric/pull/262
+* fix: fix #260 UPDATE with LIMIT and ORDER should be formatted(mysql only) by @JimmyDaddy in https://github.com/cyjake/leoric/pull/261
+* refactor: keep the UPDATE ... ORDER BY ... LIMIT to mysql driver by @cyjake in https://github.com/cyjake/leoric/pull/264
+* fix: fix #263 upsert attributes should use defaultValue while there i… by @JimmyDaddy in https://github.com/cyjake/leoric/pull/265
+* fix: fix restore Error `Undefined attribute "deletedAt"` by @JimmyDaddy in https://github.com/cyjake/leoric/pull/267
+* fix: type checking adaption by @JimmyDaddy in https://github.com/cyjake/leoric/pull/266
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.0.1...v2.0.2
+
 2.0.1 / 2022-01-05
 ==================
 
