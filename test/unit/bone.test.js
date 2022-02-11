@@ -299,16 +299,17 @@ describe('=> Bone', function() {
   });
 
   describe('=> Bone.create()', function() {
-    it ('should be ok when save while the model has updatedAt without createdAt', async function() {
-      class Post extends Bone {}
-      Post.init({ id: BIGINT, updatedAt: DATE });
-      Post.load([
-        { columnName: 'id', columnType: 'bigint', dataType: 'bigint' },
-        { columnName: 'updated_at', columnType: 'timestamp', dataType: 'timestamp' },
-      ]);
-      const post = await Post.create({ authorId: 1 });
-      expect(post.id).to.equal(1);
-      expect(post.updatedAt).to.be.a(Date);
+    it ('should work if the model has updatedAt without createdAt', async function() {
+      class Note extends Bone {
+        static attributes = {
+          id: BIGINT,
+          updatedAt: { type: DATE, allowNull: false },
+        }
+      }
+      await Note.sync({ force: true });
+      const note = await Note.create({ authorId: 1 });
+      expect(note.id).to.equal(1);
+      expect(note.updatedAt).to.be.a(Date);
     });
   });
 });
