@@ -1,3 +1,14 @@
+2.0.3 / 2021-02-11
+==================
+
+## What's Changed
+* fix: default updatedAt to new date if model has no createdAt by @LB4027221 in https://github.com/cyjake/leoric/pull/268
+
+## New Contributors
+* @LB4027221 made their first contribution in https://github.com/cyjake/leoric/pull/268
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.0.2...v2.0.3
+
 2.0.2 / 2021-02-10
 ==================
 
