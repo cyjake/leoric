@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const { Bone, DataTypes, connect } = require('../..');
+const expect = require('expect.js');
 
 const { BIGINT, STRING, DATE } = DataTypes;
 
@@ -294,6 +295,20 @@ describe('=> Bone', function() {
         Post.alias({ author_id: 42, comment_count: 1 }),
         { authorId: 42, comment_count: 1 }
       );
+    });
+  });
+
+  describe('=> Bone.create()', function() {
+    it ('should be ok when save while the model has updatedAt without createdAt', async function() {
+      class Post extends Bone {}
+      Post.init({ id: BIGINT, updatedAt: DATE });
+      Post.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint' },
+        { columnName: 'updated_at', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+      const post = await Post.create({ authorId: 1 });
+      expect(post.id).to.equal(1);
+      expect(post.updatedAt).to.be.a(Date);
     });
   });
 });
