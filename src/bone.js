@@ -711,7 +711,7 @@ class Bone {
     }
 
     if (attributes[updatedAt] && !this[updatedAt]) {
-      this[updatedAt] = this[createdAt];
+      this[updatedAt] = this[createdAt] || new Date();
     }
 
     const validateValues = {};

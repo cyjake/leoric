@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const { Bone, DataTypes, connect } = require('../..');
+const expect = require('expect.js');
 
 const { BIGINT, STRING, DATE } = DataTypes;
 
@@ -294,6 +295,21 @@ describe('=> Bone', function() {
         Post.alias({ author_id: 42, comment_count: 1 }),
         { authorId: 42, comment_count: 1 }
       );
+    });
+  });
+
+  describe('=> Bone.create()', function() {
+    it ('should work if the model has updatedAt without createdAt', async function() {
+      class Note extends Bone {
+        static attributes = {
+          id: BIGINT,
+          updatedAt: { type: DATE, allowNull: false },
+        }
+      }
+      await Note.sync({ force: true });
+      const note = await Note.create({ authorId: 1 });
+      expect(note.id).to.equal(1);
+      expect(note.updatedAt).to.be.a(Date);
     });
   });
 });
