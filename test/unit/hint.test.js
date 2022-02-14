@@ -68,13 +68,13 @@ describe('MySQL', async () => {
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date }, {
           hint: new Hint('SET_VAR(foreign_key_checks=OFF)')
         }).toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
       assert.equal(
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date })
           .optimizerHints('SET_VAR(foreign_key_checks=OFF)')
           .toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
       // array
       assert.equal(
@@ -84,19 +84,19 @@ describe('MySQL', async () => {
             new Hint('SET_VAR(sort_buffer_size = 16M)'),
           ],
         }).toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
 
       assert.equal(
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date })
           .optimizerHints('SET_VAR(foreign_key_checks=OFF)', 'SET_VAR(sort_buffer_size = 16M)')
           .toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
 
       assert.equal(
         Post.create({ title: 'New Post', createdAt: date, updatedAt: date }).optimizerHints('SET_VAR(foreign_key_checks=OFF)').optimizerHints('SET_VAR(sort_buffer_size = 16M)').toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
 
       assert.equal(
@@ -107,7 +107,7 @@ describe('MySQL', async () => {
             new Hint('BKA(users)'),
           ],
         }).toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) BKA(users) */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) BKA(users) */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
 
       assert.equal(
@@ -115,7 +115,7 @@ describe('MySQL', async () => {
           hint: new Hint('SET_VAR(optimizer_switch = \'mrr_cost_based=off\')'),
           hints: [ new Hint('SET_VAR(foreign_key_checks=OFF)'), new Hint('SET_VAR(sort_buffer_size = 16M)') ]
         }).toString(),
-        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) SET_VAR(optimizer_switch = 'mrr_cost_based=off') */ INTO `articles` (`title`, `gmt_create`, `gmt_modified`) VALUES ('New Post', '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
+        "INSERT /*+ SET_VAR(foreign_key_checks=OFF) SET_VAR(sort_buffer_size = 16M) SET_VAR(optimizer_switch = 'mrr_cost_based=off') */ INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000')"
       );
     });
 

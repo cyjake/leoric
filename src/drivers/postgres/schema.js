@@ -57,13 +57,18 @@ module.exports = {
 
       if (dataType === 'character varying') dataType = 'varchar';
       if (dataType === 'timestamp without time zone') dataType = 'timestamp';
+
+      let columnDefault = row.column_default;
+      if (/^NULL::/i.test(columnDefault)) columnDefault = null;
+      if (dataType === 'boolean') columnDefault = columnDefault === 'true';
+
       const primaryKey = row.constraint_type === 'PRIMARY KEY';
       const precision = row.datetime_precision;
 
       columns.push({
         columnName: row.column_name,
         columnType: length > 0 ? `${dataType}(${length})` : dataType,
-        defaultValue: primaryKey ? null : row.column_default,
+        defaultValue: primaryKey ? null : columnDefault,
         dataType,
         allowNull: row.is_nullable !== 'NO',
         // https://www.postgresql.org/docs/9.5/infoschema-table-constraints.html

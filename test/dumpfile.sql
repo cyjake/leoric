@@ -9,7 +9,7 @@ CREATE TABLE `articles` (
   `extra` text,
   `thumb` varchar(1000) DEFAULT NULL,
   `author_id` bigint(20) DEFAULT NULL,
-  `is_private` tinyint(1) DEFAULT 0,
+  `is_private` tinyint(1) DEFAULT 0 NOT NULL,
   `summary` text,
   `word_count` int DEFAULT 0,
   `settings` text

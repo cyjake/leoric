@@ -152,7 +152,6 @@ class Bone {
     }
   }
 
-
   /**
    * Get or set attribute value by name. This method is quite similiar to `jQuery.attr()`. If the attribute isn't selected when queried from database, an error will be thrown when accessing it.
    *
