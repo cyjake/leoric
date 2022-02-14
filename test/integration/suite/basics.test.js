@@ -1,4 +1,3 @@
-
 'use strict';
 
 const assert = require('assert').strict;
@@ -39,7 +38,6 @@ describe('=> Basic', () => {
         extra: { versions: [2, 3] },
         thumb: 'https://a1.alicdn.com/image/2016/09/21/29f93b05-5d4a-4b57-99e8-71c52803b9a3.png'
       });
-
     });
 
     afterEach(async function () {
@@ -233,12 +231,18 @@ describe('=> Basic', () => {
 
     it('Bone.changes(): raw VS rawSaved', async function () {
       const post = new Post({ title: 'Untitled' });
-      assert.deepEqual(post.changes(), { title: [ null, 'Untitled' ] });
+      assert.deepEqual(post.changes(), {
+        isPrivate: [ null, Post.driver.type === 'mysql' ? 0 : false ],
+        title: [ null, 'Untitled' ],
+        wordCount: [ null, 0 ],
+      });
       post.title = 'MHW';
       post.content = 'Iceborne';
       assert.deepEqual(post.changes(), {
+        isPrivate: [ null, Post.driver.type === 'mysql' ? 0 : false ],
         title: [ null, 'MHW' ],
         content: [ null, 'Iceborne' ],
+        wordCount: [ null, 0 ],
       });
       await post.save();
       assert.deepEqual(post.changes(), {});

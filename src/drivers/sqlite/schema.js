@@ -75,8 +75,9 @@ async function alterTableWithChangeColumn(driver, table, changes) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function parseDefaultValue(text) {
+function parseDefaultValue(text, type) {
   if (typeof text !== 'string') return text;
+  if (type === 'boolean') return text === 'true';
 
   try {
     const ast = parseExpr(text);
@@ -84,7 +85,7 @@ function parseDefaultValue(text) {
       return ast.value;
     }
   } catch (err) {
-    debug('[parseDefaultValue] [%s] %s', text, err.stack);
+    debug('[parseDefaultValue] [%s] %s', text, err);
   }
 
   return text;
@@ -111,10 +112,11 @@ module.exports = {
         const columnType = type.toLowerCase();
         const [, dataType, precision ] = columnType.match(rColumnType);
         const primaryKey = pk === 1;
+
         const result = {
           columnName: name,
           columnType,
-          defaultValue: parseDefaultValue(dflt_value),
+          defaultValue: parseDefaultValue(dflt_value, type),
           dataType: dataType,
           allowNull: primaryKey ? false : notnull == 0,
           primaryKey,

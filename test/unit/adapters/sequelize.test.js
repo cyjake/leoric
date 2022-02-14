@@ -1020,12 +1020,33 @@ describe('=> Sequelize adapter', () => {
   it('model.previous()', async () => {
     const post = await Post.create({ title: 'By three they come' });
     post.title = 'Hello there';
-    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    assert.deepEqual(post.previous(), {
+      title: 'By three they come',
+      id: post.id,
+      isPrivate: false,
+      updatedAt: post.updatedAt,
+      createdAt: post.createdAt,
+      wordCount: 0,
+    });
     post.content = 'a';
-    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: post.updatedAt, createdAt: post.createdAt });
+    assert.deepEqual(post.previous(), {
+      title: 'By three they come',
+      id: post.id,
+      isPrivate: false,
+      updatedAt: post.updatedAt,
+      createdAt: post.createdAt,
+      wordCount: 0,
+    });
     const prevUpdatedAt = post.updatedAt;
     await post.update();
-    assert.deepEqual(post.previous(), { title: 'By three they come', id: post.id, updatedAt: prevUpdatedAt, createdAt: post.createdAt });
+    assert.deepEqual(post.previous(), {
+      title: 'By three they come',
+      id: post.id,
+      isPrivate: false,
+      updatedAt: prevUpdatedAt,
+      createdAt: post.createdAt,
+      wordCount: 0,
+    });
   });
 
   it('model.update(values, { paranoid })', async () => {
@@ -1902,7 +1923,7 @@ describe('Model.update with order, limit (mysql only)', () => {
     assert.equal(allPosts[2].title, 'Throne');
     assert.equal(allPosts[3].title, 'Throne');
 
-  
+
   });
 
 
