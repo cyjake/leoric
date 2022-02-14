@@ -302,13 +302,13 @@ describe('=> Bone', function() {
     it ('should work if the model has updatedAt without createdAt', async function() {
       class Note extends Bone {
         static attributes = {
-          id: BIGINT,
+          authorId: BIGINT,
           updatedAt: { type: DATE, allowNull: false },
         }
       }
       await Note.sync({ force: true });
-      const note = await Note.create({ authorId: 1 });
-      expect(note.id).to.equal(1);
+      const note = await Note.create({ authorId: 4 });
+      expect(note.authorId).to.equal(4);
       expect(note.updatedAt).to.be.a(Date);
     });
   });
