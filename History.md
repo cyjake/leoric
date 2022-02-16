@@ -1,4 +1,14 @@
-2.0.3 / 2021-02-11
+2.0.4 / 2022-02-16
+==================
+
+## What's Changed
+* fix: fix unit test  error by @LB4027221 in https://github.com/cyjake/leoric/pull/269
+* fix: attribute.defaultValue should be set when init attributes by @cyjake in https://github.com/cyjake/leoric/pull/271
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.0.3...v2.0.4
+
+2.0.3 / 2022-02-11
 ==================
 
 ## What's Changed
@@ -9,7 +19,7 @@
 
 **Full Changelog**: https://github.com/cyjake/leoric/compare/v2.0.2...v2.0.3
 
-2.0.2 / 2021-02-10
+2.0.2 / 2022-02-10
 ==================
 
 ## What's Changed
