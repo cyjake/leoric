@@ -1,3 +1,13 @@
+2.1.0 / 2022-02-17
+==================
+
+## What's Changed
+* feat: fix #270 sequelize mode bulkBuild by @JimmyDaddy in https://github.com/cyjake/leoric/pull/273
+* fix:  mysql delete/remove/destroy with limit and orders by @JimmyDaddy in https://github.com/cyjake/leoric/pull/272
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.0.4...v2.1.0
+
 2.0.4 / 2022-02-16
 ==================
 
