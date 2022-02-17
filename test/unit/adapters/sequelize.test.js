@@ -162,6 +162,22 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.name, 'Book of Eli');
   });
 
+  it('Model.bulkBuild()', async () => {
+    const books = Book.bulkBuild([{ name: 'Book of Cain', price: 10 }, { name: 'Book of Cain1', price: 20 }]);
+    assert.equal(books.length, 2);
+    assert.equal(books[0].name, 'Book of Cain');
+    assert.equal(books[0].price, 10);
+    assert.equal(books[0].createdAt, null);
+    assert.equal(books[1].name, 'Book of Cain1');
+  });
+
+  it('Model.bulkBuild(values, { raw })', async () => {
+    const books = Book.bulkBuild([{ name: 'Book of Eli' }, { name: 'Book of Eli' }], { raw: true });
+    assert.equal(books.length, 2);
+    assert.equal(books[0].name, 'Book of Eli');
+    assert.equal(books[1].name, 'Book of Eli');
+  });
+
   it('Model.bulkCreate()', async () => {
     const books = await Book.bulkCreate([
       { name: 'Rendezvous with Rama', price: 42 },
