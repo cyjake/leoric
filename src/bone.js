@@ -789,7 +789,7 @@ class Bone {
       }, opts);
       return result;
     }
-    return await Model.remove(condition, forceDelete, { hooks: false, ...opts });
+    return await Model._remove(condition, forceDelete, opts);
   }
 
   /**
@@ -1454,6 +1454,24 @@ class Bone {
    * @return {Spell}
    */
   static remove(conditions, forceDelete = false, options) {
+    return this._remove(conditions, forceDelete, options);
+  }
+
+  /**
+   * private method for internal calling
+   * Remove any record that matches `conditions`.
+   * - If `forceDelete` is true, `DELETE` records from database permanently.
+   * - If not, update `deletedAt` attribute with current date.
+   * - If `forceDelete` isn't true and `deleteAt` isn't around, throw an Error.
+   * @example
+   * Post.remove({ title: 'Leah' })         // mark Post { title: 'Leah' } as deleted
+   * Post.remove({ title: 'Leah' }, true)   // delete Post { title: 'Leah' }
+   * Post.remove({}, true)                  // delete all data of posts
+   * @param {Object}  conditions
+   * @param {boolean} forceDelete
+   * @return {Spell}
+   */
+  static _remove(conditions, forceDelete = false, options) {
     const { deletedAt } = this.timestamps;
     if (forceDelete !== true && this.attributes[deletedAt]) {
       return Bone.update.call(this, conditions, { [deletedAt]: new Date() }, {

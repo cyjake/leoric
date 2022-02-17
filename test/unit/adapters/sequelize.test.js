@@ -1867,10 +1867,9 @@ describe('Transaction', function() {
   });
 });
 
-describe('Model.update with order, limit (mysql only)', () => {
-
+describe('mysql only', () => {
   const Spine = sequelize(Bone);
-
+  
   class Post extends Spine {
     static get table() {
       return 'articles';
@@ -1892,39 +1891,79 @@ describe('Model.update with order, limit (mysql only)', () => {
     Bone.driver = null;
   });
 
-  it('should work', async () => {
-
-    let i = 0;
-    while (i <= 5) {
-      await Post.create({ title: 'Throne' });
-      i += 1;
-    }
-    await Post.update({ title: 'Game' }, {
-      where: {},
-      limit: 2,
-      order: 'id ASC',
-      silent: true,
+  describe('Model.update with order, limit (mysql only)', () => {
+  
+    it('should work', async () => {
+  
+      let i = 0;
+      while (i <= 5) {
+        await Post.create({ title: 'Throne' });
+        i += 1;
+      }
+      await Post.update({ title: 'Game' }, {
+        where: {},
+        limit: 2,
+        order: 'id ASC',
+        silent: true,
+      });
+      let allPosts = await Post.findAll({ order: 'id ASC' });
+      assert.equal(allPosts[0].title, 'Game');
+      assert.equal(allPosts[1].title, 'Game');
+      assert.equal(allPosts[2].title, 'Throne');
+      assert.equal(allPosts[3].title, 'Throne');
+  
+      await Post.bulkUpdate({ title: 'Pilot' }, {
+        where: {},
+        limit: 2,
+        order: 'id ASC',
+        silent: true,
+      });
+      allPosts = await Post.findAll({ order: 'id ASC' });
+      assert.equal(allPosts[0].title, 'Pilot');
+      assert.equal(allPosts[1].title, 'Pilot');
+      assert.equal(allPosts[2].title, 'Throne');
+      assert.equal(allPosts[3].title, 'Throne');
+      await Post.truncate();
     });
-    let allPosts = await Post.findAll({ order: 'id ASC' });
-    assert.equal(allPosts[0].title, 'Game');
-    assert.equal(allPosts[1].title, 'Game');
-    assert.equal(allPosts[2].title, 'Throne');
-    assert.equal(allPosts[3].title, 'Throne');
-
-    await Post.bulkUpdate({ title: 'Pilot' }, {
-      where: {},
-      limit: 2,
-      order: 'id ASC',
-      silent: true,
-    });
-    allPosts = await Post.findAll({ order: 'id ASC' });
-    assert.equal(allPosts[0].title, 'Pilot');
-    assert.equal(allPosts[1].title, 'Pilot');
-    assert.equal(allPosts[2].title, 'Throne');
-    assert.equal(allPosts[3].title, 'Throne');
-
-
   });
 
-
+  describe('Model.destroy with order, limit (mysql only)', () => {
+  
+    it('should work', async () => {
+  
+      let i = 0;
+      const posts = [];
+      while (i <= 5) {
+        posts.push(await Post.create({ title: 'Throne' }));
+        i += 1;
+      }
+      let deleteCount = await Post.destroy({
+        where: {},
+        limit: 2,
+        order: 'id ASC',
+        silent: true,
+      });
+      assert.equal(deleteCount, 2);
+      const p1 = await Post.findByPk(posts[0].id, { paranoid: false });
+      assert(p1.deletedAt);
+      const p2 = await Post.findByPk(posts[0].id, { paranoid: false });
+      assert(p2.deletedAt);
+      deleteCount = await Post.destroy({
+        where: {},
+        limit: 3,
+        order: 'id DESC',
+        silent: true,
+        force: true,
+      });
+      assert.equal(deleteCount, 3);
+      const p3 = await Post.findByPk(posts[3].id, { paranoid: false });
+      assert.deepEqual(p3, null);
+      const p4 = await Post.findByPk(posts[4].id, { paranoid: false });
+      assert.deepEqual(p4, null);
+      const p5 = await Post.findByPk(posts[5].id, { paranoid: false });
+      assert.deepEqual(p5, null);
+      await Post.truncate();
+    });
+  });
 });
+

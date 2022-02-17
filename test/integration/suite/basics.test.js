@@ -975,6 +975,47 @@ describe('=> Basic', () => {
         await tagMap.remove();
       }, /Error: instance is not persisted yet./);
     });
+
+    it('remove with limit and order(mysql only)', async function () {
+      if (Post.driver.type !== 'mysql') return;
+
+      const posts = await Promise.all([
+        await Post.create({ title: 'Book of Tyrael', word_count: 20 }),
+        await Post.create({ title: 'Book of Cain', word_count: 10 }),
+        await Post.create({ title: 'Book of Cain', word_count: 30 }),
+        await Post.create({ title: 'Book of Cain', word_count: 40 }),
+        await Post.create({ title: 'Book of Cain', word_count: 50 }),
+        await Post.create({ title: 'Book of Cain', word_count: 60 }),
+      ]);
+
+      let deleteCount = await Post.remove({}).limit(2).order('word_count');
+      assert.equal(deleteCount, 2);
+      const post1 = await Post.findOne('id = ?', posts[0].id).unparanoid;
+      assert(post1.deletedAt);
+
+      deleteCount = await Post.remove({ 
+        word_count: {
+          $gte: 0
+        }
+      }, false).limit(3).order('id DESC');;
+      assert.equal(deleteCount, 3);
+      let post6 = await Post.findOne('id = ?', posts[5].id).unparanoid;
+      assert(post6.deletedAt);
+      let post4 = await Post.findOne('id = ?', posts[3].id).unparanoid;
+      assert(post4.deletedAt);
+
+      deleteCount = await Post.remove( {
+        word_count: {
+            $gte: 0
+          }
+        },
+        true,
+      ).limit(3).order('id DESC');
+      post6 = await Post.findOne('id = ?', posts[5].id).unparanoid;
+      assert(!post6);
+      post4 = await Post.findOne('id = ?', posts[3].id).unparanoid;
+      assert(!post4);
+    });
   });
 
   describe('=> Bulk', () => {
