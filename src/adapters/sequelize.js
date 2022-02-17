@@ -257,6 +257,17 @@ module.exports = Bone => {
       return instance;
     }
 
+    /**
+     * see https://github.com/sequelize/sequelize/blob/a729c4df41fa3a58fbecaf879265d2fb73d80e5f/src/model.js#L2299
+     * @param {Array<Object>} valueSets 
+     * @param {Object} options 
+     * @returns 
+     */
+    static bulkBuild(valueSets, options = {}) {
+      if (!valueSets.length) return [];
+      return valueSets.map(value => this.build(value, options));
+    }
+
     // EXISTS
     // static bulkCreate() {}
 
