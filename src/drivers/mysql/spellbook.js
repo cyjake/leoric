@@ -75,4 +75,19 @@ module.exports = {
 
     return result;
   },
+  /**
+   * DELETE ... ORDER BY ...LIMIT
+   * @param {Spell} spell 
+   */
+  formatDelete(spell) {
+    const result = spellbook.formatDelete.call(this, spell);
+    const { rowCount, orders } = spell;
+    const chunks = [];
+
+    if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
+    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    if (chunks.length > 0) result.sql += ` ${chunks.join(' ')}`;
+
+    return result;
+  }
 };
