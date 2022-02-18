@@ -619,9 +619,10 @@ class Bone {
   async update(values, options = {}) {
     const changes = {};
     const originalValues = Object.assign({}, this.#raw);
+    const { fields = [] } = options;
     if (typeof values === 'object') {
       for (const name in values) {
-        if (values[name] !== undefined && this.hasAttribute(name)) {
+        if (values[name] !== undefined && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
           // exec custom setters in case it exist
           this[name] = values[name];
           changes[name] = this.attribute(name);

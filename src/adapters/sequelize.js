@@ -508,11 +508,11 @@ module.exports = Bone => {
     // get isNewRecord() {}
 
     async update(values = {}, options = {}) {
-      const { fields } = options;
+      const { fields = [] } = options;
       const changeValues = {};
       const originalValues = Object.assign({}, this.getRaw());
       for (const name in values) {
-        if (values[name] !== undefined && this.hasAttribute(name)) {
+        if (values[name] !== undefined && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
           // exec custom setters in case it exist
           this[name] = values[name];
           changeValues[name] = this.attribute(name);
