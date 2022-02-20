@@ -612,6 +612,11 @@ interface InitOptions {
   };
 }
 
+interface SyncOptions {
+  force?: boolean;
+  alter?: boolean;
+}
+
 type RawSql = {
   __raw: true,
   value: string,
@@ -634,8 +639,8 @@ export default class Realm {
   define(
     name: string,
     attributes: Record<string, AttributeMeta>,
-    options: InitOptions,
-    descriptors: Record<string, Function>,
+    options?: InitOptions,
+    descriptors?: Record<string, Function>,
   ): Bone;
 
   raw(sql: string): RawSql;
@@ -646,6 +651,8 @@ export default class Realm {
 
   transaction(callback: GeneratorFunction): Promise<void>;
   transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
+
+  sync(options?: SyncOptions): Promise<void>;
 }
 
 /**
