@@ -773,6 +773,18 @@ describe('=> Basic', () => {
       expect(updatedAt4).to.be.above(updatedAt3);
     });
 
+    it('bone.update(values, options) fields should work', async () => {
+      const post = await Post.create({ title: 'New Post', authorId: 3 });
+      await post.update({ title: 'Midir', authorId: 2 }, { fields: [ 'title' ] });
+      assert.equal(post.title, 'Midir');
+      assert.equal(post.authorId, 3);
+      await post.reload();
+      assert.equal(post.authorId, 3);
+      await post.update({ title: 'Mardget', authorId: 2 }, { fields: [ ] });
+      assert.equal(post.title, 'Mardget');
+      assert.equal(post.authorId, 2);
+    });
+
     it('Bone.update({}, values) should work', async function() {
       const posts = await Promise.all([
         Post.create({ title: 'New Post' }),

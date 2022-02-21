@@ -1074,7 +1074,18 @@ describe('=> Sequelize adapter', () => {
     await post.update({ title: 'By four thy way opens' });
     const result1 = await Post.findByPk(post.id, { paranoid: false });
     assert.equal(result1.title, 'By four thy way opens');
+  });
 
+  it('model.update(values, { fields })', async () => {
+    const post = await Post.create({ title: 'By three they come', authorId: 3 });
+    await post.update({ title: 'Midir', authorId: 2 }, { fields: [ 'title' ] });
+    assert.equal(post.title, 'Midir');
+    assert.equal(post.authorId, 3);
+    await post.reload();
+    assert.equal(post.authorId, 3);
+    await post.update({ title: 'Mardget', authorId: 2 }, { fields: [ ] });
+    assert.equal(post.title, 'Mardget');
+    assert.equal(post.authorId, 2);
   });
 
   it('model.changed(key)', async () => {
