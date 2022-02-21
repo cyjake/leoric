@@ -183,7 +183,6 @@ class Bone {
     }
 
     if (args.length > 1) {
-      // execute validators
       this.#raw[name] = value instanceof Raw ? value : attribute.cast(value);
       this.#rawUnset.delete(name);
       return this;

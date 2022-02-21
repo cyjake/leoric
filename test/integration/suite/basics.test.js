@@ -195,9 +195,12 @@ describe('=> Basic', () => {
       assert.deepEqual(post.previousChanges('title'), {});
       await post.save();
       assert.deepEqual(post.previousChanges('title'), {});
+      assert.deepEqual(post.previousChanges('authorId'), { });
       post.title = 'MHW';
+      post.authorId = 100;
       await post.save();
       assert.deepEqual(post.previousChanges('title'), { title: [ 'Untitled', 'MHW' ] });
+      assert.deepEqual(post.previousChanges('authorId'), { authorId: [ null, 100 ] });
       // should return {} if key does not exist
       assert.deepEqual(post.previousChanges('notExisted'), {});
     });
@@ -208,10 +211,11 @@ describe('=> Basic', () => {
       await post.save();
       assert.deepEqual(post.previousChanges(), {});
       post.title = 'MHW';
+      post.authorId = 100;
       const prevUpdatedAt = post.updatedAt;
       await sleep(10);
       await post.save();
-      assert.deepEqual(post.previousChanges(), { title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
+      assert.deepEqual(post.previousChanges(), { authorId: [ null, 100 ], title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
     });
 
     it('Bone.changes(key): raw VS rawSaved', async function () {

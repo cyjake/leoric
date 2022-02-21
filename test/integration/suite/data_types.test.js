@@ -118,6 +118,9 @@ describe('=> Data types - JSON', () => {
     assert.deepEqual(note3.meta, [ 1, 2, 3 ]);
     await note3.reload();
     assert.deepEqual(note3.meta, [ 1, 2, 3 ]);
+    assert.deepEqual(note3.body, null);
+    assert.deepEqual(note3.isPrivate, null);
+    assert.notEqual(note3.id, null);
 
     const note4 = await Note.findOne({ meta: { $like: '%1,2,3%' }});
     assert.deepEqual(note3.toJSON(), note4.toJSON());

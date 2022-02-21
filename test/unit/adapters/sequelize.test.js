@@ -1043,6 +1043,13 @@ describe('=> Sequelize adapter', () => {
       updatedAt: post.updatedAt,
       createdAt: post.createdAt,
       wordCount: 0,
+      authorId: null,
+      content: null,
+      deletedAt: null,
+      extra: null,
+      settings: null,
+      summary: null,
+      thumb: null,
     });
     post.content = 'a';
     assert.deepEqual(post.previous(), {
@@ -1052,6 +1059,13 @@ describe('=> Sequelize adapter', () => {
       updatedAt: post.updatedAt,
       createdAt: post.createdAt,
       wordCount: 0,
+      authorId: null,
+      content: null,
+      deletedAt: null,
+      extra: null,
+      settings: null,
+      summary: null,
+      thumb: null,
     });
     const prevUpdatedAt = post.updatedAt;
     await post.update();
@@ -1062,6 +1076,13 @@ describe('=> Sequelize adapter', () => {
       updatedAt: prevUpdatedAt,
       createdAt: post.createdAt,
       wordCount: 0,
+      authorId: null,
+      content: null,
+      deletedAt: null,
+      extra: null,
+      settings: null,
+      summary: null,
+      thumb: null,
     });
   });
 

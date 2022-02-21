@@ -123,7 +123,8 @@ class Attribute {
   }
 
   cast(value) {
-    return this.type.cast(value);
+    const castedValue = this.type.cast(value);
+    return castedValue == null? null : castedValue;
   }
 
   uncast(value, strict = true) {
