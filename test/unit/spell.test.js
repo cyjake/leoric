@@ -55,9 +55,35 @@ describe('=> Spell', function() {
 
   it('insert ... on duplicate key update', function() {
     const date = new Date(2017, 11, 12);
+    const fakeDate = date.getTime();
+    sinon.useFakeTimers(fakeDate);
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
-      "INSERT INTO `articles` (`id`, `is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (1, 0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+      "INSERT INTO `articles` (`id`, `is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (1, 0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+    assert.equal(
+      new Post({ title: 'New Post', createdAt: date, updatedAt: date }).upsert().toString(),
+      "INSERT INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+    // default set createdAt
+    assert.equal(
+      new Post({ id: 1, title: 'New Post' }).upsert().toString(),
+      "INSERT INTO `articles` (`id`, `is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (1, 0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+
+    assert.equal(
+      Post.upsert({ title: 'New Post' }).toSqlString(),
+      "INSERT INTO `articles` (`is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (0, 'New Post', 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+
+    assert.equal(
+      new Book({ name: 'Dark', price: 100 }).upsert().toSqlString(),
+      "INSERT INTO `books` (`name`, `price`, `gmt_create`, `gmt_modified`) VALUES ('Dark', 100, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `isbn` = LAST_INSERT_ID(`isbn`), `name`=VALUES(`name`), `price`=VALUES(`price`), `gmt_modified`=VALUES(`gmt_modified`)"
+    );
+
+    assert.equal(
+      new Book({ isbn: 10000, name: 'Dark', price: 100 }).upsert().toSqlString(),
+      "INSERT INTO `books` (`isbn`, `name`, `price`, `gmt_create`, `gmt_modified`) VALUES (10000, 'Dark', 100, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON DUPLICATE KEY UPDATE `isbn`=VALUES(`isbn`), `name`=VALUES(`name`), `price`=VALUES(`price`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
 
@@ -729,7 +755,7 @@ describe('=> Spell', function() {
   it('upsert with raw sql', function () {
     assert.equal(
       new Post({ id: 1, title: 'New Post', createdAt: raw('CURRENT_TIMESTAMP()'), updatedAt: raw('CURRENT_TIMESTAMP()') }).upsert().toString(),
-      "INSERT INTO `articles` (`id`, `is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (1, 0, 'New Post', 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `id`=VALUES(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
+      "INSERT INTO `articles` (`id`, `is_private`, `title`, `word_count`, `gmt_create`, `gmt_modified`) VALUES (1, 0, 'New Post', 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `is_private`=VALUES(`is_private`), `title`=VALUES(`title`), `word_count`=VALUES(`word_count`), `gmt_modified`=VALUES(`gmt_modified`)"
     );
   });
 
