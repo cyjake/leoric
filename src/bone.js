@@ -183,7 +183,6 @@ class Bone {
     }
 
     if (args.length > 1) {
-      // execute validators
       this.#raw[name] = value instanceof Raw ? value : attribute.cast(value);
       this.#rawUnset.delete(name);
       return this;
@@ -371,7 +370,7 @@ class Bone {
    */
   previousChanges(name) {
     if (name != null) {
-      if (this.#rawUnset.has(name) || (this.#rawPrevious[name] === undefined && this.isNewRecord) || !this.hasAttribute(name)) return {};
+      if (this.#rawUnset.has(name) || this.#rawPrevious[name] === undefined || !this.hasAttribute(name)) return {};
       const value = this.attribute(name);
       const valueWas = this.#rawPrevious[name] == null ? null : this.#rawPrevious[name];
       if (util.isDeepStrictEqual(value, valueWas)) return {};
@@ -379,7 +378,7 @@ class Bone {
     }
     const result = {};
     for (const attrKey of Object.keys(this.constructor.attributes)) {
-      if (this.#rawUnset.has(attrKey) || (this.#rawPrevious[attrKey] === undefined && this.isNewRecord)) continue;
+      if (this.#rawUnset.has(attrKey) || this.#rawPrevious[attrKey] === undefined) continue;
       const value = this.attribute(attrKey);
       const valueWas = this.#rawPrevious[attrKey] == null ? null : this.#rawPrevious[attrKey];
       if (!util.isDeepStrictEqual(value, valueWas)) result[attrKey] = [ valueWas, value ];
