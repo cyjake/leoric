@@ -356,15 +356,14 @@ function formatInsert(spell) {
       }
     } else {
       for (const name in involved) {
-        // upsert should not update createdAt
-        if (updateOnDuplicate && createdAt && name === createdAt) continue;
         attributes.push(Model.attributes[name]);
       }
     }
 
     for (const entry of attributes) {
       columns.push(entry.columnName);
-      if (updateOnDuplicate && createdAt && entry.name === createdAt) continue;
+      if (updateOnDuplicate && createdAt && entry.name === createdAt 
+        && !(Array.isArray(updateOnDuplicate) && updateOnDuplicate.includes(createdAt))) continue;
       updateOnDuplicateColumns.push(entry.columnName);
     }
 
@@ -385,7 +384,6 @@ function formatInsert(spell) {
     }
     for (const name in sets) {
       const value = sets[name];
-      // upsert should not update createdAt
       columns.push(Model.unalias(name));
       if (value instanceof Raw) {
         values.push(SqlString.raw(value.value));

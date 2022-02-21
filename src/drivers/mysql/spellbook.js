@@ -49,7 +49,10 @@ module.exports = {
     const sets = [];
     // Make sure the correct LAST_INSERT_ID is returned.
     // - https://stackoverflow.com/questions/778534/mysql-on-duplicate-key-last-insert-id
-    sets.push(`${escapeId(primaryColumn)} = LAST_INSERT_ID(${escapeId(primaryColumn)})`);
+    // if insert attributes include primary column, `primaryKey = LAST_INSERT_ID(primaryKey)` is not need any more
+    if (!columns.includes(primaryColumn)) {
+      sets.push(`${escapeId(primaryColumn)} = LAST_INSERT_ID(${escapeId(primaryColumn)})`);
+    }
     sets.push(...columns.map(column => `${escapeId(column)}=VALUES(${escapeId(column)})`));
 
     return `ON DUPLICATE KEY UPDATE ${sets.join(', ')}`;

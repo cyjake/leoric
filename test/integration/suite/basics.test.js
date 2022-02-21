@@ -841,6 +841,16 @@ describe('=> Basic', () => {
           assert.equal(await post.upsert(), 0);
         });
 
+        it('bone.upsert should set createdAt default', async () => {
+          await (new Post({ title: 'New Post', isPrivate: 0 }).upsert());
+          const post = await Post.findOne('title = ?', 'New Post');
+          assert(post.createdAt);
+          const date = new Date(2017, 11, 12);
+          await (new Post({ title: 'post 1', isPrivate: 0, createdAt: date }).upsert());
+          const post1 = await Post.findOne('title = ?', 'post 1');
+          assert.deepEqual(post1.createdAt, date);
+        });
+
         it('bone.upsert() should return affectedRows', async function() {
           const post = new Post({ title: 'New Post', isPrivate: 0 });
           // INSERT ... UPDATE returns 1 if the INSERT branch were chosen
@@ -878,6 +888,16 @@ describe('=> Basic', () => {
           await Tag.upsert({ name: 'Bloodborne', uuid: tag.uuid, type: 1 });
           const count = await Tag.count();
           assert.equal(count, 1);
+        });
+
+        it('Bone.upsert should set createdAt default', async () => {
+          await Post.upsert({ title: 'New Post', isPrivate: 0 });
+          const post = await Post.findOne('title = ?', 'New Post');
+          assert(post.createdAt);
+          const date = new Date(2017, 11, 12);
+          await Post.upsert({ title: 'post 1', isPrivate: 0, createdAt: date });
+          const post1 = await Post.findOne('title = ?', 'post 1');
+          assert.deepEqual(post1.createdAt, date);
         });
 
         it('Bone.upsert() should return affectedRows', async function() {
@@ -1142,6 +1162,57 @@ describe('=> Basic', () => {
       assert.equal(p1.title, 'Tyrael1');
       p2 = await Post.findOne({ id: 2 });
       assert.equal(p2.title, 'Leah1');
+    });
+
+    it('Bone.bulkCreate() updateOnDuplicate with createdAt default or set', async () => {
+      await User.bulkCreate([
+        { nickname: 'TYRAEL', email: 'hello@h1.com', status: 1 },
+        { nickname: 'LEAH', email: 'hello1@h1.com', status: 1 },
+      ], {
+        updateOnDuplicate: true,
+      });
+
+      assert.equal(await User.count(), 2);
+      let p1 = await User.findOne({ email: 'hello@h1.com' });
+      assert.equal(p1.nickname, 'TYRAEL');
+      const p1CreatedAt = p1.createdAt;
+      assert(p1CreatedAt);
+      let p2 = await User.findOne({ email: 'hello1@h1.com' });
+      assert.equal(p2.nickname, 'LEAH');
+      const p2CreatedAt = p2.createdAt;
+      assert(p2CreatedAt);
+
+      await User.bulkCreate([
+        { nickname: 'TYRAEL1', email: 'hello@h1.com', status: 1 },
+        { nickname: 'LEAH1', email: 'hello1@h1.com', status: 1 },
+      ], {
+        updateOnDuplicate: [ 'nickname', 'status' ]
+      });
+
+      let p1Updated1 = await User.findOne({ email: 'hello@h1.com' });
+      assert.equal(p1Updated1.nickname, 'TYRAEL1');
+      const p1Updated1CreatedAt = p1Updated1.createdAt;
+      assert.deepEqual(p1Updated1CreatedAt, p1CreatedAt);
+      let p2Updated1 = await User.findOne({ email: 'hello1@h1.com' });
+      assert.equal(p2Updated1.nickname, 'LEAH1');
+      const p2Updated1CreatedAt = p2Updated1.createdAt;
+      assert.deepEqual(p2Updated1CreatedAt, p2CreatedAt);
+
+      await User.bulkCreate([
+        { nickname: 'TYRAEL2', email: 'hello@h1.com', status: 1 },
+        { nickname: 'LEAH2', email: 'hello1@h1.com', status: 1 },
+      ], {
+        updateOnDuplicate: [ 'nickname', 'status', 'createdAt' ]
+      });
+
+      let p1Updated2 = await User.findOne({ email: 'hello@h1.com' });
+      assert.equal(p1Updated2.nickname, 'TYRAEL2');
+      const p1Updated2CreatedAt = p1Updated2.createdAt;
+      assert.notDeepEqual(p1Updated2CreatedAt, p1CreatedAt);
+      let p2Updated2 = await User.findOne({ email: 'hello1@h1.com' });
+      assert.equal(p2Updated2.nickname, 'LEAH2');
+      const p2Updated2CreatedAt = p2Updated2.createdAt;
+      assert.notDeepEqual(p2Updated2CreatedAt, p2CreatedAt);
     });
 
     it('Bone.bulkCreate() should work with updateOnDuplicate keys', async () => {
