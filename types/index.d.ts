@@ -593,7 +593,7 @@ export class Bone {
   toObject(): InstanceValues<this>;
 }
 
-interface ConnectOptions {
+export interface ConnectOptions {
   client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher';
   dialect?: 'mysql' | 'postgres' | 'sqlite';
   host?: string;
