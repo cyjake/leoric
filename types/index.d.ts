@@ -593,13 +593,15 @@ export class Bone {
   toObject(): InstanceValues<this>;
 }
 
-interface ConnectOptions {
+export interface ConnectOptions {
   client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher';
   dialect?: 'mysql' | 'postgres' | 'sqlite';
   host?: string;
+  port?: number | string;
   user?: string;
   database: string;
   models?: string | (typeof Bone)[];
+  subclass?: boolean;
 }
 
 interface InitOptions {
@@ -610,6 +612,11 @@ interface InitOptions {
   } | {
     [key in 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove' ]: (instance: Bone, result: Object) => Promise<void>
   };
+}
+
+interface SyncOptions {
+  force?: boolean;
+  alter?: boolean;
 }
 
 type RawSql = {
@@ -626,6 +633,7 @@ interface RawQueryOptions {
 
 export default class Realm {
   Bone: typeof Bone;
+  DataTypes: typeof DataType;
   driver: Driver;
   models: Record<string, Bone>;
 
@@ -633,9 +641,9 @@ export default class Realm {
 
   define(
     name: string,
-    attributes: Record<string, AttributeMeta>,
-    options: InitOptions,
-    descriptors: Record<string, Function>,
+    attributes: Record<string, DataTypes<DataType> | AttributeMeta>,
+    options?: InitOptions,
+    descriptors?: Record<string, Function>,
   ): Bone;
 
   raw(sql: string): RawSql;
@@ -646,6 +654,8 @@ export default class Realm {
 
   transaction(callback: GeneratorFunction): Promise<void>;
   transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
+
+  sync(options?: SyncOptions): Promise<void>;
 }
 
 /**
