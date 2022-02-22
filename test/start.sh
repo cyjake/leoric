@@ -29,7 +29,7 @@ function integration {
 ##
 # definition type tests
 function dts {
-  npx tsc --esModuleInterop
+  npx tsc
   run "$(ls test/types/*.test.js)";
 }
 
