@@ -645,7 +645,7 @@ export default class Realm {
     attributes: Record<string, DataTypes<DataType> | AttributeMeta>,
     options?: InitOptions,
     descriptors?: Record<string, Function>,
-  ): Bone;
+  ): typeof Bone;
 
   raw(sql: string): RawSql;
 
