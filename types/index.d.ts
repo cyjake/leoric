@@ -599,6 +599,7 @@ export interface ConnectOptions {
   host?: string;
   port?: number | string;
   user?: string;
+  password?: string;
   database: string;
   models?: string | (typeof Bone)[];
   subclass?: boolean;
