@@ -1,3 +1,17 @@
+2.1.1 / 2022-02-23
+==================
+
+## What's Changed
+* fix: fix #274 update with fields option by @JimmyDaddy in https://github.com/cyjake/leoric/pull/275
+* fix:  upsert should set createdAt  by default while createdAt  not set  by @JimmyDaddy in https://github.com/cyjake/leoric/pull/277
+* fix: previousChanges should check instance is new record or not while specific attributes' values were undefined by @JimmyDaddy in https://github.com/cyjake/leoric/pull/276
+* docs: add types for realm by @luckydrq in https://github.com/cyjake/leoric/pull/278
+
+## New Contributors
+* @luckydrq made their first contribution in https://github.com/cyjake/leoric/pull/278
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.1.0...v2.1.1
+
 2.1.0 / 2022-02-17
 ==================
 
