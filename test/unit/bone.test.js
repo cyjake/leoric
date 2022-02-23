@@ -4,7 +4,11 @@ const assert = require('assert').strict;
 const { Bone, DataTypes, connect } = require('../..');
 const expect = require('expect.js');
 
-const { BIGINT, STRING, DATE } = DataTypes;
+const {
+  TINYINT, MEDIUMINT, BIGINT,
+  STRING,
+  DATE,
+} = DataTypes;
 
 describe('=> Bone', function() {
   before(async function() {
@@ -310,6 +314,22 @@ describe('=> Bone', function() {
       const note = await Note.create({ authorId: 4 });
       expect(note.authorId).to.equal(4);
       expect(note.updatedAt).to.be.a(Date);
+    });
+  });
+
+  describe('=> Bone.sync()', function() {
+    it('should allow specific types such as TINYINT', async function() {
+      class Note extends Bone {
+        static attributes = {
+          isPrivate: TINYINT(1),
+          wordCount: MEDIUMINT,
+        }
+      }
+      await Note.sync({ force: true });
+      const result = await Note.describe();
+      assert.equal(result.is_private.columnType, 'tinyint(1)');
+      // MySQL 5.x returns column type with length regardless specified or not
+      assert.ok(result.word_count.columnType.startsWith('mediumint'));
     });
   });
 });
