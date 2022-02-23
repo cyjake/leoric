@@ -21,7 +21,7 @@ describe('=> Realm (TypeScript)', function () {
 
     it('can customize attributes with descriptors', async function() {
       const { STRING } = realm.DataTypes;
-      realm.define('User', { name: STRING }, {}, {
+      const User = realm.define('User', { name: STRING }, {}, {
         get name() {
           return this.attribute('name').replace(/^([a-z])/, function(m, chr) {
             return chr.toUpperCase();
@@ -32,6 +32,8 @@ describe('=> Realm (TypeScript)', function () {
           this.attribute('name', value);
         }
       });
+      // User.findOne should exists
+      assert(User.findOne);
     });
   });
 
