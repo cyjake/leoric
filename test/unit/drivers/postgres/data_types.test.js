@@ -5,7 +5,11 @@ const DataTypes = require('../../../../src/drivers/postgres/data_types');
 
 describe('=> Data Types', () => {
   const {
-    STRING, DATE, JSONB, VARBINARY, BINARY, BLOB
+    STRING,
+    DATE,
+    JSONB,
+    VARBINARY, BINARY, BLOB,
+    TINYINT, SMALLINT, MEDIUMINT, INTEGER,
   } = DataTypes;
 
   it('STRING', () => {
@@ -34,6 +38,13 @@ describe('=> Data Types', () => {
   it('JSONB', () => {
     assert.equal(new JSONB().dataType, 'jsonb');
     assert.equal(new JSONB().toSqlString(), 'JSONB');
+  });
+
+  it('INTEGER', () => {
+    assert.equal(new TINYINT().toSqlString(), 'SMALLINT');
+    assert.equal(new SMALLINT().toSqlString(), 'SMALLINT');
+    assert.equal(new MEDIUMINT().toSqlString(), 'INTEGER');
+    assert.equal(new INTEGER().toSqlString(), 'INTEGER');
   });
 });
 

@@ -7,11 +7,14 @@ const Raw = require('../../src/raw');
 const Postgres_DataTypes = require('../../src/drivers/postgres/data_types');
 const SQLite_DataTypes = require('../../src/drivers/sqlite/data_types');
 
-
-
 describe('=> Data Types', () => {
   const {
-    STRING, BOOLEAN, DATE, DATEONLY, INTEGER, BIGINT, TEXT, JSON, JSONB, BLOB, BINARY, VARBINARY,
+    STRING, TEXT,
+    BOOLEAN,
+    DATE, DATEONLY,
+    TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT,
+    JSON, JSONB,
+    BLOB, BINARY, VARBINARY,
   } = DataTypes;
 
   it('STRING', () => {
@@ -39,6 +42,27 @@ describe('=> Data Types', () => {
   it('DATEONLY', () => {
     assert.equal(new DATEONLY().dataType, 'date');
     assert.equal(new DATEONLY().toSqlString(), 'DATE');
+  });
+
+  it('TINYINT', () => {
+    assert.equal(new TINYINT().dataType, 'tinyint');
+    assert.equal(new TINYINT(1).toSqlString(), 'TINYINT(1)');
+    assert.equal(new TINYINT().UNSIGNED.toSqlString(), 'TINYINT UNSIGNED');
+    assert.equal(new TINYINT().UNSIGNED.ZEROFILL.toSqlString(), 'TINYINT UNSIGNED ZEROFILL');
+  });
+
+  it('SMALLINT', () => {
+    assert.equal(new SMALLINT().dataType, 'smallint');
+    assert.equal(new SMALLINT(1).toSqlString(), 'SMALLINT(1)');
+    assert.equal(new SMALLINT().UNSIGNED.toSqlString(), 'SMALLINT UNSIGNED');
+    assert.equal(new SMALLINT().UNSIGNED.ZEROFILL.toSqlString(), 'SMALLINT UNSIGNED ZEROFILL');
+  });
+
+  it('MEDIUMINT', () => {
+    assert.equal(new MEDIUMINT().dataType, 'mediumint');
+    assert.equal(new MEDIUMINT(1).toSqlString(), 'MEDIUMINT(1)');
+    assert.equal(new MEDIUMINT().UNSIGNED.toSqlString(), 'MEDIUMINT UNSIGNED');
+    assert.equal(new MEDIUMINT().UNSIGNED.ZEROFILL.toSqlString(), 'MEDIUMINT UNSIGNED ZEROFILL');
   });
 
   it('INTEGER', () => {
@@ -103,7 +127,7 @@ describe('=> DataTypes type casting', function() {
     await assert.rejects(async () => {
       new INTEGER().uncast('yes?');
     }, /Error: invalid integer: yes?/);
-  
+
     assert.equal(new INTEGER().uncast('yes?', false), 'yes?');
 
   });
@@ -238,6 +262,15 @@ describe('=> DataTypes.findType()', () => {
     assert.ok(DataTypes.findType('blob') instanceof BLOB);
     assert.ok(DataTypes.findType('tinyblob') instanceof BLOB);
     assert.equal(DataTypes.findType('mediumblob').toSqlString(), 'MEDIUMBLOB');
+  });
+
+  it('integer => INTEGER', () => {
+    const { TINYINT, SMALLINT, MEDIUMINT, INTEGER } = DataTypes;
+    assert.ok(DataTypes.findType('tinyint') instanceof TINYINT);
+    assert.ok(DataTypes.findType('smallint') instanceof SMALLINT);
+    assert.ok(DataTypes.findType('mediumint') instanceof MEDIUMINT);
+    assert.ok(DataTypes.findType('integer') instanceof INTEGER);
+    assert.equal(DataTypes.findType('bigint').toSqlString(), 'BIGINT');
   });
 
   it('unknown type', async () => {

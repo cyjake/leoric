@@ -129,6 +129,11 @@ class Realm {
     this.options = Spine.options = options;
   }
 
+  get DataTypes() {
+    if (!this.driver) throw new Error('database not connected yet');
+    return this.driver.DataTypes;
+  }
+
   define(name, attributes, opts = {}, descriptors = {}) {
     const Model = class extends this.Bone {
       static name = name;

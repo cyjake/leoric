@@ -65,6 +65,14 @@ function createType(DataTypes, params) {
   switch (type.constructor.name) {
     case 'DATE':
       return new DataType(type.precision, type.timezone);
+    case 'TINYINT':
+    case 'SMALLINT':
+    case 'MEDIUMINT':
+    case 'INTEGER':
+    case 'BIGINT':
+    case 'BINARY':
+    case 'VARBINARY':
+      return new DataType(type.length);
     default:
       return new DataType();
   }

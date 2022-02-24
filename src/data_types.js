@@ -14,7 +14,13 @@ const Raw = require('./raw');
 
 class DataType {
   static findType(columnType) {
-    const { STRING, TEXT, DATE, DATEONLY, INTEGER, BIGINT, BOOLEAN, BINARY, VARBINARY, BLOB } = this;
+    const {
+      STRING, TEXT,
+      DATE, DATEONLY,
+      TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT,
+      BOOLEAN,
+      BINARY, VARBINARY, BLOB,
+    } = this;
     const [ , dataType, appendix ] = columnType.match(/(\w+)(?:\((\d+)\))?/);
     const length = appendix && parseInt(appendix, 10);
 
@@ -39,10 +45,13 @@ class DataType {
       case 'int':
       case 'integer':
       case 'numeric':
-      case 'mediumint':
-      case 'smallint':
-      case 'tinyint':
         return new INTEGER(length);
+      case 'mediumint':
+        return new MEDIUMINT(length);
+      case 'smallint':
+        return new SMALLINT(length);
+      case 'tinyint':
+        return new TINYINT(length);
       case 'bigint':
         return new BIGINT(length);
       case 'boolean':
@@ -204,11 +213,57 @@ class INTEGER extends DataType {
 }
 
 /**
+ * 8 bit integer
+ * @example
+ * TINYINT
+ * TINYINT.UNSIGNED
+ * TINYINT(1)
+ * @param {number} length
+ */
+class TINYINT extends INTEGER {
+  constructor(length) {
+    super(length);
+    this.dataType = 'tinyint';
+  }
+}
+
+/**
+ * 16 bit integer
+ * @example
+ * SMALLINT
+ * SMALLINT.UNSIGNED
+ * SMALLINT(2)
+ * @param {number} length
+ */
+class SMALLINT extends INTEGER {
+  constructor(length) {
+    super(length);
+    this.dataType = 'smallint';
+  }
+}
+
+/**
+ * 24 bit integer
+ * @example
+ * MEDIUMINT
+ * MEDIUMINT.UNSIGNED
+ * MEDIUMINT(3)
+ * @param {number} length
+ */
+class MEDIUMINT extends INTEGER {
+  constructor(length) {
+    super(length);
+    this.dataType = 'mediumint';
+  }
+}
+
+
+/**
  * 64 bit integer
  * @example
  * BIGINT
  * BIGINT.UNSIGNED
- * BIGINT(10)
+ * BIGINT(8)
  * @param {number} length
  */
 class BIGINT extends INTEGER {
@@ -422,6 +477,9 @@ class JSONB extends JSON {
 
 const DataTypes = {
   STRING,
+  TINYINT,
+  SMALLINT,
+  MEDIUMINT,
   INTEGER,
   BIGINT,
   DATE,

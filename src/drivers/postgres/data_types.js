@@ -61,12 +61,22 @@ class Postgres_BIGINT extends Postgres_INTEGER {
   }
 }
 
+class Postgres_SMALLINT extends Postgres_INTEGER {
+  constructor() {
+    super();
+    this.dataType = 'smallint';
+  }
+}
+
 class Postgres_DataTypes extends DataTypes {
   static DATE = Postgres_DATE;
   static JSONB = Postgres_JSONB;
   static BINARY = Postgres_BINARY;
   static VARBINARY = Postgres_BINARY;
   static BLOB = Postgres_BINARY;
+  static TINYINT = Postgres_SMALLINT;
+  static SMALLINT = Postgres_SMALLINT;
+  static MEDIUMINT = Postgres_INTEGER;
   static INTEGER = Postgres_INTEGER;
   static BIGINT =  Postgres_BIGINT;
 }

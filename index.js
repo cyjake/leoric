@@ -36,7 +36,7 @@ const connect = async function connect(opts) {
   return realm;
 };
 
-Object.assign(Realm.prototype, migrations, { DataTypes });
+Object.assign(Realm.prototype, migrations);
 Object.assign(Realm, {
   connect,
   Bone,
