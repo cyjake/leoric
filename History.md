@@ -1,3 +1,13 @@
+2.2.0 / 2022-02-24
+==================
+
+## What's Changed
+* fix: add missing `password` field for `ConnectOptions` by @luckydrq in https://github.com/cyjake/leoric/pull/280
+* feat: integer types (mostly mysql specific) by @cyjake in https://github.com/cyjake/leoric/pull/281
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.1.1...v2.2.0
+
 2.1.1 / 2022-02-23
 ==================
 
