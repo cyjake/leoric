@@ -1,3 +1,12 @@
+2.2.1 / 2022-02-24
+==================
+
+## What's Changed
+* fix: realm.DataTypes should be invokable by @cyjake in https://github.com/cyjake/leoric/pull/282
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.2.0...v2.2.1
+
 2.2.0 / 2022-02-24
 ==================
 
