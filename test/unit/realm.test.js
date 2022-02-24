@@ -1021,4 +1021,22 @@ describe('=> Realm', () => {
       assert.equal(Post.attributes.deletedAt.columnName, 'gmt_deleted');
     });
   });
+
+  describe('realm.DataTypes', function() {
+    it('DataTypes should be invokable', async function() {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.connect();
+      assert.equal(realm.DataTypes, DataTypes);
+      const { STRING } = realm.DataTypes;
+      const Note = realm.define('Note', {
+        name: { type: STRING(255) },
+      });
+      await Note.sync({ force: true });
+      await Note.create({ name: 'Link' });
+    });
+  });
 });
