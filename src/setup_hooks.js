@@ -129,9 +129,28 @@ function addHook(target, hookName, func) {
       if (useHooks && type === hookType.BEFORE) {
         // this.change(key) or this.attributeChanged(key) should work at before update
         if (method === 'update' && typeof arguments[0] === 'object' && !arguments[0] != null) {
-          for (const name in arguments[0]) this[name] = arguments[0][name];
+          const values = arguments[0];
+          const fields = arguments[1] && arguments[1].fields && arguments[1].fields.length? arguments[1].fields : [];
+          const originalRaw = {};
+          const changeRaw = {};
+          for (const name in values) {
+            if (!fields.length || fields.includes(name)) {
+              originalRaw[name] = this.attribute(name);
+              this[name] = values[name];
+              changeRaw[name] = this.attribute(name);
+            }
+          }
+          await func.apply(this, args);
+          // revert instance after before hooks
+          Object.keys(originalRaw).forEach((key) => {
+            const current = this.attribute(key);
+            // raw[key] may changed in beforeUpdate hooks
+            if (current !== originalRaw[key] && current !== changeRaw[key]) return;
+            this.attribute(key, originalRaw[key]);
+          });
+        } else {
+          await func.apply(this, args);
         }
-        await func.apply(this, args);
       }
       const res = await instanceOriginFunc.call(this, ...arguments);
       if (useHooks && type === hookType.AFTER) {

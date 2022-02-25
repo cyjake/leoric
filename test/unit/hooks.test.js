@@ -27,7 +27,8 @@ const attributes = {
   },
   desc: {
     type: DataTypes.STRING,
-  }
+  },
+  fingerprint: DataTypes.TEXT,
 };
 
 describe('hooks', function() {
@@ -136,6 +137,10 @@ describe('hooks', function() {
       constructor(opts) {
         super(opts);
       }
+      
+      getFingerprint() {
+        return this.attribute('fingerprint');
+      }
     }
     User.init(attributes, {
       hooks: {
@@ -149,6 +154,16 @@ describe('hooks', function() {
             obj.status = 11;
           }
         },
+      },
+    }, {
+      set fingerprint(value) {
+        if (this.attribute('fingerprint') != null) {
+          throw new Error('user fingerprint cannot be modified');
+        }
+        this.attribute('fingerprint', value);
+      },
+      get fingerprint() {
+        return undefined;
       }
     });
 
@@ -175,6 +190,34 @@ describe('hooks', function() {
       });
       assert.equal(user.email, 'ho@y.com');
       assert.equal(user.status, 11);
+
+      // instance.update before hooks special logic: setup_hooks.js#L131-L151
+      assert.deepEqual(user.fingerprint, undefined);
+      assert.deepEqual(user.getFingerprint(), null);
+
+      await assert.doesNotReject(async () => {
+        await user.update({
+          fingerprint: 'halo'
+        });
+      });
+      assert.deepEqual(user.fingerprint, undefined);
+      assert.deepEqual(user.getFingerprint(), 'halo');
+      await assert.rejects(async () => {
+        await user.update({
+          fingerprint: 'halo'
+        });
+      }, /Error: user fingerprint cannot be modified/);
+
+      await assert.doesNotReject(async () => {
+        await user.update({
+          fingerprint: 'halo',
+          nickname: 'Elden Lord',
+        }, {
+          fields: [ 'nickname' ]
+        });
+      });
+      assert.equal(user.nickname, 'Elden Lord');
+
     });
 
     it('update skip hooks', async () => {
