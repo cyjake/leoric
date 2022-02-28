@@ -1,3 +1,12 @@
+2.2.2 / 2022-02-28
+==================
+
+## What's Changed
+* fix: tddl gives misleading information_schema.columns.table_name by @cyjake in https://github.com/cyjake/leoric/pull/284
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.2.1...v2.2.2
+
 2.2.1 / 2022-02-24
 ==================
 
