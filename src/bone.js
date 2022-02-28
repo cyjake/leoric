@@ -199,14 +199,14 @@ class Bone {
   }
 
   /**
-   *
-   * clone instance
+   * @protected clone instance
    * @param {Bone} target
    * @memberof Bone
    */
   _clone(target) {
-    Object.assign(this.#raw, target.getRaw());
-    Object.assign(this.#rawSaved, target.getRawSaved());
+    this.#raw = Object.assign({}, target.getRaw());
+    this.#rawSaved = Object.assign({}, target.getRawSaved());
+    this.#rawPrevious = Object.assign({}, target.getRawPrevious());
   }
 
   /**
