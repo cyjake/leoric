@@ -1,18 +1,38 @@
 import { strict as assert } from 'assert';
-import { Bone, connect } from '../..'
+import { Bone, DataTypes, Column, HasMany, connect } from '../..'
 
 describe('=> Querying (TypeScript)', function() {
+  const { BIGINT, INTEGER, STRING } = DataTypes;
   class Post extends Bone {
     static table = 'articles'
+
+    @Column()
     id: bigint;
+
+    @Column()
+    authorId: bigint
+
+    @Column()
     title: string;
   }
 
   class User extends Bone {
-    static initialize() {
-      this.hasMany('posts', { foreignKey: 'authorId' });
-    }
+    @Column(BIGINT)
     id: number;
+
+    @Column(STRING)
+    email: string;
+
+    @Column(STRING)
+    nickname: string;
+
+    @Column({ type: INTEGER, allowNull: false })
+    status: number;
+
+    @Column(INTEGER)
+    level: number;
+
+    @HasMany({ foreignKey: 'authorId' })
     posts?: Post[];
   }
 

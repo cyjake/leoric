@@ -11,6 +11,7 @@ const sequelize = require('./src/adapters/sequelize');
 const { heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 const Realm = require('./src/realm');
+const Decorators = require('./src/decorators');
 
 /**
  * @typedef {Object} RawSql
@@ -38,6 +39,7 @@ const connect = async function connect(opts) {
 
 Object.assign(Realm.prototype, migrations, { DataTypes });
 Object.assign(Realm, {
+  default: Realm,
   connect,
   Bone,
   Collection,
@@ -47,6 +49,7 @@ Object.assign(Realm, {
   sequelize,
   heresql,
   ...Hint,
+  ...Decorators,
 });
 
 module.exports = Realm;

@@ -22,9 +22,16 @@ const LEGACY_TIMESTAMP_COLUMN_MAP = {
 
 const TIMESTAMP_NAMES = [ 'createdAt', 'updatedAt', 'deletedAt' ];
 
+const ASSOCIATE_METADATA_MAP = {
+  hasMany: Symbol('hasMany'),
+  hasOne: Symbol('hasOne'),
+  belongsTo: Symbol('belongsTo'),
+};
+
 module.exports = {
   AGGREGATOR_MAP,
   LEGACY_TIMESTAMP_MAP,
   TIMESTAMP_NAMES,
-  LEGACY_TIMESTAMP_COLUMN_MAP
+  LEGACY_TIMESTAMP_COLUMN_MAP,
+  ASSOCIATE_METADATA_MAP
 };

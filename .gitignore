@@ -6,3 +6,5 @@ docs/Gemfile.lock
 package-lock.json
 .DS_Store
 test/types/*.js
+test/types/*.map
+src/decorators.js*
