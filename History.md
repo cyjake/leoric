@@ -1,3 +1,12 @@
+2.2.3 / 2022-03-01
+==================
+
+## What's Changed
+* fix: normalize attribute defaultValue by @cyjake in https://github.com/cyjake/leoric/pull/285
+* fix: instance beforeUpdate hooks should not modify any Raw if there are no Raw assignment in them by @JimmyDaddy in https://github.com/cyjake/leoric/pull/283
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.2.2...v2.2.3
+
 2.2.2 / 2022-02-28
 ==================
 

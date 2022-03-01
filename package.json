@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
   "types": "types/index.d.ts",
@@ -72,6 +72,6 @@
     "pg": "^8.5.1",
     "sinon": "^10.0.0",
     "sqlite3": "^5.0.2",
-    "typescript": "^4.4.4"
+    "typescript": "^4.6.2"
   }
 }
