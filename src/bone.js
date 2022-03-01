@@ -717,6 +717,7 @@ class Bone {
     for (const name in attributes) {
       const value = this.attribute(name);
       const { defaultValue } = attributes[name];
+      // console.log(attributes[name], name, defaultValue);
       if (value != null) {
         data[name] = value;
       } else if (value === undefined && defaultValue != null) {

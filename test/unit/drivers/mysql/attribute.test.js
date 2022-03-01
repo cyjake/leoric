@@ -2,11 +2,11 @@
 
 const assert = require('assert').strict;
 const Attribute = require('../../../../src/drivers/mysql/attribute');
-const { BOOLEAN, JSONB } = Attribute.DataTypes;
+const { BOOLEAN, DATE, JSONB } = Attribute.DataTypes;
 
 describe('=> Attribute (mysql)', function() {
   it('should support TINYINT(1)', async function() {
-    const attribute=  new Attribute('has_image', {
+    const attribute = new Attribute('has_image', {
       type: BOOLEAN,
       defaultValue: false,
     });
@@ -16,5 +16,13 @@ describe('=> Attribute (mysql)', function() {
   it('should support JSON binary', async function() {
     const attribute = new Attribute('params', { type: JSONB });
     assert.equal(attribute.toSqlString(), '`params` JSON');
+  });
+
+  it('should normalize attribute defaultValue', async function() {
+    const attribute = new Attribute('createdAt', {
+      type: DATE,
+      defaultValue: 'CURRENT_TIMESTAMP',
+    });
+    assert.equal(attribute.defaultValue, null);
   });
 });

@@ -1917,7 +1917,7 @@ describe('Transaction', function() {
 
 describe('mysql only', () => {
   const Spine = sequelize(Bone);
-  
+
   class Post extends Spine {
     static get table() {
       return 'articles';
@@ -1940,9 +1940,9 @@ describe('mysql only', () => {
   });
 
   describe('Model.update with order, limit (mysql only)', () => {
-  
+
     it('should work', async () => {
-  
+
       let i = 0;
       while (i <= 5) {
         await Post.create({ title: 'Throne' });
@@ -1959,7 +1959,7 @@ describe('mysql only', () => {
       assert.equal(allPosts[1].title, 'Game');
       assert.equal(allPosts[2].title, 'Throne');
       assert.equal(allPosts[3].title, 'Throne');
-  
+
       await Post.bulkUpdate({ title: 'Pilot' }, {
         where: {},
         limit: 2,
@@ -1976,9 +1976,9 @@ describe('mysql only', () => {
   });
 
   describe('Model.destroy with order, limit (mysql only)', () => {
-  
+
     it('should work', async () => {
-  
+
       let i = 0;
       const posts = [];
       while (i <= 5) {

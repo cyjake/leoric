@@ -99,15 +99,23 @@ class Attribute {
     }
     const type = createType(DataTypes, params);
     const dataType = params.dataType || type.dataType;
+    let { defaultValue = null } = params;
+    try {
+      // normalize column defaults like `'0'` or `CURRENT_TIMESTAMP`
+      defaultValue = type.cast(type.uncast(defaultValue));
+    } catch {
+      defaultValue = null;
+    }
+
     Object.assign(this, {
       name,
       columnName,
       primaryKey: false,
-      defaultValue: null,
       allowNull: !params.primaryKey,
       columnType: type.toSqlString().toLowerCase(),
       ...params,
       type,
+      defaultValue,
       dataType,
       jsType: findJsType(DataTypes, type, dataType),
     });
