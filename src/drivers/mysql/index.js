@@ -99,8 +99,8 @@ class MysqlDriver extends AbstractDriver {
       if (!opts.connection) connection.release();
     }
 
-    logger.tryLogQuery(sql, calculateDuration(start), opts);
     const [ results, fields ] = result;
+    logger.tryLogQuery(sql, calculateDuration(start), opts, results);
     if (fields) return { rows: results, fields };
     return results;
   }

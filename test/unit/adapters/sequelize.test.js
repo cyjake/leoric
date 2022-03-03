@@ -5,7 +5,6 @@ const crypto = require('crypto');
 const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes, raw } = require('../../..');
 const { Hint } = require('../../../src/hint');
-const { logger } = require('../../../src/utils');
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -281,11 +280,6 @@ describe('=> Sequelize adapter', () => {
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
 
-    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
-        throw new Error(message);
-      }
-    );
-
     let posts = await Post.findAll({
       where: {
         title: { $like: '%ea%' },
@@ -322,7 +316,8 @@ describe('=> Sequelize adapter', () => {
     });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
-    assert.throws(() => posts[0].content);
+    assert.deepEqual(posts[0].content, undefined);
+
 
     // empty id array should be NULL
     posts = await Post.findAll({
@@ -352,8 +347,6 @@ describe('=> Sequelize adapter', () => {
     });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Tyrael');
-
-    stub.restore();
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -361,10 +354,6 @@ describe('=> Sequelize adapter', () => {
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
-
-    const stub = sinon.stub(logger, 'warn').callsFake((tag, message) => {
-      throw new Error(message);
-    });
 
     let posts = await Post.findAll({
       where: {
@@ -410,9 +399,8 @@ describe('=> Sequelize adapter', () => {
     });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Leah');
-    assert.throws(() => posts[0].content);
+    assert.deepEqual(posts[0].content, undefined);
 
-    stub.restore();
   });
 
   it('Model.findAll({ order })', async () => {

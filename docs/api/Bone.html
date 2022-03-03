@@ -3768,8 +3768,8 @@ Returns number of affectedRows.</p>
 
 <div class="description">
     <p>Get or set attribute value by name. This method is quite similiar to <code>jQuery.attr()</code>. If the attribute isn't selected when queried from database, an error will be thrown when accessing it.</p>
-<pre><code>const post = Post.select('title').first
-post.content   // throw Error('Unset attribute &quot;content&quot;')
+<pre><code>
+    const post = Post.select('title').first
 </code></pre>
 <p>This is the underlying method of attribute getter/setters:</p>
 <pre><code>Object.defineProperty(Post.prototype, 'title', {

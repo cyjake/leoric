@@ -17,14 +17,16 @@ describe('=> MySQL driver', () => {
     const result = [];
     const driver2 = new MysqlDriver({
       ...options,
-      logger(sql, duration) {
-        result.push([ sql, duration ]);
+      logger(sql, duration, opts, res) {
+        result.push([ sql, duration, opts, res ]);
       },
     });
     await driver2.query('SELECT 1');
-    const [ sql, duration ] = result[0];
+    const [ sql, duration, opts, res ] = result[0];
     assert.equal(sql, 'SELECT 1');
     assert.ok(duration >= 0);
+    assert.ok(res);
+    assert.ok(opts);
   });
 
   it('driver.logger.logQueryError', async () => {

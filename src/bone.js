@@ -14,7 +14,6 @@ const Spell = require('./spell');
 const Raw = require('./raw');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
-const { logger } = require('./utils/index');
 const { TIMESTAMP_NAMES, LEGACY_TIMESTAMP_COLUMN_MAP } = require('./constants');
 
 function looseReadonly(props) {
@@ -156,7 +155,6 @@ class Bone {
    * Get or set attribute value by name. This method is quite similiar to `jQuery.attr()`. If the attribute isn't selected when queried from database, an error will be thrown when accessing it.
    *
    *     const post = Post.select('title').first
-   *     post.content   // throw Error('Unset attribute "content"')
    *
    * This is the underlying method of attribute getter/setters:
    *
@@ -189,7 +187,6 @@ class Bone {
     }
 
     if (this.#rawUnset.has(name)) {
-      logger.warn(`unset attribute "${name}"`);
       return;
     }
 
@@ -320,7 +317,6 @@ class Bone {
    * post.attributeWas('title')  // => 'Leah'
    */
   attributeWas(name) {
-    if (this.#rawUnset.has(name)) throw new Error(`unset attribute "${name}"`);
     const value = this.#rawSaved[name];
     return value == null ? null : value;
   }

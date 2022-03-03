@@ -54,8 +54,9 @@ describe('=> Basic', () => {
 
     it('bone.attribute(unset attribute)', async function() {
       const post = await Post.first.select('title');
-      assert.throws(() => post.thumb, /unset attribute/i);
-      assert.throws(() => post.attribute('thumb'), /unset attribute/i);
+      assert.deepEqual(post.thumb, undefined);
+      assert.deepEqual(post.attribute('thumb'), undefined);
+
     });
 
     it('bone.attribute(name, value)', async function() {
@@ -809,7 +810,7 @@ describe('=> Basic', () => {
     it('bone.save() should throw if missing primary key', async function() {
       await Post.create({ title: 'New Post' });
       const post = await Post.findOne().select('title');
-      expect(() => post.id).to.throwError();
+      assert.deepEqual(post.id, undefined);
       post.title = 'Skeleton King';
       await assert.rejects(async () => {
         await post.save();
@@ -819,7 +820,7 @@ describe('=> Basic', () => {
     it('bone.save() should allow unset attributes be overridden', async function() {
       await Post.create({ title: 'New Post'});
       const post = await Post.select('id').first;
-      expect(() => post.title).to.throwError();
+      assert.deepEqual(post.title, undefined);
       post.title = 'Skeleton King';
       await post.save();
       expect(await Post.first).to.eql(post);

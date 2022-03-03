@@ -471,7 +471,6 @@ export class Bone {
   constructor(values: { [key: string]: Literal });
 
   /**
-   * Get or set attribute value. Getting the value of unset attribute gives an error.
    * @example
    * bone.attribute('foo');     // => 1
    * bone.attribute('foo', 2);  // => bone
