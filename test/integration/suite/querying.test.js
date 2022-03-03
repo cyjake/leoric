@@ -166,7 +166,7 @@ describe('=> Query', function() {
   it('.find { select }', async function() {
     const post = await Post.findOne({ title: 'New Post' }, { select: 'title' });
     expect(post.title).to.equal('New Post');
-    expect(() => post.content).to.throwError();
+    assert.deepEqual(post.content, undefined);
   });
 
   it('.find aliased attribute', async function() {

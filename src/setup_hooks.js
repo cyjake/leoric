@@ -134,7 +134,7 @@ function addHook(target, hookName, func) {
           const originalRaw = {};
           const changeRaw = {};
           for (const name in values) {
-            if (!fields.length || fields.includes(name)) {
+            if ((!fields.length || fields.includes(name)) && this.hasAttribute(name)) {
               originalRaw[name] = this.attribute(name);
               this[name] = values[name];
               changeRaw[name] = this.attribute(name);

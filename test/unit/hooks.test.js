@@ -197,7 +197,8 @@ describe('hooks', function() {
 
       await assert.doesNotReject(async () => {
         await user.update({
-          fingerprint: 'halo'
+          fingerprint: 'halo',
+          willbeIgnore: 'ignore',
         });
       });
       assert.deepEqual(user.fingerprint, undefined);
@@ -212,6 +213,7 @@ describe('hooks', function() {
         await user.update({
           fingerprint: 'halo',
           nickname: 'Elden Lord',
+          willbeIgnore: 'ignore',
         }, {
           fields: [ 'nickname' ]
         });

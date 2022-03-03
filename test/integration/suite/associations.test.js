@@ -127,7 +127,7 @@ describe('=> Associations', function() {
     expect(post.comments.length).to.be.above(0);
     expect(post.comments[0].id).to.be.ok();
     // because createdAt is not selected
-    expect(() => post.comments[0].createdAt).to.throwException();
+    assert.deepEqual(post.comments[0].createdAt, undefined);
     expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
   });
 
