@@ -54,7 +54,7 @@ class SqliteDriver extends AbstractDriver {
       if (!opts.connection) connection.release();
     }
 
-    logger.tryLogQuery(sql, calculateDuration(start), opts);
+    logger.tryLogQuery(sql, calculateDuration(start), opts, result);
     return result;
   }
 
