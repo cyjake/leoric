@@ -475,6 +475,18 @@ class JSONB extends JSON {
   }
 }
 
+class VIRTUAL extends DataType {
+  constructor() {
+    super();
+    this.dataType = 'virtual';
+    this.virtual = true;
+  }
+
+  toSqlString() {
+    return 'VIRTUAL';
+  }
+}
+
 const DataTypes = {
   STRING,
   TINYINT,
@@ -491,6 +503,7 @@ const DataTypes = {
   JSONB,
   BINARY,
   VARBINARY,
+  VIRTUAL,
 };
 
 Object.assign(DataType, DataTypes);

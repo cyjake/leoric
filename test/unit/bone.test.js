@@ -7,7 +7,7 @@ const expect = require('expect.js');
 const {
   TINYINT, MEDIUMINT, BIGINT,
   STRING,
-  DATE,
+  DATE, VIRTUAL,
 } = DataTypes;
 
 describe('=> Bone', function() {
@@ -221,6 +221,23 @@ describe('=> Bone', function() {
       assert.ok(User.timestamps.createdAt);
       assert.equal(User.attributes.createdAt.columnName, 'gmt_create');
     });
+
+    it('should work with VIRTUAL type', async () => {
+      class User extends Bone {
+        static attributes = {
+          createdAt: DATE,
+          realName: VIRTUAL,
+        }
+      }
+      assert.deepEqual(Object.keys(User.attributes).sort(), [ 'createdAt', 'realName' ]);
+      assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'createdAt' ]);
+      User.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'gmt_create', columnType: 'timestamp', dataType: 'timestamp' },
+      ]);
+      assert.deepEqual(Object.keys(User.attributes).sort(), [ 'createdAt', 'id', 'realName' ]);
+      assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'createdAt', 'id' ]);
+    });
   });
 
   describe('=> Bone.loadAttribute()', function() {
@@ -239,6 +256,7 @@ describe('=> Bone', function() {
       User.loadAttribute('foo');
       assert.ok(Object.getOwnPropertyDescriptor(User.prototype, 'foo').enumerable);
       assert.ok(Object.getOwnPropertyDescriptor(User.prototype, 'foo').set);
+
     });
   });
 
@@ -252,7 +270,11 @@ describe('=> Bone', function() {
       User.load([
         { columnName: 'foo', columnType: 'varchar', dataType: 'varchar' },
       ]);
+      assert.deepEqual(Object.keys(User.attributes).sort(), [ 'foo', 'id' ]);
+      assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'foo', 'id' ]);
       User.renameAttribute('foo', 'bar');
+      assert.deepEqual(Object.keys(User.attributes).sort(), [ 'bar', 'id' ]);
+      assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'bar', 'id' ]);
       assert.ok(Object.getOwnPropertyDescriptor(User.prototype, 'bar').enumerable);
     });
 
@@ -315,6 +337,49 @@ describe('=> Bone', function() {
       expect(note.authorId).to.equal(4);
       expect(note.updatedAt).to.be.a(Date);
     });
+
+    it('should work with VIRTUAL', async function() {
+      class Note extends Bone {
+        static attributes = {
+          authorId: BIGINT,
+          updatedAt: { type: DATE, allowNull: false },
+          halo: VIRTUAL,
+        }
+      }
+      await Note.sync({ force: true });
+      const note = await Note.create({ halo: 'yes' });
+      expect(note.updatedAt).to.be.a(Date);
+      assert.equal(note.halo, 'yes');
+    });
+
+    it('should work with VIRTUAL and side effects', async function() {
+      class Note extends Bone {
+        static attributes = {
+          authorId: BIGINT,
+          updatedAt: { type: DATE, allowNull: false },
+          halo: VIRTUAL,
+        }
+        get halo() {
+          return this.attribute('halo');
+        }
+
+        set halo(val) {
+          if (!this.authorId) this.authorId = 0;
+          this.authorId += 1;
+          this.attribute('halo', val);
+        }
+      }
+      await Note.sync({ force: true });
+      const note = await Note.create({ halo: 'yes' });
+      expect(note.updatedAt).to.be.a(Date);
+      assert.equal(note.halo, 'yes');
+      assert.equal(note.authorId, 1);
+      await note.update({
+        halo: 'yo'
+      });
+      assert.equal(note.halo, 'yo');
+      assert.equal(note.authorId, 2);
+    });
   });
 
   describe('=> Bone.sync()', function() {
@@ -330,6 +395,23 @@ describe('=> Bone', function() {
       assert.equal(result.is_private.columnType, 'tinyint(1)');
       // MySQL 5.x returns column type with length regardless specified or not
       assert.ok(result.word_count.columnType.startsWith('mediumint'));
+    });
+
+    it('should work with VIRTUAL', async function() {
+      class Note extends Bone {
+        static attributes = {
+          isPrivate: TINYINT(1),
+          wordCount: MEDIUMINT,
+          halo: VIRTUAL,
+        }
+      }
+      await Note.sync({ force: true });
+      const result = await Note.describe();
+      assert.equal(result.is_private.columnType, 'tinyint(1)');
+      // MySQL 5.x returns column type with length regardless specified or not
+      assert.ok(result.word_count.columnType.startsWith('mediumint'));
+      assert(!result.halo);
+
     });
   });
 });

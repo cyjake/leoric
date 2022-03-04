@@ -36,7 +36,7 @@ function parseConditions(conditions, ...values) {
 function parseSelect(spell, ...names) {
   const { joins, Model } = spell;
   if (typeof names[0] === 'function') {
-    names = Object.keys(Model.attributes).filter(names[0]);
+    names = Object.keys(Model.columnAttributes).filter(names[0]);
   } else {
     names = names.reduce((result, name) => result.concat(name), []);
   }
@@ -53,7 +53,7 @@ function parseSelect(spell, ...names) {
       if (type != 'id') return;
       const qualifier = qualifiers && qualifiers[0];
       const model = qualifier && joins && (qualifier in joins) ? joins[qualifier].Model : Model;
-      if (!model.attributes[value]) {
+      if (!model.columnAttributes[value]) {
         throw new Error(`unable to find attribute ${value} in model ${model.name}`);
       }
     });
@@ -63,9 +63,9 @@ function parseSelect(spell, ...names) {
 }
 
 /**
- * Translate key-value pairs of attributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
+ * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
  * @param {Spell} spell
- * @param {Object} obj - key-value pairs of attributes
+ * @param {Object} obj - key-value pairs of columnAttributes
  * @param {boolean} strict - check attribute exist or not
  * @returns {Object}
  */
@@ -73,11 +73,11 @@ function formatValueSet(spell, obj, strict = true) {
   const { Model } = spell;
   const sets = {};
   for (const name in obj) {
-    const attribute = Model.attributes[name];
+    const attribute = Model.columnAttributes[name];
     const value = obj[name];
 
-    if (!attribute && strict) {
-      throw new Error(`Undefined attribute "${name}"`);
+    if (!attribute) {
+      continue;
     }
 
     // raw sql don't need to uncast
@@ -91,9 +91,9 @@ function formatValueSet(spell, obj, strict = true) {
 }
 
 /**
- * Translate key-value pairs of attributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
+ * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
  * @param {Spell}  spell
- * @param {Object|Array} obj   - key-value pairs of attributes
+ * @param {Object|Array} obj   - key-value pairs of columnAttributes
  */
 function parseSet(spell, obj) {
   let sets;
@@ -212,7 +212,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
     const columns = parseSelect({ Model: RefModel }, select);
     for (const token of columns) {
       walkExpr(token, node => {
-        if (node.type === 'id' && !node.qualifiers && RefModel.attributes[node.value]) {
+        if (node.type === 'id' && !node.qualifiers && RefModel.columnAttributes[node.value]) {
           node.qualifiers = [refName];
         }
       });
@@ -284,7 +284,7 @@ class Spell {
   /**
    * Create a spell.
    * @param {Model}          Model    - A sub class of {@link Bone}.
-   * @param {Object}         opts     - Extra attributes to be set.
+   * @param {Object}         opts     - Extra columnAttributes to be set.
    */
   constructor(Model, opts = {}) {
     if (Model.synchronized == null) {
@@ -299,7 +299,7 @@ class Spell {
 
     const { deletedAt } = Model.timestamps;
     // FIXME: need to implement paranoid mode
-    if (Model.attributes[deletedAt] && opts.paranoid !== false) {
+    if (Model.columnAttributes[deletedAt] && opts.paranoid !== false) {
       scopes.push(scopeDeletedAt);
     }
 
@@ -502,7 +502,7 @@ class Spell {
   }
 
   /**
-   * Whitelist attributes to select. Can be called repeatedly to select more attributes.
+   * Whitelist columnAttributes to select. Can be called repeatedly to select more columnAttributes.
    * @param {...string} names
    * @example
    * .select('title');
@@ -531,7 +531,7 @@ class Spell {
     const { timestamps } = Model;
     this.command = 'update';
     if (!Number.isFinite(by)) throw new Error(`unexpected increment value ${by}`);
-    if (!Model.attributes.hasOwnProperty(name)) {
+    if (!Model.columnAttributes.hasOwnProperty(name)) {
       throw new Error(`undefined attribute "${name}"`);
     }
 
@@ -608,7 +608,7 @@ class Spell {
   }
 
   /**
-   * Set GROUP BY attributes. `select_expr` with `AS` is supported, hence following expressions have the same effect:
+   * Set GROUP BY columnAttributes. `select_expr` with `AS` is supported, hence following expressions have the same effect:
    *
    *     .select('YEAR(createdAt)) AS year').group('year');
    *
