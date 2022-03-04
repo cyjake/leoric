@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, DataTypes, connect } = require('../..');
+const { Bone, DataTypes, connect, default: Realm } = require('../..');
 const expect = require('expect.js');
 
 const {
@@ -412,6 +412,186 @@ describe('=> Bone', function() {
       assert.ok(result.word_count.columnType.startsWith('mediumint'));
       assert(!result.halo);
 
+    });
+  });
+
+  describe('=> Bone.hasMany()', function() {
+    let realm;
+    before(async function() {
+      realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.connect();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        realm.driver.dropTable('notes'),
+        realm.driver.dropTable('members'),
+      ]);
+    });
+
+    it('should setup 1:n association', async function() {
+      realm.define('Note', { memberId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasMany('notes');
+      const { id: memberId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { memberId }, {} ]);
+      const member = await Member.findOne().with('notes');
+      assert.equal(member.notes.length, 1);
+      assert.ok(member.notes[0] instanceof Note);
+    });
+
+    it('should be able to customize foreignKey', async function() {
+      realm.define('Note', { authorId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasMany('notes', { foreignKey: 'authorId' });
+      const { id: authorId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { authorId }, {} ]);
+      const member = await Member.findOne().with('notes');
+      assert.equal(member.notes.length, 1);
+      assert.ok(member.notes[0] instanceof Note);
+    });
+
+    it('should be recognize snake_case', async function() {
+      realm.define('Note', { member_id: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasMany('notes', { foreignKey: 'member_id' });
+      const { id: member_id } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { member_id }, {} ]);
+      const member = await Member.findOne().with('notes');
+      assert.equal(member.notes.length, 1);
+      assert.ok(member.notes[0] instanceof Note);
+    });
+  });
+
+  describe('=> Bone.hasOne()', function() {
+    let realm;
+    before(async function() {
+      realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.connect();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        realm.driver.dropTable('notes'),
+        realm.driver.dropTable('members'),
+      ]);
+    });
+
+    it('should setup 1:1 association', async function() {
+      realm.define('Note', { memberId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasOne('note');
+      const { id: memberId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { memberId }, {} ]);
+      const member = await Member.findOne().with('note');
+      assert.ok(member.note instanceof Note);
+    });
+
+    it('should be able to customize foreignKey', async function() {
+      realm.define('Note', { authorId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasOne('note', { foreignKey: 'authorId' });
+      const { id: authorId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { authorId }, {} ]);
+      const member = await Member.findOne().with('note');
+      assert.ok(member.note instanceof Note);
+    });
+
+    it('should be recognize snake_case', async function() {
+      realm.define('Note', { member_id: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Member.hasOne('note', { foreignKey: 'member_id' });
+      const { id: member_id } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { member_id }, {} ]);
+      const member = await Member.findOne().with('note');
+      assert.ok(member.note instanceof Note);
+    });
+  });
+
+  describe('=> Bone.belongsTo()', function() {
+    let realm;
+    before(async function() {
+      realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+      });
+      await realm.connect();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        realm.driver.dropTable('notes'),
+        realm.driver.dropTable('members'),
+      ]);
+    });
+
+    it('should setup 1:1 association', async function() {
+      realm.define('Note', { memberId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Note.belongsTo('member');
+      const { id: memberId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { memberId }, {} ]);
+      const note = await Note.findOne().with('member');
+      assert.ok(note.member instanceof Member);
+      assert.equal(note.member.id, memberId);
+    });
+
+    it('should be able to customize foreignKey', async function() {
+      realm.define('Note', { authorId: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Note.belongsTo('member', { foreignKey: 'authorId' });
+      const { id: authorId } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { authorId }, {} ]);
+      const note = await Note.findOne().with('member');
+      assert.ok(note.member instanceof Member);
+      assert.equal(note.member.id, authorId);
+    });
+
+    it('should be recognize snake_case', async function() {
+      realm.define('Note', { member_id: BIGINT });
+      realm.define('Member', { name: STRING });
+      await realm.sync({ force: true });
+
+      const { Member, Note } = realm.models;
+      Note.belongsTo('member', { foreignKey: 'member_id' });
+      const { id: member_id } = await Member.create({ name: 'Serge' });
+      await Note.bulkCreate([ { member_id }, {} ]);
+      const note = await Note.findOne().with('member');
+      assert.ok(note.member instanceof Member);
+      assert.equal(note.member.id, member_id);
     });
   });
 });

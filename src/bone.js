@@ -7,6 +7,7 @@
 const util = require('util');
 const pluralize = require('pluralize');
 const { executeValidator, LeoricValidateError } = require('./validator');
+require('reflect-metadata');
 
 const DataTypes = require('./data_types');
 const Collection = require('./collection');
@@ -14,7 +15,11 @@ const Spell = require('./spell');
 const Raw = require('./raw');
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
-const { TIMESTAMP_NAMES, LEGACY_TIMESTAMP_COLUMN_MAP } = require('./constants');
+const {
+  TIMESTAMP_NAMES,
+  LEGACY_TIMESTAMP_COLUMN_MAP,
+  ASSOCIATE_METADATA_MAP,
+} = require('./constants');
 
 const columnAttributesKey = Symbol('leoric#columns');
 
@@ -998,7 +1003,12 @@ class Bone {
    *   }
    * }
    */
-  static initialize() {}
+  static initialize() {
+    for (const [key, metadataKey] of Object.entries(ASSOCIATE_METADATA_MAP)) {
+      const result = Reflect.getMetadata(metadataKey, this);
+      for (const property in result) this[key].call(this, property, result[property]);
+    }
+  }
 
   /**
    * The primary key of the model, in camelCase.
@@ -1126,15 +1136,16 @@ class Bone {
    * @param {string} [opts.className]
    * @param {string} [opts.foreignKey]
    */
-  static hasOne(name, opts) {
-    opts = Object.assign({
+  static hasOne(name, options) {
+    options = ({
       className: capitalize(name),
-      foreignKey: this.table + 'Id',
-    }, opts);
+      foreignKey: camelCase(`${this.name}Id`),
+      ...options,
+    });
 
-    if (opts.through) opts.foreignKey = '';
+    if (options.through) options.foreignKey = '';
 
-    this.associate(name, opts);
+    this.associate(name, options);
   }
 
   /**
@@ -1144,16 +1155,17 @@ class Bone {
    * @param {string} [opts.className]
    * @param {string} [opts.foreignKey]
    */
-  static hasMany(name, opts) {
-    opts = Object.assign({
+  static hasMany(name, options) {
+    options = {
       className: capitalize(pluralize(name, 1)),
-    }, opts, {
+      foreignKey: camelCase(`${this.name}Id`),
+      ...options,
       hasMany: true,
-    });
+    };
 
-    if (opts.through) opts.foreignKey = '';
+    if (options.through) options.foreignKey = '';
 
-    this.associate(name, opts);
+    this.associate(name, options);
   }
 
   /**
@@ -1163,15 +1175,15 @@ class Bone {
    * @param {string} [opts.className]
    * @param {string} [opts.foreignKey]
    */
-  static belongsTo(name, opts) {
-    opts = Object.assign({
-      className: capitalize(name),
-    }, opts);
+  static belongsTo(name, options = {}) {
+    const { className = capitalize(name) } = options;
+    options = {
+      className,
+      foreignKey: camelCase(`${className}Id`),
+      ...options,
+    };
 
-    let { className, foreignKey } = opts;
-    if (!foreignKey) foreignKey = camelCase(className) + 'Id';
-
-    this.associate(name, Object.assign(opts, { foreignKey, belongsTo: true }));
+    this.associate(name, { ...options, belongsTo: true });
   }
 
   /**

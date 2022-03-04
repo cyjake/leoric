@@ -242,7 +242,7 @@ describe('=> Data Types - INTEGER', function() {
         await Note.create({ word_count: 'foo' });
       }, /invalid integer: foo/i);
     }
-    
+
   });
 });
 
@@ -275,7 +275,7 @@ describe('=> Data types - DATE', function() {
       assert.equal(result.length, 1);
     });
 
-    if (Bone.driver.type === 'sqlite') { 
+    if (Bone.driver.type === 'sqlite') {
       await assert.doesNotReject(async function() {
         await Note.where({ createdAt: 'invalid date' });
         return true;
@@ -332,7 +332,7 @@ describe('=> Data types - DATEONLY', function() {
       assert.equal(result.length, 1);
     });
 
-    if (Bone.driver.type === 'sqlite') { 
+    if (Bone.driver.type === 'sqlite') {
       await assert.doesNotReject(async function() {
         await Note.where({ createdAt: 'invalid date' });
         return true;
@@ -389,7 +389,7 @@ describe('=> Data types - complementary', function() {
     const date = new Date();
     const note = await Note.create({ createdAt: date });
     const expected = new Date(date);
-    if (expected.getMilliseconds() > 500) expected.setSeconds(expected.getSeconds() + 1);
+    if (expected.getMilliseconds() > 500) expected.setTime(expected.getTime() + 1000);
     expected.setMilliseconds(0);
     assert.equal(note.createdAt.getTime(), expected.getTime());
   });

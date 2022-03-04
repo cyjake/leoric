@@ -110,11 +110,11 @@ class Attribute {
 
     Object.assign(this, {
       name,
-      columnName,
       primaryKey: false,
       allowNull: !params.primaryKey,
-      columnType: type.toSqlString().toLowerCase(),
       ...params,
+      columnName: params.columnName || columnName,
+      columnType: type.toSqlString().toLowerCase(),
       type,
       defaultValue,
       dataType,
