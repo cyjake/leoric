@@ -1,6 +1,7 @@
 import DataType from './data_types';
 
 export { DataType as DataTypes };
+export * from '../src/decorators';
 
 type DataTypes<T> = {
   [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
@@ -129,26 +130,27 @@ type OperatorCondition = {
 };
 
 type WhereConditions<T extends typeof Bone> = {
-  [Property in keyof T['attributes']]?: Literal | Literal[] | OperatorCondition;
+  [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal | Literal[] | OperatorCondition;
 }
 
 type Values<T extends typeof Bone> = {
-  [Property in keyof T['attributes']]?: Literal;
+  [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal;
 }
 
 type InstanceValues<T> = {
   [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
 }
 
-interface AttributeMeta {
-  column?: string;
+export interface AttributeMeta {
+  columnName?: string;
   columnType?: string;
   allowNull?: boolean;
   defaultValue?: Literal;
   primaryKey?: boolean;
   dataType?: string;
   jsType?: Literal;
-  type: DataTypes<DataType>;
+  type: DataType;
+  toSqlString: () => string;
 }
 
 interface RelateOptions {
@@ -233,7 +235,7 @@ export class Bone {
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`
    */
-  static model: { [key: string]: Bone };
+  static models: { [key: string]: typeof Bone };
 
   /**
    * The table name of the model, which needs to be specified by the model subclass.
@@ -468,6 +470,10 @@ export class Bone {
    */
   static truncate(): Promise<void>;
 
+  static sync(options: SyncOptions): Promise<void>;
+
+  static initialize(): void;
+
   constructor(values: { [key: string]: Literal });
 
   /**
@@ -600,6 +606,7 @@ export interface ConnectOptions {
   user?: string;
   password?: string;
   database: string;
+  charset?: string;
   models?: string | (typeof Bone)[];
   subclass?: boolean;
 }

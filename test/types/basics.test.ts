@@ -1,40 +1,48 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, connect } from '../..';
+import { Bone, Column, DataTypes, connect } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING, TEXT, DATE, BOOLEAN } = DataTypes;
   class Post extends Bone {
     static table = 'articles';
 
-    static attributes = {
-      id: BIGINT,
-      createdAt: { type: DATE, columnName: 'gmt_create' },
-      updatedAt: { type: DATE, columnName: 'gmt_modified' },
-      deletedAt: { type: DATE, columnName: 'gmt_deleted' },
-      title: STRING,
-      content: TEXT,
-      extra: TEXT,
-      thumb: STRING,
-      authorId: BIGINT,
-      isPrivate: BOOLEAN,
-      summary: TEXT,
-      settings: TEXT,
-      wordCount: INTEGER,
-    }
-
-    // TODO: should be generated or automated with decorator
+    @Column()
     id: bigint;
+
+    @Column({ name: 'gmt_create' })
     createdAt: Date;
+
+    @Column({ name: 'gmt_modified'})
     updatedAt: Date;
+
+    @Column({ name: 'gmt_deleted' })
     deletedAt: Date;
+
+    @Column()
     title: string;
+
+    @Column(TEXT)
     content: string;
+
+    @Column(TEXT)
     extra: string;
+
+    @Column()
     thumb: string;
-    authorId: number;
+
+    @Column()
+    authorId: bigint;
+
+    @Column()
     isPrivate: boolean;
+
+    @Column(TEXT)
     summary: string;
+
+    @Column(TEXT)
     settings: string;
+
+    @Column()
     wordCount: number;
   }
 
