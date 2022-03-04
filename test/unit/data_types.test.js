@@ -14,7 +14,7 @@ describe('=> Data Types', () => {
     DATE, DATEONLY,
     TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT,
     JSON, JSONB,
-    BLOB, BINARY, VARBINARY,
+    BLOB, BINARY, VARBINARY, VIRTUAL,
   } = DataTypes;
 
   it('STRING', () => {
@@ -107,10 +107,16 @@ describe('=> Data Types', () => {
     // invalid length
     await assert.rejects(async () => new BLOB('error'), /invalid blob length: error/);
   });
+
+  it('VIRTUAL', () => {
+    assert.equal(new VIRTUAL().dataType, 'virtual');
+    assert.equal(new VIRTUAL().toSqlString(), 'VIRTUAL');
+    assert.equal(new VIRTUAL().virtual, true);
+  });
 });
 
 describe('=> DataTypes type casting', function() {
-  const { STRING, BLOB, DATE, DATEONLY, JSON, INTEGER } = DataTypes;
+  const { STRING, BLOB, DATE, DATEONLY, JSON, INTEGER, VIRTUAL } = DataTypes;
 
   it('INTEGER', async () => {
     assert.equal(new INTEGER().uncast(null), null);
@@ -226,6 +232,13 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new BLOB().cast(buffer), buffer);
     assert.equal(new BLOB().cast(buffer).toString(), '<!doctype html>');
     assert.ok(new BLOB().cast('<!doctype html>') instanceof Buffer);
+  });
+
+  it('VIRTUAL', () => {
+    assert.equal(new VIRTUAL().cast(null), null);
+    assert.equal(new VIRTUAL().cast(undefined), undefined);
+    assert.equal(new VIRTUAL().cast(1), 1);
+    assert.equal(new VIRTUAL().cast('halo'), 'halo');
   });
 });
 

@@ -200,7 +200,7 @@ function coerceLiteral(spell, ast) {
   if (firstArg.type !== 'id') return;
 
   const model = findModel(spell, firstArg.qualifiers);
-  const attribute = model && model.attributes[firstArg.value];
+  const attribute = model && model.columnAttributes[firstArg.value];
 
   if (!attribute) return;
 

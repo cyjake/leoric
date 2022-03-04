@@ -21,6 +21,8 @@ const {
   ASSOCIATE_METADATA_MAP,
 } = require('./constants');
 
+const columnAttributesKey = Symbol('leoric#columns');
+
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
     result[name] = {
@@ -235,6 +237,16 @@ class Bone {
     if (!name) return false;
     const { attributes } = this;
     return attributes.hasOwnProperty(name);
+  }
+
+  static get columnAttributes() {
+    if (this[columnAttributesKey]) return this[columnAttributesKey];
+    const { attributes } = this;
+    this[columnAttributesKey] = {};
+    for (const key in this.attributes) {
+      if (!attributes[key].virtual) this[columnAttributesKey][key] = attributes[key];
+    }
+    return this[columnAttributesKey];
   }
 
   getRaw(key) {
@@ -718,7 +730,6 @@ class Bone {
     for (const name in attributes) {
       const value = this.attribute(name);
       const { defaultValue } = attributes[name];
-      // console.log(attributes[name], name, defaultValue);
       if (value != null) {
         data[name] = value;
       } else if (value === undefined && defaultValue != null) {
@@ -979,6 +990,7 @@ class Bone {
     for (const hookName of hookNames) {
       if (this[hookName]) setupSingleHook(this, hookName, this[hookName]);
     }
+    this[columnAttributesKey] = null;
   }
 
   /**
@@ -1114,6 +1126,7 @@ class Bone {
       Reflect.deleteProperty(this.prototype, originalName);
       this.loadAttribute(newName);
     }
+    this[columnAttributesKey] = null;
   }
 
   /**
@@ -1568,6 +1581,7 @@ class Bone {
       return result;
     }, {});
 
+    this[columnAttributesKey] = null;
     Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
   }
 
@@ -1587,7 +1601,7 @@ class Bone {
       throw new Error('unable to sync model with custom physic tables');
     }
 
-    const { attributes, columns } = this;
+    const { columnAttributes: attributes, columns } = this;
     const columnMap = columns.reduce((result, entry) => {
       result[entry.columnName] = entry;
       return result;
