@@ -29,6 +29,7 @@ const attributes = {
     type: DataTypes.STRING,
   },
   fingerprint: DataTypes.TEXT,
+  realname: DataTypes.VIRTUAL,
 };
 
 describe('hooks', function() {
@@ -49,6 +50,9 @@ describe('hooks', function() {
         beforeCreate(obj) {
           if (!obj.email) {
             obj.email = 'hello@yo.com';
+          }
+          if (obj.realname && obj.realname.startsWith('Jerr')) {
+            obj.nickname = obj.realname + 'y';
           }
         },
         afterCreate(obj){
@@ -83,12 +87,26 @@ describe('hooks', function() {
       assert.equal(user.email, 'hello@yo.com');
       assert.equal(user.meta.foo, 1);
       assert.equal(user.status, 10);
+      const user1 = await User.create({ nickname: 'testy', email: 'yoh@hh', status: 1, realname: 'Jerry' });
+      assert.equal(user1.email, 'yoh@hh');
+      assert.equal(user1.status, 10);
+      assert.equal(user1.nickname, 'Jerryy');
+      assert.equal(user1.realname, 'Jerry');
+      await user1.reload();
+      assert.equal(user1.nickname, 'Jerryy');
+      assert.equal(user1.realname, 'Jerry');
     });
 
     it('create skip hooks', async () => {
       await assert.rejects(async () => {
         await User.create({ nickname: 'testy', meta: { foo: 1, bar: 'baz'}, status: 1, }, { hooks: false });
       }, /LeoricValidateError: Validation notNull on email failed/);
+
+      const user1 = await User.create({ nickname: 'testy', email: 'yoh@hh', status: 1, realname: 'Jerry' }, { hooks: false });
+      assert.equal(user1.email, 'yoh@hh');
+      assert.equal(user1.status, 1);
+      assert.equal(user1.nickname, 'testy');
+      assert.equal(user1.realname, 'Jerry');
     });
 
     describe('bulkCreate', () => {
@@ -97,6 +115,7 @@ describe('hooks', function() {
         const users = [{
           email: 'a@e.com',
           nickname: 'sss',
+          realname: 'Jerry'
         }];
 
         beforeProbe = null;
@@ -109,23 +128,27 @@ describe('hooks', function() {
         await User.remove({}, true);
         beforeProbe = null;
         afterProbe = null;
-        await User.bulkCreate(users, { hooks: false });
+        let res = await User.bulkCreate(users, { hooks: false });
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
 
+        assert(res.every(r => r.realname === 'Jerry'));
         await User.remove({}, true);
 
         // individualHooks
         const users1 = [{
           nickname: 'sss',
+          realname: 'Jerry'
         }];
-        await User.bulkCreate(users1, { individualHooks: true });
+        res = await User.bulkCreate(users1, { individualHooks: true });
         const user = await User.first;
 
         assert.equal(beforeProbe, 'before');
         assert.equal(afterProbe, 'after');
         assert.equal(user.email, 'hello@yo.com');
-        assert.equal(user.nickname, 'sss');
+        assert.equal(user.nickname, 'Jerryy');
+
+        assert(res.every(r => r.realname === 'Jerry'));
 
       });
     });
@@ -147,6 +170,9 @@ describe('hooks', function() {
         beforeUpdate(obj, opts) {
           if (opts.email) {
             opts.email = 'ho@y.com';
+          }
+          if (obj.realname && obj.realname.startsWith('Jerr')) {
+            obj.nickname = obj.realname + 'y';
           }
         },
         afterUpdate(obj) {
@@ -184,12 +210,19 @@ describe('hooks', function() {
     it('update', async () => {
       const user = await User.create({ nickname: 'tim', email: 'h@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
       assert(user.email === 'h@h.com');
+      assert(!user.realname);
       assert.equal(user.nickname, 'tim');
       await user.update({
         email: 'jik@y.com',
+        realname: 'Jerr',
       });
       assert.equal(user.email, 'ho@y.com');
       assert.equal(user.status, 11);
+      assert.equal(user.nickname, 'Jerry');
+      assert.equal(user.realname, 'Jerr');
+      assert.deepEqual(user.previousChanged().sort(), [ 'email', 'nickname', 'status', 'realname' ].sort());
+      assert.deepEqual(user.previousChanges('nickname'), { nickname: [ 'tim', 'Jerry' ] });
+      assert.deepEqual(user.previousChanges('realname'), { realname: [ null, 'Jerr' ] });
 
       // instance.update before hooks special logic: setup_hooks.js#L131-L151
       assert.deepEqual(user.fingerprint, undefined);
@@ -199,6 +232,7 @@ describe('hooks', function() {
         await user.update({
           fingerprint: 'halo',
           willbeIgnore: 'ignore',
+          realname: 'y',
         });
       });
       assert.deepEqual(user.fingerprint, undefined);

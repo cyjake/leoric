@@ -2,7 +2,6 @@
 
 const assert = require('assert').strict;
 const expect = require('expect.js');
-const sinon = require('sinon');
 
 const { Collection, Bone } = require('../../..');
 const Book = require('../../models/book');
@@ -11,28 +10,17 @@ const Post = require('../../models/post');
 const TagMap = require('../../models/tagMap');
 const User = require('../../models/user');
 const Tag = require('../../models/tag');
-const { logger } = require('../../../src/utils');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 describe('=> Basic', () => {
-  let stub;
-
-  before(() => {
-    stub = sinon.stub(logger, 'warn').callsFake((message) => {
-      throw new Error(message);
-    });
-  });
-
-  after(() => {
-    if (stub) stub.restore();
-  });
-
   describe('=> Attributes', function() {
     beforeEach(async function() {
       await Post.remove({}, true);
+      await User.remove({}, true);
+
       await Post.create({
         title: 'New Post',
         extra: { versions: [2, 3] },
@@ -42,6 +30,7 @@ describe('=> Basic', () => {
 
     afterEach(async function () {
       await Post.remove({}, true);
+      await User.remove({}, true);
     });
 
     it('bone.attribute(name)', async function() {
@@ -50,6 +39,12 @@ describe('=> Basic', () => {
       post.title = 'New Post';
       assert.equal(post.title, 'New Post');
       assert.throws(() => post.attribute('missing attribute'), /no attribute/);
+    });
+
+    it('bone.attribute(name) should work with VIRTUAL', async function() {
+      const user = new User({ nickname: 'Jer', realname: 'Jerry' });
+      assert.equal(user.attribute('nickname'), 'JER');
+      assert.equal(user.attribute('realname'), 'Jerry');
     });
 
     it('bone.attribute(unset attribute)', async function() {
@@ -67,6 +62,13 @@ describe('=> Basic', () => {
       assert.equal(post.attribute('title', 'Untitled'), post);
     });
 
+    it('bone.attribute(name, value) should work with VIRTUAL', async function() {
+      const user = new User({ nickname: 'Jer', realname: 'Jerry' });
+      assert.equal(user.attribute('realname'), 'Jerry');
+      assert.equal(user.attribute('realname', 'yoxi'), user);
+      assert.equal(user.attribute('realname'), 'yoxi');
+    });
+
     it('bone.attribute(unset attribute, value)', async function() {
       const post = await Post.first.select('title');
       expect(() => post.attribute('thumb', 'foo')).to.not.throwException();
@@ -80,15 +82,28 @@ describe('=> Basic', () => {
       expect(post.hasAttribute()).to.be(false);
     });
 
+    it('bone.hasAttribute(key) should work with VIRTUAL', async function() {
+      await User.create({ nickname: 'yes', email: 'ee@1.com' });
+      let user = await User.first.select('nickname');
+      expect(user.hasAttribute('nickname')).to.be(true);
+      expect(user.hasAttribute('NotExist')).to.be(false);
+      expect(user.hasAttribute()).to.be(false);
+    });
+
     it('Bone.hasAttribute(key) should work', async function() {
       expect(Post.hasAttribute('thumb')).to.be(true);
       expect(Post.hasAttribute('NotExist')).to.be(false);
       expect(Post.hasAttribute()).to.be(false);
+      expect(User.hasAttribute('realname')).to.be(true);
     });
 
-    it('bone.attributeWas(name) should be undefined when initialized', async function() {
+    it('bone.attributeWas(name) should be null when initialized', async function() {
       const post = new Post({ title: 'Untitled' });
       expect(post.attributeWas('createdAt')).to.be(null);
+      // VIRTUAL
+      const user = new User({ nickname: 'Jer' });
+      expect(user.attributeWas('realname')).to.be(null);
+
     });
 
     it('bone.attributeWas(name) should return original value if instance is persisted before', async function() {
@@ -96,6 +111,15 @@ describe('=> Basic', () => {
       const titleWas = post.title;
       post.title = 'Skeleton King';
       expect(post.attributeWas('title')).to.eql(titleWas);
+      // VIRTUAL
+      const user = await User.create({ nickname: 'yes', email: 'ee@1.com', realname: 'yes' });
+      assert.equal(user.realname, 'yes');
+      user.realname = 'Jerry';
+      expect(user.attributeWas('realname')).to.eql('yes');
+      assert.equal(user.realname, 'Jerry');
+      await user.reload();
+      expect(user.attributeWas('realname')).to.eql('yes');
+      assert.equal(user.realname, 'Jerry');
     });
 
     it('bone.attributeChanged(name)', async function() {
@@ -104,6 +128,14 @@ describe('=> Basic', () => {
       expect(post.attributeChanged('createdAt')).to.be(false);
       post.createdAt = new Date();
       expect(post.attributeChanged('createdAt')).to.be(true);
+    });
+
+    it('bone.attributeChanged(name) should wok with VRITUAL', async function() {
+      const user = new User({ nickname: 'Jer' });
+      expect(user.realname).to.not.be.ok();
+      expect(user.attributeChanged('realname')).to.be(false);
+      user.realname = 'Yhorm';
+      expect(user.attributeChanged('realname')).to.be(true);
     });
 
     it('bone.attributeChanged(name) should be false when first fetched', async function() {
@@ -145,12 +177,118 @@ describe('=> Basic', () => {
       expect(post2.attribute('thumb').name, 'thumb');
     });
 
+    it('Bone.renameAttribute(name, newName) should work with VIRTUAL', async function() {
+      const user = await User.create({ nickname: 'yes', email: 'ee@1.com', realname: 'yes' });
+      expect(user.realname).to.be('yes');
+      User.renameAttribute('realname', 'yaho');
+      await user.reload();
+      expect(user.realname).to.be(undefined);
+      User.renameAttribute('yaho', 'realname');
+
+    });
+
     it('bone.reload()', async function() {
       const post = await Post.first;
       await Post.update({ id: post.id }, { title: 'Tyrael' });
       assert.equal(post.title, 'New Post');
       await post.reload();
       assert.equal(post.title, 'Tyrael');
+    });
+
+    it('bone.reload() should work with VIRTUAL', async function() {
+      const user = await User.create({ nickname: 'yes', email: 'ee@1.com', realname: 'yes' });
+      assert.equal(user.nickname, 'YES');
+      assert.equal(user.realname, 'yes');
+      await User.update({ id: user.id }, { nickname: 'Yhorm' });
+      await user.reload();
+      assert.equal(user.nickname, 'Yhorm');
+      assert.equal(user.realname, 'yes');
+    });
+
+    it('bone.select() should not work wihth VIRTUAL', async () => {
+      await assert.rejects(async () => {
+        await User.first.select('realname');
+      }, /unable to use virtual attribute realname as field in model User/);
+
+      await assert.rejects(async () => {
+        await User.find({
+          realname: 'yes'
+        });
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find({
+          $or: [{
+            realname: 'yes',
+          }, {
+            nickname: 'yes'
+          }]
+        });
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find({
+          $and: [{
+            status: 1,
+            realname: 'yes',
+          }, {
+            nickname: 'yes'
+          }]
+        });
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find('realname=?', 'yes');
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find().order('realname');
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find().order('realname DESC');
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find().order('realname', 'DESC');
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await User.find({
+          nickname: 'yes'
+        }).group('realname');
+      }, /unable to use virtual attribute realname as group column in model User/);
+
+      await assert.rejects(async () => {
+        await Post.first.join(User, 'users.realname = articles.authorId');
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        await Post.first.join(User, `users.id = articles.authorId and users.realname = 'yes'`);
+      }, /unable to use virtual attribute realname as condition in model User/);
+
+      await assert.rejects(async () => {
+        Post.hasOne('user', {
+          foreignKey: 'realname'
+        });
+      }, /unable to use virtual attribute realname as foreign key in model User/);
+
+      Post.hasOne('user', {
+        foreignKey: 'authorId'
+      });
+
+      await assert.rejects(async () => {
+        await Post.first.with('user').select('user.realname');
+      }, /unable to use virtual attribute realname as field in model User/);
+
+      await assert.rejects(async () => {
+        await Post.include('user').select('user.realname');
+      }, /unable to use virtual attribute realname as field in model User/);
+
+      await assert.rejects(async () => {
+        await Post.first.with('user').where('user.realname = ?', 'yes');
+      }, /unable to use virtual attribute realname in model User/);
+
     });
 
     it('Bone.previousChanged(key): raw VS rawPrevious', async function () {
@@ -190,6 +328,36 @@ describe('=> Basic', () => {
       // should return updated attributes' name after updating
       assert.deepEqual(post.previousChanged().sort(), [ 'extra', 'title', 'updatedAt' ]);
     });
+
+    it('Bone.previousChanged/previousChanges/changes with VIRTUAL', async function () {
+      const user = new User({ nickname: 'Jer', realname: 'Yhorm', email: 'ee@yy.com' });
+      expect(user.createdAt).to.not.be.ok();
+      // should return false before persisting
+      expect(user.previousChanged('realname')).to.be(false);
+
+      assert.equal(user.previousChanged(), false);
+      assert.deepEqual(user.previousChanges(), {});
+      assert.deepEqual(user.changes(), { email: [ null, 'ee@yy.com' ], level: [ null, 1 ], nickname: [ null, 'JER' ], realname: [ null, 'Yhorm' ], status: [ null, - 1 ] });
+      user.realname = 'Yhorm';
+      assert.deepEqual(user.changes(), { email: [ null, 'ee@yy.com' ], level: [ null, 1 ], nickname: [ null, 'JER' ], realname: [ null, 'Yhorm' ], status: [ null, - 1 ] });
+      await user.save();
+      // should return false after first persisting
+      expect(user.previousChanged('realname')).to.be(false);
+      assert.equal(user.previousChanged(), false);
+      assert.deepEqual(user.previousChanges(), {});
+      assert.deepEqual(user.changes(), {});
+
+      user.realname = 'Lothric';
+      assert.deepEqual(user.changes(), { realname: [ 'Yhorm', 'Lothric' ] });
+
+      await user.save();
+      // should return true after updating
+      expect(user.previousChanged('realname')).to.be(true);
+      assert.deepEqual(user.previousChanged(), [ 'realname' ]);
+      assert.deepEqual(user.previousChanges(), { realname: [ 'Yhorm', 'Lothric' ] });
+      assert.deepEqual(user.changes(), {});
+    });
+
 
     it('Bone.previousChanges(key): raw VS rawPrevious', async function () {
       const post = new Post({ title: 'Untitled' });
