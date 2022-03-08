@@ -681,7 +681,7 @@ class Bone {
       for (const key in changes) {
         this.attribute(key, changes[key]);
       }
-      this.syncRaw(changes);
+      this.syncRaw();
       return result.affectedRows;
     });
   }
@@ -735,6 +735,7 @@ class Bone {
     const spell = new Spell(Model, opts).$insert(data);
     return spell.later(result => {
       this[primaryKey] = result.insertId;
+      this.#rawSaved[primaryKey] = null;
       this.syncRaw();
       return this;
     });

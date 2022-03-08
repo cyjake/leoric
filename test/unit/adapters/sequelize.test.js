@@ -1026,7 +1026,7 @@ describe('=> Sequelize adapter', () => {
     post.title = 'Hello there';
     assert.deepEqual(post.previous(), {
       title: 'By three they come',
-      id: post.id,
+      id: null,
       isPrivate: false,
       updatedAt: post.updatedAt,
       createdAt: post.createdAt,
@@ -1042,7 +1042,7 @@ describe('=> Sequelize adapter', () => {
     post.content = 'a';
     assert.deepEqual(post.previous(), {
       title: 'By three they come',
-      id: post.id,
+      id: null,
       isPrivate: false,
       updatedAt: post.updatedAt,
       createdAt: post.createdAt,

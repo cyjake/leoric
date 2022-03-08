@@ -177,7 +177,7 @@ describe('=> Basic', () => {
       post.extra = { greeting: 'hi' };
       await post.save();
       // isPrivate has default value in DSL
-      assert.equal(post.previousChanged(), false);
+      assert.deepEqual(post.previousChanged(), [ 'id' ]);
       post.extra = { greeting: 'ohayo' };
       await sleep(10);
       await post.save();
@@ -210,7 +210,7 @@ describe('=> Basic', () => {
       const post = new Post({ title: 'Untitled' });
       assert.deepEqual(post.previousChanges(), {});
       await post.save();
-      assert.deepEqual(post.previousChanges(), {});
+      assert.deepEqual(post.previousChanges(), { id: [ null, post.id ] });
       post.title = 'MHW';
       post.authorId = 100;
       const prevUpdatedAt = post.updatedAt;
