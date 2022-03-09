@@ -1016,7 +1016,7 @@ describe('=> Sequelize adapter', () => {
   it('model.previous(key)', async () => {
     const post = await Post.create({ title: 'By three they come' });
     post.title = 'Hello there';
-    assert.equal(post.previous('title'), 'By three they come');
+    assert.equal(post.previous('title'), null);
     await post.update();
     assert.equal(post.previous('title'), 'By three they come');
   });
@@ -1025,35 +1025,21 @@ describe('=> Sequelize adapter', () => {
     const post = await Post.create({ title: 'By three they come' });
     post.title = 'Hello there';
     assert.deepEqual(post.previous(), {
-      title: 'By three they come',
+      title: null,
       id: null,
-      isPrivate: false,
-      updatedAt: post.updatedAt,
-      createdAt: post.createdAt,
-      wordCount: 0,
-      authorId: null,
-      content: null,
-      deletedAt: null,
-      extra: null,
-      settings: null,
-      summary: null,
-      thumb: null,
+      isPrivate: null,
+      updatedAt: null,
+      createdAt: null,
+      wordCount: null,
     });
     post.content = 'a';
     assert.deepEqual(post.previous(), {
-      title: 'By three they come',
+      title: null,
       id: null,
-      isPrivate: false,
-      updatedAt: post.updatedAt,
-      createdAt: post.createdAt,
-      wordCount: 0,
-      authorId: null,
-      content: null,
-      deletedAt: null,
-      extra: null,
-      settings: null,
-      summary: null,
-      thumb: null,
+      isPrivate: null,
+      updatedAt: null,
+      createdAt: null,
+      wordCount: null,
     });
     const prevUpdatedAt = post.updatedAt;
     await post.update();

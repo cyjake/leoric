@@ -160,8 +160,8 @@ describe('=> Basic', () => {
       expect(post.previousChanged('extra')).to.be(false);
       post.extra = { greeting: 'hi' };
       await post.save();
-      // should return false after first persisting
-      expect(post.previousChanged('extra')).to.be(false);
+      // should return true after first persisting
+      expect(post.previousChanged('extra')).to.be(true);
       post.extra = { greeting: 'ohayo' };
       await post.save();
       // should return true after updating
@@ -177,7 +177,7 @@ describe('=> Basic', () => {
       post.extra = { greeting: 'hi' };
       await post.save();
       // isPrivate has default value in DSL
-      assert.deepEqual(post.previousChanged(), [ 'id' ]);
+      assert.deepEqual(post.previousChanged().sort(), [ 'id', 'extra', 'isPrivate', 'title', 'wordCount', 'createdAt', 'updatedAt' ].sort());
       post.extra = { greeting: 'ohayo' };
       await sleep(10);
       await post.save();
@@ -195,7 +195,7 @@ describe('=> Basic', () => {
       const post = new Post({ title: 'Untitled' });
       assert.deepEqual(post.previousChanges('title'), {});
       await post.save();
-      assert.deepEqual(post.previousChanges('title'), {});
+      assert.deepEqual(post.previousChanges('title'), { title: [ null, 'Untitled' ] });
       assert.deepEqual(post.previousChanges('authorId'), { });
       post.title = 'MHW';
       post.authorId = 100;
@@ -210,7 +210,14 @@ describe('=> Basic', () => {
       const post = new Post({ title: 'Untitled' });
       assert.deepEqual(post.previousChanges(), {});
       await post.save();
-      assert.deepEqual(post.previousChanges(), { id: [ null, post.id ] });
+      assert.deepEqual(post.previousChanges(), { 
+        id: [ null, post.id ],
+        createdAt: [ null, post.createdAt ],
+        isPrivate: [ null, Post.driver.type === 'mysql'? 0 : false ] ,
+        title: [ null, 'Untitled' ],
+        updatedAt: [ null, post.updatedAt ],
+        wordCount: [ null, 0 ],
+      });
       post.title = 'MHW';
       post.authorId = 100;
       const prevUpdatedAt = post.updatedAt;

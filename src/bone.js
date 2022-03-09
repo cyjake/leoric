@@ -537,18 +537,18 @@ class Bone {
    * Sync changes made in {@link Bone.raw} back to {@link Bone.rawSaved}.
    * @private
    */
-  syncRaw(changes) {
+  syncRaw() {
     const { attributes } = this.constructor;
     this.isNewRecord = false;
-    for (const name of Object.keys(changes || attributes)) {
+    for (const name of Object.keys(attributes)) {
       const attribute = attributes[name];
       // Take advantage of uncast/cast to create new copy of value
       const value = attribute.uncast(this.#raw[name]);
       if (this.#rawSaved[name] !== undefined) {
         this.#rawPrevious[name] = this.#rawSaved[name];
-      } else if (!changes && this.#rawPrevious[name] === undefined) {
+      } else if (this.#rawPrevious[name] === undefined && this.#raw[name] != null) {
         // first persisting
-        this.#rawPrevious[name] = attribute.cast(value);
+        this.#rawPrevious[name] = null;
       }
       this.#rawSaved[name] = attribute.cast(value);
     }
@@ -735,7 +735,7 @@ class Bone {
     const spell = new Spell(Model, opts).$insert(data);
     return spell.later(result => {
       this[primaryKey] = result.insertId;
-      this.#rawSaved[primaryKey] = null;
+      // this.#rawSaved[primaryKey] = null;
       this.syncRaw();
       return this;
     });
