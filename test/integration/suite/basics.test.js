@@ -342,9 +342,17 @@ describe('=> Basic', () => {
       assert.deepEqual(user.changes(), { email: [ null, 'ee@yy.com' ], level: [ null, 1 ], nickname: [ null, 'JER' ], realname: [ null, 'Yhorm' ], status: [ null, - 1 ] });
       await user.save();
       // should return false after first persisting
-      expect(user.previousChanged('realname')).to.be(false);
-      assert.equal(user.previousChanged(), false);
-      assert.deepEqual(user.previousChanges(), {});
+      expect(user.previousChanged('realname')).to.be(true);
+      assert.deepEqual(user.previousChanged().sort(), [ 'id', 'email', 'nickname', 'status', 'level', 'createdAt', 'realname' ].sort());
+      assert.deepEqual(user.previousChanges(), { 
+        id: [ null, user.id ],
+        email: [ null, 'ee@yy.com' ],
+        level: [ null, 1 ],
+        nickname: [ null, 'JER' ],
+        realname: [ null, 'Yhorm' ],
+        status: [ null, - 1 ],
+        createdAt: [ null, user.createdAt ],
+      });
       assert.deepEqual(user.changes(), {});
 
       user.realname = 'Lothric';
