@@ -9,6 +9,7 @@ const { snakeCase } = require('../../utils/string');
  * @param {string} dataType
  */
 function findJsType(DataTypes, type, dataType) {
+  if (type instanceof DataTypes.VIRTUAL) return '';
   if (type instanceof DataTypes.BOOLEAN) return Boolean;
   if (type instanceof DataTypes.JSON) return JSON;
   if (type instanceof DataTypes.BINARY || type instanceof DataTypes.BLOB) {
@@ -118,6 +119,7 @@ class Attribute {
       defaultValue,
       dataType,
       jsType: findJsType(DataTypes, type, dataType),
+      virtual: type.virtual,
     });
   }
 

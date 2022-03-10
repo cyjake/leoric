@@ -63,14 +63,14 @@ class Collection extends Array {
  */
 function instantiatable(spell) {
   const { columns, groups, Model } = spell;
-  const { attributes, tableAlias } = Model;
+  const { columnAttributes, tableAlias } = Model;
 
   if (groups.length > 0) return false;
   if (columns.length === 0) return true;
 
   return columns
     .filter(({ qualifiers }) => (!qualifiers || qualifiers.includes(tableAlias)))
-    .every(({ value }) => attributes[value]);
+    .every(({ value }) => columnAttributes[value]);
 }
 
 /**

@@ -14,29 +14,52 @@ const Raw = require('./raw');
 const { AGGREGATOR_MAP } = require('./constants');
 
 /**
+ * check condition to avoid use virtual fields as where condtions
+ * @param {Bone} Model 
+ * @param {Array<Object>} conds 
+ */
+function checkCond(Model, conds) {
+  if (Array.isArray(conds)) {
+    for (const cond of conds) {
+      if (cond.type === 'id' && cond.value != null) {
+        if (Model.attributes[cond.value] && Model.attributes[cond.value].virtual) {
+          throw new Error(`unable to use virtual attribute ${cond.value} as condition in model ${Model.name}`);
+        }
+      } else if (cond.type === 'op' && cond.args && cond.args.length) {
+        checkCond(Model, cond.args);
+      }
+    }
+  }
+}
+
+/**
  * Parse condition expressions
  * @example
- * parseConditions({ foo: { $op: value } });
- * parseConditions('foo = ?', value);
+ * parseConditions(Model, { foo: { $op: value } });
+ * parseConditions(Model, 'foo = ?', value);
+ * @param {Bone} Model
  * @param {(string|Object)} conditions
  * @param {...*} values
  * @returns {Array}
  */
-function parseConditions(conditions, ...values) {
+function parseConditions(Model, conditions, ...values) {
   if (conditions instanceof Raw) return [ conditions ];
+  let conds;
   if (isPlainObject(conditions)) {
-    return parseObject(conditions);
+    conds = parseObject(conditions);
   } else if (typeof conditions == 'string') {
-    return [parseExpr(conditions, ...values)];
+    conds = [parseExpr(conditions, ...values)];
   } else {
     throw new Error(`unexpected conditions ${conditions}`);
   }
+  checkCond(Model, conds);
+  return conds;
 }
 
 function parseSelect(spell, ...names) {
   const { joins, Model } = spell;
   if (typeof names[0] === 'function') {
-    names = Object.keys(Model.attributes).filter(names[0]);
+    names = Object.keys(Model.columnAttributes).filter(names[0]);
   } else {
     names = names.reduce((result, name) => result.concat(name), []);
   }
@@ -53,7 +76,10 @@ function parseSelect(spell, ...names) {
       if (type != 'id') return;
       const qualifier = qualifiers && qualifiers[0];
       const model = qualifier && joins && (qualifier in joins) ? joins[qualifier].Model : Model;
-      if (!model.attributes[value]) {
+      if (!model.columnAttributes[value]) {
+        if (model.attributes[value]) {
+          throw new Error(`unable to use virtual attribute ${value} as field in model ${model.name}`);
+        }
         throw new Error(`unable to find attribute ${value} in model ${model.name}`);
       }
     });
@@ -63,9 +89,9 @@ function parseSelect(spell, ...names) {
 }
 
 /**
- * Translate key-value pairs of attributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
+ * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
  * @param {Spell} spell
- * @param {Object} obj - key-value pairs of attributes
+ * @param {Object} obj - key-value pairs of columnAttributes
  * @param {boolean} strict - check attribute exist or not
  * @returns {Object}
  */
@@ -73,11 +99,11 @@ function formatValueSet(spell, obj, strict = true) {
   const { Model } = spell;
   const sets = {};
   for (const name in obj) {
-    const attribute = Model.attributes[name];
+    const attribute = Model.columnAttributes[name];
     const value = obj[name];
 
-    if (!attribute && strict) {
-      throw new Error(`Undefined attribute "${name}"`);
+    if (!attribute) {
+      continue;
     }
 
     // raw sql don't need to uncast
@@ -91,9 +117,9 @@ function formatValueSet(spell, obj, strict = true) {
 }
 
 /**
- * Translate key-value pairs of attributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
+ * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
  * @param {Spell}  spell
- * @param {Object|Array} obj   - key-value pairs of attributes
+ * @param {Object|Array} obj   - key-value pairs of columnAttributes
  */
 function parseSet(spell, obj) {
   let sets;
@@ -139,7 +165,7 @@ function joinOnConditions(spell, BaseModel, baseName, refName, { where, associat
   };
   if (!where) where = association.where;
   if (where) {
-    const whereConditions = walkExpr(parseConditions(where)[0], node => {
+    const whereConditions = walkExpr(parseConditions(BaseModel, where)[0], node => {
       if (node.type == 'id') node.qualifiers = [refName];
     });
     return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] };
@@ -212,7 +238,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
     const columns = parseSelect({ Model: RefModel }, select);
     for (const token of columns) {
       walkExpr(token, node => {
-        if (node.type === 'id' && !node.qualifiers && RefModel.attributes[node.value]) {
+        if (node.type === 'id' && !node.qualifiers && RefModel.columnAttributes[node.value]) {
           node.qualifiers = [refName];
         }
       });
@@ -284,7 +310,7 @@ class Spell {
   /**
    * Create a spell.
    * @param {Model}          Model    - A sub class of {@link Bone}.
-   * @param {Object}         opts     - Extra attributes to be set.
+   * @param {Object}         opts     - Extra columnAttributes to be set.
    */
   constructor(Model, opts = {}) {
     if (Model.synchronized == null) {
@@ -299,7 +325,7 @@ class Spell {
 
     const { deletedAt } = Model.timestamps;
     // FIXME: need to implement paranoid mode
-    if (Model.attributes[deletedAt] && opts.paranoid !== false) {
+    if (Model.columnAttributes[deletedAt] && opts.paranoid !== false) {
       scopes.push(scopeDeletedAt);
     }
 
@@ -502,7 +528,7 @@ class Spell {
   }
 
   /**
-   * Whitelist attributes to select. Can be called repeatedly to select more attributes.
+   * Whitelist columnAttributes to select. Can be called repeatedly to select more columnAttributes.
    * @param {...string} names
    * @example
    * .select('title');
@@ -531,7 +557,7 @@ class Spell {
     const { timestamps } = Model;
     this.command = 'update';
     if (!Number.isFinite(by)) throw new Error(`unexpected increment value ${by}`);
-    if (!Model.attributes.hasOwnProperty(name)) {
+    if (!Model.columnAttributes.hasOwnProperty(name)) {
       throw new Error(`undefined attribute "${name}"`);
     }
 
@@ -590,7 +616,8 @@ class Spell {
    * @returns {Spell}
    */
   $where(conditions, ...values) {
-    this.whereConditions.push(...parseConditions(conditions, ...values));
+    const Model = this.Model;
+    this.whereConditions.push(...parseConditions(Model, conditions, ...values));
     return this;
   }
 
@@ -600,15 +627,16 @@ class Spell {
     const combined = whereConditions.slice(1).reduce((result, condition) => {
       return { type: 'op', name: 'and', args: [result, condition] };
     }, whereConditions[0]);
+    const Model = this.Model;
     this.whereConditions = [
       { type: 'op', name: 'or', args:
-        [combined, ...parseConditions(conditions, ...values)] }
+        [combined, ...parseConditions(Model, conditions, ...values)] }
     ];
     return this;
   }
 
   /**
-   * Set GROUP BY attributes. `select_expr` with `AS` is supported, hence following expressions have the same effect:
+   * Set GROUP BY columnAttributes. `select_expr` with `AS` is supported, hence following expressions have the same effect:
    *
    *     .select('YEAR(createdAt)) AS year').group('year');
    *
@@ -619,9 +647,12 @@ class Spell {
    * @returns {Spell}
    */
   $group(...names) {
-    const { columns, groups } = this;
+    const { columns, groups, Model } = this;
 
     for (const name of names) {
+      if (Model.attributes[name] && Model.attributes[name].virtual) {
+        throw new Error(`unable to use virtual attribute ${name} as group column in model ${Model.name}`);
+      }
       const token = parseExpr(name);
       if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
@@ -666,10 +697,12 @@ class Spell {
       });
     }
     else {
-      this.orders.push([
+      const order = [
         parseExpr(name),
         direction && direction.toLowerCase() == 'desc' ? 'desc' : 'asc'
-      ]);
+      ];
+      checkCond(this.Model, order);
+      this.orders.push(order);
     }
     return this;
   }
@@ -710,10 +743,11 @@ class Spell {
    * @returns {Spell}
    */
   $having(conditions, ...values) {
-    for (const condition of parseConditions(conditions, ...values)) {
+    const Model = this.Model;
+    for (const condition of parseConditions(Model, conditions, ...values)) {
       // Postgres can't have alias in HAVING caluse
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
-      if (this.Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
+      if (Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {
@@ -784,7 +818,7 @@ class Spell {
     if (qualifier in joins) {
       throw new Error(`invalid join target. ${qualifier} already defined.`);
     }
-    joins[qualifier] = { Model, on: parseConditions(onConditions, ...values)[0] };
+    joins[qualifier] = { Model, on: parseConditions(Model, onConditions, ...values)[0] };
     return this;
   }
 

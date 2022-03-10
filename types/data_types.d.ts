@@ -20,6 +20,8 @@ export default class DataType {
   static DATE: typeof DATE & INVOKABLE<DATE>;
   static DATEONLY: typeof DATEONLY & INVOKABLE<DATEONLY>;
   static BOOLEAN: typeof BOOLEAN & INVOKABLE<BOOLEAN>;
+  static VIRTUAL: typeof VIRTUAL & INVOKABLE<VIRTUAL>;
+
 }
 
 declare class STRING extends DataType {
@@ -85,4 +87,8 @@ declare class DATEONLY extends DataType {
 
 declare class BOOLEAN extends DataType {
   dataType: 'boolean'
+}
+
+declare class VIRTUAL extends DataType {
+  dataType: 'virtual'
 }

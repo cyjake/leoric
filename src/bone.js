@@ -21,6 +21,8 @@ const {
   ASSOCIATE_METADATA_MAP,
 } = require('./constants');
 
+const columnAttributesKey = Symbol('leoric#columns');
+
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
     result[name] = {
@@ -206,9 +208,9 @@ class Bone {
    * @memberof Bone
    */
   _clone(target) {
-    this.#raw = Object.assign({}, target.getRaw());
-    this.#rawSaved = Object.assign({}, target.getRawSaved());
-    this.#rawPrevious = Object.assign({}, target.getRawPrevious());
+    this.#raw = Object.assign({}, this.getRaw(), target.getRaw());
+    this.#rawSaved = Object.assign({}, this.getRawSaved(), target.getRawSaved());
+    this.#rawPrevious = Object.assign({}, this.getRawPrevious(), target.getRawPrevious());
   }
 
   /**
@@ -235,6 +237,34 @@ class Bone {
     if (!name) return false;
     const { attributes } = this;
     return attributes.hasOwnProperty(name);
+  }
+
+  /**
+   * get attributes except virtuals
+   */
+  static get columnAttributes() {
+    if (this[columnAttributesKey]) return this[columnAttributesKey];
+    const { attributes } = this;
+    this[columnAttributesKey] = {};
+    for (const key in this.attributes) {
+      if (!attributes[key].virtual) this[columnAttributesKey][key] = attributes[key];
+    }
+    return this[columnAttributesKey];
+  }
+
+  /**
+   * get actual update/insert columns to avoid empty insert or update
+   * @param {Object} data 
+   * @returns 
+   */
+  static _getColumns(data) {
+    if (!Object.keys(data).length) return data;
+    const attributes = this.columnAttributes;
+    const res = {};
+    for (const key in data) {
+      if (attributes[key]) res[key] = data[key];
+    }
+    return res;
   }
 
   getRaw(key) {
@@ -580,7 +610,10 @@ class Bone {
       if (this.changed(name)) data[name] = this.attribute(name);
     }
 
-    if (Object.keys(data).length === 0) return Promise.resolve(0);
+    if (!Object.keys(Model._getColumns(data)).length) {
+      this.syncRaw();
+      return Promise.resolve(0);
+    }
 
     const { createdAt, updatedAt } = Model.timestamps;
 
@@ -660,7 +693,10 @@ class Bone {
       }
     }
 
-    if (Object.keys(changes).length === 0) return Promise.resolve(0);
+    if (!Object.keys(Model._getColumns(changes)).length) {
+      this.syncRaw();
+      return Promise.resolve(0);
+    }
     if (this[primaryKey] == null) {
       throw new Error(`unset primary key ${primaryKey}`);
     }
@@ -718,7 +754,6 @@ class Bone {
     for (const name in attributes) {
       const value = this.attribute(name);
       const { defaultValue } = attributes[name];
-      // console.log(attributes[name], name, defaultValue);
       if (value != null) {
         data[name] = value;
       } else if (value === undefined && defaultValue != null) {
@@ -730,6 +765,11 @@ class Bone {
 
     if (opts.validate !== false) {
       this._validateAttributes(validateValues);
+    }
+
+    if (!Object.keys(Model._getColumns(data)).length) {
+      this.syncRaw();
+      return this;
     }
 
     const spell = new Spell(Model, opts).$insert(data);
@@ -859,7 +899,10 @@ class Bone {
       }
     }
 
-    if (Object.keys(data).length === 0) return Promise.resolve(0);
+    if (!Object.keys(Model._getColumns(data)).length) {
+      this.syncRaw();
+      return Promise.resolve(0);
+    }
 
     const { createdAt, updatedAt } = Model.timestamps;
 
@@ -980,6 +1023,7 @@ class Bone {
     for (const hookName of hookNames) {
       if (this[hookName]) setupSingleHook(this, hookName, this[hookName]);
     }
+    this[columnAttributesKey] = null;
   }
 
   /**
@@ -1115,6 +1159,7 @@ class Bone {
       Reflect.deleteProperty(this.prototype, originalName);
       this.loadAttribute(newName);
     }
+    this[columnAttributesKey] = null;
   }
 
   /**
@@ -1191,6 +1236,9 @@ class Bone {
     const { className } = opts;
     const Model = this.models[className];
     if (!Model) throw new Error(`unable to find model "${className}"`);
+    if (opts.foreignKey && Model.attributes[opts.foreignKey] && Model.attributes[opts.foreignKey].virtual) {
+      throw new Error(`unable to use virtual attribute ${opts.foreignKey} as foreign key in model ${Model.name}`);
+    }
 
     const { deletedAt } = this.timestamps;
     if (Model.attributes[deletedAt] && !opts.where) {
@@ -1569,6 +1617,7 @@ class Bone {
       return result;
     }, {});
 
+    this[columnAttributesKey] = null;
     Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
   }
 
@@ -1588,7 +1637,7 @@ class Bone {
       throw new Error('unable to sync model with custom physic tables');
     }
 
-    const { attributes, columns } = this;
+    const { columnAttributes: attributes, columns } = this;
     const columnMap = columns.reduce((result, entry) => {
       result[entry.columnName] = entry;
       return result;

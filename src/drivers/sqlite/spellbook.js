@@ -8,7 +8,7 @@ function renameSelectExpr(spell) {
 
   for (const token of columns) {
     if (token.type == 'id') {
-      if (!token.qualifiers && Model.attributes[token.value]) {
+      if (!token.qualifiers && Model.columnAttributes[token.value]) {
         token.qualifiers = [Model.tableAlias];
       }
       whitelist.add(token.qualifiers[0]);

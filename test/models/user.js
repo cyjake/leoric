@@ -58,6 +58,9 @@ User.init({
   birthday: {
     type: DataTypes.DATE,
   },
+  realname: {
+    type: DataTypes.VIRTUAL,
+  }
 }, {}, {
   get isValid() {
     return this.status !== 1;

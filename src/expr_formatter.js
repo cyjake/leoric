@@ -203,6 +203,9 @@ function coerceLiteral(spell, ast) {
   const attribute = model && model.attributes[firstArg.value];
 
   if (!attribute) return;
+  if (attribute.virtual) {
+    throw new Error(`unable to use virtual attribute ${attribute.name} in model ${model.name}`);
+  }
 
   for (const arg of args.slice(1)) {
     if (arg.type === 'literal') {

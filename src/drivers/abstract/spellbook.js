@@ -146,7 +146,7 @@ function qualify(spell) {
   const baseName = Model.tableAlias;
   const clarify = node => {
     if (node.type === 'id' && !node.qualifiers) {
-      if (Model.attributes[node.value]) node.qualifiers = [baseName];
+      if (Model.columnAttributes[node.value]) node.qualifiers = [baseName];
     }
   };
 
@@ -335,7 +335,7 @@ function formatDelete(spell) {
  * @param {Spell} spell
  */
 function formatInsert(spell) {
-  const { Model, sets, attributes: optAttrs, updateOnDuplicate } = spell;
+  const { Model, sets, columnAttributes: optAttrs, updateOnDuplicate } = spell;
   const { shardingKey } = Model;
   const { createdAt } = Model.timestamps;
   const { escapeId } = Model.driver;
@@ -345,22 +345,22 @@ function formatInsert(spell) {
   let values = [];
   let placeholders = [];
   if (Array.isArray(sets)) {
-    // merge records to get the big picture of involved attributes
+    // merge records to get the big picture of involved columnAttributes
     const involved = sets.reduce((result, entry) => {
       return Object.assign(result, entry);
     }, {});
-    const attributes = [];
+    const columnAttributes = [];
     if (optAttrs) {
       for (const name in optAttrs) {
-        if (involved.hasOwnProperty(name)) attributes.push(attributes[name]);
+        if (involved.hasOwnProperty(name)) columnAttributes.push(columnAttributes[name]);
       }
     } else {
       for (const name in involved) {
-        attributes.push(Model.attributes[name]);
+        columnAttributes.push(Model.columnAttributes[name]);
       }
     }
 
-    for (const entry of attributes) {
+    for (const entry of columnAttributes) {
       columns.push(entry.columnName);
       if (updateOnDuplicate && createdAt && entry.name === createdAt 
         && !(Array.isArray(updateOnDuplicate) && updateOnDuplicate.includes(createdAt))) continue;
@@ -371,11 +371,11 @@ function formatInsert(spell) {
       if (shardingKey && entry[shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
       }
-      for (const attribute of attributes) {
+      for (const attribute of columnAttributes) {
         const { name } = attribute;
         values.push(entry[name]);
       }
-      placeholders.push(`(${new Array(attributes.length).fill('?').join(',')})`);
+      placeholders.push(`(${new Array(columnAttributes.length).fill('?').join(',')})`);
     }
 
   } else {
@@ -488,7 +488,7 @@ function formatUpdate(spell) {
 function formatUpdateOnDuplicate(spell, columns) {
   const { updateOnDuplicate, uniqueKeys, Model } = spell;
   if (!updateOnDuplicate) return '';
-  const { attributes, primaryColumn } = Model;
+  const { columnAttributes, primaryColumn } = Model;
   const { escapeId } = Model.driver;
   const actualUniqueKeys = [];
 
@@ -499,9 +499,9 @@ function formatUpdateOnDuplicate(spell, columns) {
   } else {
     // conflict_target must be unique
     // get all unique keys
-    if (attributes) {
-      for (const key in attributes) {
-        const att = attributes[key];
+    if (columnAttributes) {
+      for (const key in columnAttributes) {
+        const att = columnAttributes[key];
         // use the first unique key
         if (att.unique) {
           actualUniqueKeys.push(escapeId(att.columnName));
@@ -515,9 +515,9 @@ function formatUpdateOnDuplicate(spell, columns) {
   }
 
   if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-    columns = updateOnDuplicate.map(column => (attributes[column] && attributes[column].columnName )|| column);
+    columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName )|| column);
   } else if (!columns.length) {
-    columns = Object.values(attributes).map(({ columnName }) => columnName);
+    columns = Object.values(columnAttributes).map(({ columnName }) => columnName);
   }
   const updateKeys = columns.map((column) => `${escapeId(column)}=EXCLUDED.${escapeId(column)}`);
 
