@@ -444,6 +444,23 @@ describe('=> Basic', () => {
       assert.deepEqual(post.changes(), {});
     });
 
+    it('bone.syncRaw(): should ignore Invalid Date from db', async () => {
+      if (Post.driver.options.client !== 'mysql2') return;
+      const sql_mode_res = await Post.driver.query('SELECT @@SESSION.sql_mode as sql_mode');
+      const sql_mode = sql_mode_res.rows[0].sql_mode;
+      await Post.driver.query('set SESSION sql_mode=""');
+      const post = await Post.create({ title: 'Lothric' });
+      await Post.driver.query('UPDATE articles SET gmt_create = ? where id = ?', [ '0000-00-00 00:00:00', post.id ] );
+      await post.reload();
+      assert.deepEqual(post.createdAt.toString(), 'Invalid Date');
+      post.title = 'halo';
+      await assert.doesNotReject(async () => {
+        await post.save();
+      });
+      assert.equal(post.title, 'Halo');
+      await Post.driver.query('set SESSION sql_mode=?', [ sql_mode ]);
+    });
+
   });
 
   // Attribute get/set

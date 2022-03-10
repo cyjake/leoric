@@ -573,7 +573,14 @@ class Bone {
     for (const name of Object.keys(attributes)) {
       const attribute = attributes[name];
       // Take advantage of uncast/cast to create new copy of value
-      const value = attribute.uncast(this.#raw[name]);
+      let value;
+      try {
+        value = attribute.uncast(this.#raw[name]);
+      } catch (error) {
+        console.error(error);
+        // do not interrupt sync raw
+        value = this.#raw[name];
+      }
       if (this.#rawSaved[name] !== undefined) {
         this.#rawPrevious[name] = this.#rawSaved[name];
       } else if (this.#rawPrevious[name] === undefined && this.#raw[name] != null) {
