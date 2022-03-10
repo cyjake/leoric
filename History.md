@@ -1,3 +1,12 @@
+2.3.0 / 2022-03-10
+==================
+
+## What's Changed
+* feat: model declaration with decorators by @cyjake in https://github.com/cyjake/leoric/pull/287
+* feat: add VIRTUAL data type by @JimmyDaddy in https://github.com/cyjake/leoric/pull/289
+* fix: create instance dirty check rule fix by @JimmyDaddy in https://github.com/cyjake/leoric/pull/290
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.2.3...v2.3.0
 2.2.3 / 2022-03-01
 ==================
 
