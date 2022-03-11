@@ -2,6 +2,7 @@
 
 const { setupSingleHook } = require('../setup_hooks');
 const { compose, isPlainObject } = require('../utils');
+const Raw = require('../raw');
 
 function translateOptions(spell, options) {
   const { attributes, where, group, order, offset, limit, include, having } = options;
@@ -18,7 +19,7 @@ function translateOptions(spell, options) {
   if (having) spell.$having(having);
 
   if (order) {
-    if (typeof order === 'string') {
+    if (typeof order === 'string' || order instanceof Raw) {
       spell.$order(order);
     } else if (Array.isArray(order) && order.length) {
       if (order.some(item => Array.isArray(item))) {

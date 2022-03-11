@@ -61,9 +61,10 @@ describe('=> Sequelize adapter', () => {
   before(async () => {
     await connect({
       Bone: Spine,
-      dialect: 'sqlite',
-      database: '/tmp/leoric.sqlite3',
       models: [ Book, Post ],
+      database: 'leoric',
+      user: 'root',
+      port: process.env.MYSQL_PORT,
     });
   });
 
@@ -347,6 +348,23 @@ describe('=> Sequelize adapter', () => {
     });
     assert.equal(posts.length, 1);
     assert.equal(posts[0].title, 'Tyrael');
+
+    // order raw
+    await Promise.all([
+      { title: 'Leah1', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael1' },
+    ].map(opts => Post.create(opts)));
+    posts = await Post.findAll();
+    assert.equal(posts.length, 4);
+    const ids = [ posts[3].id, posts[1].id, posts[2].id, posts[0].id ];
+    posts = await Post.findAll({
+      order: raw(`FIND_IN_SET(id, '${ids.join(',')}')`),
+    });
+    assert.equal(posts[0].id, ids[0]);
+    assert.equal(posts[1].id, ids[1]);
+    assert.equal(posts[2].id, ids[2]);
+    assert.equal(posts[3].id, ids[3]);
+
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -1046,7 +1064,7 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(post.previous(), {
       title: 'By three they come',
       id: post.id,
-      isPrivate: false,
+      isPrivate: 0,
       updatedAt: prevUpdatedAt,
       createdAt: post.createdAt,
       wordCount: 0,
@@ -1099,7 +1117,7 @@ describe('=> Sequelize adapter', () => {
     post.title = 'Hello there';
     assert.deepEqual(post.changed(), [ 'title' ]);
     post.content = 'a';
-    assert.deepEqual(post.changed(), [ 'title', 'content' ]);
+    assert.deepEqual(post.changed().sort(), [ 'title', 'content' ].sort());
     await new Promise(resolve => setTimeout(resolve, 10));
     await post.update();
     assert.deepEqual(post.previousChanged().sort(), [ 'title', 'content', 'updatedAt' ].sort());
@@ -1252,6 +1270,9 @@ describe('Model scope', () => {
       database: '/tmp/leoric.sqlite3',
       models: [ Post, User ],
     });
+    await Post.truncate();
+    await User.truncate();
+
   });
 
   beforeEach(async () => {
@@ -1457,6 +1478,7 @@ describe('Model.init with getterMethods and setterMethods', () => {
       database: '/tmp/leoric.sqlite3',
       models: [ User ],
     });
+    await User.truncate();
   });
 
   beforeEach(async () => {
@@ -1579,6 +1601,7 @@ describe('validator should work', () => {
       user: 'root',
       port: process.env.MYSQL_PORT,
     });
+    await User.truncate();
   });
 
   afterEach(async () => {
@@ -1823,6 +1846,7 @@ describe('Model.find({ hint })', () => {
       user: 'root',
       port: process.env.MYSQL_PORT,
     });
+    await Post.truncate();
   });
 
   after(async () => {
@@ -1866,6 +1890,7 @@ describe('Transaction', function() {
       user: 'root',
       port: process.env.MYSQL_PORT,
     });
+    await User.truncate();
   });
 
   after(async () => {
@@ -1906,6 +1931,7 @@ describe('mysql only', () => {
       user: 'root',
       port: process.env.MYSQL_PORT,
     });
+    await Post.truncate();
   });
 
   after(async () => {
