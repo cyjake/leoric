@@ -1940,7 +1940,6 @@ describe('mysql only', () => {
   });
 
   describe('Model.update with order, limit (mysql only)', () => {
-
     it('should work', async () => {
 
       let i = 0;
@@ -1973,6 +1972,32 @@ describe('mysql only', () => {
       assert.equal(allPosts[3].title, 'Throne');
       await Post.truncate();
     });
+  });
+
+  it('bulkUpdate should not duplicate query conditions', async () => {
+    const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
+    const clock = sinon.useFakeTimers(fakeDate);
+
+    assert.notEqual(Post.bulkUpdate({ title: 'Pilot' }, {
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2
+    }).toSqlString(), "UPDATE `articles` SET `title` = 'Pilot', `gmt_modified` = '2012-12-14 12:00:00.000' WHERE `title` = 'halo' AND `author_id` = 1 AND `title` = 'halo' AND `author_id` = 1 LIMIT 2");
+
+    assert.equal(Post.bulkUpdate({ title: 'Pilot' }, {
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2
+    }).toSqlString(), "UPDATE `articles` SET `title` = 'Pilot', `gmt_modified` = '2012-12-14 12:00:00.000' WHERE `title` = 'halo' AND `author_id` = 1 LIMIT 2");
+    clock.restore();
   });
 
   describe('Model.destroy with order, limit (mysql only)', () => {

@@ -497,7 +497,9 @@ module.exports = Bone => {
       const { where, paranoid = false, validate } = options;
       const whereConditions = where || {};
       const spell = super.update(whereConditions, values, { validate, hooks: false, ...options });
-      translateOptions(spell, options);
+      const transOptions = { ...options };
+      delete transOptions.where;
+      translateOptions(spell, transOptions);
       if (!paranoid) return spell.unparanoid;
       return spell;
     }
