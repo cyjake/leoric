@@ -318,10 +318,12 @@ module.exports = Bone => {
     }
 
     // proxy to class.destroy({ individualHooks=false }) see https://github.com/sequelize/sequelize/blob/4063c2ab627ad57919d5b45cc7755f077a69fa5e/lib/model.js#L2895  before(after)BulkDestroy
-    static async bulkDestroy(options = {}) {
+    static bulkDestroy(options = {}) {
       const { where, force } = options;
       const spell = this._remove(where || {}, force, { ...options });
-      translateOptions(spell, options);
+      const transOptions = { ...options };
+      delete transOptions.where;
+      translateOptions(spell, transOptions);
       return spell;
     }
 

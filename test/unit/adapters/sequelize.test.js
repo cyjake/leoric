@@ -2000,6 +2000,55 @@ describe('mysql only', () => {
     clock.restore();
   });
 
+  it('bulkDestroy should not duplicate query conditions', async () => {
+    const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
+    const clock = sinon.useFakeTimers(fakeDate);
+
+    assert.notEqual(Post.bulkDestroy({
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2
+    }).toSqlString(), "UPDATE `articles` SET `gmt_deleted` = '2012-12-14 12:00:00.000' WHERE `title` = 'halo' AND `author_id` = 1 AND `title` = 'halo' AND `author_id` = 1 AND `gmt_deleted` IS NULL LIMIT 2");
+
+    assert.equal(Post.bulkDestroy({
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2
+    }).toSqlString(), "UPDATE `articles` SET `gmt_deleted` = '2012-12-14 12:00:00.000' WHERE `title` = 'halo' AND `author_id` = 1 AND `gmt_deleted` IS NULL LIMIT 2");
+
+    assert.notEqual(Post.bulkDestroy({
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2,
+      force: true,
+    }).toSqlString(), "DELETE FROM `articles` WHERE `title` = 'halo' AND `author_id` = 1 AND `title` = 'halo' AND `author_id` = 1 LIMIT 2");
+
+    assert.equal(Post.bulkDestroy({
+      where: {
+        title: 'halo',
+        $or: {
+          authorId: 1
+        }
+      },
+      limit: 2,
+      force: true,
+    }).toSqlString(), "DELETE FROM `articles` WHERE `title` = 'halo' AND `author_id` = 1 LIMIT 2");
+
+    clock.restore();
+  });
+
   describe('Model.destroy with order, limit (mysql only)', () => {
 
     it('should work', async () => {
