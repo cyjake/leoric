@@ -12,7 +12,7 @@ describe('=> Data Types', () => {
     STRING, TEXT,
     BOOLEAN,
     DATE, DATEONLY,
-    TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT,
+    TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT, DECIMAL,
     JSON, JSONB,
     BLOB, BINARY, VARBINARY, VIRTUAL,
   } = DataTypes;
@@ -75,6 +75,15 @@ describe('=> Data Types', () => {
   it('BIGINT', () => {
     assert.equal(new BIGINT().dataType, 'bigint');
     assert.equal(new BIGINT().UNSIGNED.toSqlString(), 'BIGINT UNSIGNED');
+  });
+
+  it('DECIMAL', () => {
+    assert.equal(new DECIMAL().dataType, 'decimal');
+    assert.equal(new DECIMAL(5).toSqlString(), 'DECIMAL(5)');
+    assert.equal(new DECIMAL(5, 2).UNSIGNED.toSqlString(), 'DECIMAL(5,2) UNSIGNED');
+    assert.equal(new DECIMAL().UNSIGNED.toSqlString(), 'DECIMAL UNSIGNED');
+    assert.equal(new DECIMAL(5).UNSIGNED.toSqlString(), 'DECIMAL(5) UNSIGNED');
+    assert.equal(new DECIMAL(5, 2).UNSIGNED.toSqlString(), 'DECIMAL(5,2) UNSIGNED');
   });
 
   it('TEXT', async () => {
@@ -284,6 +293,8 @@ describe('=> DataTypes.findType()', () => {
     assert.ok(DataTypes.findType('mediumint') instanceof MEDIUMINT);
     assert.ok(DataTypes.findType('integer') instanceof INTEGER);
     assert.equal(DataTypes.findType('bigint').toSqlString(), 'BIGINT');
+    assert.equal(DataTypes.findType('decimal(5)').toSqlString(), 'DECIMAL(5)');
+    assert.equal(DataTypes.findType('decimal(5,2)').toSqlString(), 'DECIMAL(5,2)');
   });
 
   it('unknown type', async () => {

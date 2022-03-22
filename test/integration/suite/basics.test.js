@@ -344,7 +344,7 @@ describe('=> Basic', () => {
       // should return false after first persisting
       expect(user.previousChanged('realname')).to.be(true);
       assert.deepEqual(user.previousChanged().sort(), [ 'id', 'email', 'nickname', 'status', 'level', 'createdAt', 'realname' ].sort());
-      assert.deepEqual(user.previousChanges(), { 
+      assert.deepEqual(user.previousChanges(), {
         id: [ null, user.id ],
         email: [ null, 'ee@yy.com' ],
         level: [ null, 1 ],
@@ -386,7 +386,7 @@ describe('=> Basic', () => {
       const post = new Post({ title: 'Untitled' });
       assert.deepEqual(post.previousChanges(), {});
       await post.save();
-      assert.deepEqual(post.previousChanges(), { 
+      assert.deepEqual(post.previousChanges(), {
         id: [ null, post.id ],
         createdAt: [ null, post.createdAt ],
         isPrivate: [ null, Post.driver.type === 'mysql'? 0 : false ] ,
@@ -930,7 +930,7 @@ describe('=> Basic', () => {
       expect(foundPost2.id).to.equal(post.id);
       expect(foundPost2.updatedAt.getTime()).to.be.above(foundPost1.updatedAt.getTime());
 
-      await Post.update({ title: 'Yhorm' }, { updatedAt: new Date() }, { silent: true });
+      await Post.update({ title: 'Yhorm' }, { updatedAt: Date.now() + 1 }, { silent: true });
       const foundPost3 = await Post.findOne({ title: 'Yhorm' });
       expect(foundPost3.id).to.equal(post.id);
       expect(foundPost3.updatedAt.getTime()).to.be.above(foundPost2.updatedAt.getTime());
@@ -968,7 +968,7 @@ describe('=> Basic', () => {
       const updatedAt3 = post.updatedAt.getTime();
       expect(updatedAt3).to.be.above(updatedAt2);
 
-      await post.update({ updatedAt: new Date() }, { silent: true });
+      await post.update({ updatedAt: Date.now() + 1 }, { silent: true });
       await post.reload();
       const updatedAt4 = post.updatedAt.getTime();
       expect(updatedAt4).to.be.above(updatedAt3);
@@ -1230,7 +1230,7 @@ describe('=> Basic', () => {
       const post1 = await Post.findOne('id = ?', posts[0].id).unparanoid;
       assert(post1.deletedAt);
 
-      deleteCount = await Post.remove({ 
+      deleteCount = await Post.remove({
         word_count: {
           $gte: 0
         }

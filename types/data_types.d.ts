@@ -11,6 +11,7 @@ export default class DataType {
   static STRING: typeof STRING & INVOKABLE<STRING>;
   static INTEGER: typeof INTEGER & INVOKABLE<INTEGER>;
   static BIGINT: typeof BIGINT & INVOKABLE<BIGINT>;
+  static DECIMAL: typeof DECIMAL & INVOKABLE<DECIMAL>;
   static TEXT: typeof TEXT & INVOKABLE<TEXT>;
   static BLOB: typeof BLOB & INVOKABLE<BLOB>;
   static JSON: typeof JSON & INVOKABLE<JSON>;
@@ -31,7 +32,7 @@ declare class STRING extends DataType {
 }
 
 declare class INTEGER extends DataType {
-  dataType: 'integer' | 'bigint';
+  dataType: 'integer' | 'bigint' | 'decimal';
   length: number;
   constructor(length: number);
   get UNSIGNED(): this;
@@ -40,6 +41,13 @@ declare class INTEGER extends DataType {
 
 declare class BIGINT extends INTEGER {
   dataType: 'bigint';
+}
+
+declare class DECIMAL extends INTEGER {
+  dataType: 'decimal';
+  precision: number;
+  scale: number;
+  constructor(precision: number, scale: number);
 }
 
 declare class TEXT extends DataType {

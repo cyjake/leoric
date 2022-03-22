@@ -28,6 +28,10 @@ function formatAddColumn(driver, columnName, attribute) {
   return `ADD COLUMN ${attribute.toSqlString()}`;
 }
 
+function formatDropColumn(driver, columnName) {
+  return `DROP COLUMN ${driver.escapeId(columnName)}`;
+}
+
 module.exports = {
   ...schema,
 
@@ -85,7 +89,9 @@ module.exports = {
     const { escapeId } = this;
     const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
     const actions = Object.keys(changes).map(name => {
-      const attribute = new Attribute(name, changes[name]);
+      const options = changes[name];
+      if (options.remove) return formatDropColumn(this, name);
+      const attribute = new Attribute(name, options);
       const { columnName } = attribute;;
       return attribute.modify
         ? formatAlterColumns(this, columnName, attribute).join(', ')

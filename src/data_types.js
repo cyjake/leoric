@@ -17,17 +17,20 @@ class DataType {
     const {
       STRING, TEXT,
       DATE, DATEONLY,
-      TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT,
+      TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT, DECIMAL,
       BOOLEAN,
       BINARY, VARBINARY, BLOB,
     } = this;
-    const [ , dataType, appendix ] = columnType.match(/(\w+)(?:\((\d+)\))?/);
-    const length = appendix && parseInt(appendix, 10);
+    const [ , dataType, ...matches ] = columnType.match(/(\w+)(?:\((\d+)(?:,(\d+))?\))?/);
+    const params = [];
+    for (let i = 0; i < matches.length; i++) {
+      if (matches[i] != null) params[i] = parseInt(matches[i], 10);
+    }
 
     switch (dataType) {
       case 'varchar':
       case 'char':
-        return new STRING(length);
+        return new STRING(...params);
       // longtext is only for MySQL
       case 'longtext':
         return new TEXT('long');
@@ -40,30 +43,31 @@ class DataType {
       case 'datetime':
       case 'timestamp':
         // new DATE(precision)
-        return new DATE(length);
+        return new DATE(...params);
       case 'decimal':
+        return new DECIMAL(...params);
       case 'int':
       case 'integer':
       case 'numeric':
-        return new INTEGER(length);
+        return new INTEGER(...params);
       case 'mediumint':
-        return new MEDIUMINT(length);
+        return new MEDIUMINT(...params);
       case 'smallint':
-        return new SMALLINT(length);
+        return new SMALLINT(...params);
       case 'tinyint':
-        return new TINYINT(length);
+        return new TINYINT(...params);
       case 'bigint':
-        return new BIGINT(length);
+        return new BIGINT(...params);
       case 'boolean':
         return new BOOLEAN();
       // mysql only
       case 'binary':
       // postgres only
       case 'bytea':
-        return new BINARY(length);
+        return new BINARY(...params);
       // mysql only
       case 'varbinary':
-        return new VARBINARY(length);
+        return new VARBINARY(...params);
       case 'longblob':
         return new BLOB('long');
       case 'mediumblob':
@@ -270,6 +274,41 @@ class BIGINT extends INTEGER {
   constructor(length) {
     super(length);
     this.dataType = 'bigint';
+  }
+}
+
+/**
+ * fixed-point decimal types
+ * @example
+ * DECIMAL
+ * DECIMAL.UNSIGNED
+ * DECIMAL(5, 2)
+ * @param {number} precision
+ * @param {number} scale
+ * - https://dev.mysql.com/doc/refman/8.0/en/fixed-point-types.html
+ */
+class DECIMAL extends INTEGER {
+  constructor(precision, scale) {
+    super();
+    this.dataType = 'decimal';
+    this.precision = precision;
+    this.scale = scale;
+  }
+
+  toSqlString() {
+    const { precision, scale, unsigned, zerofill } = this;
+    const dataType = this.dataType.toUpperCase();
+    const chunks = [];
+    if (precision > 0 && scale >= 0) {
+      chunks.push(`${dataType}(${precision},${scale})`);
+    } else if (precision > 0) {
+      chunks.push(`${dataType}(${precision})`);
+    } else {
+      chunks.push(dataType);
+    }
+    if (unsigned) chunks.push('UNSIGNED');
+    if (zerofill) chunks.push('ZEROFILL');
+    return chunks.join(' ');
   }
 }
 
@@ -494,6 +533,7 @@ const DataTypes = {
   MEDIUMINT,
   INTEGER,
   BIGINT,
+  DECIMAL,
   DATE,
   DATEONLY,
   BOOLEAN,
