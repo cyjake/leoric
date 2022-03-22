@@ -1,3 +1,16 @@
+2.3.1 / 2022-03-22
+==================
+
+## What's Changed
+* fix: mysql2 Invalid Date compatible by @JimmyDaddy in https://github.com/cyjake/leoric/pull/291
+* fix: order by raw in sequelize mode by @JimmyDaddy in https://github.com/cyjake/leoric/pull/292
+* fix: bulk update query conditions duplicated in sequelize mode by @JimmyDaddy in https://github.com/cyjake/leoric/pull/293
+* fix: bulk destroy query conditions duplicated in sequelize mode by @JimmyDaddy in https://github.com/cyjake/leoric/pull/295
+* fix: drop column if not defined in attributes when alter table by @cyjake in https://github.com/cyjake/leoric/pull/296
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.3.0...v2.3.1
+
 2.3.0 / 2022-03-10
 ==================
 
