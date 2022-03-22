@@ -37,16 +37,24 @@ function looseReadonly(props) {
 
 function compare(attributes, columnMap) {
   const diff = {};
+  const columnNames = new Set();
 
   for (const name in attributes) {
     const attribute = attributes[name];
     const { columnName } = attribute;
+    columnNames.add(columnName);
 
     if (!attribute.equals(columnMap[columnName])) {
       diff[name] = {
         modify: columnMap.hasOwnProperty(columnName),
         ...attribute,
       };
+    }
+  }
+
+  for (const columnName in columnMap) {
+    if (!columnNames.has(columnName)) {
+      diff[columnName] = { remove: true };
     }
   }
 
@@ -254,8 +262,8 @@ class Bone {
 
   /**
    * get actual update/insert columns to avoid empty insert or update
-   * @param {Object} data 
-   * @returns 
+   * @param {Object} data
+   * @returns
    */
   static _getColumns(data) {
     if (!Object.keys(data).length) return data;

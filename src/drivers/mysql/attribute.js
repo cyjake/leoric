@@ -15,8 +15,13 @@ class MysqlAttribute extends Attribute {
   }
 
   toSqlString() {
-    const { allowNull, defaultValue, primaryKey } = this;
-    const { columnName, type, columnType } = this;
+    const {
+      columnName,
+      type, columnType,
+      allowNull, defaultValue,
+      primaryKey,
+      comment,
+    } = this;
 
     const chunks = [
       escapeId(columnName),
@@ -31,6 +36,10 @@ class MysqlAttribute extends Attribute {
 
     if (defaultValue != null) {
       chunks.push(`DEFAULT ${escape(defaultValue)}`);
+    }
+
+    if (typeof comment === 'string') {
+      chunks.push(`COMMENT ${escape(comment)}`);
     }
 
     return chunks.join(' ');

@@ -19,9 +19,12 @@ module.exports = {
     const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
 
     const actions = Object.keys(attributes).map(name => {
-      const attribute = new Attribute(name, attributes[name]);
+      const options = attributes[name];
+      // { [columnName]: { remove: true } }
+      if (options.remove) return `DROP COLUMN ${escapeId(name)}`;
+      const attribute = new Attribute(name, options);
       return [
-        attribute.modify ? 'MODIFY COLUMN' : 'ADD COLUMN',
+        options.modify ? 'MODIFY COLUMN' : 'ADD COLUMN',
         attribute.toSqlString(),
       ].join(' ');
     });

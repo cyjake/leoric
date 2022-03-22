@@ -140,20 +140,22 @@ describe('=> Bone.sync()', () => {
     await Bone.driver.dropTable('notes');
   });
 
-  after(async () => {
-    await Bone.driver.dropTable('notes');
-  });
-
   it('should create table if not exist', async () => {
     class Note extends Bone {};
-    Note.init({ title: STRING, body: TEXT });
+    Note.init({
+      title: { type: STRING, comment: '标题' },
+      body: TEXT,
+    });
     assert(!Note.synchronized);
 
     await Note.sync();
     assert(Note.synchronized);
     assert.equal(Note.table, 'notes');
     await checkDefinitions('notes', {
-      title: { dataType: 'varchar' },
+      title: {
+        dataType: 'varchar',
+        comment: Bone.driver.type === 'mysql' ? '标题' : undefined,
+      },
     });
   });
 
@@ -238,6 +240,24 @@ describe('=> Bone.sync()', () => {
     assert(Note.synchronized);
     await checkDefinitions('notes', {
       body: { dataType: 'text' },
+    });
+  });
+
+  it('should drop column if removed with alter', async () => {
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING, allowNull: false },
+      body: { type: STRING },
+      summary: { type: STRING },
+    });
+    class Note extends Bone {};
+    Note.init({ title: STRING, body: TEXT });
+    assert(!Note.synchronized);
+    await Note.sync({ alter: true });
+    assert(Note.synchronized);
+    await checkDefinitions('notes', {
+      title: { dataType: 'varchar', allowNull: true },
+      body: { dataType: 'text' },
+      summary: null,
     });
   });
 });

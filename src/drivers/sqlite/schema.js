@@ -108,7 +108,8 @@ module.exports = {
     for (let i = 0; i < tables.length; i++) {
       const table = tables[i];
       const { rows } = results[i];
-      const columns = rows.map(({ name, type, notnull, dflt_value, pk }) => {
+      const columns = rows.map(row => {
+        const { name, type, notnull, dflt_value, pk } = row;
         const columnType = type.toLowerCase();
         const [, dataType, precision ] = columnType.match(rColumnType);
         const primaryKey = pk === 1;
@@ -145,6 +146,8 @@ module.exports = {
     const { escapeId } = this;
     const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
     const attributes = Object.keys(changes).map(name => {
+      const options = changes[name];
+      if (options.remove) return { columnName: name, remove: true };
       return new Attribute(name, changes[name]);
     });
 
@@ -157,7 +160,12 @@ module.exports = {
     // SQLite can only add one column a time
     // - https://www.sqlite.org/lang_altertable.html
     for (const attribute of attributes) {
-      await this.query(chunks.concat(`ADD COLUMN ${attribute.toSqlString()}`).join(' '));
+      if (attribute.remove) {
+        const { columnName } = attribute;
+        await this.query(chunks.concat(`DROP COLUMN ${this.escapeId(columnName)}`).join(' '));
+      } else {
+        await this.query(chunks.concat(`ADD COLUMN ${attribute.toSqlString()}`).join(' '));
+      }
     }
   },
 

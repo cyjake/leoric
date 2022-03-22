@@ -411,7 +411,6 @@ describe('=> Bone', function() {
       // MySQL 5.x returns column type with length regardless specified or not
       assert.ok(result.word_count.columnType.startsWith('mediumint'));
       assert(!result.halo);
-
     });
   });
 

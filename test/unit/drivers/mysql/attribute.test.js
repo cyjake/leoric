@@ -25,4 +25,12 @@ describe('=> Attribute (mysql)', function() {
     });
     assert.equal(attribute.defaultValue, null);
   });
+
+  it('should support COMMENT', async function() {
+    const attribute = new Attribute('createdAt', {
+      type: DATE,
+      comment: '创建时间'
+    });
+    assert.equal(attribute.toSqlString(), "`created_at` DATETIME COMMENT '创建时间'");
+  });
 });
