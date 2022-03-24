@@ -35,6 +35,8 @@ function translateOptions(spell, options) {
       } else if (order.length && order[0]) {
         // ['created_at', 'asc']
         spell.$order(order[0], order[1] || '');
+      } else if (order instanceof Raw) {
+        spell.$order(order);
       }
     }
   }
