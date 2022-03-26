@@ -365,4 +365,4 @@ LEFT JOIN tags
 
 ## 关联项目
 
-使用 [egg framework](https://eggjs.org/) 的开发者，不妨通过 [egg-orm](https://github.com/eggjs/egg-orm) 插件来使用 Leoric。
+使用 [egg framework](https://eggjs.org/) 的开发者，不妨通过 [egg-orm]({% link zh/setup/egg.md %}) 插件来使用 Leoric。
