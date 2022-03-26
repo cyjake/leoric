@@ -119,3 +119,66 @@ exports.orm = {
 ```
 
 可以参考 [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})一文了解更多有关内容。
+
+## 示例代码
+
+### 使用 TypeScript 编写
+
+参考 [eggjs/egg-orm!examples/typescript](https://github.com/eggjs/egg-orm/tree/master/examples/typescript) 中的示例代码，使用 TypeScript 编写数据模型时，可以使用 Leoric 提供的 Column、BelongsTo、HasMany、HasOne 等装饰器：
+
+```ts
+// app/model/user.ts
+import { Application } from 'egg';
+import PostFactory from './post';
+
+export default function(app: Application) {
+  const { Bone, Column, DataTypes: { STRING } } = app.model;
+
+  class User extends Bone {
+    @Column({ allowNull: false })
+    nickname: string;
+
+    @Column()
+    email: string;
+
+    @Column()
+    createdAt: Date;
+
+    @HasMany();
+    posts: ReturnType<PostFactory>[];
+  }
+
+  return User;
+};
+```
+
+在 Controller 或者 Service 中调用数据模型层时，就可以利用到 TypeScript 类型系统：
+
+```ts
+// app/controller/users.ts
+import { Application } from 'egg';
+import { strict as assert } from 'assert';
+
+export default function(app: Application) {
+  return class UsersController extends app.Controller {
+    async show() {
+      const user = await this.ctx.model.User.findOne(this.ctx.params.id).with('posts');
+      assert(user);
+      assert(Array.isArray(user.posts));
+      this.ctx.body = user;
+    }
+
+    async create() {
+      const user = await app.model.User.create({
+        nickname: this.ctx.request.body.nickname,
+        email: this.ctx.request.body.email,
+      });
+      this.ctx.body = user;
+    }
+  };
+}
+```
+
+### 使用 JavaScript 编写
+
+参考 [eggjs/egg-orm!examples/basic](https://github.com/eggjs/egg-orm/tree/master/examples/basic) 中的示例代码。

@@ -372,5 +372,5 @@ If you are interested in fixing issues and contributing directly to the code bas
 
 ## Related Projects
 
-If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin.
+If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm]({% link setup/egg.md %}) plugin.
 
