@@ -128,7 +128,7 @@ class Shop extends Bone {
 }
 ```
 
-还可以使用 `static get primaryKey()` 指定主键名：
+还可以使用 `static primaryKey` 指定主键名：
 
 ```js
 class Shop extends Bone {
@@ -337,8 +337,77 @@ await Shop.remove({ name: 'Barracks' })
 
 ### attribute()
 
+默认提供 `model.attribute(name)` 和 `model.attribute(name, value)` 方法来读写属性：
+
+```js
+const shop = new Shop({ name: 'FamilyMart' });
+assert.equal(shop.attribute('name'), 'FamilyMart');
+shop.attribute('name', '7-Eleven');
+assert.equal(shop.attribute('name'), '7-Eleven');
+```
+
+对于模型属性，我们还默认提供 getter 和 setter，因此一般不需要用到 `model.attribute()` 方法。需要覆盖属性的 getter 或者 setter，这个方法就派上用场了：
+
+```js
+class Shop extends Bone {
+  set name(value) {
+    if ([ 'FamilyMart', '7-Eleven' ].includes(value)) {
+      this.attribute('name', value);
+    }
+    throw new Error(`unknown shop name: ${value}`);
+  }
+}
+```
+
+应当避免在属性的 getter 或者 setter 中调用其他属性的 getter 或者 setter 方法，容易出现循环调用的情况，可以一律使用 `model.attribute()` 方法来替代。
+
 ### getter / setter
 
+默认情况下，我们会给模型属性生成对应的 getter / setter，例如：
+
+```js
+class Shop extends Bone {
+  static attributes = {
+    name: STRING,
+    createdAt: DATE,
+    updatedAt: DATE,
+  }
+}
+```
+
+使用这个模型时，可以直接读取或者设置 `name`：
+
+```js
+const shop = new Shop({ name: 'FamilyMart' });
+assert.equal(shop.name, 'FamilyMart');
+shop.name = '7-Eleven';
+assert.equal(shop.name, '7-Eleven');
+```
+
+可以只覆盖属性的 getter / setter 中的一个，模型会在初始化的时候自动补上剩余的部分，例如：
+
+```js
+class Shop extends Bone {
+  static attributes = {
+    name: STRING,
+    createdAt: DATE,
+    updatedAt: DATE,
+  }
+  set name(value) {
+    if ([ 'FamilyMart', '7-Eleven' ].includes(value)) {
+      this.attribute('name', value);
+    }
+    throw new Error(`unknown shop name: ${value}`);
+  }
+}
+```
+
+此时仍然可以直接读取 `name`：
+
+```js
+const shop = new Shop({ name: 'FamilyMart' });
+assert.equal(shop.name, 'FamilyMart');
+```
 
 ## 脏检查
 
@@ -437,6 +506,99 @@ user.previousChanged('login');  // => { name: [ null, 'jimmy' ] }
 
 ## 数据校验
 
+可以通过 `allowNull` 选项开启数据库自带的非空校验：
+
+```js
+class Shop extends Bone {
+  static attributes = {
+    name: { allowNull: false },
+  }
+}
+```
+
+也可以使用 Leoric 集成的 validator.js 提供的校验规则：
+
+```js
+class Shop extends Bone {
+  static attributes = {
+    name: {
+      type: STRING,
+      validate: {
+        notIn: [['FamilyMart', '7-Eleven']], // 不是其中任何一个
+      },
+    },
+  }
+}
+```
+
+还可以在模型属性定义中自定义验证器：
+
+```js
+class User extends Bone {
+  static attributes = {
+    desc: {
+      type: DataTypes.STRING,
+      validate: {
+        isValid() {
+          if (this.desc && this.desc.length < 2) { // 可通过 this 访问属性值
+            throw new Error('Invalid desc');
+          }
+        },
+      }
+    }
+  }
+}
+```
+
+详细使用参考《[数据校验]({% link zh/validations.md %})》 帮助文档。
+
 ## 钩子
 
+可以通过声明对应的静态方法来配置钩子，具体作用顾名思义：
+
+```js
+class Shop extends Bone {
+  static beforeCreate() {}
+  static afterUpdate() {}
+});
+```
+
+可配置的钩子列表和详细使用参考《[钩子]({% link zh/hooks.md %})》 帮助文档。
+
 ## 迁移任务
+
+使用 `realm.createMigrationFile(name)` 来创建迁移任务：
+
+```js
+const Realm = require('leoric');
+const realm = new Realm({
+  client: 'mysql',
+  migrations: 'database/migrations',
+});
+
+await realm.createMigrationFile('create-products');
+// 将会在 database/migrations 目录下创建文件名类似 20210621170235-create-products.js 的文件
+```
+
+使用 `realm.migrate()` 执行迁移任务，也可以指定步数来控制执行的任务数量，比如 `realm.migrate(1)` 单步执行；还可以使用 `realm.rollback()` 回滚迁移任务，同样支持指定步数来控制回滚的任务数量。
+
+迁移任务需要实现对应的 `async up()` 和 `async down()`，例如下面这个用来创建产品表的迁移任务：
+
+```js
+module.exports = {
+  async up(driver, DataTypes) {
+    const { BIGINT, STRING, TEXT } = DataTypes;
+    await driver.createTable('products', {
+      id: { type: BIGINT, primaryKey: true },
+      name: STRING,
+      description: TEXT,
+    });
+  },
+
+  async down(driver, DataTypes) {
+    await driver.dropTable('products');
+  },
+}
+```
+
+详细使用参考《[迁移任务]({% link zh/migrations.md %})》 帮助文档。

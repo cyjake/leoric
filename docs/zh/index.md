@@ -346,7 +346,8 @@ LEFT JOIN tags
 4. [关联关系]({{ '/zh/associations' | relative_url }})
 5. [查询接口]({{ '/zh/querying' | relative_url }})
 6. [钩子]({{ '/zh/hooks' | relative_url }})
-7. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
+7. [TypeScript 支持]({{ '/zh/types' | relative_url }})
+8. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
 
 ## 参与贡献
 
@@ -363,6 +364,6 @@ LEFT JOIN tags
 - 如何提交合并请求
 - 文档翻译
 
-## 关联项目
+## egg-orm
 
 使用 [egg framework](https://eggjs.org/) 的开发者，不妨通过 [egg-orm]({% link zh/setup/egg.md %}) 插件来使用 Leoric，可以参考 egg-orm 仓库中已经包含的示例项目：<https://github.com/eggjs/egg-orm/tree/master/examples>

@@ -353,6 +353,7 @@ For detailed informations, please check out following guides accordingly:
 4. [Associations]({{ '/associations' | relative_url }})
 5. [Query Interfaces]({{ '/querying' | relative_url }})
 6. [Hooks]({{ '/hooks' | relative_url }})
+7. [TypeScript Support]({{ '/types' | relative_url }})
 7. [Sequelize Adapter]({{ '/sequelize' | relative_url }})
 
 ## Contributing
@@ -370,7 +371,7 @@ If you are interested in fixing issues and contributing directly to the code bas
 - Submitting pull requests
 - Contributing to translations
 
-## Related Projects
+## egg-orm
 
 If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm]({% link setup/egg.md %}) plugin. More detailed examples about setting up egg-orm with egg framework in either JavaScript or TypeScript can be found at <https://github.com/eggjs/egg-orm/tree/master/examples>
 
