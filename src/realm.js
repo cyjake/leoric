@@ -195,7 +195,7 @@ class Realm {
         throw new Error(`unable to replace: ${key}`);
       }
       values.push(replacements[key]);
-      return '?';
+      return ' ?';
     });
 
     const { rows, ...restRes } = await this.driver.query(query, values, opts);

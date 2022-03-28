@@ -332,10 +332,11 @@ describe('=> Realm', () => {
         const createdAt = new Date();
         const post = await Post.create({ title: 'title', authorId: 1, createdAt });
         const post1 = await Post.create({ title: 'title1', authorId: 2, createdAt });
-        const { rows } = await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId', {
+        const { rows } = await realm.query('SELECT * FROM articles where title = :title AND author_id = :authorId LIMIT :limit', {
           replacements: {
             title: post1.title,
-            authorId: 2
+            authorId: 2,
+            limit: 1,
           },
           model: Post
         });
