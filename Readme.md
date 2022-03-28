@@ -74,6 +74,32 @@ await realm.sync();
 
 A more detailed syntax table may be found at the [documentation](https://leoric.js.org/#syntax-table) site.
 
+## TypeScript charged
+
+```ts
+import { Bone, BelongsTo, Column, DataTypes: { TEXT } } from 'leoric';
+import User from './user';
+
+export default class Post extends Bone {
+  @Column({ autoIncrement: true })
+  id: bigint;
+
+  @Column(TEXT)
+  content: string;
+
+  @Column()
+  description: string;
+
+  @Column()
+  userId: bigint;
+
+  @BelongsTo()
+  user: User;
+}
+```
+
+More about TypeScript integration examples can be found at [the TypeScript support documentation](https://leoric.js.org/types)
+
 ## Contributing
 
 There are many ways in which you can participate in the project, for example:
@@ -89,6 +115,6 @@ If you are interested in fixing issues and contributing directly to the code bas
 - Submitting pull requests
 - Contributing to translations
 
-## Related Projects
+## egg-orm
 
-If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin.
+If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin. More detailed examples about setting up egg-orm with egg framework in either JavaScript or TypeScript can be found at <https://github.com/eggjs/egg-orm/tree/master/examples>

@@ -96,6 +96,11 @@ body {
       & > a {
         display: block;
       }
+
+      .lang {
+        padding-left: 30px;
+        background: left / 24px no-repeat url(../image/lang.svg) ;
+      }
     }
 
     .dropdown-trigger {
@@ -277,6 +282,11 @@ body {
 
           a {
             padding: 6px 12px 6px 66px;
+          }
+
+          a.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            opacity: 1;
           }
         }
       }

@@ -20,6 +20,7 @@ layout: default
             <li><a href="{{ '/querying' | relative_url }}">Query Interface</a></li>
             <li><a href="{{ '/hooks' | relative_url }}">Hooks</a></li>
             <li><a href="{{ '/logging' | relative_url }}">Logging</a></li>
+            <li><a href="{{ '/types' | relative_url }}">TypeScript Support</a></li>
             <li><a href="{{ '/sequelize' | relative_url }}">Sequelize Adapter</a></li>
           </ul>
         </li>
@@ -34,7 +35,7 @@ layout: default
           </ul>
         </li>
         <li class="nav-item dropdown-trigger">
-          {% for post in site.categories.updates %}
+          {% for post in site.categories.updates limit: 2 %}
           {% if post.categories.size == 1 %}
           <a href="{{ post.url | relative_url }}">Updates</a>{% break %}
           {% endif %}
@@ -54,7 +55,9 @@ layout: default
           <a href="{{ '/contributing/guides' | relative_url }}">How to Contribute</a>
         </li>
         <li class="nav-item">
-          <a href="{{ page.url | prepend: '/zh' | relative_url }}">中文</a>
+          <a href="{{ page.url | prepend: '/zh' | relative_url }}">
+            <span class="lang">中文</span>
+          </a>
         </li>
       </ul>
     </nav>

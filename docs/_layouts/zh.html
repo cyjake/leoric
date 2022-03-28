@@ -20,6 +20,7 @@ layout: default
             <li><a href="{{ '/zh/querying' | relative_url }}">查询接口</a></li>
             <li><a href="{{ '/zh/hooks' | relative_url }}">钩子</a></li>
             <li><a href="{{ '/zh/logging' | relative_url }}">日志</a></li>
+            <li><a href="{{ '/zh/types' | relative_url }}">TypeScript 支持</a></li>
             <li><a href="{{ '/zh/sequelize' | relative_url }}">Sequelize 适配器</a></li>
           </ul>
         </li>
@@ -34,7 +35,11 @@ layout: default
           </ul>
         </li>
         <li class="nav-item dropdown-trigger">
-          <a href="{{ '/zh/setup' | relative_url }}">更新日志</a>
+          {% for post in site.categories.updates limit: 2 %}
+          {% if post.categories contains 'zh' %}
+          <a href="{{ post.url | relative_url }}">更新日志</a>{% break %}
+          {% endif %}
+          {% endfor %}
           <ul class="dropdown-list">
             {% for post in site.categories.updates %}
             {% if post.categories contains 'zh' %}
@@ -50,7 +55,9 @@ layout: default
           <a href="{{ '/zh/contributing/guides' | relative_url }}">如何参与</a>
         </li>
         <li class="nav-item">
-          <a href="{{ page.url | replace: '/zh', '' | relative_url }}">English</a>
+          <a href="{{ page.url | replace: '/zh', '' | relative_url }}">
+            <span class="lang">English</span>
+          </a>
         </li>
       </ul>
     </nav>
