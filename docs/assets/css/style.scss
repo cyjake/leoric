@@ -98,8 +98,8 @@ body {
       }
 
       .lang {
-        padding-left: 30px;
-        background: left / 24px no-repeat url(../image/lang.svg) ;
+        padding-left: 22px;
+        background: left / 16px no-repeat url(../image/lang.svg) ;
       }
     }
 
@@ -219,6 +219,7 @@ body {
       background-size: 40px;
       display: block;
       height: 56px;
+      line-height: unset;
       padding-left: 84px;
       padding-top: 6px;
       margin-bottom: 12px;
@@ -232,7 +233,9 @@ body {
     }
 
     a {
-      padding: 6px 12px 6px 36px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 12px 0 36px;
       background-color: transparent;
       opacity: 0.75;
       transition: all 0.1s ease-in-out;
@@ -281,7 +284,7 @@ body {
           padding-left: 0;
 
           a {
-            padding: 6px 12px 6px 66px;
+            padding: 0 12px 0 66px;
           }
 
           a.active {
