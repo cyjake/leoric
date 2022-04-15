@@ -1567,11 +1567,12 @@ class Bone {
 
   static async transaction(callback) {
     const connection = await this.driver.getConnection();
+    let result;
     if (callback.constructor.name === 'AsyncFunction') {
       // if callback is an AsyncFunction
       await this.driver.query('BEGIN', [], { connection, Model: this, command: 'BEGIN'  });
       try {
-        await callback({ connection });
+        result = await callback({ connection });
         await this.driver.query('COMMIT', [], { connection, Model: this, command: 'COMMIT'  });
       } catch (err) {
         await this.driver.query('ROLLBACK', [], { connection, Model: this, command: 'ROLLBACK' });
@@ -1581,7 +1582,6 @@ class Bone {
       }
     } else if (callback.constructor.name === 'GeneratorFunction') {
       const gen = callback({ connection });
-      let result;
 
       try {
         await this.driver.query('BEGIN', [], {  connection, Model: this, command: 'BEGIN' });
@@ -1601,6 +1601,7 @@ class Bone {
     } else {
       throw new Error('unexpected transaction function, should be GeneratorFunction or AsyncFunction.');
     }
+    return result;
   }
 
   static init(attributes = {}, opts = {}, overrides = {}) {
