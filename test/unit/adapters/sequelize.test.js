@@ -1907,14 +1907,18 @@ describe('Transaction', function() {
     await User.truncate();
   });
 
-  after(async () => {
+  afterEach(async () => {
     await User.truncate();
+  });
+
+  after(async () => {
     Bone.driver = null;
   });
 
   it('should be able to manage transaction', async function() {
+    let result;
     await assert.rejects(async function() {
-      await Spine.transaction(async function(transaction) {
+      result = await Spine.transaction(async function(transaction) {
         await User.create({
           email: 'justice@heaven.com',
           nickname: 'Tyrael',
@@ -1925,6 +1929,42 @@ describe('Transaction', function() {
       });
     }, /go wrong/);
     assert.equal(await User.count(), 0);
+    assert(!result);
+  });
+
+  it('should return value', async function() {
+    let result;
+    let user;
+    await assert.doesNotReject(async function() {
+      result = await Spine.transaction(async function(transaction) {
+        user = await User.create({
+          email: 'justice@heaven.com',
+          nickname: 'Tyrael',
+          status: 1,
+          level: 1,
+        }, { transaction });
+        return user;
+      });
+    }, /go wrong/);
+    assert.equal(await User.count(), 1);
+    assert(result);
+    assert.equal(result.id, user.id);
+  });
+
+  it('should not return value at the end of a transaction while didnt assign return result', async function() {
+    let result;
+    await assert.doesNotReject(async function() {
+      result = await Spine.transaction(async function(transaction) {
+        await User.create({
+          email: 'justice@heaven.com',
+          nickname: 'Tyrael',
+          status: 1,
+          level: 1,
+        }, { transaction });
+      });
+    }, /go wrong/);
+    assert.equal(await User.count(), 1);
+    assert(!result);
   });
 });
 

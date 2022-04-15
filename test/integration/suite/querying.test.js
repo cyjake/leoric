@@ -687,18 +687,20 @@ describe('=> Transaction', function() {
   });
 
   it('Bone.transaction()', async function() {
-    await Post.transaction(function* () {
+    const result = await Post.transaction(function* () {
       yield new Post({ title: 'Leah' }).create();
       yield new Post({ title: 'Diablo' }).create();
     });
 
     const posts = await Post.find();
     expect(posts.map(post => post.title)).to.eql(['Leah', 'Diablo']);
+    assert.equal(result.id, posts.find((t) => t.title === 'Diablo').id);
   });
 
   it('should be able to rollback transaction', async function() {
+    let result;
     await assert.rejects(async function() {
-      await Post.transaction(function* () {
+      result = await Post.transaction(function* () {
         yield new Post({ title: 'Leah' }).create();
         yield new Post({ title: 'Diablo' }).create();
         throw new Error('rollback');
@@ -707,6 +709,7 @@ describe('=> Transaction', function() {
 
     const posts = await Post.find();
     assert(posts.length === 0);
+    assert(!result);
   });
 
   it('should not interfere with other connections', async function() {

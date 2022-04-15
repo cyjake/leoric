@@ -468,6 +468,7 @@ describe('=> Realm', () => {
     it('realm.transaction generator callback should work', async () => {
       const queries = [];
       const email = 'lighting@valhalla.ne';
+      let result;
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -482,7 +483,7 @@ describe('=> Realm', () => {
       // clean all prev data in users
       await realm.query('TRUNCATE TABLE users');
       await assert.rejects(async () => {
-        await realm.transaction(function *({ connection }) {
+        result = await realm.transaction(function *({ connection }) {
           const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
           yield realm.query(sql, [ new Date(), email, 'Thor', 1 ], { connection });
           yield realm.query(sql, [ new Date(), email, 'Loki', 1 ], { connection });
@@ -491,6 +492,7 @@ describe('=> Realm', () => {
       const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
       assert(rows.length === 0);
       assert(queries.includes('ROLLBACK'));
+      assert(!result);
     });
 
     it('realm.transaction async callback should work', async () => {
