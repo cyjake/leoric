@@ -1,3 +1,17 @@
+2.3.2 / 2022-04-15
+==================
+
+## What's Changed
+* fix: order by raw with mix-type array in sequelize mode by @JimmyDaddy in https://github.com/cyjake/leoric/pull/298
+* docs: monthly updates and example about egg-orm usage with TypeScript by @cyjake in https://github.com/cyjake/leoric/pull/299
+* docs: monthly updates in en & docmentation about typescript support by @cyjake in https://github.com/cyjake/leoric/pull/300
+* fix: raw query should format replacements with extra blank by @JimmyDaddy in https://github.com/cyjake/leoric/pull/301
+* docs: elaborate on querying by @cyjake in https://github.com/cyjake/leoric/pull/302
+* feat: transaction should return result by @JimmyDaddy in https://github.com/cyjake/leoric/pull/303
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.3.1...v2.3.2
+
 2.3.1 / 2022-03-22
 ==================
 
