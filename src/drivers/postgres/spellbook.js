@@ -1,25 +1,25 @@
 'use strict';
 
-const spellbook = require('../abstract/spellbook');
+const Spellbook = require('../abstract/spellbook');
 
-module.exports = {
-  ...spellbook,
-
+class PostgresSpellBook extends Spellbook {
   formatInsert(spell) {
     if (!spell.returning) spell.returning = true;
-    const { sql, values } = spellbook.formatInsert(spell);
+    const { sql, values } = super.formatInsert(spell);
     return {
       sql,
       values,
     };
-  },
+  };
 
   formatUpsert(spell) {
     if (!spell.returning) spell.returning = true;
-    const { sql, values } = spellbook.formatUpsert(spell);
+    const { sql, values } = super.formatUpsert(spell);
     return {
       sql,
       values,
     };
-  },
-};
+  };
+}
+
+module.exports = PostgresSpellBook;

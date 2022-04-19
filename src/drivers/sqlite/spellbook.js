@@ -1,6 +1,6 @@
 'use strict';
 
-const spellbook = require('../abstract/spellbook');
+const Spellbook = require('../abstract/spellbook');
 
 function renameSelectExpr(spell) {
   const { Model, columns, joins, groups } = spell;
@@ -40,14 +40,14 @@ function renameSelectExpr(spell) {
   }
 }
 
-module.exports = {
-  ...spellbook,
-
+class SQLiteSpellBook extends Spellbook {
   formatSelect(spell) {
     if (Object.keys(spell.joins).length > 0) {
       spell = spell.dup;
       renameSelectExpr(spell);
     }
-    return spellbook.formatSelect(spell);
+    return super.formatSelect(spell);
   }
-};
+}
+
+module.exports = SQLiteSpellBook;

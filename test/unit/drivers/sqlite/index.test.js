@@ -7,7 +7,7 @@ const strftime = require('strftime');
 const { heresql } = require('../../../../src/utils/string');
 const SqliteDriver = require('../../../../src/drivers/sqlite');
 
-const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.prototype.DataTypes;
+const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.DataTypes;
 
 const options = {
   database: '/tmp/leoric.sqlite3',

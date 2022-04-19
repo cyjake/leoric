@@ -1560,9 +1560,7 @@ class Bone {
   }
 
   static query(spell) {
-    const { sql, values } = this.driver.format(spell);
-    const query = { sql, nestTables: spell.command === 'select' };
-    return this.driver.query(query, values, spell);
+    return this.driver.queryWithSpell(spell);
   }
 
   static async transaction(callback) {

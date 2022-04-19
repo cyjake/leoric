@@ -97,7 +97,7 @@ const rReplacementKey = /\s:(\w+)\b/g;
 
 class Realm {
   constructor(opts = {}) {
-    const { client, dialect, database, ...restOpts } = {
+    let { client, dialect, database, driver: CustomDriver, ...restOpts } = {
       dialect: 'mysql',
       database: opts.db || opts.storage,
       ...opts
@@ -109,16 +109,27 @@ class Realm {
       for (const model of opts.models) models[model.name] = model;
     }
 
-    const driver = new (findDriver(dialect))({
-      client,
-      database,
-      ...restOpts
-    });
+    let driver;
+    if (CustomDriver && CustomDriver.isLeoricDriver()) {
+      dialect = CustomDriver.dialect;
+      driver = new CustomDriver({
+        client,
+        database,
+        ...restOpts
+      });
+    } else {
+      driver = new (findDriver(dialect))({
+        client,
+        database,
+        ...restOpts
+      });
+    }
 
     const options = {
       client,
       dialect,
       database,
+      driver: CustomDriver,
       ...restOpts,
       define: { underscored: true, ...opts.define },
     };
