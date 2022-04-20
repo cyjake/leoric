@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Realm = require('../../index');
-const { connect, Bone, DataTypes, Logger, Spell, SQLiteDriver } = Realm;
+const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver } = Realm;
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -75,14 +75,11 @@ describe('=> Realm', () => {
     });
 
     it('should work with custom driver', async () => {
-      class CustomDriver extends SQLiteDriver {
-        get driverName() {
-          return 'customDriver';
-        }
+      class CustomDriver extends SqliteDriver {
       }
       const realm = new Realm({ driver: CustomDriver, storage: '/tmp/leoric.sqlite3' });
       assert.equal(realm.driver.type, 'sqlite');
-      assert.equal(realm.driver.driverName, 'customDriver');
+      assert.equal(realm.driver.dialect, 'custom');
       assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
     });
   

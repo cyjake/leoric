@@ -451,7 +451,7 @@ class Spell {
 
   async ignite() {
     const { Model, laters } = this;
-    let result = await Model.driver.queryWithSpell(this);
+    let result = await Model.driver.cast(this);
     result = { ...result, spell: this };
     for (const later of laters) {
       result = await later(result);

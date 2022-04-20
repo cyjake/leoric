@@ -11,9 +11,9 @@ const { formatConditions, collectLiteral } = require('../../src/expr_formatter')
 const { findExpr } = require('../../src/expr');
 const Raw = require('../../src/raw');
 
-const SQLiteDriver = require('../../src/drivers/sqlite');
+const SqliteDriver = require('../../src/drivers/sqlite');
 
-class MySpellBook extends SQLiteDriver.Spellbook {
+class MySpellbook extends SqliteDriver.Spellbook {
 
   format(spell) {
     for (const scope of spell.scopes) scope(spell);
@@ -113,14 +113,10 @@ class MySpellBook extends SQLiteDriver.Spellbook {
 
 };
 
-class CustomDriver extends SQLiteDriver {
-  static Spellbook = MySpellBook;
+class CustomDriver extends SqliteDriver {
+  static Spellbook = MySpellbook;
 
-  get driverName () {
-    return 'myCustomDriver';
-  }
-
-  async queryWithSpell(spell) {
+  async cast(spell) {
     const { command } = spell;
     switch (command) {
       case 'update': {

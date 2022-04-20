@@ -13,6 +13,11 @@ const options = {
 const driver = new PostgresDriver(options);
 
 describe('=> PostgreSQL driver', () => {
+
+  it('dialect', () => {
+    assert.equal(driver.dialect, 'postgres');
+  });
+
   it('driver.logger.logQuery', async () => {
     const result = [];
     const driver2 = new PostgresDriver({

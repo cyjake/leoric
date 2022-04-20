@@ -6,7 +6,7 @@ const Logger = require('./logger');
 const Attribute = require('./attribute');
 const DataTypes = require('../../data_types');
 const Spellbook = require('./spellbook');
-const { heresql } = require('../../utils/string');
+const { heresql, camelCase } = require('../../utils/string');
 
 /**
  * Migration methods
@@ -33,18 +33,12 @@ class AbstractDriver {
     this.escapeId = SqlString.escapeId;
   }
 
-  static #isLeoricDriver = true;
-
-  static isLeoricDriver() {
-    return AbstractDriver.#isLeoricDriver;
-  }
-
   /**
    * query with spell
    * @param {Spell} spell 
    * @returns 
    */
-  async queryWithSpell(spell) {
+  async cast(spell) {
     const { sql, values } = this.format(spell);
     const query = { sql, nestTables: spell.command === 'select' };
     return await this.query(query, values, spell);
@@ -57,7 +51,11 @@ class AbstractDriver {
    * @param {object} opts 
    */
   async query(query, values, opts) {
-    // need to implements
+    throw new Error('unimplemented!');
+  }
+
+  get dialect() {
+    return camelCase(this.constructor.name.replace('Driver', ''));
   }
 
   /**

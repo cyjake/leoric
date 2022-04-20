@@ -1560,7 +1560,7 @@ class Bone {
   }
 
   static query(spell) {
-    return this.driver.queryWithSpell(spell);
+    return this.driver.cast(spell);
   }
 
   static async transaction(callback) {

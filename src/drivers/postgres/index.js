@@ -1,6 +1,5 @@
 'use strict';
 
-const { Pool } = require('pg');
 const { performance } = require('perf_hooks');
 
 const AbstractDriver = require('../abstract');
@@ -37,7 +36,7 @@ class PostgresDriver extends AbstractDriver {
 
   createPool(opts) {
     const { host, port, user, password, database } = opts;
-    return new Pool({ host, port, user, password, database });
+    return new (require('pg')).Pool({ host, port, user, password, database });
   }
 
   async getConnection() {

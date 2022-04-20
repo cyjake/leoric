@@ -15,6 +15,11 @@ const options = {
 const driver = new SqliteDriver(options);
 
 describe('=> SQLite driver', () => {
+
+  it('dialect', () => {
+    assert.equal(driver.dialect, 'sqlite');
+  });
+
   it('driver.logger.logQuery', async () => {
     const result = [];
     const driver2 = new SqliteDriver({

@@ -1,14 +1,14 @@
 'use strict';
 
 const assert = require('assert').strict;
-const SQLiteDriver = require('../../../../src/drivers/sqlite');
+const { AbstractDriver, SqliteDriver } = require('../../../../src/drivers');
 
 const database = 'leoric';
 const options = {
   database: '/tmp/leoric.sqlite3',
 };
 
-class MySpellBook extends SQLiteDriver.Spellbook {
+class MySpellbook extends SqliteDriver.Spellbook {
   format(spell) {
     for (const scope of spell.scopes) scope(spell);
     switch (spell.command) {
@@ -29,12 +29,11 @@ class MySpellBook extends SQLiteDriver.Spellbook {
   }
 };
 
-class CustomDriver extends SQLiteDriver {
+class CustomDriver extends SqliteDriver {
+  static Spellbook = MySpellbook;
 
-  static Spellbook = MySpellBook;
-
-  get driverName () {
-    return 'myCustomDriver';
+  get dialect() {
+    return 'sqlserver';
   }
 }
 
@@ -42,8 +41,8 @@ class CustomDriver extends SQLiteDriver {
 describe('custom driver', () => {
   it('should work with constructor', async () => {
     const myCustomDriver = new CustomDriver(options);
-    assert.equal(myCustomDriver.driverName, 'myCustomDriver');
-    assert.equal(CustomDriver.isLeoricDriver(), true);
+    assert.equal(myCustomDriver.dialect, 'sqlserver');
+    assert(CustomDriver.prototype instanceof AbstractDriver);
     const tables = await myCustomDriver.querySchemaInfo('leoric', [ 'users' ]);
     assert(tables.users);
   });

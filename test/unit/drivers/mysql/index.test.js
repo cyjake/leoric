@@ -13,6 +13,11 @@ const options = {
 const driver = new MysqlDriver(options);
 
 describe('=> MySQL driver', () => {
+
+  it('dialect', () => {
+    assert.equal(driver.dialect, 'mysql');
+  });
+
   it('driver.logger.logQuery', async () => {
     const result = [];
     const driver2 = new MysqlDriver({

@@ -12,7 +12,7 @@ const { heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 const Realm = require('./src/realm');
 const Decorators = require('./src/decorators');
-const { MySQLDriver, PostgresDriver, SQLiteDriver, AbstractDriver } = require('./src/drivers');
+const { MysqlDriver, PostgresDriver, SqliteDriver, AbstractDriver } = require('./src/drivers');
 
 /**
  * @typedef {Object} RawSql
@@ -51,9 +51,9 @@ Object.assign(Realm, {
   heresql,
   ...Hint,
   ...Decorators,
-  MySQLDriver,
+  MysqlDriver,
   PostgresDriver,
-  SQLiteDriver,
+  SqliteDriver,
   AbstractDriver,
 });
 

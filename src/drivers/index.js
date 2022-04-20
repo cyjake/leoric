@@ -1,20 +1,20 @@
 'use strict';
 
-const MySQLDriver = require('./mysql');
+const MysqlDriver = require('./mysql');
 const PostgresDriver = require('./postgres');
-const SQLiteDriver = require('./sqlite');
+const SqliteDriver = require('./sqlite');
 const AbstractDriver = require('./abstract');
 
 function findDriver(dialect) {
   switch (dialect) {
     case 'mysql':
-      return MySQLDriver;
+      return MysqlDriver;
     case 'pg':
     case 'postgres':
       return PostgresDriver;
     case 'sqlite':
     case 'sqlite3':
-      return SQLiteDriver;
+      return SqliteDriver;
     default:
       throw new Error(`Unsupported database ${dialect}`);
   }
@@ -22,8 +22,8 @@ function findDriver(dialect) {
 
 module.exports = {
   findDriver,
-  MySQLDriver,
+  MysqlDriver,
   PostgresDriver,
-  SQLiteDriver,
+  SqliteDriver,
   AbstractDriver,
 };

@@ -4,7 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const Bone = require('./bone');
-const { findDriver } = require('./drivers');
+const { findDriver, AbstractDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
@@ -109,25 +109,16 @@ class Realm {
       for (const model of opts.models) models[model.name] = model;
     }
 
-    let driver;
-    if (CustomDriver && CustomDriver.isLeoricDriver()) {
-      dialect = CustomDriver.dialect;
-      driver = new CustomDriver({
-        client,
-        database,
-        ...restOpts
-      });
-    } else {
-      driver = new (findDriver(dialect))({
-        client,
-        database,
-        ...restOpts
-      });
-    }
+    const DriverClass = CustomDriver && CustomDriver.prototype instanceof AbstractDriver? CustomDriver : findDriver(dialect);
+    const driver = new DriverClass({
+      client,
+      database,
+      ...restOpts,
+    });
 
     const options = {
       client,
-      dialect,
+      dialect: driver.dialect,
       database,
       driver: CustomDriver,
       ...restOpts,
