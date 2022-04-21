@@ -4,10 +4,9 @@
 
 const { Hint, IndexHint } = require('../../hint');
 
-const spellbook = require('../abstract/spellbook');
+const Spellbook = require('../abstract/spellbook');
 
-module.exports = {
-  ...spellbook,
+class MySQLSpellBook extends Spellbook {
 
   formatOptimizerHints(spell) {
     const optimizerHints = spell.hints.filter(hint => hint instanceof Hint);
@@ -16,7 +15,7 @@ module.exports = {
       return `/*+ ${hints} */`;
     }
     return '';
-  },
+  }
 
   formatIndexHints(spell) {
     const indexHints = spell.hints.filter(hint => hint instanceof IndexHint);
@@ -25,7 +24,7 @@ module.exports = {
       return hints.map(hint => hint.toSqlString()).join(' ');
     }
     return '';
-  },
+  }
 
   /**
    * INSERT ... ON DUPLICATE KEY UPDATE
@@ -56,11 +55,11 @@ module.exports = {
     sets.push(...columns.map(column => `${escapeId(column)}=VALUES(${escapeId(column)})`));
 
     return `ON DUPLICATE KEY UPDATE ${sets.join(', ')}`;
-  },
+  }
 
   formatReturning() {
     return '';
-  },
+  }
 
   /**
    * UPDATE ... ORDER BY ... LIMIT ${rowCount}
@@ -68,22 +67,7 @@ module.exports = {
    * @param {Spell} spell
    */
   formatUpdate(spell) {
-    const result = spellbook.formatUpdate.call(this, spell);
-    const { rowCount, orders } = spell;
-    const chunks = [];
-
-    if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
-    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
-    if (chunks.length > 0) result.sql += ` ${chunks.join(' ')}`;
-
-    return result;
-  },
-  /**
-   * DELETE ... ORDER BY ...LIMIT
-   * @param {Spell} spell 
-   */
-  formatDelete(spell) {
-    const result = spellbook.formatDelete.call(this, spell);
+    const result = super.formatUpdate(spell);
     const { rowCount, orders } = spell;
     const chunks = [];
 
@@ -93,4 +77,22 @@ module.exports = {
 
     return result;
   }
-};
+
+  /**
+   * DELETE ... ORDER BY ...LIMIT
+   * @param {Spell} spell 
+   */
+  formatDelete(spell) {
+    const result = super.formatDelete(spell);
+    const { rowCount, orders } = spell;
+    const chunks = [];
+
+    if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
+    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    if (chunks.length > 0) result.sql += ` ${chunks.join(' ')}`;
+
+    return result;
+  }
+}
+
+module.exports = MySQLSpellBook;

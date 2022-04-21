@@ -1,121 +1,42 @@
 'use strict';
 
-const { Pool } = require('pg');
 const { performance } = require('perf_hooks');
 
 const AbstractDriver = require('../abstract');
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
-const { escape, escapeId } = require('./sqlstring');
-const spellbook = require('./spellbook');
-const schema = require('./schema');
+const { 
+  escape, escapeId, formatAddColumn,
+  formatAlterColumns, formatDropColumn,
+  cast, nest, parameterize,
+} = require('./sqlstring');
+
+const Spellbook = require('./spellbook');
 const { calculateDuration } = require('../../utils');
-
-/**
- * The actual column type can be found by mapping the `oid` (which is called `dataTypeID`) in the `RowDescription`.
- * - https://stackoverflow.com/questions/11829368/how-can-i-see-the-postgresql-column-type-from-a-rowdescription-message
- * - https://www.postgresql.org/docs/8.4/static/catalog-pg-type.html
- * - https://www.postgresql.org/docs/9.1/static/protocol-message-formats.html
- * - https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
- */
-const pgType = {
-  20: { oid: 20, typname: 'int8', type: Number }
-};
-
-/**
- * Postgres tend to keep the returned value as string, even if the column type specified is something like 8 byte int. Hence this function is necessary to find the actual column type, and cast the string to the correct type if possible.
- * @param {*} value
- * @param {Object} field
- */
-function cast(value, field) {
-  const opts = pgType[field.dataTypeID];
-
-  if (opts) {
-    try {
-      return value == null ? null : opts.type(value);
-    } catch (err) {
-      throw new Error('unable to cast %s to type %s', value, opts);
-    }
-  }
-  return value;
-}
-
-/**
- * Postgres returns a nested array when `rowMode` is `array`:
- *
- *     [ [ 1, 'New Post' ] ]
- *
- * the corresponding fields would be:
- *
- *     [ { tableID: 15629, dataTypeID: 20, name: 'id' },
- *       { tableID: 15629, dataTypeID: 20, name: 'title' } ]
- *
- * This function is to turn above rows into nested objects with qualifers as keys:
- *
- *     [ { articles: { id: 1, title: 'New Post' } } ]
- *
- * @param {Array} rows
- * @param {Array} fields
- * @param {Spell} spell
- */
-function nest(rows, fields, spell) {
-  const results = [];
-  const qualifiers = [ spell.Model.tableAlias, ...Object.keys(spell.joins) ];
-  let defaultTableIndex = 0;
-
-  if (spell.groups.length > 0 && Object.keys(spell.joins).length > 0) {
-    defaultTableIndex = Infinity;
-    for (const token of spell.columns) {
-      if (token.type !== 'id') continue;
-      const index = qualifiers.indexOf(token.qualifiers[0]);
-      if (index >= 0 && index < defaultTableIndex) defaultTableIndex = index;
-    }
-  }
-
-  for (const row of rows) {
-    const result = {};
-    let tableIndex = defaultTableIndex;
-    let tableIDWas;
-    let qualifier;
-
-    for (let i = 0; i < fields.length; i++) {
-      const { name, tableID } = fields[i];
-      if (tableID !== tableIDWas) {
-        qualifier = tableID === 0 ? '' : qualifiers[tableIndex++];
-        tableIDWas = tableID;
-      }
-      const obj = result[qualifier] || (result[qualifier] = {});
-      obj[name] = cast(row[i], fields[i]);
-    }
-    results.push(result);
-  }
-
-  return { rows: results, fields };
-}
-
-/**
- * Postgres supports parameterized queries with `$i` slots.
- * - https://node-postgres.com/features/queries#Parameterized%20query
- * @param {string} sql
- * @param {Array} values
- */
-function parameterize(sql, values) {
-  let i = 0;
-  // starts with 1
-  const text = sql.replace(/\?/g, () => `$${++i}`);
-  return { text, values };
-}
+const { heresql } = require('../../utils/string');
 
 class PostgresDriver extends AbstractDriver {
+
+  // define static properties as this way IDE will prompt
+  static Spellbook = Spellbook;
+  static Attribute = Attribute;
+  static DataTypes = DataTypes;
+
   constructor(opts = {}) {
     super(opts);
     this.type = 'postgres';
     this.pool = this.createPool(opts);
+    this.Attribute = this.constructor.Attribute;
+    this.DataTypes = this.constructor.DataTypes;
+    this.spellbook = new this.constructor.Spellbook();
+
+    this.escape = escape;
+    this.escapeId = escapeId;
   }
 
   createPool(opts) {
     const { host, port, user, password, database } = opts;
-    return new Pool({ host, port, user, password, database });
+    return new (require('pg')).Pool({ host, port, user, password, database });
   }
 
   async getConnection() {
@@ -180,17 +101,90 @@ class PostgresDriver extends AbstractDriver {
     }
   }
 
-  format(spell) {
-    return spellbook.format(spell);
+  async querySchemaInfo(database, tables) {
+    tables = [].concat(tables);
+    const text = heresql(`
+      SELECT columns.*,
+            constraints.constraint_type
+        FROM information_schema.columns AS columns
+    LEFT JOIN information_schema.key_column_usage AS usage
+          ON columns.table_catalog = usage.table_catalog
+          AND columns.table_name = usage.table_name
+          AND columns.column_name = usage.column_name
+    LEFT JOIN information_schema.table_constraints AS constraints
+          ON usage.constraint_name = constraints.constraint_name
+        WHERE columns.table_catalog = $1 AND columns.table_name = ANY($2)
+    `);
+
+    const { pool } = this;
+    const { rows } = await pool.query(text, [database, tables]);
+    const schemaInfo = {};
+
+    for (const row of rows) {
+      const tableName = row.table_name;
+      const columns = schemaInfo[tableName] || (schemaInfo[tableName] = []);
+      let { data_type: dataType, character_maximum_length: length } = row;
+
+      if (dataType === 'character varying') dataType = 'varchar';
+      if (dataType === 'timestamp without time zone') dataType = 'timestamp';
+
+      let columnDefault = row.column_default;
+      if (/^NULL::/i.test(columnDefault)) columnDefault = null;
+      if (dataType === 'boolean') columnDefault = columnDefault === 'true';
+
+      const primaryKey = row.constraint_type === 'PRIMARY KEY';
+      const precision = row.datetime_precision;
+
+      columns.push({
+        columnName: row.column_name,
+        columnType: length > 0 ? `${dataType}(${length})` : dataType,
+        defaultValue: primaryKey ? null : columnDefault,
+        dataType,
+        allowNull: row.is_nullable !== 'NO',
+        // https://www.postgresql.org/docs/9.5/infoschema-table-constraints.html
+        primaryKey,
+        unique: row.constraint_type === 'UNIQUE',
+        datetimePrecision: precision === 6 ? null : precision,
+      });
+    }
+
+    return schemaInfo;
+  }
+
+  async alterTable(table, changes) {
+    const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
+    const actions = Object.keys(changes).map(name => {
+      const options = changes[name];
+      if (options.remove) return formatDropColumn(this, name);
+      const attribute = new this.Attribute(name, options);
+      const { columnName } = attribute;;
+      return attribute.modify
+        ? formatAlterColumns(this, columnName, attribute).join(', ')
+        : formatAddColumn(this, columnName, attribute);
+    });
+    chunks.push(actions.join(', '));
+    await this.query(chunks.join(' '));
+  }
+
+  async changeColumn(table, column, params) {
+    const attribute = new this.Attribute(column, params);
+    const { columnName } = attribute;
+    const alterColumns = formatAlterColumns(this, columnName, attribute);
+    const sql = heresql(`ALTER TABLE ${escapeId(table)} ${alterColumns.join(', ')}`);
+    await this.query(sql);
+  }
+
+  /**
+   * Truncate table
+   * @param {string} table the name of the table to truncate
+   * @param {Object} [opts={}] extra truncation options
+   * @param {object} [opts.restartIdentity] restart sequences owned by the table
+   */
+  async truncateTable(table, opts = {}) {
+    const chunks = [ `TRUNCATE TABLE ${escapeId(table)}` ];
+    if (opts.restartIdentity) chunks.push('RESTART IDENTITY');
+    await this.query(chunks.join(' '));
   }
 };
-
-Object.assign(PostgresDriver.prototype, {
-  ...schema,
-  Attribute,
-  DataTypes,
-  escape,
-  escapeId,
-});
 
 module.exports = PostgresDriver;

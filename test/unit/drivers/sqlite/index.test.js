@@ -7,7 +7,7 @@ const strftime = require('strftime');
 const { heresql } = require('../../../../src/utils/string');
 const SqliteDriver = require('../../../../src/drivers/sqlite');
 
-const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.prototype.DataTypes;
+const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.DataTypes;
 
 const options = {
   database: '/tmp/leoric.sqlite3',
@@ -15,6 +15,11 @@ const options = {
 const driver = new SqliteDriver(options);
 
 describe('=> SQLite driver', () => {
+
+  it('dialect', () => {
+    assert.equal(driver.dialect, 'sqlite');
+  });
+
   it('driver.logger.logQuery', async () => {
     const result = [];
     const driver2 = new SqliteDriver({

@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Realm = require('../../index');
-const { connect, Bone, DataTypes, Logger, Spell } = Realm;
+const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver } = Realm;
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -74,6 +74,15 @@ describe('=> Realm', () => {
       assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
     });
 
+    it('should work with custom driver', async () => {
+      class CustomDriver extends SqliteDriver {
+      }
+      const realm = new Realm({ driver: CustomDriver, storage: '/tmp/leoric.sqlite3' });
+      assert.equal(realm.driver.type, 'sqlite');
+      assert.equal(realm.driver.dialect, 'custom');
+      assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
+    });
+  
     it('should be able to customize logger with function', async () => {
       const queries = [];
       const realm = new Realm({
@@ -232,12 +241,14 @@ describe('=> Realm', () => {
       });
 
       await realm.connect();
+      await Post.truncate();
+      await User.truncate();
 
       const createdAt = new Date();
       const user = await User.create({ nickname: 'userName', status: 1, email: 'aaa@h.com' });
       const post = await Post.create({ title: 'title', authorId: user.id, createdAt });
       const { rows } = await realm.query('SELECT * FROM articles', [], { model: Post });
-      assert(rows.length === 1);
+      assert.equal(rows.length, 1);
       assert(rows[0] instanceof Post);
       assert(post.authorId === rows[0].authorId);
 

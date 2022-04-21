@@ -450,10 +450,8 @@ class Spell {
   }
 
   async ignite() {
-    const { Model, command, laters } = this;
-    const { sql, values } = Model.driver.format(this);
-    const query = { sql, nestTables: command === 'select' };
-    let result = await Model.driver.query(query, values, this);
+    const { Model, laters } = this;
+    let result = await Model.driver.cast(this);
     result = { ...result, spell: this };
     for (const later of laters) {
       result = await later(result);

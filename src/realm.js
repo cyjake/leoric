@@ -4,7 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const Bone = require('./bone');
-const { findDriver } = require('./drivers');
+const { findDriver, AbstractDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
@@ -97,7 +97,7 @@ const rReplacementKey = /\s:(\w+)\b/g;
 
 class Realm {
   constructor(opts = {}) {
-    const { client, dialect, database, ...restOpts } = {
+    let { client, dialect, database, driver: CustomDriver, ...restOpts } = {
       dialect: 'mysql',
       database: opts.db || opts.storage,
       ...opts
@@ -109,16 +109,18 @@ class Realm {
       for (const model of opts.models) models[model.name] = model;
     }
 
-    const driver = new (findDriver(dialect))({
+    const DriverClass = CustomDriver && CustomDriver.prototype instanceof AbstractDriver? CustomDriver : findDriver(dialect);
+    const driver = new DriverClass({
       client,
       database,
-      ...restOpts
+      ...restOpts,
     });
 
     const options = {
       client,
-      dialect,
+      dialect: driver.dialect,
       database,
+      driver: CustomDriver,
       ...restOpts,
       define: { underscored: true, ...opts.define },
     };

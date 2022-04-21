@@ -1,26 +1,55 @@
 'use strict';
 
 const assert = require('assert').strict;
-const MysqlDriver = require('../../../../src/drivers/mysql');
+const { AbstractDriver, SqliteDriver } = require('../../../../src/drivers');
 
 const database = 'leoric';
 const options = {
-  host: 'localhost',
-  port: process.env.MYSQL_PORT,
-  user: 'root',
-  database,
+  database: '/tmp/leoric.sqlite3',
 };
-const driver = new MysqlDriver(options);
 
-describe('=> MySQL driver', () => {
+class MySpellbook extends SqliteDriver.Spellbook {
+  format(spell) {
+    for (const scope of spell.scopes) scope(spell);
+    switch (spell.command) {
+      case 'insert':
+      case 'bulkInsert':
+        return this.formatInsert(spell);
+      case 'select':
+        return this.formatSelect(spell);
+      case 'update':
+        return this.formatUpdate(spell);
+      case 'delete':
+        return this.formatDelete(spell);
+      case 'upsert':
+        return this.formatUpsert(spell);
+      default:
+        throw new Error(`Unsupported SQL command ${spell.command}`);
+    }
+  }
+};
 
-  it('dialect', () => {
-    assert.equal(driver.dialect, 'mysql');
+class CustomDriver extends SqliteDriver {
+  static Spellbook = MySpellbook;
+
+  get dialect() {
+    return 'sqlserver';
+  }
+}
+
+
+describe('custom driver', () => {
+  it('should work with constructor', async () => {
+    const myCustomDriver = new CustomDriver(options);
+    assert.equal(myCustomDriver.dialect, 'sqlserver');
+    assert(CustomDriver.prototype instanceof AbstractDriver);
+    const tables = await myCustomDriver.querySchemaInfo('leoric', [ 'users' ]);
+    assert(tables.users);
   });
 
   it('driver.logger.logQuery', async () => {
     const result = [];
-    const driver2 = new MysqlDriver({
+    const driver2 = new CustomDriver({
       ...options,
       logger(sql, duration, opts, res) {
         result.push([ sql, duration, opts, res ]);
@@ -36,7 +65,7 @@ describe('=> MySQL driver', () => {
 
   it('driver.logger.logQueryError', async () => {
     const result = [];
-    const driver2 = new MysqlDriver({
+    const driver2 = new CustomDriver({
       ...options,
       logger: {
         logQueryError(sql, err) {
@@ -48,10 +77,11 @@ describe('=> MySQL driver', () => {
     const [ err, sql ] = result[0];
     assert.equal(sql, 'SELECT x');
     assert.ok(err);
-    assert.ok(/ER_BAD_FIELD_ERROR/.test(err.message));
+    assert.ok(/no such column: x/.test(err.message));
   });
 
   it('driver.querySchemaInfo()', async () => {
+    const driver = new CustomDriver(options);
     const schemaInfo = await driver.querySchemaInfo(database, 'articles');
     assert.ok(schemaInfo.articles);
     const columns = schemaInfo.articles;
@@ -59,7 +89,7 @@ describe('=> MySQL driver', () => {
       'columnName', 'columnType', 'dataType',
       'defaultValue',
       'allowNull',
-      'primaryKey', 'unique',
+      'primaryKey',
       'datetimePrecision',
     ];
     for (const column of columns) {
@@ -67,13 +97,13 @@ describe('=> MySQL driver', () => {
     }
     let columnInfo = columns.find(entry => entry.columnName === 'id');
     assert.equal(columnInfo.primaryKey, true);
-    assert.equal(columnInfo.unique, true);
 
     columnInfo = columns.find(entry => entry.columnName === 'gmt_create');
     assert.equal(columnInfo.datetimePrecision, 3);
   });
 
   it('driver.truncateTable(table)', async () => {
+    const driver = new CustomDriver(options);
     const { BIGINT, STRING } = driver.DataTypes;
     await driver.dropTable('notes');
     await driver.createTable('notes', {
@@ -87,8 +117,12 @@ describe('=> MySQL driver', () => {
   });
 
   it('driver.query()', async function() {
+    const driver = new CustomDriver(options);
     const { affectedRows, insertId } = await driver.query('INSERT INTO articles (title) VALUES ("Leah")');
     assert.ok(insertId);
     assert.equal(affectedRows, 1);
   });
+
 });
+
+
