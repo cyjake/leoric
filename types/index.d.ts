@@ -64,6 +64,9 @@ type WithOptions = {
 export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
+  command: string;
+  scopes: Function[];
+
   select(...names: Array<string | RawSql> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions): Spell<T, QueryResult>;
   update(opts: SetOptions): Spell<T, QueryResult>;
@@ -141,15 +144,21 @@ type InstanceValues<T> = {
   [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
 }
 
-export interface AttributeMeta {
+export interface ColumnMeta {
   columnName?: string;
   columnType?: string;
   allowNull?: boolean;
   defaultValue?: Literal;
   primaryKey?: boolean;
+  unique?: boolean;
   dataType?: string;
+  comment?: string;
+  datetimePrecision?: string;
+}
+export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
   type: DataType;
+  virtual?: boolean,
   toSqlString: () => string;
 }
 
@@ -187,7 +196,49 @@ declare class Pool {
   getConnection(): Connection;
 }
 
-declare class Driver {
+declare class Attribute {
+  /**
+   * attribute name
+   */
+  name: string;
+  /**
+   * primaryKey tag
+   */
+  primaryKey: boolean;
+  allowNull: boolean;
+  /**
+   * attribute column name in table
+   */
+  columnName: string;
+  columnType: string;
+  type: typeof DataType;
+  defaultValue: Literal;
+  dataType: string;
+  jsType: Literal;
+  virtual: boolean;
+
+  euals(columnInfo: ColumnMeta): boolean;
+  cast(value: Literal): Literal;
+  uncast(value: Literal): Literal;
+}
+
+declare class Spellbook {
+
+  format(spell: Spell<typeof Bone, number| ResultSet | null>): Object;
+
+  formatInsert(spell: Spell<typeof Bone, number>): Object;
+  formatSelect(spell: Spell<typeof Bone, ResultSet | null>): Object;
+  formatUpdate(spell: Spell<typeof Bone, number>): Object;
+  formatDelete(spell: Spell<typeof Bone, number>): Object;
+  formatUpsert(spell: Spell<typeof Bone, null>): Object;
+}
+
+declare class AbstructDriver {
+
+  static Spellbook: typeof Spellbook;
+  static DataType: typeof DataType;
+  static Attribute: typeof Attribute;
+
   /**
    * The type of driver, currently there are mysql, sqlite, and postgres
    */
@@ -204,9 +255,144 @@ declare class Driver {
   pool: Pool;
 
   /**
+   * The SQL dialect
+   */
+  dialect: string;
+
+  spellbook: Spellbook;
+
+  DataType: DataType;
+
+  Attribute: Attribute;
+
+  escape: (v: string) => string;
+  escapeId: (v: string) => string;
+
+  /**
    * Grab a connection and query the database
    */
   query(sql: string, values?: Array<Literal | Literal[]>): Promise<QueryResult>;
+  
+  /**
+   * query with spell
+   * @param spell 
+   */
+  cast(spell: Spell<typeof Bone, ResultSet | number | null>): Promise<QueryResult>;
+
+  /**
+   * format spell
+   * @param spell Spell
+   */
+  format(spell: typeof Spell): Object;
+
+  /**
+   * create table
+   * @param tabe table name
+   * @param attributes attributes
+   */
+  createTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+
+  /**
+   * alter table
+   * @param tabe table name
+   * @param attributes alter attributes
+   */
+  alterTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+
+  /**
+   * describe table
+   * @param table table name
+   */
+  describeTable(table: string): Promise<{ [key: string]: ColumnMeta }>;
+
+  /**
+   * query table schemas
+   * @param database database name
+   * @param table table name or table name array
+   */
+  querySchemaInfo(database: string, table: string | string[]): Promise<{ [key: string] : { [key: string]: ColumnMeta }[]}>;
+
+  /**
+   * add column to table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  addColumn(table: string, name: string, params: ColumnMeta): Promise<void>;
+
+  /**
+   * change column meta in table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  changeColumn(table: string, name: string, params: ColumnMeta): Promise<void>;
+
+  /**
+   * remove column in table
+   * @param table table name
+   * @param name column name
+   */
+  removeColumn(table: string, name: string): Promise<void>;
+
+  /**
+   * rename column in table
+   * @param table table name
+   * @param name column name
+   * @param newName new column name
+   */
+  renameColumn(table: string, name: string, newName: string): Promise<void>;
+
+  /**
+   * rename table
+   * @param table table name
+   * @param newTable new table name
+   */
+  renameTable(table: string, newTable: string): Promise<void>;
+
+  /**
+   * drop table
+   * @param table table name
+   */
+  dropTable(table: string): Promise<void>;
+
+  /**
+   * truncate table
+   * @param table table name
+   */
+  truncateTable(table: string): Promise<void>;
+
+  /**
+   * add index in table
+   * @param table table name
+   * @param attributes attributes name
+   * @param opts
+   */
+  addIndex(table: string, attributes: string[], opts: Object): Promise<void>;
+
+  /**
+   * remove index in table
+   * @param table string
+   * @param attributes attributes name
+   * @param opts 
+   */
+  removeIndex(table: string, attributes: string[], opts: Object): Promise<void>;
+
+}
+
+export class MysqlDriver extends AbstructDriver {
+  type: 'mysql';
+  dialect: 'mysql';
+}
+
+export class PostgresDriver extends AbstructDriver {
+  type: 'postgres';
+  dialect: 'postgres';
+}
+
+export class SqliteDriver extends AbstructDriver {
+  type: 'sqlite';
+  dialect: 'sqlite';
 }
 
 type ResultSet = {
@@ -230,7 +416,7 @@ export class Bone {
   /**
    * The driver that powers the model
    */
-  static driver: Driver;
+  static driver: AbstructDriver;
 
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`
@@ -609,6 +795,7 @@ export interface ConnectOptions {
   charset?: string;
   models?: string | (typeof Bone)[];
   subclass?: boolean;
+  driver?: AbstructDriver;
 }
 
 interface InitOptions {
@@ -641,7 +828,7 @@ interface RawQueryOptions {
 export default class Realm {
   Bone: typeof Bone;
   DataTypes: typeof DataType;
-  driver: Driver;
+  driver: AbstructDriver;
   models: Record<string, Bone>;
 
   constructor(options: ConnectOptions);
