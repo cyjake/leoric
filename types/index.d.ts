@@ -246,15 +246,25 @@ declare class Attribute {
   uncast(value: Literal): Literal;
 }
 
+interface SpellBookFormatStandardResult {
+  sql?: string;
+  values?: Array<Literal> | {
+    [key: string]: Literal
+  };
+  [key: string]: Literal
+}
+
+export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
+
 declare class Spellbook {
 
-  format(spell: SpellMeta): any;
+  format(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
 
-  formatInsert(spell: SpellMeta): any;
-  formatSelect(spell: SpellMeta): any;
-  formatUpdate(spell: SpellMeta): any;
-  formatDelete(spell: SpellMeta): any;
-  formatUpsert(spell: SpellMeta): any;
+  formatInsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatSelect(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpdate(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatDelete(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
 }
 
 declare class AbstractDriver {
@@ -394,7 +404,7 @@ declare class AbstractDriver {
    * @param attributes attributes name
    * @param opts
    */
-  addIndex(table: string, attributes: string[], opts: Object): Promise<void>;
+  addIndex(table: string, attributes: string[], opts?: { unique?: boolean, type?: string }): Promise<void>;
 
   /**
    * remove index in table
@@ -402,7 +412,7 @@ declare class AbstractDriver {
    * @param attributes attributes name
    * @param opts 
    */
-  removeIndex(table: string, attributes: string[], opts: Object): Promise<void>;
+  removeIndex(table: string, attributes: string[], opts?: { unique?: boolean, type?: string }): Promise<void>;
 
 }
 

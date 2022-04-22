@@ -1,23 +1,24 @@
 import { strict as assert } from 'assert';
 const SqlString = require('sqlstring');
 
-import Realm, { SqliteDriver, SpellMeta, Literal } from '../..';
+import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult } from '../..';
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
 const Raw = require('../../src/raw');
 
 interface FormatResult {
-  table: string;
+  table?: string;
   whereArgs?: Array<Literal> 
   whereClause?: string,
-  values?: {
+  values?: Array<Literal> | {
     [key: string]: Literal
-  }
+  };
+  [key: string]: Literal
 }
 
 class MySpellbook extends SqliteDriver.Spellbook {
 
-  format(spell: SpellMeta): FormatResult {
+  format(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
     for (const scope of spell.scopes) scope(spell);
     switch (spell.command) {
       case 'insert':
@@ -37,7 +38,9 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
   }
 
-  formatUpdate(spell: SpellMeta): FormatResult {
+  formatUpdate(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
+    const a = super.formatDelete(spell);
+
     const { Model, sets, whereConditions } = spell;
     const { shardingKey } = Model;
     const { escapeId } = Model.driver;
@@ -55,11 +58,11 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
 
     const table = escapeId(spell.table.value);
-    const values = {};
+    const opValues = {};
     Object.keys(spell.sets).reduce((obj, key) => {
       obj[escapeId(Model.unalias(key))] = spell.sets[key];
       return obj;
-    }, values);
+    }, opValues);
   
     let whereArgs = [];
     let whereClause = '';
@@ -71,11 +74,11 @@ class MySpellbook extends SqliteDriver.Spellbook {
       table,
       whereArgs,
       whereClause,
-      values,
+      opValues,
     };
   }
 
-  formatDelete(spell: SpellMeta): FormatResult {
+  formatDelete(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
     const { Model, whereConditions } = spell;
     const { escapeId } = Model.driver;
     const table = escapeId(spell.table.value);
@@ -92,7 +95,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     };
   }
 
-  formatMyInsert(spell: SpellMeta): FormatResult {
+  formatMyInsert(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
     const { Model, sets } = spell;
     const { escapeId } = Model.driver;
     const table = escapeId(spell.table.value);
@@ -145,7 +148,7 @@ class CustomDriver extends SqliteDriver {
     }
   }
 
-  async update({ table, values, whereClause, whereArgs }: FormatResult, options?: SpellMeta) {
+  async update({ table, values, whereClause, whereArgs }, options?: SpellMeta) {
     const valueSets = [];
     const assignValues = [];
     Object.keys(values).map((key) => {
