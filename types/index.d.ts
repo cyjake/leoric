@@ -265,6 +265,8 @@ declare class AbstructDriver {
 
   Attribute: Attribute;
 
+  constructor(options: ConnectOptions);
+
   escape: (v: string) => string;
   escapeId: (v: string) => string;
 
@@ -795,7 +797,7 @@ export interface ConnectOptions {
   charset?: string;
   models?: string | (typeof Bone)[];
   subclass?: boolean;
-  driver?: AbstructDriver;
+  driver?: typeof AbstructDriver;
 }
 
 interface InitOptions {
@@ -830,8 +832,11 @@ export default class Realm {
   DataTypes: typeof DataType;
   driver: AbstructDriver;
   models: Record<string, Bone>;
+  connected?: boolean;
 
   constructor(options: ConnectOptions);
+
+  connect(): Promise<Bone>;
 
   define(
     name: string,
