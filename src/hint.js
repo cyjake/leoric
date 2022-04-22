@@ -1,6 +1,7 @@
 'use strict';
 
-const { isDeepStrictEqual, format } = require('util');
+const { format } = require('util');
+const isDeepStrictEqual = require('deep-equal');
 const { isPlainObject } = require('./utils');
 
 /**
