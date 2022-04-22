@@ -479,7 +479,6 @@ class Bone {
    * @return {string}
    */
   [util.inspect.custom]() {
-    console.log(util.inspect.custom, 'ficcc');
     return this.constructor.name + ' ' + util.inspect(this.toJSON());
   }
 
