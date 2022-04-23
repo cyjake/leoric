@@ -5,6 +5,7 @@
  * @module
  */
 const util = require('util');
+const deepEqual = require('deep-equal');
 const pluralize = require('pluralize');
 const { executeValidator, LeoricValidateError } = require('./validator');
 require('reflect-metadata');
@@ -380,7 +381,7 @@ class Bone {
     if (this.#rawUnset.has(name) || !this.hasAttribute(name)) return false;
     const value = this.attribute(name);
     const valueWas = this.attributeWas(name);
-    return !util.isDeepStrictEqual(value, valueWas);
+    return !deepEqual(value, valueWas);
   }
 
   /**
@@ -412,7 +413,7 @@ class Bone {
       if (this.#rawUnset.has(name) || this.#rawPrevious[name] === undefined || !this.hasAttribute(name)) return {};
       const value = this.attribute(name);
       const valueWas = this.#rawPrevious[name] == null ? null : this.#rawPrevious[name];
-      if (util.isDeepStrictEqual(value, valueWas)) return {};
+      if (deepEqual(value, valueWas)) return {};
       return { [name]: [ valueWas, value ] };
     }
     const result = {};
@@ -420,7 +421,7 @@ class Bone {
       if (this.#rawUnset.has(attrKey) || this.#rawPrevious[attrKey] === undefined) continue;
       const value = this.attribute(attrKey);
       const valueWas = this.#rawPrevious[attrKey] == null ? null : this.#rawPrevious[attrKey];
-      if (!util.isDeepStrictEqual(value, valueWas)) result[attrKey] = [ valueWas, value ];
+      if (!deepEqual(value, valueWas)) result[attrKey] = [ valueWas, value ];
     }
     return result;
   }
@@ -439,7 +440,7 @@ class Bone {
       if (this.#rawUnset.has(name) || !this.hasAttribute(name)) return {};
       const value = this.attribute(name);
       const valueWas = this.attributeWas(name);
-      if (util.isDeepStrictEqual(value, valueWas)) return {};
+      if (deepEqual(value, valueWas)) return {};
       return { [name]: [ valueWas, value ] };
     }
     const result = {};
@@ -448,7 +449,7 @@ class Bone {
       const value = this.attribute(attrKey);
       const valueWas = this.attributeWas(attrKey);
 
-      if (!util.isDeepStrictEqual(value, valueWas)) {
+      if (!deepEqual(value, valueWas)) {
         result[attrKey] = [ valueWas, value ];
       }
     }

@@ -1,7 +1,17 @@
 import DataType from './data_types';
+import { Hint, IndexHint } from './hint';
 
 export { DataType as DataTypes };
 export * from '../src/decorators';
+
+export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
+export type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
+
+export class Raw {
+  value: string;
+  type: 'raw';
+}
+
 
 type DataTypes<T> = {
   [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
@@ -37,20 +47,35 @@ interface ExprTernaryOperator {
 }
 
 type ExprOperator = ExprBinaryOperator | ExprTernaryOperator;
+type SpellColumn = ExprIdentifier | Raw;
+
+interface Join {
+  [key: string]: {
+    Model: typeof Bone;
+    on: ExprBinaryOperator
+  }
+}
 
 interface SpellOptions {
-  command?: string;
-  columns: Object[];
+  command?: command;
+  columns: SpellColumn[];
   table: ExprIdentifier;
   whereConditions: ExprOperator[];
   groups: (ExprIdentifier | ExprFunc)[];
   orders: (ExprIdentifier | ExprFunc)[];
   havingCondtions: ExprOperator[];
-  joins: Object;
+  joins: Join;
   skip: number;
   scopes: Function[];
   subqueryIndex: number;
-  rowCount: 0;
+  rowCount?: number;
+  connection?: Connection;
+  sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
+  hints?: Array<Hint | IndexHint>;
+}
+
+export interface SpellMeta extends SpellOptions {
+  Model: typeof Bone;
 }
 
 type OrderOptions = { [name: string]: 'desc' | 'asc' };
@@ -64,7 +89,10 @@ type WithOptions = {
 export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
-  select(...names: Array<string | RawSql> | Array<(name: string) => boolean>): Spell<T, U>;
+  command: string;
+  scopes: Function[];
+
+  select(...names: Array<string | Raw> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions): Spell<T, QueryResult>;
   update(opts: SetOptions): Spell<T, QueryResult>;
   upsert(opts: SetOptions): Spell<T, QueryResult>;
@@ -86,7 +114,7 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
   orWhere(conditions: WhereConditions<T>): Spell<T, U>;
   orWhere(conditions: string, ...values: Literal[]): Spell<T, U>;
 
-  group(...names: Array<string | RawSql>): Spell<T, ResultSet>;
+  group(...names: Array<string | Raw>): Spell<T, ResultSet>;
 
   having(conditions: string, ...values: Literal[]): Spell<T, ResultSet>;
   having(conditions: WhereConditions<T>): Spell<T, ResultSet>;
@@ -115,7 +143,6 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
   toString(): string;
 }
 
-type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
 
 type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
@@ -141,15 +168,21 @@ type InstanceValues<T> = {
   [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
 }
 
-export interface AttributeMeta {
+export interface ColumnMeta {
   columnName?: string;
   columnType?: string;
   allowNull?: boolean;
   defaultValue?: Literal;
   primaryKey?: boolean;
+  unique?: boolean;
   dataType?: string;
+  comment?: string;
+  datetimePrecision?: string;
+}
+export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
   type: DataType;
+  virtual?: boolean,
   toSqlString: () => string;
 }
 
@@ -187,7 +220,59 @@ declare class Pool {
   getConnection(): Connection;
 }
 
-declare class Driver {
+declare class Attribute {
+  /**
+   * attribute name
+   */
+  name: string;
+  /**
+   * primaryKey tag
+   */
+  primaryKey: boolean;
+  allowNull: boolean;
+  /**
+   * attribute column name in table
+   */
+  columnName: string;
+  columnType: string;
+  type: typeof DataType;
+  defaultValue: Literal;
+  dataType: string;
+  jsType: Literal;
+  virtual: boolean;
+
+  euals(columnInfo: ColumnMeta): boolean;
+  cast(value: Literal): Literal;
+  uncast(value: Literal): Literal;
+}
+
+interface SpellBookFormatStandardResult {
+  sql?: string;
+  values?: Array<Literal> | {
+    [key: string]: Literal
+  };
+  [key: string]: Literal
+}
+
+export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
+
+declare class Spellbook {
+
+  format(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+
+  formatInsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatSelect(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpdate(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatDelete(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+}
+
+declare class AbstractDriver {
+
+  static Spellbook: typeof Spellbook;
+  static DataType: typeof DataType;
+  static Attribute: typeof Attribute;
+
   /**
    * The type of driver, currently there are mysql, sqlite, and postgres
    */
@@ -204,9 +289,146 @@ declare class Driver {
   pool: Pool;
 
   /**
+   * The SQL dialect
+   */
+  dialect: string;
+
+  spellbook: Spellbook;
+
+  DataType: DataType;
+
+  Attribute: Attribute;
+
+  constructor(options: ConnectOptions);
+
+  escape: (v: string) => string;
+  escapeId: (v: string) => string;
+
+  /**
    * Grab a connection and query the database
    */
-  query(sql: string, values?: Array<Literal | Literal[]>): Promise<QueryResult>;
+  query(sql: string | { sql: string, nestTables?: boolean}, values?: Array<Literal | Literal[]>, opts?: SpellMeta): Promise<QueryResult>;
+  
+  /**
+   * query with spell
+   * @param spell 
+   */
+  cast(spell: Spell<typeof Bone, ResultSet | number | null>): Promise<QueryResult>;
+
+  /**
+   * format spell
+   * @param spell SpellMeta
+   */
+  format(spell: SpellMeta): any;
+
+  /**
+   * create table
+   * @param tabe table name
+   * @param attributes attributes
+   */
+  createTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+
+  /**
+   * alter table
+   * @param tabe table name
+   * @param attributes alter attributes
+   */
+  alterTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+
+  /**
+   * describe table
+   * @param table table name
+   */
+  describeTable(table: string): Promise<{ [key: string]: ColumnMeta }>;
+
+  /**
+   * query table schemas
+   * @param database database name
+   * @param table table name or table name array
+   */
+  querySchemaInfo(database: string, table: string | string[]): Promise<{ [key: string] : { [key: string]: ColumnMeta }[]}>;
+
+  /**
+   * add column to table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  addColumn(table: string, name: string, params: ColumnMeta): Promise<void>;
+
+  /**
+   * change column meta in table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  changeColumn(table: string, name: string, params: ColumnMeta): Promise<void>;
+
+  /**
+   * remove column in table
+   * @param table table name
+   * @param name column name
+   */
+  removeColumn(table: string, name: string): Promise<void>;
+
+  /**
+   * rename column in table
+   * @param table table name
+   * @param name column name
+   * @param newName new column name
+   */
+  renameColumn(table: string, name: string, newName: string): Promise<void>;
+
+  /**
+   * rename table
+   * @param table table name
+   * @param newTable new table name
+   */
+  renameTable(table: string, newTable: string): Promise<void>;
+
+  /**
+   * drop table
+   * @param table table name
+   */
+  dropTable(table: string): Promise<void>;
+
+  /**
+   * truncate table
+   * @param table table name
+   */
+  truncateTable(table: string): Promise<void>;
+
+  /**
+   * add index in table
+   * @param table table name
+   * @param attributes attributes name
+   * @param opts
+   */
+  addIndex(table: string, attributes: string[], opts?: { unique?: boolean, type?: string }): Promise<void>;
+
+  /**
+   * remove index in table
+   * @param table string
+   * @param attributes attributes name
+   * @param opts 
+   */
+  removeIndex(table: string, attributes: string[], opts?: { unique?: boolean, type?: string }): Promise<void>;
+
+}
+
+export class MysqlDriver extends AbstractDriver {
+  type: 'mysql';
+  dialect: 'mysql';
+}
+
+export class PostgresDriver extends AbstractDriver {
+  type: 'postgres';
+  dialect: 'postgres';
+}
+
+export class SqliteDriver extends AbstractDriver {
+  type: 'sqlite';
+  dialect: 'sqlite';
 }
 
 type ResultSet = {
@@ -230,7 +452,7 @@ export class Bone {
   /**
    * The driver that powers the model
    */
-  static driver: Driver;
+  static driver: AbstractDriver;
 
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`
@@ -303,6 +525,7 @@ export class Bone {
 
   static alias(name: string): string;
   static alias(data: Record<string, Literal>): Record<string, Literal>;
+  static unalias(name: string): string;
 
   static hasOne(name: string, opts?: RelateOptions): void;
   static hasMany(name: string, opts?: RelateOptions): void;
@@ -474,7 +697,7 @@ export class Bone {
 
   static initialize(): void;
 
-  constructor(values: { [key: string]: Literal });
+  constructor(values: { [key: string]: Literal }, opts?: { isNewRecord?: boolean });
 
   /**
    * @example
@@ -609,6 +832,7 @@ export interface ConnectOptions {
   charset?: string;
   models?: string | (typeof Bone)[];
   subclass?: boolean;
+  driver?: typeof AbstractDriver;
 }
 
 interface InitOptions {
@@ -626,12 +850,6 @@ interface SyncOptions {
   alter?: boolean;
 }
 
-type RawSql = {
-  __raw: true,
-  value: string,
-  type: 'raw',
-};
-
 interface RawQueryOptions {
   replacements?: { [key:string]: Literal | Literal[] };
   model: Bone;
@@ -641,10 +859,13 @@ interface RawQueryOptions {
 export default class Realm {
   Bone: typeof Bone;
   DataTypes: typeof DataType;
-  driver: Driver;
+  driver: AbstractDriver;
   models: Record<string, Bone>;
+  connected?: boolean;
 
   constructor(options: ConnectOptions);
+
+  connect(): Promise<Bone>;
 
   define(
     name: string,
@@ -653,7 +874,7 @@ export default class Realm {
     descriptors?: Record<string, Function>,
   ): typeof Bone;
 
-  raw(sql: string): RawSql;
+  raw(sql: string): Raw;
 
   escape(value: Literal): string;
 
@@ -676,3 +897,8 @@ export default class Realm {
  * })
  */
 export function connect(opts: ConnectOptions): Promise<Realm>;
+
+export {
+  Hint,
+  IndexHint,
+}

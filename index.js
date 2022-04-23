@@ -12,6 +12,7 @@ const { heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 const Realm = require('./src/realm');
 const Decorators = require('./src/decorators');
+const Raw = require('./src/raw');
 const { MysqlDriver, PostgresDriver, SqliteDriver, AbstractDriver } = require('./src/drivers');
 
 /**
@@ -55,6 +56,7 @@ Object.assign(Realm, {
   PostgresDriver,
   SqliteDriver,
   AbstractDriver,
+  Raw,
 });
 
 module.exports = Realm;
