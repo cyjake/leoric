@@ -1,3 +1,16 @@
+2.4.0 / 2022-04-24
+==================
+
+## What's Changed
+* feat: support custom driver by @JimmyDaddy in https://github.com/cyjake/leoric/pull/304
+* chore: update build status badge by @snapre in https://github.com/cyjake/leoric/pull/305
+* feat: export more ts type definitions and  use deep-equal module by @JimmyDaddy in https://github.com/cyjake/leoric/pull/306
+
+## New Contributors
+* @snapre made their first contribution in https://github.com/cyjake/leoric/pull/305
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.3.2...v2.4.0
+
 2.3.2 / 2022-04-15
 ==================
 
