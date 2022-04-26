@@ -179,11 +179,17 @@ export interface ColumnMeta {
   comment?: string;
   datetimePrecision?: string;
 }
+
+declare type validator = Literal | Function | Array<Literal | Literal[]>;
+
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
   type: DataType;
   virtual?: boolean,
   toSqlString: () => string;
+  validate: {
+    [key: string]: validator;
+  }
 }
 
 interface RelateOptions {
@@ -442,7 +448,7 @@ export class Collection<T extends Bone> extends Array<T> {
 }
 
 export class Bone {
-  static DataTypes: DataType;
+  static DataTypes: typeof DataType;
 
   /**
    * get the connection pool of the driver

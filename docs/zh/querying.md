@@ -501,6 +501,7 @@ SELECT * FROM posts LEFT JOIN comments ON posts.id = comments.post_id LEFT JOIN 
 
 ```js
 Post.join(Comment, 'posts.id = comments.postId').where('comments.id = 1')
+Post.join(Comment, 'posts.id = comments.postId').where({ 'comments.id': 1 })
 ```
 
 ## 查询限定

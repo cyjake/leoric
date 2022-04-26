@@ -100,7 +100,7 @@ const { BIGINT, STRING } = Bone.DataTypes;
 class Shop extends Bone {
   static attributes = {
     id: { type: BIGINT, primaryKey: true },
-    name: { type: STRING },
+    name: STRING,
   }
 }
 
