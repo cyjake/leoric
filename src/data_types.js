@@ -110,20 +110,20 @@ class DataType {
  * STRING
  * STRING(127)
  * STRING.BINARY
- * @param {number} length
+ * @param {number} dataLength
  */
 class STRING extends DataType {
   constructor(length = 255) {
     super();
     this.dataType = 'varchar';
-    this.length = length;
+    this.dataLength = length;
   }
 
   toSqlString() {
-    const { length } = this;
+    const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -136,15 +136,15 @@ class STRING extends DataType {
 class BINARY extends DataType {
   constructor(length = 255) {
     super();
-    this.length = length;
+    this.dataLength = length;
     this.dataType = 'binary';
   }
 
   toSqlString() {
-    const { length } = this;
+    const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -170,12 +170,12 @@ class VARBINARY extends BINARY {
  * INTEGER.UNSIGNED
  * INTEGER.UNSIGNED.ZEROFILL
  * INTEGER(10)
- * @param {number} length
+ * @param {number} dataLength
  */
 class INTEGER extends DataType {
   constructor(length) {
     super();
-    this.length = length;
+    this.dataLength = length;
     this.dataType = 'integer';
   }
 
@@ -190,10 +190,10 @@ class INTEGER extends DataType {
   }
 
   toSqlString() {
-    const { length, unsigned, zerofill } = this;
+    const { dataLength, unsigned, zerofill } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     if (unsigned) chunks.push('UNSIGNED');
     if (zerofill) chunks.push('ZEROFILL');
     return chunks.join(' ');
@@ -442,11 +442,11 @@ class TEXT extends DataType {
     }
     super();
     this.dataType = 'text';
-    this.length = length;
+    this.dataLength = length;
   }
 
   toSqlString() {
-    return [ this.length, this.dataType ].join('').toUpperCase();
+    return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 }
 
@@ -457,11 +457,11 @@ class BLOB extends DataType {
     }
     super();
     this.dataType = 'blob';
-    this.length = length;
+    this.dataLength = length;
   }
 
   toSqlString() {
-    return [ this.length, this.dataType ].join('').toUpperCase();
+    return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 
   cast(value) {

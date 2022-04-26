@@ -1,27 +1,27 @@
 type LENGTH_VARIANTS = 'tiny' | '' | 'medium' | 'long';
 
-interface INVOKABLE<T> {
-  (length: LENGTH_VARIANTS): T;
-  (length: number): T;
+interface INVOKABLE<T> extends DataType {
+  (length?: LENGTH_VARIANTS): T;
+  (length?: number): T;
 }
 
 export default class DataType {
   toSqlString(): string;
 
-  static STRING: typeof STRING & INVOKABLE<STRING>;
-  static INTEGER: typeof INTEGER & INVOKABLE<INTEGER>;
-  static BIGINT: typeof BIGINT & INVOKABLE<BIGINT>;
-  static DECIMAL: typeof DECIMAL & INVOKABLE<DECIMAL>;
-  static TEXT: typeof TEXT & INVOKABLE<TEXT>;
-  static BLOB: typeof BLOB & INVOKABLE<BLOB>;
-  static JSON: typeof JSON & INVOKABLE<JSON>;
-  static JSONB: typeof JSONB & INVOKABLE<JSONB>;
-  static BINARY: typeof BINARY & INVOKABLE<BINARY>;
-  static VARBINARY: typeof VARBINARY & INVOKABLE<VARBINARY>;
-  static DATE: typeof DATE & INVOKABLE<DATE>;
-  static DATEONLY: typeof DATEONLY & INVOKABLE<DATEONLY>;
-  static BOOLEAN: typeof BOOLEAN & INVOKABLE<BOOLEAN>;
-  static VIRTUAL: typeof VIRTUAL & INVOKABLE<VIRTUAL>;
+  static STRING: INVOKABLE<STRING>;
+  static INTEGER: INTEGER & INVOKABLE<INTEGER>;
+  static BIGINT: BIGINT & INVOKABLE<BIGINT>;
+  static DECIMAL: DECIMAL & INVOKABLE<DECIMAL>;
+  static TEXT: INVOKABLE<TEXT>;
+  static BLOB: INVOKABLE<BLOB>;
+  static JSON: JSON;
+  static JSONB: JSONB;
+  static BINARY: BINARY & INVOKABLE<BINARY>;
+  static VARBINARY: VARBINARY & INVOKABLE<VARBINARY>;
+  static DATE: DATE & INVOKABLE<DATE>;
+  static DATEONLY: DATEONLY;
+  static BOOLEAN: BOOLEAN;
+  static VIRTUAL: VIRTUAL;
 
 }
 
@@ -35,8 +35,9 @@ declare class INTEGER extends DataType {
   dataType: 'integer' | 'bigint' | 'decimal';
   length: number;
   constructor(length: number);
-  get UNSIGNED(): this;
-  get ZEROFILL(): this;
+  // avoid INTEGER.UNSIGNED.ZEROFILL.UNSIGNED.UNSIGNED
+  get UNSIGNED(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
+  get ZEROFILL(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
 }
 
 declare class BIGINT extends INTEGER {

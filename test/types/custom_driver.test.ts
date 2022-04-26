@@ -186,17 +186,21 @@ describe('=> Realm (TypeScript)', function () {
     });
   });
 
+  afterEach(async () => {
+    await realm?.driver?.dropTable('test_user');
+  });
+
   describe('realm.define(name, attributes, options, descriptors)', async function() {
     it('options and descriptors should be optional', async function() {
       assert.doesNotThrow(function() {
         const { STRING } = realm.DataTypes;
-        realm.define('User', { name: STRING });
+        realm.define('TestUser', { name: STRING });
       });
     });
 
     it('can customize attributes with descriptors', async function() {
       const { STRING } = realm.DataTypes;
-      const User = realm.define('User', { name: STRING }, {}, {
+      const User = realm.define('TestUser', { name: STRING }, {}, {
         get name() {
           return this.attribute('name').replace(/^([a-z])/, function(m, chr) {
             return chr.toUpperCase();
@@ -216,7 +220,7 @@ describe('=> Realm (TypeScript)', function () {
     it('options should be optional', async function() {
       assert.doesNotThrow(async () => {
         const { STRING } = realm.DataTypes;
-        realm.define('User', { name: STRING });
+        realm.define('TestUser', { name: STRING });
         await realm.sync();
       });
     });
@@ -224,7 +228,7 @@ describe('=> Realm (TypeScript)', function () {
     it('`force` can be passed individually', async function() {
       assert.doesNotThrow(async () => {
         const { STRING } = realm.DataTypes;
-        realm.define('User', { name: STRING });
+        realm.define('TestUser', { name: STRING });
         await realm.sync({ force: true });
       });
     });
@@ -232,7 +236,7 @@ describe('=> Realm (TypeScript)', function () {
     it('`alter` can be passed individually', async function() {
       assert.doesNotThrow(async () => {
         const { STRING } = realm.DataTypes;
-        realm.define('User', { name: STRING });
+        realm.define('TestUser', { name: STRING });
         await realm.sync({ alter: true });
       });
     });
@@ -240,7 +244,7 @@ describe('=> Realm (TypeScript)', function () {
     it('`force` and `alter` can be passed together', async function() {
       assert.doesNotThrow(async () => {
         const { STRING } = realm.DataTypes;
-        realm.define('User', { name: STRING });
+        realm.define('TestUser', { name: STRING });
         await realm.sync({ force: true, alter: true });
       });
     });

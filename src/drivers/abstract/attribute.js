@@ -77,7 +77,7 @@ function createType(DataTypes, params) {
     case 'VARBINARY':
     case 'CHAR':
     case 'VARCHAR':
-      return new DataType(type.length);
+      return new DataType(type.dataLength);
     default:
       return new DataType();
   }
