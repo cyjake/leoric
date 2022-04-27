@@ -1,65 +1,68 @@
 type LENGTH_VARIANTS = 'tiny' | '' | 'medium' | 'long';
 
-interface INVOKABLE<T> {
-  (length: LENGTH_VARIANTS): T;
-  (length: number): T;
+interface INVOKABLE<T> extends DataType {
+  (dataLength?: LENGTH_VARIANTS): T;
+  (dataLength?: number): T;
 }
 
 export default class DataType {
   toSqlString(): string;
 
-  static STRING: typeof STRING & INVOKABLE<STRING>;
-  static INTEGER: typeof INTEGER & INVOKABLE<INTEGER>;
-  static BIGINT: typeof BIGINT & INVOKABLE<BIGINT>;
-  static DECIMAL: typeof DECIMAL & INVOKABLE<DECIMAL>;
-  static TEXT: typeof TEXT & INVOKABLE<TEXT>;
-  static BLOB: typeof BLOB & INVOKABLE<BLOB>;
-  static JSON: typeof JSON & INVOKABLE<JSON>;
-  static JSONB: typeof JSONB & INVOKABLE<JSONB>;
-  static BINARY: typeof BINARY & INVOKABLE<BINARY>;
-  static VARBINARY: typeof VARBINARY & INVOKABLE<VARBINARY>;
-  static DATE: typeof DATE & INVOKABLE<DATE>;
-  static DATEONLY: typeof DATEONLY & INVOKABLE<DATEONLY>;
-  static BOOLEAN: typeof BOOLEAN & INVOKABLE<BOOLEAN>;
-  static VIRTUAL: typeof VIRTUAL & INVOKABLE<VIRTUAL>;
+  static STRING: INVOKABLE<STRING>;
+  static INTEGER: INTEGER & INVOKABLE<INTEGER>;
+  static BIGINT: BIGINT & INVOKABLE<BIGINT>;
+  static DECIMAL: DECIMAL & INVOKABLE<DECIMAL>;
+  static TEXT: INVOKABLE<TEXT>;
+  static BLOB: INVOKABLE<BLOB>;
+  static JSON: JSON;
+  static JSONB: JSONB;
+  static BINARY: BINARY & INVOKABLE<BINARY>;
+  static VARBINARY: VARBINARY & INVOKABLE<VARBINARY>;
+  static DATE: DATE & INVOKABLE<DATE>;
+  static DATEONLY: DATEONLY;
+  static BOOLEAN: BOOLEAN;
+  static VIRTUAL: VIRTUAL;
 
 }
 
 declare class STRING extends DataType {
   dataType: 'varchar';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class INTEGER extends DataType {
   dataType: 'integer' | 'bigint' | 'decimal';
-  length: number;
-  constructor(length: number);
-  get UNSIGNED(): this;
-  get ZEROFILL(): this;
+  dataLength: number;
+  constructor(dataLength: number);
+  // avoid INTEGER.UNSIGNED.ZEROFILL.UNSIGNED.UNSIGNED
+  get UNSIGNED(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
+  get ZEROFILL(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
 }
 
 declare class BIGINT extends INTEGER {
   dataType: 'bigint';
 }
 
-declare class DECIMAL extends INTEGER {
+declare class DECIMAL_INNER extends INTEGER {
   dataType: 'decimal';
   precision: number;
   scale: number;
   constructor(precision: number, scale: number);
 }
 
+declare type DECIMAL = Omit<DECIMAL_INNER, 'dataLength'>;
+
 declare class TEXT extends DataType {
   dataType: 'text';
-  length: LENGTH_VARIANTS;
-  constructor(length: LENGTH_VARIANTS);
+  dataLength: LENGTH_VARIANTS;
+  constructor(dataLength: LENGTH_VARIANTS);
 }
 
 declare class BLOB extends DataType {
   dataType: 'blob';
-  length: LENGTH_VARIANTS;
-  constructor(length: LENGTH_VARIANTS)
+  dataLength: LENGTH_VARIANTS;
+  constructor(dataLength: LENGTH_VARIANTS)
 }
 
 declare class JSON extends DataType {
@@ -72,14 +75,14 @@ declare class JSONB extends JSON {
 
 declare class BINARY extends DataType {
   dataType: 'binary';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class VARBINARY extends DataType {
   dataType: 'varbinary';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class DATE extends DataType {

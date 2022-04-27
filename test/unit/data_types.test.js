@@ -303,9 +303,37 @@ describe('=> DataTypes.findType()', () => {
 });
 
 describe('=> DataTypes.invokable', function() {
-  const { STRING } = DataTypes.invokable;
+  const { STRING, INTEGER, TEXT, BLOB, BIGINT } = DataTypes.invokable;
 
   it('should wrap data types to support flexible invoking', async function() {
     assert.equal(STRING(255).toSqlString(), 'VARCHAR(255)');
+    assert.equal(STRING.toSqlString(), 'VARCHAR(255)');
+
+    // NOT "INTEGER(1)"
+    // ref: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/length
+    // The length property indicates the number of parameters expected by the function.
+    assert.equal(INTEGER.toSqlString(), 'INTEGER');
+    assert.equal(INTEGER.UNSIGNED.toSqlString(), 'INTEGER UNSIGNED');
+    assert.equal(INTEGER.ZEROFILL.toSqlString(), 'INTEGER ZEROFILL');
+
+    assert.equal(INTEGER(10).UNSIGNED.toSqlString(), 'INTEGER(10) UNSIGNED');
+    assert.equal(INTEGER(10).ZEROFILL.toSqlString(), 'INTEGER(10) ZEROFILL');
+    assert.equal(INTEGER(10).toSqlString(), 'INTEGER(10)');
+
+    assert.equal(BIGINT.toSqlString(), 'BIGINT');
+    assert.equal(BIGINT.UNSIGNED.toSqlString(), 'BIGINT UNSIGNED');
+    assert.equal(BIGINT.ZEROFILL.toSqlString(), 'BIGINT ZEROFILL');
+
+    assert.equal(BIGINT(10).UNSIGNED.toSqlString(), 'BIGINT(10) UNSIGNED');
+    assert.equal(BIGINT(10).ZEROFILL.toSqlString(), 'BIGINT(10) ZEROFILL');
+    assert.equal(BIGINT(10).toSqlString(), 'BIGINT(10)');
+
+    // NOT "0TEXT"
+    assert.equal(TEXT.toSqlString(), 'TEXT');
+    assert.equal(TEXT('tiny').toSqlString(), 'TINYTEXT');
+
+    assert.equal(BLOB.toSqlString(), 'BLOB');
+    assert.equal(BLOB('tiny').toSqlString(), 'TINYBLOB');
+
   });
 });

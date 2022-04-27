@@ -138,6 +138,8 @@ function valuesValidate(values, attributes, ctx) {
  */
 class Bone {
 
+  static DataTypes = DataTypes.invokable;
+
   // private variables
   #raw = {};
   #rawSaved = {};
@@ -1711,7 +1713,5 @@ for (const getter of Spell_getters) {
     },
   });
 }
-
-Object.assign(Bone, { DataTypes });
 
 module.exports = Bone;

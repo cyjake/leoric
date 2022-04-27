@@ -34,8 +34,8 @@ class Sqlite_DATEONLY extends DataTypes.DATEONLY {
 }
 
 class Sqlite_INTEGER extends DataTypes.INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
   }
 
   uncast(value) {
@@ -54,24 +54,24 @@ class Sqlite_BIGINT extends DataTypes.BIGINT {
   }
 }
 class Sqlite_BINARY extends DataTypes {
-  constructor(length = 255) {
-    super(length);
-    this.length = length;
+  constructor(dataLength = 255) {
+    super(dataLength);
+    this.dataLength = dataLength;
     this.dataType = 'binary';
   }
 
   toSqlString() {
-    const { length } = this;
+    const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
     chunks.push('VARCHAR');
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 }
 class Sqlite_VARBINARY extends Sqlite_BINARY {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'varbinary';
   }
 }

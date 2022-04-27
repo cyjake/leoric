@@ -144,6 +144,25 @@ describe('=> Realm', () => {
     });
   });
 
+  describe('DataTypes', () => {
+    it('invokable', () => {
+      const realm = new Realm({ subclass: true });
+      assert(realm.DataTypes.INTEGER.UNSIGNED);
+      assert(realm.Bone.DataTypes.INTEGER.UNSIGNED instanceof DataTypes.INTEGER);
+      assert(realm.Bone.DataTypes.INTEGER.ZEROFILL instanceof DataTypes.INTEGER);
+
+      assert(realm.Bone.DataTypes.BIGINT.UNSIGNED instanceof DataTypes.INTEGER);
+      assert(realm.Bone.DataTypes.BIGINT.ZEROFILL instanceof DataTypes.INTEGER);
+
+      assert.equal(realm.Bone.DataTypes.INTEGER.UNSIGNED.unsigned, true);
+      assert.equal(realm.Bone.DataTypes.BIGINT.UNSIGNED.unsigned, true);
+
+      assert.equal(realm.Bone.DataTypes.INTEGER.ZEROFILL.zerofill, true);
+      assert.equal(realm.Bone.DataTypes.BIGINT.ZEROFILL.zerofill, true);
+
+    });
+  });
+
   describe('realm.query', async () => {
 
     class Post extends Bone {

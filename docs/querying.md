@@ -507,6 +507,7 @@ We can reference these table aliases futher after the join, such as `.where()` o
 
 ```js
 Post.join(Comment, 'posts.id = comments.postId').where('comments.id = 1')
+Post.join(Comment, 'posts.id = comments.postId').where({ 'comments.id': 1 })
 ```
 
 ## Scopes

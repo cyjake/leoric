@@ -110,20 +110,20 @@ class DataType {
  * STRING
  * STRING(127)
  * STRING.BINARY
- * @param {number} length
+ * @param {number} dataLength
  */
 class STRING extends DataType {
-  constructor(length = 255) {
+  constructor(dataLength = 255) {
     super();
     this.dataType = 'varchar';
-    this.length = length;
+    this.dataLength = dataLength;
   }
 
   toSqlString() {
-    const { length } = this;
+    const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -134,17 +134,17 @@ class STRING extends DataType {
 }
 
 class BINARY extends DataType {
-  constructor(length = 255) {
+  constructor(dataLength = 255) {
     super();
-    this.length = length;
+    this.dataLength = dataLength;
     this.dataType = 'binary';
   }
 
   toSqlString() {
-    const { length } = this;
+    const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -156,8 +156,8 @@ class BINARY extends DataType {
 }
 
 class VARBINARY extends BINARY {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'varbinary';
   }
 }
@@ -170,12 +170,12 @@ class VARBINARY extends BINARY {
  * INTEGER.UNSIGNED
  * INTEGER.UNSIGNED.ZEROFILL
  * INTEGER(10)
- * @param {number} length
+ * @param {number} dataLength
  */
 class INTEGER extends DataType {
-  constructor(length) {
+  constructor(dataLength) {
     super();
-    this.length = length;
+    this.dataLength = dataLength;
     this.dataType = 'integer';
   }
 
@@ -190,10 +190,10 @@ class INTEGER extends DataType {
   }
 
   toSqlString() {
-    const { length, unsigned, zerofill } = this;
+    const { dataLength, unsigned, zerofill } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks = [];
-    chunks.push(length > 0 ? `${dataType}(${length})` : dataType);
+    chunks.push(dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     if (unsigned) chunks.push('UNSIGNED');
     if (zerofill) chunks.push('ZEROFILL');
     return chunks.join(' ');
@@ -222,11 +222,11 @@ class INTEGER extends DataType {
  * TINYINT
  * TINYINT.UNSIGNED
  * TINYINT(1)
- * @param {number} length
+ * @param {number} dataLength
  */
 class TINYINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'tinyint';
   }
 }
@@ -237,11 +237,11 @@ class TINYINT extends INTEGER {
  * SMALLINT
  * SMALLINT.UNSIGNED
  * SMALLINT(2)
- * @param {number} length
+ * @param {number} dataLength
  */
 class SMALLINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'smallint';
   }
 }
@@ -252,11 +252,11 @@ class SMALLINT extends INTEGER {
  * MEDIUMINT
  * MEDIUMINT.UNSIGNED
  * MEDIUMINT(3)
- * @param {number} length
+ * @param {number} dataLength
  */
 class MEDIUMINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'mediumint';
   }
 }
@@ -268,11 +268,11 @@ class MEDIUMINT extends INTEGER {
  * BIGINT
  * BIGINT.UNSIGNED
  * BIGINT(8)
- * @param {number} length
+ * @param {number} dataLength
  */
 class BIGINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'bigint';
   }
 }
@@ -442,11 +442,11 @@ class TEXT extends DataType {
     }
     super();
     this.dataType = 'text';
-    this.length = length;
+    this.dataLength = length;
   }
 
   toSqlString() {
-    return [ this.length, this.dataType ].join('').toUpperCase();
+    return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 }
 
@@ -457,11 +457,11 @@ class BLOB extends DataType {
     }
     super();
     this.dataType = 'blob';
-    this.length = length;
+    this.dataLength = length;
   }
 
   toSqlString() {
-    return [ this.length, this.dataType ].join('').toUpperCase();
+    return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 
   cast(value) {
