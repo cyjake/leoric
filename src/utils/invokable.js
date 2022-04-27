@@ -19,7 +19,7 @@ function invokable(DataType) {
     // INTEGER.UNSIGNED
     get(target, p) {
       // ref: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/length
-      // Function.length = Function.arguments.length
+      // The length property indicates the number of parameters expected by the function.
       // invokable INTEGER.toSqlString() will default to return "INTEGER(1)"
       return target.hasOwnProperty(p) ? target[p] : new target()[p];
     }

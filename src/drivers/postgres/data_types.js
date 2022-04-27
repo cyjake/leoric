@@ -41,8 +41,8 @@ class Postgres_BINARY extends DataTypes {
 }
 
 class Postgres_INTEGER extends DataTypes.INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
   }
 
   uncast(value) {

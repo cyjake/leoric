@@ -1,8 +1,8 @@
 type LENGTH_VARIANTS = 'tiny' | '' | 'medium' | 'long';
 
 interface INVOKABLE<T> extends DataType {
-  (length?: LENGTH_VARIANTS): T;
-  (length?: number): T;
+  (dataLength?: LENGTH_VARIANTS): T;
+  (dataLength?: number): T;
 }
 
 export default class DataType {
@@ -27,14 +27,14 @@ export default class DataType {
 
 declare class STRING extends DataType {
   dataType: 'varchar';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class INTEGER extends DataType {
   dataType: 'integer' | 'bigint' | 'decimal';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
   // avoid INTEGER.UNSIGNED.ZEROFILL.UNSIGNED.UNSIGNED
   get UNSIGNED(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
   get ZEROFILL(): Omit<this, 'UNSIGNED' | 'ZEROFILL'>;
@@ -44,23 +44,25 @@ declare class BIGINT extends INTEGER {
   dataType: 'bigint';
 }
 
-declare class DECIMAL extends INTEGER {
+declare class DECIMAL_INNER extends INTEGER {
   dataType: 'decimal';
   precision: number;
   scale: number;
   constructor(precision: number, scale: number);
 }
 
+declare type DECIMAL = Omit<DECIMAL_INNER, 'dataLength'>;
+
 declare class TEXT extends DataType {
   dataType: 'text';
-  length: LENGTH_VARIANTS;
-  constructor(length: LENGTH_VARIANTS);
+  dataLength: LENGTH_VARIANTS;
+  constructor(dataLength: LENGTH_VARIANTS);
 }
 
 declare class BLOB extends DataType {
   dataType: 'blob';
-  length: LENGTH_VARIANTS;
-  constructor(length: LENGTH_VARIANTS)
+  dataLength: LENGTH_VARIANTS;
+  constructor(dataLength: LENGTH_VARIANTS)
 }
 
 declare class JSON extends DataType {
@@ -73,14 +75,14 @@ declare class JSONB extends JSON {
 
 declare class BINARY extends DataType {
   dataType: 'binary';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class VARBINARY extends DataType {
   dataType: 'varbinary';
-  length: number;
-  constructor(length: number);
+  dataLength: number;
+  constructor(dataLength: number);
 }
 
 declare class DATE extends DataType {

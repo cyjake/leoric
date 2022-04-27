@@ -1,8 +1,8 @@
 import { strict as assert } from 'assert';
-import Realm, { Bone, DataTypes } from '../..';
+import Realm, { DataTypes } from '../..';
 
 describe('=> Data types (TypeScript)', function() {
-  const { STRING, TEXT, BLOB, INTEGER, BIGINT, DATE, BOOLEAN, BINARY, VARBINARY, VIRTUAL, JSON, JSONB } = DataTypes;
+  const { STRING, TEXT, BLOB, INTEGER, BIGINT, DATE, BOOLEAN, BINARY, VARBINARY, VIRTUAL, JSON, JSONB, DECIMAL } = DataTypes;
 
   it('realm.Bone.DataTypes', async function() {
     const realm = new Realm({
@@ -79,17 +79,25 @@ describe('=> Data types (TypeScript)', function() {
   });
 
   it('VIRTUAL', () => {
-    // default 255
     assert.equal(VIRTUAL.toSqlString(), 'VIRTUAL');
   });
 
   it('JSON', () => {
-    // default 255
     assert.equal(JSON.toSqlString(), 'TEXT');
   });
 
   it('JSONB', () => {
-    // default 255
     assert.equal(JSONB.toSqlString(), 'JSON');
   });
+
+  it('DECIMAL', () => {
+    assert.equal(DECIMAL.toSqlString(), 'DECIMAL');
+    assert.equal(DECIMAL(10).toSqlString(), 'DECIMAL(10)');
+
+    assert.equal(DECIMAL.UNSIGNED.toSqlString(), 'DECIMAL UNSIGNED');
+    assert.equal(DECIMAL(10).UNSIGNED.toSqlString(), 'DECIMAL(10) UNSIGNED');
+
+    assert.equal(DECIMAL.ZEROFILL.toSqlString(), 'DECIMAL ZEROFILL');
+    assert.equal(DECIMAL(10).ZEROFILL.toSqlString(), 'DECIMAL(10) ZEROFILL');
+  })
 });

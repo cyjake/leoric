@@ -311,7 +311,7 @@ describe('=> DataTypes.invokable', function() {
 
     // NOT "INTEGER(1)"
     // ref: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/length
-    // Function.length = Function.arguments.length
+    // The length property indicates the number of parameters expected by the function.
     assert.equal(INTEGER.toSqlString(), 'INTEGER');
     assert.equal(INTEGER.UNSIGNED.toSqlString(), 'INTEGER UNSIGNED');
     assert.equal(INTEGER.ZEROFILL.toSqlString(), 'INTEGER ZEROFILL');

@@ -113,10 +113,10 @@ class DataType {
  * @param {number} dataLength
  */
 class STRING extends DataType {
-  constructor(length = 255) {
+  constructor(dataLength = 255) {
     super();
     this.dataType = 'varchar';
-    this.dataLength = length;
+    this.dataLength = dataLength;
   }
 
   toSqlString() {
@@ -134,9 +134,9 @@ class STRING extends DataType {
 }
 
 class BINARY extends DataType {
-  constructor(length = 255) {
+  constructor(dataLength = 255) {
     super();
-    this.dataLength = length;
+    this.dataLength = dataLength;
     this.dataType = 'binary';
   }
 
@@ -156,8 +156,8 @@ class BINARY extends DataType {
 }
 
 class VARBINARY extends BINARY {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'varbinary';
   }
 }
@@ -173,9 +173,9 @@ class VARBINARY extends BINARY {
  * @param {number} dataLength
  */
 class INTEGER extends DataType {
-  constructor(length) {
+  constructor(dataLength) {
     super();
-    this.dataLength = length;
+    this.dataLength = dataLength;
     this.dataType = 'integer';
   }
 
@@ -222,11 +222,11 @@ class INTEGER extends DataType {
  * TINYINT
  * TINYINT.UNSIGNED
  * TINYINT(1)
- * @param {number} length
+ * @param {number} dataLength
  */
 class TINYINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'tinyint';
   }
 }
@@ -237,11 +237,11 @@ class TINYINT extends INTEGER {
  * SMALLINT
  * SMALLINT.UNSIGNED
  * SMALLINT(2)
- * @param {number} length
+ * @param {number} dataLength
  */
 class SMALLINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'smallint';
   }
 }
@@ -252,11 +252,11 @@ class SMALLINT extends INTEGER {
  * MEDIUMINT
  * MEDIUMINT.UNSIGNED
  * MEDIUMINT(3)
- * @param {number} length
+ * @param {number} dataLength
  */
 class MEDIUMINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'mediumint';
   }
 }
@@ -268,11 +268,11 @@ class MEDIUMINT extends INTEGER {
  * BIGINT
  * BIGINT.UNSIGNED
  * BIGINT(8)
- * @param {number} length
+ * @param {number} dataLength
  */
 class BIGINT extends INTEGER {
-  constructor(length) {
-    super(length);
+  constructor(dataLength) {
+    super(dataLength);
     this.dataType = 'bigint';
   }
 }
