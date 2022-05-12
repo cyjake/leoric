@@ -20,6 +20,7 @@ const {
   TIMESTAMP_NAMES,
   LEGACY_TIMESTAMP_COLUMN_MAP,
   ASSOCIATE_METADATA_MAP,
+  TIMESTAMP_ATTRIBUTE_NAMES,
 } = require('./constants');
 
 const columnAttributesKey = Symbol('leoric#columns');
@@ -999,7 +1000,7 @@ class Bone {
       const attribute = new Attribute(name, attributes[name], options.define);
       attributeMap[attribute.columnName] = attribute;
       attributes[name] = attribute;
-      if (TIMESTAMP_NAMES.includes(name)) {
+      if (TIMESTAMP_ATTRIBUTE_NAMES.includes(name)) {
         const { columnName } = attribute;
         const legacyColumnName = LEGACY_TIMESTAMP_COLUMN_MAP[columnName];
         if (!columnMap[columnName] && legacyColumnName && columnMap[legacyColumnName]) {

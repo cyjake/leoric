@@ -20,6 +20,12 @@ const LEGACY_TIMESTAMP_COLUMN_MAP = {
   deleted_at: 'gmt_deleted',
 };
 
+const TIMESTAMP_ATTRIBUTE_NAMES = [ 
+  'createdAt', 'updatedAt', 'deletedAt',
+  'gmtCreate', 'gmtModified', 'gmtDeleted',
+  'created_at', 'updated_at', 'deleted_at',
+  'gmt_create', 'gmt_modified', 'gmt_deleted',
+];
 const TIMESTAMP_NAMES = [ 'createdAt', 'updatedAt', 'deletedAt' ];
 
 const ASSOCIATE_METADATA_MAP = {
@@ -33,5 +39,6 @@ module.exports = {
   LEGACY_TIMESTAMP_MAP,
   TIMESTAMP_NAMES,
   LEGACY_TIMESTAMP_COLUMN_MAP,
-  ASSOCIATE_METADATA_MAP
+  ASSOCIATE_METADATA_MAP,
+  TIMESTAMP_ATTRIBUTE_NAMES
 };
