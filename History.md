@@ -1,3 +1,12 @@
+2.4.1 / 2022-04-27
+==================
+
+## What's Changed
+* fix: realm.Bone.DataTypes should be invokable, Invokable.TYPE.toSqlString() get wrong default length(1), DataType definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/307
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.4.0...v2.4.1
+
 2.4.0 / 2022-04-24
 ==================
 
