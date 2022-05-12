@@ -5,7 +5,7 @@ const path = require('path');
 const sinon = require('sinon');
 const SqlString = require('sqlstring');
 
-const { connect, raw, Bone } = require('../..');
+const { connect, raw, Bone, disconnect } = require('../..');
 const { checkDefinitions } = require('./helpers');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
@@ -170,10 +170,18 @@ class CustomDriver extends SqliteDriver {
     const sql = `INSERT INTO ${table} (${valueSets.join(',')}) VALUES (${valueSets.map(_ => '?')})`;
     return await this.query(sql, assignValues, options);
   }
+
+  async disconnect(callback) {
+    // do nothing
+    callback && callback();
+    return true;
+  }
 };
 
+let realm;
+
 before(async function() {
-  await connect({
+  realm = await connect({
     driver: CustomDriver,
     database: '/tmp/leoric.sqlite3',
     models: path.resolve(__dirname, '../models'),
@@ -251,5 +259,24 @@ describe('=> upsert (sqlite)', function () {
       Post.upsert({ title: 'New Post' }).toSqlString(),
       `INSERT INTO "articles" ("title", "is_private", "word_count", "gmt_create", "gmt_modified") VALUES ('New Post', false, 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "title"=EXCLUDED."title", "is_private"=EXCLUDED."is_private", "word_count"=EXCLUDED."word_count", "gmt_modified"=EXCLUDED."gmt_modified"`
     );
+  });
+});
+
+describe('=> driver.disconnect', () => {
+  it('should be called', async () => {
+    let called = false;
+    const res = await realm.disconnect(() => called = true);
+    assert.equal(res, true);
+    assert.equal(called, true);
+  });
+
+  it('should be called with realm', async () => {
+    let called = false;
+    let res = await disconnect();
+    assert.ok(!res);
+    assert.equal(called, false);
+    res = await disconnect(realm, () => called = true);
+    assert.equal(res, true);
+    assert.equal(called, true);
   });
 });

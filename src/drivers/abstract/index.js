@@ -1,6 +1,7 @@
 'use strict';
 
 const SqlString = require('sqlstring');
+const debug = require('debug')('leoric');
 
 const Logger = require('./logger');
 const Attribute = require('./attribute');
@@ -52,6 +53,14 @@ class AbstractDriver {
    */
   async query(query, values, opts) {
     throw new Error('unimplemented!');
+  }
+
+  /**
+   * disconnect manually
+   * @param {Function} callback 
+   */
+  async disconnect(callback) {
+    debug('[disconnect] called');
   }
 
   get dialect() {
