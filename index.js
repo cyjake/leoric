@@ -39,10 +39,17 @@ const connect = async function connect(opts) {
   return realm;
 };
 
+const disconnect = async function disconnect(realm, ...args) {
+  if (realm instanceof Realm && realm.connected) {
+    return await realm.disconnect(...args);
+  }
+};
+
 Object.assign(Realm.prototype, migrations, { DataTypes });
 Object.assign(Realm, {
   default: Realm,
   connect,
+  disconnect,
   Bone,
   Collection,
   DataTypes,

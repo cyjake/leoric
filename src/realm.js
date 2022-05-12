@@ -160,6 +160,12 @@ class Realm {
     return this.Bone;
   }
 
+  async disconnect(callback) {
+    if (this.connected && this.driver) {
+      return await this.driver.disconnect(callback);
+    }
+  }
+
   async sync(options) {
     if (!this.connected) await this.connect();
     const { models } = this;
