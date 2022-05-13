@@ -94,20 +94,21 @@ class MysqlDriver extends AbstractDriver {
       });
     });
     const sql = logger.format(query, values, opts);
+    const logOpts = { ...opts, query };
     const start = performance.now();
     let result;
 
     try {
       result = await promise;
     } catch (err) {
-      logger.logQueryError(err, sql, calculateDuration(start), opts);
+      logger.logQueryError(err, sql, calculateDuration(start), logOpts);
       throw err;
     } finally {
       if (!opts.connection) connection.release();
     }
 
     const [ results, fields ] = result;
-    logger.tryLogQuery(sql, calculateDuration(start), opts, results);
+    logger.tryLogQuery(sql, calculateDuration(start), logOpts, results);
     if (fields) return { rows: results, fields };
     return results;
   }
