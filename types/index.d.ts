@@ -17,6 +17,8 @@ type DataTypes<T> = {
   [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
 }
 
+type RawQueryResult = typeof Bone | ResultSet | boolean | number;
+
 interface ExprIdentifier {
   type: 'id';
   value: string;
@@ -314,6 +316,12 @@ declare class AbstractDriver {
    * Grab a connection and query the database
    */
   query(sql: string | { sql: string, nestTables?: boolean}, values?: Array<Literal | Literal[]>, opts?: SpellMeta): Promise<QueryResult>;
+
+  /**
+   * disconnect manually
+   * @param callback
+   */
+  disconnect(callback?: Function): Promise<boolean | void>;
   
   /**
    * query with spell
@@ -686,8 +694,8 @@ export class Bone {
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
    * });
    */
-  static transaction(callback: GeneratorFunction): Promise<void>;
-  static transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
+  static transaction(callback: GeneratorFunction): Promise<RawQueryResult>;
+  static transaction(callback: (connection: Connection) => Promise<RawQueryResult>): Promise<RawQueryResult>;
 
   /**
    * DROP the table
@@ -884,10 +892,10 @@ export default class Realm {
 
   escape(value: Literal): string;
 
-  query(sql: string, values?: Array<Literal>, options?: RawQueryOptions): ResultSet;
+  query(sql: string, values?: Array<Literal>, options?: RawQueryOptions): RawQueryResult;
 
-  transaction(callback: GeneratorFunction): Promise<void>;
-  transaction(callback: (connection: Connection) => Promise<void>): Promise<void>;
+  transaction(callback: GeneratorFunction): Promise<RawQueryResult>;
+  transaction(callback: (connection: Connection) => Promise<RawQueryResult>): Promise<RawQueryResult>;
 
   sync(options?: SyncOptions): Promise<void>;
 }
@@ -903,7 +911,7 @@ export default class Realm {
  * })
  */
 export function connect(opts: ConnectOptions): Promise<Realm>;
-
+export function disconnect(realm: Realm, callback?: Function): Promise<boolean | void>;
 export {
   Hint,
   IndexHint,
