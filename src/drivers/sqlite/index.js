@@ -53,6 +53,7 @@ class SqliteDriver extends AbstractDriver {
     }
 
     const { logger } = this;
+    const logOpts = { ...opts, query };
     const sql = logger.format(query, values, opts);
     const start = performance.now();
     let result;
@@ -60,13 +61,13 @@ class SqliteDriver extends AbstractDriver {
     try {
       result = await connection.query(query, values, opts);
     } catch (err) {
-      logger.logQueryError(err, sql, calculateDuration(start), opts);
+      logger.logQueryError(err, sql, calculateDuration(start), logOpts);
       throw err;
     } finally {
       if (!opts.connection) connection.release();
     }
 
-    logger.tryLogQuery(sql, calculateDuration(start), opts, result);
+    logger.tryLogQuery(sql, calculateDuration(start), logOpts, result);
     return result;
   }
 

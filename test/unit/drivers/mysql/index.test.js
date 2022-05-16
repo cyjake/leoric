@@ -26,12 +26,13 @@ describe('=> MySQL driver', () => {
         result.push([ sql, duration, opts, res ]);
       },
     });
-    await driver2.query('SELECT 1');
+    await driver2.query('SELECT ?, ? FROM users WHERE email = ? AND status = ?', ['id', 'nickname', 'yhorm@giant.com', 1]);
     const [ sql, duration, opts, res ] = result[0];
-    assert.equal(sql, 'SELECT 1');
+    assert.equal(sql, "SELECT 'id', 'nickname' FROM users WHERE email = 'yhorm@giant.com' AND status = 1");
     assert.ok(duration >= 0);
     assert.ok(res);
     assert.ok(opts);
+    assert.equal(opts.query, 'SELECT ?, ? FROM users WHERE email = ? AND status = ?');
   });
 
   it('driver.logger.logQueryError', async () => {
@@ -39,16 +40,19 @@ describe('=> MySQL driver', () => {
     const driver2 = new MysqlDriver({
       ...options,
       logger: {
-        logQueryError(sql, err) {
-          result.push([ sql, err ]);
+        logQueryError(err, sql, duration, opts) {
+          result.push([ err, sql, duration, opts ]);
         },
       },
     });
-    await assert.rejects(async () => await driver2.query('SELECT x'));
-    const [ err, sql ] = result[0];
-    assert.equal(sql, 'SELECT x');
+    await assert.rejects(async () => await driver2.query('SELECT x, ? FROM users WHERE email = ? AND status = ?', ['nickname', 'yhorm@giant.com', 1]));
+    const [ err, sql, duration, opts ] = result[0];
+    assert.equal(sql, "SELECT x, 'nickname' FROM users WHERE email = 'yhorm@giant.com' AND status = 1");
+    assert.ok(duration >= 0);
     assert.ok(err);
     assert.ok(/ER_BAD_FIELD_ERROR/.test(err.message));
+    assert.ok(opts);
+    assert.equal(opts.query, 'SELECT x, ? FROM users WHERE email = ? AND status = ?');
   });
 
   it('driver.querySchemaInfo()', async () => {

@@ -51,6 +51,7 @@ class PostgresDriver extends AbstractDriver {
     const command = sql.slice(0, sql.indexOf(' ')).toLowerCase();
 
     async function tryQuery(...args) {
+      const logOpts = { ...spell, query: sql };
       const formatted = logger.format(sql, values, spell);
       const start = performance.now();
       let result;
@@ -58,13 +59,13 @@ class PostgresDriver extends AbstractDriver {
       try {
         result = await connection.query(...args);
       } catch (err) {
-        logger.logQueryError(err, formatted, calculateDuration(start), spell);
+        logger.logQueryError(err, formatted, calculateDuration(start), logOpts);
         throw err;
       } finally {
         if (!spell.connection) connection.release();
       }
 
-      logger.tryLogQuery(formatted, calculateDuration(start), spell, result);
+      logger.tryLogQuery(formatted, calculateDuration(start), logOpts, result);
       return result;
     }
 

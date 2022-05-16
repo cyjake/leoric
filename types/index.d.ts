@@ -881,6 +881,12 @@ export default class Realm {
 
   connect(): Promise<Bone>;
 
+  /**
+   * disconnect manually
+   * @param callback
+   */
+  disconnect(callback?: Function): Promise<boolean | void>;
+
   define(
     name: string,
     attributes: Record<string, DataTypes<DataType> | AttributeMeta>,
