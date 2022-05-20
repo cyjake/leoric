@@ -312,8 +312,7 @@ class DECIMAL extends INTEGER {
   }
 }
 
-const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6})$/;
-
+const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6}){0,1}$/;
 class DATE extends DataType {
   constructor(precision, timezone = true) {
     super();
@@ -359,7 +358,8 @@ class DATE extends DataType {
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
     if (typeof value === 'string' && rDateFormat.test(value)) {
-      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
+      // 2021-10-15 15:50:02,548 => 2021-10-15T15:50:02,548,  2021-10-15 15:50:02 => 2021-10-15T15:50:02.000
+      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}`);
     }
 
     // 1634611135776
@@ -371,10 +371,12 @@ class DATE extends DataType {
   }
 }
 
-class DATEONLY extends DataType {
+class DATEONLY extends DATE {
   constructor() {
     super();
     this.dataType = 'date';
+    this.precision = null;
+    this.timezone = false;
   }
 
   toSqlString() {
@@ -386,34 +388,6 @@ class DATEONLY extends DataType {
       return new Date(value.getFullYear(), value.getMonth(), value.getDate());
     }
     return value;
-  }
-
-  cast(value) {
-    const original = value;
-    if (value == null) return value;
-    if (!(value instanceof Date)) value = new Date(value);
-    if (isNaN(value.getTime())) return original;
-    return this._round(value);
-  }
-
-  uncast(value) {
-    const originValue = value;
-
-    if (value == null || value instanceof Raw) return value;
-    if (typeof value.toDate === 'function') {
-      value = value.toDate();
-    }
-
-    // @deprecated
-    // vaguely standard date formats such as 2021-10-15 15:50:02,548
-    if (typeof value === 'string' && rDateFormat.test(value)) {
-      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}Z`);
-    }
-
-    if (!(value instanceof Date)) value = new Date(value);
-    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
-
-    return this._round(value);
   }
 }
 
