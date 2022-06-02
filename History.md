@@ -1,3 +1,13 @@
+2.6.0 / 2022-06-02
+==================
+
+## What's Changed
+* feat: support export sql query template in logger by @JimmyDaddy in https://github.com/cyjake/leoric/pull/314
+* fix: fix uncast date string without milliseconds error by jsCore in Android/iOS by @JimmyDaddy in https://github.com/cyjake/leoric/pull/315
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.5.0...v2.6.0
+
 2.5.0 / 2022-05-13
 ==================
 
