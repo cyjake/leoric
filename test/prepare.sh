@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 if [ ${GITHUB_ACTIONS:-false} = true ]; then
   mysqladmin -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot -p${MYSQL_ROOT_PASSWORD} password '';
 fi
@@ -25,7 +27,7 @@ cat test/dumpfile.sql |
   sed 's/bigint(20) AUTO_INCREMENT/BIGSERIAL/g' |
   sed 's/tinyint(1) DEFAULT 0/boolean DEFAULT false/g' |
   sed -E 's/int\([[:digit:]]+\)/int/g' |
-  psql \
+  PGPASSWORD=${POSTGRES_PASSWORD} psql \
     -h ${POSTGRES_HOST:-localhost} \
     -U ${POSTGRES_USER:-$(whoami)} \
     -p ${POSTGRES_PORT:-5432} \

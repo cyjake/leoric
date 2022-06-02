@@ -13,10 +13,10 @@ jobs:
     services:
       # https://github.com/actions/example-services/blob/master/.github/workflows/postgres-service.yml
       postgres:
-        image: postgres:11.5
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD:
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: leoric
         ports:
         # will assign a random free host port
@@ -36,7 +36,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x, 18.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -45,10 +45,6 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-
-    - name: Install PostgreSQL client & SQLite
-      run: |
-        sudo apt-get install -y postgresql-client sqlite3 libsqlite3-dev
 
     - name: npm install, build, and test
       run: |
@@ -62,6 +58,7 @@ jobs:
         # If we were running the job on in a container this would be postgres
         POSTGRES_HOST: localhost
         POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
         POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
         MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
         MYSQL_ROOT_PASSWORD: password

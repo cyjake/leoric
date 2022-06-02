@@ -358,7 +358,8 @@ class DATE extends DataType {
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
     if (typeof value === 'string' && rDateFormat.test(value)) {
-      // 2021-10-15 15:50:02,548 => 2021-10-15T15:50:02,548,  2021-10-15 15:50:02 => 2021-10-15T15:50:02.000
+      // 2021-10-15 15:50:02,548 => 2021-10-15T15:50:02,548,
+      // 2021-10-15 15:50:02 => 2021-10-15T15:50:02.000
       value = new Date(`${value.replace(' ', 'T').replace(',', '.')}`);
     }
 

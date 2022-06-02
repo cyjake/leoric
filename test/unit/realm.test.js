@@ -82,7 +82,7 @@ describe('=> Realm', () => {
       assert.equal(realm.driver.dialect, 'custom');
       assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
     });
-  
+
     it('should be able to customize logger with function', async () => {
       const queries = [];
       const realm = new Realm({
@@ -228,6 +228,7 @@ describe('=> Realm', () => {
         host: process.env.POSTGRES_HOST || '127.0.0.1',
         port: process.env.POSTGRES_PORT,
         user: process.env.POSTGRES_USER || '',
+        password: process.env.POSTGRES_PASSWORD || '',
         database: 'leoric',
         models: [ User, Post ],
       });
@@ -478,6 +479,7 @@ describe('=> Realm', () => {
         host: process.env.POSTGRES_HOST || '127.0.0.1',
         port: process.env.POSTGRES_PORT,
         user: process.env.POSTGRES_USER || '',
+        password: process.env.POSTGRES_PASSWORD || '',
         database: 'leoric',
       });
       await realm.connect();

@@ -271,7 +271,7 @@ describe('=> Data types - DATE', function() {
     });
 
     await assert.doesNotReject(async function() {
-      const result = await Note.where({ createdAt: '2021-10-15 08:38:43,877' });
+      const result = await Note.where({ createdAt: strftime('%Y-%m-%d %H:%M:%S,%L', date) });
       assert.equal(result.length, 1);
     });
 

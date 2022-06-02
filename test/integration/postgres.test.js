@@ -12,6 +12,7 @@ before(async function() {
     host: process.env.POSTGRES_HOST || '127.0.0.1',
     port: process.env.POSTGRES_PORT,
     user: process.env.POSTGRES_USER || '',
+    password: process.env.POSTGRES_PASSWORD || '',
     database: 'leoric',
     models: path.resolve(__dirname, '../models'),
   });
