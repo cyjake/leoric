@@ -75,6 +75,10 @@ async function loadModels(Spine, models, opts) {
   const schemaInfo = await Spine.driver.querySchemaInfo(database, tables);
 
   for (const model of models) {
+    // assign driver if model's driver not exist
+    if (!model.driver) model.driver = Spine.driver;
+    // assign options if model's options not exist
+    if (!model.options) model.options = Spine.options;
     const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
     if (!model.attributes) initAttributes(model, columns);
     model.load(columns);
