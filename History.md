@@ -1,3 +1,13 @@
+2.6.1 / 2022-06-24
+==================
+
+## What's Changed
+* build: switch to latest postgres by @cyjake in https://github.com/cyjake/leoric/pull/316
+* fix: fix [bug] init models with bone class should work #317 by @JimmyDaddy in https://github.com/cyjake/leoric/pull/318
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.0...v2.6.1
+
 2.6.0 / 2022-06-02
 ==================
 
