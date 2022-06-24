@@ -1055,6 +1055,41 @@ describe('=> Realm', () => {
       assert.equal(Post.attributes.updatedAt.columnName, 'gmt_modified');
       assert.equal(Post.attributes.deletedAt.columnName, 'gmt_deleted');
     });
+    
+    it('should auto assign driver if not exist', async function () {
+
+      class User extends Bone {}
+
+      const realFilePath = require.resolve('../../src/bone');
+      const boneRequireCache = require.cache[realFilePath];
+      // delete bone cache
+      delete require.cache[realFilePath];
+      const MyBone = require('../../src/bone');
+      class Bone1 extends MyBone {
+        constructor (...args) {
+          super(...args);
+        }
+      }
+
+      class Post extends Bone1 {
+        static table = 'articles';
+      }
+
+      // restore cache
+      require.cache[realFilePath] = boneRequireCache;
+
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ Post, User ],
+      });
+      await realm.connect();
+      assert.deepEqual(Post.driver, realm.Bone.driver);
+      assert.deepEqual(Post.options, realm.options);
+      assert.deepEqual(User.driver, realm.Bone.driver);
+      assert.deepEqual(User.options, realm.options);
+    });
   });
 
   describe('realm.DataTypes', function() {
