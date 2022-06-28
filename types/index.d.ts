@@ -1,4 +1,4 @@
-import DataType from './data_types';
+import { DataType, BaseDataType, AbstractDataType } from '../src/data_types';
 import { Hint, IndexHint } from './hint';
 
 export { DataType as DataTypes };
@@ -10,11 +10,6 @@ export type Literal = null | undefined | boolean | number | bigint | string | Da
 export class Raw {
   value: string;
   type: 'raw';
-}
-
-
-type DataTypes<T> = {
-  [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
 }
 
 type RawQueryResult = typeof Bone | ResultSet | boolean | number;
@@ -186,7 +181,7 @@ declare type validator = Literal | Function | Array<Literal | Literal[]>;
 
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
-  type: DataType;
+  type: typeof BaseDataType;
   virtual?: boolean,
   toSqlString: () => string;
   validate: {
@@ -340,14 +335,14 @@ declare class AbstractDriver {
    * @param tabe table name
    * @param attributes attributes
    */
-  createTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+  createTable(tabe: string, attributes: { [key: string]: typeof BaseDataType | AttributeMeta }): Promise<void>;
 
   /**
    * alter table
    * @param tabe table name
    * @param attributes alter attributes
    */
-  alterTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+  alterTable(tabe: string, attributes: { [key: string]: typeof BaseDataType | AttributeMeta }): Promise<void>;
 
   /**
    * describe table
@@ -496,7 +491,7 @@ export class Bone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: DataTypes<DataType> | AttributeMeta };
+  static attributes: { [key: string]: typeof BaseDataType | AttributeMeta };
 
   /**
    * The schema info of current model.
@@ -889,7 +884,7 @@ export default class Realm {
 
   define(
     name: string,
-    attributes: Record<string, DataTypes<DataType> | AttributeMeta>,
+    attributes: Record<string, AbstractDataType<BaseDataType> | AttributeMeta>,
     options?: InitOptions,
     descriptors?: Record<string, Function>,
   ): typeof Bone;

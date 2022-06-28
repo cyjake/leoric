@@ -1,6 +1,6 @@
 'use strict';
 
-const DataTypes = require('../../data_types');
+const { default: DataTypes } = require('../../data_types');
 
 class Mysql_BOOLEAN extends DataTypes.BOOLEAN {
   constructor() {

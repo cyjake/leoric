@@ -1,17 +1,15 @@
 import Bone from './bone';
-import DataType from './data_types';
+import { DataType, BaseDataType, AbstractDataType } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
 import 'reflect-metadata';
 
-type DataTypes<T> = {
-  [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property];
-}
-
 interface ColumnOption {
-  type?: DataTypes<DataType>;
+  type?: AbstractDataType<BaseDataType>;
   name?: string;
   defaultValue?: null | boolean | number | string | Date | JSON;
   allowNull?: boolean;
+  primaryKey?: boolean;
+  columnName?: string;
 }
 
 function findType(tsType) {
@@ -38,9 +36,13 @@ function findType(tsType) {
   }
 }
 
-export function Column(options: ColumnOption | DataTypes<DataType> = {}) {
+export function Column(options?: ColumnOption | AbstractDataType<BaseDataType>) {
   return function(target: Bone, propertyKey: string) {
-    if (options['prototype'] instanceof DataType) options = { type: options };
+    if (options == null) {
+      options = {};
+    }
+    // target refers to model prototype, an internal instance of `Bone {}`
+    if (options['prototype'] instanceof BaseDataType) options = { type: options as AbstractDataType<BaseDataType> };
 
     if (!('type' in options)) {
       const tsType = Reflect.getMetadata('design:type', target, propertyKey);

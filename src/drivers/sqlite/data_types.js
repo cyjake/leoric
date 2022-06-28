@@ -1,6 +1,6 @@
 'use strict';
 
-const DataTypes = require('../../data_types');
+const { default: DataTypes } = require('../../data_types');
 
 class Sqlite_DATE extends DataTypes.DATE {
   constructor(precision, timezone) {

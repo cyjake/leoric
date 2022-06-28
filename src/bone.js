@@ -10,7 +10,7 @@ const pluralize = require('pluralize');
 const { executeValidator, LeoricValidateError } = require('./validator');
 require('reflect-metadata');
 
-const DataTypes = require('./data_types');
+const { default: DataTypes } = require('./data_types');
 const Collection = require('./collection');
 const Spell = require('./spell');
 const Raw = require('./raw');
