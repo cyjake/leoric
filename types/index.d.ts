@@ -1,7 +1,8 @@
-import { DataType, BaseDataType, AbstractDataType } from '../src/data_types';
+import { DataType, BaseDataType, AbstractDataType, LENGTH_VARIANTS } from '../src/data_types';
 import { Hint, IndexHint } from './hint';
 
 export { DataType as DataTypes };
+export { LENGTH_VARIANTS as LENGTH_VARIANTS };
 export * from '../src/decorators';
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
@@ -181,10 +182,10 @@ declare type validator = Literal | Function | Array<Literal | Literal[]>;
 
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
-  type: typeof BaseDataType;
+  type: AbstractDataType<BaseDataType>;
   virtual?: boolean,
-  toSqlString: () => string;
-  validate: {
+  toSqlString?: () => string;
+  validate?: {
     [key: string]: validator;
   }
 }
@@ -335,14 +336,14 @@ declare class AbstractDriver {
    * @param tabe table name
    * @param attributes attributes
    */
-  createTable(tabe: string, attributes: { [key: string]: typeof BaseDataType | AttributeMeta }): Promise<void>;
+  createTable(tabe: string, attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta }): Promise<void>;
 
   /**
    * alter table
    * @param tabe table name
    * @param attributes alter attributes
    */
-  alterTable(tabe: string, attributes: { [key: string]: typeof BaseDataType | AttributeMeta }): Promise<void>;
+  alterTable(tabe: string, attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta }): Promise<void>;
 
   /**
    * describe table
@@ -491,7 +492,7 @@ export class Bone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: typeof BaseDataType | AttributeMeta };
+  static attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta };
 
   /**
    * The schema info of current model.

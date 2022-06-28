@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import Realm, { DataTypes } from '../..';
+import Realm, { DataTypes, LENGTH_VARIANTS } from '../..';
 
 describe('=> Data types (TypeScript)', function() {
   const { STRING, TEXT, BLOB, INTEGER, BIGINT, DATE, BOOLEAN, BINARY, VARBINARY, VIRTUAL, JSON, JSONB, DECIMAL } = DataTypes;
@@ -48,12 +48,12 @@ describe('=> Data types (TypeScript)', function() {
   });
 
   it('TEXT', async function() {
-    assert.equal(TEXT('long').toSqlString(), 'LONGTEXT');
+    assert.equal(TEXT(LENGTH_VARIANTS.long).toSqlString(), 'LONGTEXT');
     assert.equal(TEXT.toSqlString(), 'TEXT');
   });
 
   it('BLOB', async function() {
-    assert.equal(BLOB('medium').toSqlString(), 'MEDIUMBLOB');
+    assert.equal(BLOB(LENGTH_VARIANTS.medium).toSqlString(), 'MEDIUMBLOB');
     assert.equal(BLOB.toSqlString(), 'BLOB');
   });
 

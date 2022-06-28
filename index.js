@@ -5,7 +5,7 @@ const Logger = require('./src/drivers/abstract/logger');
 const Spell = require('./src/spell');
 const Bone = require('./src/bone');
 const Collection = require('./src/collection');
-const { invokable: DataTypes } = require('./src/data_types');
+const { invokable: DataTypes, LENGTH_VARIANTS } = require('./src/data_types');
 const migrations = require('./src/migrations');
 const sequelize = require('./src/adapters/sequelize');
 const { heresql } = require('./src/utils/string');
@@ -64,6 +64,7 @@ Object.assign(Realm, {
   SqliteDriver,
   AbstractDriver,
   Raw,
+  LENGTH_VARIANTS,
 });
 
 module.exports = Realm;

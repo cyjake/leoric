@@ -4,12 +4,16 @@ const util = require('util');
 const invokableFunc = require('./utils/invokable');
 const Raw = require('./raw');
 
-type LENGTH_VARIANTS = 'tiny' | '' | 'medium' | 'long';
+export enum LENGTH_VARIANTS {
+  tiny = 'tiny',
+  empty = '',
+  medium = 'medium',
+  long = 'long',
+};
 
 export interface AbstractDataType<T> {
   new (dataLength?: LENGTH_VARIANTS | number): BaseDataType & T;
   (dataLength?: LENGTH_VARIANTS | number): BaseDataType & T;
-  // toSqlString(): string;
 }
 
 /**
@@ -21,8 +25,6 @@ export interface AbstractDataType<T> {
  */
 
 export abstract class BaseDataType {
-  // BaseDataType(_dataLength?: number) => BaseDataType;
-
   dataType: string;
   dataLength?: string | number;
 
@@ -45,7 +47,7 @@ export abstract class BaseDataType {
   /**
    * uncast js value into database type with precision
    */
-  uncast(value: any, _strict?: boolean): string {
+  uncast(value: any, _strict?: boolean): any {
     return value;
   }
 
@@ -74,13 +76,13 @@ export abstract class BaseDataType {
  * @param {number} dataLength
  */
 class STRING extends BaseDataType {
-  constructor(dataLength = 255) {
+  constructor(dataLength: number = 255) {
     super();
     this.dataType = 'varchar';
     this.dataLength = dataLength;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
@@ -88,7 +90,7 @@ class STRING extends BaseDataType {
     return chunks.join(' ');
   }
 
-  uncast(value) {
+  uncast(value: string | typeof Raw | null): string {
     if (value == null || value instanceof Raw) return value;
     return '' + value;
   }
@@ -101,7 +103,7 @@ class BINARY extends BaseDataType {
     this.dataType = 'binary';
   }
 
-  toSqlString() {
+  toSqlString(): string {
     const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
@@ -153,7 +155,7 @@ class INTEGER extends BaseDataType {
     return this;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     const { dataLength, unsigned, zerofill } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
@@ -168,7 +170,7 @@ class INTEGER extends BaseDataType {
     return Number(value);
   }
 
-  uncast(value: any, strict = true): string {
+  uncast(value: any, strict = true): string | number {
     const originValue = value;
     if (value == null || value instanceof Raw) return value;
     if (typeof value === 'string') value = parseInt(value, 10);
@@ -317,7 +319,7 @@ class DATE extends BaseDataType {
     return this._round(value);
   }
 
-  uncast(value: any, _strict?: boolean): string {
+  uncast(value: null | typeof Raw | string | Date, _strict?: boolean): string | Date {
     const originValue = value;
 
     if (value == null || value instanceof Raw) return value;
@@ -350,7 +352,7 @@ class DATEONLY extends DATE {
     this.timezone = false;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return this.dataType.toUpperCase();
   }
 
@@ -368,7 +370,7 @@ class BOOLEAN extends BaseDataType {
     this.dataType = 'boolean';
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return this.dataType.toUpperCase();
   }
 
@@ -378,11 +380,9 @@ class BOOLEAN extends BaseDataType {
   }
 }
 
-const LENGTH_VARIANTS = [ 'tiny', '', 'medium', 'long' ];
-
 class TEXT extends BaseDataType {
-  constructor(length = '') {
-    if (!LENGTH_VARIANTS.includes(length)) {
+  constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
+    if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid text length: ${length}`);
     }
     super();
@@ -390,14 +390,14 @@ class TEXT extends BaseDataType {
     this.dataLength = length;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 }
 
 class BLOB extends BaseDataType {
-  constructor(length = '') {
-    if (!LENGTH_VARIANTS.includes(length)) {
+  constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
+    if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid blob length: ${length}`);
     }
     super();
@@ -405,7 +405,7 @@ class BLOB extends BaseDataType {
     this.dataLength = length;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 
@@ -458,11 +458,11 @@ class JSONB extends MYJSON {
     this.dataType = 'json';
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return 'JSON';
   }
 
-  static toSqlString() {
+  static toSqlString(): string {
     return 'JSON';
   }
 }
@@ -475,11 +475,11 @@ class VIRTUAL extends BaseDataType {
     this.virtual = true;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     return 'VIRTUAL';
   }
 
-  static  toSqlString() {
+  static toSqlString(): string {
     return 'VIRTUAL';
   }
 
@@ -550,9 +550,9 @@ export class DataType extends BaseDataType {
         return new STRING(...params);
       // longtext is only for MySQL
       case 'longtext':
-        return new TEXT('long');
+        return new TEXT(LENGTH_VARIANTS.long);
       case 'mediumtext':
-        return new TEXT('medium');
+        return new TEXT(LENGTH_VARIANTS.medium);
       case 'text':
         return new TEXT();
       case 'date':
@@ -586,13 +586,13 @@ export class DataType extends BaseDataType {
       case 'varbinary':
         return new VARBINARY(...params);
       case 'longblob':
-        return new BLOB('long');
+        return new BLOB(LENGTH_VARIANTS.long);
       case 'mediumblob':
-        return new BLOB('medium');
+        return new BLOB(LENGTH_VARIANTS.medium);
       case 'blob':
         return new BLOB();
       case 'tinyblob':
-        return new BLOB('tiny');
+        return new BLOB(LENGTH_VARIANTS.tiny);
       default:
         throw new Error(`Unexpected data type ${dataType}`);
     }

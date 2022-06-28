@@ -56,6 +56,7 @@ export function Column(options?: ColumnOption | AbstractDataType<BaseDataType>) 
     const model = target.constructor;
     const { attributes = (model.attributes = {}) } = model;
     const { name: columnName, ...restOptions } = options;
+    // TODO avoid calling load() manually, define attributes properties, primary key and timestamps at here
     attributes[propertyKey] = { ...restOptions, columnName };
   };
 }
