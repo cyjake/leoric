@@ -59,5 +59,13 @@ describe('=> Spellbook', function() {
         SELECT * FROM `attachments` WHERE `width` / `height` > 16 / 9 AND `gmt_deleted` IS NULL
       */}));
     });
+
+    it('aggregate functions should be formatted without star', async function() {
+      const query = Post.include('authors')
+          .maximum('posts.createdAt');
+      assert.equal(query.toString(), heresql(function() {/*
+        SELECT MAX(`posts`.`gmt_create`) AS `maximum` FROM `articles` AS `posts` LEFT JOIN `users` AS `authors` ON `posts`.`userId` = `authors`.`id` WHERE `posts`.`gmt_deleted` IS NULL
+      */}));
+    });
   });
 });
