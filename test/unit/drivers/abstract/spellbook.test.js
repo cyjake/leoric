@@ -42,7 +42,7 @@ describe('=> Spellbook', function() {
 
       assert.doesNotThrow(function() {
         assert.equal(query.count().toString(), heresql(function() {/*
-          SELECT `posts`.*, `author`.*, COUNT(*) AS `count`
+          SELECT COUNT(*) AS `count`
             FROM `articles` AS `posts`
        LEFT JOIN `users` AS `author`
               ON `posts`.`userId` = `author`.`id`
