@@ -102,14 +102,12 @@ function formatSelectExpr(spell, values) {
     list.push(selectExpr);
   }
 
-  if (!isAggregate) {
-    for (const qualifier of [baseName].concat(Object.keys(joins))) {
-      const list = map[qualifier];
-      if (list) {
-        for (const selectExpr of list) selects.add(selectExpr);
-      } else if (groups.length === 0 && Model.driver.type !== 'sqlite') {
-        selects.add(`${escapeId(qualifier)}.*`);
-      }
+  for (const qualifier of [baseName].concat(Object.keys(joins))) {
+    const list = map[qualifier];
+    if (list) {
+      for (const selectExpr of list) selects.add(selectExpr);
+    } else if (groups.length === 0 && Model.driver.type !== 'sqlite' && !isAggregate) {
+      selects.add(`${escapeId(qualifier)}.*`);
     }
   }
 
