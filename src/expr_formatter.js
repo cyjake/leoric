@@ -1,6 +1,7 @@
 'use strict';
 
 const { precedes, walkExpr } = require('./expr');
+const { AGGREGATORS } = require('./constants');
 
 /**
  * Find model by qualifiers.
@@ -63,6 +64,31 @@ function formatLiteral(spell, ast) {
   }
 
   return '?';
+}
+
+/**
+ * Format the abstract syntax tree of an expression into escaped string.
+ * @param {Spell}  spell
+ * @param {Object} ast
+ */
+function isAggregatorExpr(spell, ast) {
+  const { type, name, args } = ast;
+  switch (type) {
+    case 'literal':
+    case 'subquery':
+    case 'wildcard':
+    case 'mod':
+    case 'id':
+    case 'raw':
+    case 'op':
+      return false;
+    case 'alias':
+      return isAggregatorExpr(spell, args[0]);
+    case 'func':
+      return AGGREGATORS.includes(name);
+    default:
+      throw new Error(`Unexpected type ${type}`);
+  }
 }
 
 /**
@@ -216,4 +242,4 @@ function coerceLiteral(spell, ast) {
   }
 }
 
-module.exports = { formatExpr, formatConditions, collectLiteral };
+module.exports = { formatExpr, formatConditions, collectLiteral, isAggregatorExpr };

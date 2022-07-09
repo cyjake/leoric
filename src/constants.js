@@ -8,6 +8,8 @@ const AGGREGATOR_MAP = {
   sum: 'sum'
 };
 
+const AGGREGATORS = Object.values(AGGREGATOR_MAP);
+
 const LEGACY_TIMESTAMP_MAP = {
   gmtCreate: 'createdAt',
   gmtModified: 'updatedAt',
@@ -20,7 +22,7 @@ const LEGACY_TIMESTAMP_COLUMN_MAP = {
   deleted_at: 'gmt_deleted',
 };
 
-const TIMESTAMP_ATTRIBUTE_NAMES = [ 
+const TIMESTAMP_ATTRIBUTE_NAMES = [
   'createdAt', 'updatedAt', 'deletedAt',
   'gmtCreate', 'gmtModified', 'gmtDeleted',
   'created_at', 'updated_at', 'deleted_at',
@@ -40,5 +42,6 @@ module.exports = {
   TIMESTAMP_NAMES,
   LEGACY_TIMESTAMP_COLUMN_MAP,
   ASSOCIATE_METADATA_MAP,
-  TIMESTAMP_ATTRIBUTE_NAMES
+  TIMESTAMP_ATTRIBUTE_NAMES,
+  AGGREGATORS,
 };

@@ -3,7 +3,7 @@
 const SqlString = require('sqlstring');
 
 const { copyExpr, findExpr, walkExpr } = require('../../expr');
-const { formatExpr, formatConditions, collectLiteral } = require('../../expr_formatter');
+const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
 const Raw = require('../../raw');
 
 /**
@@ -91,10 +91,12 @@ function formatSelectExpr(spell, values) {
   const baseName = Model.tableAlias;
   const selects = new Set();
   const map = {};
+  let isAggregate = false;
 
   for (const token of columns) {
     collectLiteral(spell, token, values);
     const selectExpr = formatExpr(spell, token);
+    isAggregate = isAggregate || isAggregatorExpr(spell, token);
     const qualifier = token.qualifiers ? token.qualifiers[0] : '';
     const list = map[qualifier] || (map[qualifier] = []);
     list.push(selectExpr);
@@ -104,7 +106,7 @@ function formatSelectExpr(spell, values) {
     const list = map[qualifier];
     if (list) {
       for (const selectExpr of list) selects.add(selectExpr);
-    } else if (groups.length === 0 && Model.driver.type !== 'sqlite') {
+    } else if (groups.length === 0 && Model.driver.type !== 'sqlite' && !isAggregate) {
       selects.add(`${escapeId(qualifier)}.*`);
     }
   }
@@ -163,7 +165,7 @@ class SpellBook {
     const { escapeId } = Model.driver;
     let columns = [];
     let updateOnDuplicateColumns = [];
-  
+
     let values = [];
     let placeholders = [];
     if (Array.isArray(sets)) {
@@ -181,14 +183,14 @@ class SpellBook {
           columnAttributes.push(Model.columnAttributes[name]);
         }
       }
-  
+
       for (const entry of columnAttributes) {
         columns.push(entry.columnName);
-        if (updateOnDuplicate && createdAt && entry.name === createdAt 
+        if (updateOnDuplicate && createdAt && entry.name === createdAt
           && !(Array.isArray(updateOnDuplicate) && updateOnDuplicate.includes(createdAt))) continue;
         updateOnDuplicateColumns.push(entry.columnName);
       }
-  
+
       for (const entry of sets) {
         if (shardingKey && entry[shardingKey] == null) {
           throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
@@ -199,7 +201,7 @@ class SpellBook {
         }
         placeholders.push(`(${new Array(columnAttributes.length).fill('?').join(',')})`);
       }
-  
+
     } else {
       if (shardingKey && sets[shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
@@ -216,10 +218,10 @@ class SpellBook {
         updateOnDuplicateColumns.push(Model.unalias(name));
       }
     }
-  
-  
+
+
     const chunks = ['INSERT'];
-  
+
     // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
     if (hintStr) {
