@@ -1,3 +1,15 @@
+2.6.2 / 2022-07-12
+==================
+
+## What's Changed
+* fix: format select with out * if use aggreator by @killagu in https://github.com/cyjake/leoric/pull/320
+* fix: fix transaction typing by @killagu in https://github.com/cyjake/leoric/pull/321
+
+## New Contributors
+* @killagu made their first contribution in https://github.com/cyjake/leoric/pull/320
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.1...v2.6.2
+
 2.6.1 / 2022-06-24
 ==================
 
