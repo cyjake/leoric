@@ -15,8 +15,8 @@ const { AGGREGATOR_MAP } = require('./constants');
 
 /**
  * check condition to avoid use virtual fields as where condtions
- * @param {Bone} Model 
- * @param {Array<Object>} conds 
+ * @param {Bone} Model
+ * @param {Array<Object>} conds
  */
 function checkCond(Model, conds) {
   if (Array.isArray(conds)) {
