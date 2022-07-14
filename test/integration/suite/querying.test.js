@@ -14,6 +14,7 @@ const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
 const { logger } = require('../../../src/utils');
+const {max} = require('dayjs');
 
 describe('=> Query', function() {
 
@@ -652,10 +653,26 @@ describe('=> Calculations', function() {
     expect(Math.floor(maximum)).to.equal(Math.floor(29.95));
   });
 
+  it('Bone.maximum() should not parse result is null', async function() {
+    const maximum = await Book.maximum('price')
+        .where({
+          name: 'not_exists_book',
+        });
+    expect(maximum).to.be(null);
+  });
+
   it('Bone.sum()', async function() {
     const sum = await Book.sum('price');
     assert.equal(typeof sum, 'number');
     expect(Math.floor(sum)).to.equal(Math.floor(22.95 + 29.95 + 21));
+  });
+
+  it('Bone.sum() should not parse result is null', async function() {
+    const sum = await Book.sum('price')
+        .where({
+          name: 'not_exists_book',
+        });
+    expect(sum).to.be(null);
   });
 });
 

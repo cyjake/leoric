@@ -5,7 +5,7 @@ const { performance } = require('perf_hooks');
 const AbstractDriver = require('../abstract');
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
-const { 
+const {
   escape, escapeId, formatAddColumn,
   formatAlterColumns, formatDropColumn,
   cast, nest, parameterize,
@@ -36,6 +36,9 @@ class PostgresDriver extends AbstractDriver {
 
   createPool(opts) {
     const { host, port, user, password, database } = opts;
+    // dynamic require pg type parse
+    // if not use pg, pg-types may not exits
+    require('./type_parser');
     return new (require('pg')).Pool({ host, port, user, password, database });
   }
 

@@ -1,8 +1,5 @@
 'use strict';
 
-const { AGGREGATOR_MAP } = require('./constants');
-
-const AGGREGATORS = Object.values(AGGREGATOR_MAP);
 /**
  * An extended Array to represent collections of models.
  */
@@ -92,11 +89,6 @@ function dispatch(spell, rows, fields) {
       const row = rows[0];
       const record = row && (row[''] || row[table]);
       const result = record && record[value];
-      // see https://www.w3schools.com/mysql/mysql_ref_functions.asp
-      if (AGGREGATORS.includes(args[0].name)) {
-        const num = Number(result);
-        return isNaN(num) ? result : num;
-      }
       return result;
     }
   }
