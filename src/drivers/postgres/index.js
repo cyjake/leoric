@@ -76,7 +76,6 @@ class PostgresDriver extends AbstractDriver {
       case 'select': {
         if (nestTables) {
           const { rows, fields } = await tryQuery({ text, rowMode: 'array' }, values);
-          console.log('try query: ', text, values, rows, fields);
           return nest(rows, fields, spell);
         }
         return await tryQuery(text, values);
