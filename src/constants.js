@@ -36,6 +36,8 @@ const ASSOCIATE_METADATA_MAP = {
   belongsTo: Symbol('belongsTo'),
 };
 
+const IS_LEORIC_BONE = Symbol('leoric#bone');
+
 module.exports = {
   AGGREGATOR_MAP,
   LEGACY_TIMESTAMP_MAP,
@@ -44,4 +46,5 @@ module.exports = {
   ASSOCIATE_METADATA_MAP,
   TIMESTAMP_ATTRIBUTE_NAMES,
   AGGREGATORS,
+  IS_LEORIC_BONE,
 };

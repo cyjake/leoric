@@ -1,8 +1,8 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone } = require('../../..');
-const { compose, getPropertyNames, logger } = require('../../../src/utils');
+const { Bone, sequelize } = require('../../..');
+const { compose, getPropertyNames, logger, isBone } = require('../../../src/utils');
 
 describe('=> compose', function() {
   it('should return a default function if nothing to compose', function() {
@@ -69,5 +69,22 @@ describe('=> getPropertyNames', function() {
 describe('=> logger', function() {
   it('should prefix output with [leoric]', function() {
     logger.log('foo');
+  });
+});
+
+describe('=> isBone', () => {
+  it('should work', () => {
+    assert.equal(isBone(), false);
+    assert.equal(isBone(null), false);
+    assert.equal(isBone(1), false);
+    assert.equal(isBone(() => {}), false);
+    assert.equal(isBone({}), false);
+    assert.equal(isBone(Bone), true);
+    class Note {}
+    assert.equal(isBone(Note), false);
+    class Note1 extends Bone {}
+    assert.equal(isBone(Note1), true);
+    assert.equal(isBone(sequelize(Note1)), true);
+    assert.equal(isBone(sequelize(Note)), false);
   });
 });
