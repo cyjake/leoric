@@ -19,6 +19,11 @@ ALTER TABLE users CHANGE COLUMN birthday birthday DATE;
 ALTER TABLE users CHANGE COLUMN sex sex CHAR;
 EOF
 
+# https://stackoverflow.com/a/50377944/179691
+cat <<EOF | mysql -h127.0.0.1 -P${MYSQL_PORT:-3306} -uroot
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+EOF
+
 ##
 # PostgreSQL
 createdb leoric > /dev/null 2>&1 || true

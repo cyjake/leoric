@@ -201,6 +201,11 @@ interface QueryOptions {
   hooks?: boolean;
   paranoid?: boolean;
   silent?: boolean;
+  connection?: Connection;
+}
+
+interface TransactionOptions {
+  connection: Connection;
 }
 
 interface QueryResult {
@@ -210,7 +215,7 @@ interface QueryResult {
   fields?: Array<{ table: string, name: string }>,
 }
 
-interface Connection {
+export interface Connection {
   /**
    * MySQL
    */
@@ -318,10 +323,10 @@ declare class AbstractDriver {
    * @param callback
    */
   disconnect(callback?: Function): Promise<boolean | void>;
-  
+
   /**
    * query with spell
-   * @param spell 
+   * @param spell
    */
   cast(spell: Spell<typeof Bone, ResultSet | number | null>): Promise<QueryResult>;
 
@@ -420,7 +425,7 @@ declare class AbstractDriver {
    * remove index in table
    * @param table string
    * @param attributes attributes name
-   * @param opts 
+   * @param opts
    */
   removeIndex(table: string, attributes: string[], opts?: { unique?: boolean, type?: string }): Promise<void>;
 
@@ -691,7 +696,7 @@ export class Bone {
    * });
    */
   static transaction(callback: GeneratorFunction): Promise<RawQueryResult>;
-  static transaction(callback: (connection: Connection) => Promise<RawQueryResult>): Promise<RawQueryResult>;
+  static transaction(callback: (connection: TransactionOptions) => Promise<RawQueryResult | void>): Promise<RawQueryResult>;
 
   /**
    * DROP the table

@@ -21,6 +21,7 @@ const {
   LEGACY_TIMESTAMP_COLUMN_MAP,
   ASSOCIATE_METADATA_MAP,
   TIMESTAMP_ATTRIBUTE_NAMES,
+  IS_LEORIC_BONE,
 } = require('./constants');
 
 const columnAttributesKey = Symbol('leoric#columns');
@@ -1714,5 +1715,7 @@ for (const getter of Spell_getters) {
     },
   });
 }
+
+Reflect.defineMetadata(IS_LEORIC_BONE, true, Bone);
 
 module.exports = Bone;

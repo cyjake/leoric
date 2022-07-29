@@ -1,3 +1,25 @@
+2.6.2 / 2022-07-12
+==================
+
+## What's Changed
+* fix: format select with out * if use aggreator by @killagu in https://github.com/cyjake/leoric/pull/320
+* fix: fix transaction typing by @killagu in https://github.com/cyjake/leoric/pull/321
+
+## New Contributors
+* @killagu made their first contribution in https://github.com/cyjake/leoric/pull/320
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.1...v2.6.2
+
+2.6.1 / 2022-06-24
+==================
+
+## What's Changed
+* build: switch to latest postgres by @cyjake in https://github.com/cyjake/leoric/pull/316
+* fix: fix [bug] init models with bone class should work #317 by @JimmyDaddy in https://github.com/cyjake/leoric/pull/318
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.0...v2.6.1
+
 2.6.0 / 2022-06-02
 ==================
 

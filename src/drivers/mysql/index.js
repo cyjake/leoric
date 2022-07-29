@@ -50,6 +50,7 @@ class MysqlDriver extends AbstractDriver {
     const {
       host, port, user, password,
       connectTimeout, connectionLimit, charset, stringifyObjects = true,
+      decimalNumbers = true,
     } = opts;
 
     if (client !== 'mysql' && client !== 'mysql2') {
@@ -66,6 +67,7 @@ class MysqlDriver extends AbstractDriver {
       database,
       charset,
       stringifyObjects,
+      decimalNumbers,
     });
   }
 

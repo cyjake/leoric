@@ -1,6 +1,7 @@
 'use strict';
 
 const { performance } = require('perf_hooks');
+const { IS_LEORIC_BONE } = require('../constants');
 
 function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]';
@@ -43,10 +44,17 @@ const logger = {};
   };
 });
 
+function isBone(bone) {
+  if (!bone || (typeof bone !== 'object' && typeof bone !== 'function')) return false;
+  const metaValue = Reflect.getMetadata(IS_LEORIC_BONE, bone);
+  return metaValue === true;
+}
+
 module.exports = {
   isPlainObject,
   compose,
   getPropertyNames,
   calculateDuration,
   logger,
+  isBone,
 };

@@ -6,6 +6,7 @@ const path = require('path');
 const Bone = require('./bone');
 const { findDriver, AbstractDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
+const { isBone } = require('./utils');
 const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
 const { LEGACY_TIMESTAMP_MAP } = require('./constants');
@@ -33,7 +34,7 @@ async function findModels(dir) {
     const extname = path.extname(entry.name);
     if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
       const model = require(path.join(dir, entry.name));
-      if (model.prototype instanceof Bone) models.push(model);
+      if (isBone(model)) models.push(model);
     }
   }
 
@@ -75,6 +76,10 @@ async function loadModels(Spine, models, opts) {
   const schemaInfo = await Spine.driver.querySchemaInfo(database, tables);
 
   for (const model of models) {
+    // assign driver if model's driver not exist
+    if (!model.driver) model.driver = Spine.driver;
+    // assign options if model's options not exist
+    if (!model.options) model.options = Spine.options;
     const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
     if (!model.attributes) initAttributes(model, columns);
     model.load(columns);
