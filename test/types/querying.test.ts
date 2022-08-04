@@ -103,12 +103,37 @@ describe('=> Querying (TypeScript)', function() {
   });
 
   describe('=> Select', async function() {
-    before(async function() {
+    beforeEach(async function() {
       await Post.bulkCreate([
-        { title: 'There And Back Again' },
+        { id: 1, title: 'There And Back Again' },
+        { id: 2, title: 'Foo', authorId: 2 },
+        { id: 3, title: 'Foobar', authorId: 2 },
       ]);
-    })
-    const post = await Post.findOne().select(name => [ 'id', 'title' ].includes(name));
-    assert.deepEqual(post.toJSON(), { id: post.id, title: 'There And Back Again' })
+    });
+
+    it('Bone.findOne().select()', async function() {
+      const post = await Post.findOne(1).select(name => [ 'id', 'title' ].includes(name));
+      assert.deepEqual(post.toJSON(), { id: post.id, title: 'There And Back Again' });
+    });
+
+    it('Bone.findOne({ $or })', async function() {
+      const post = await Post.findOne({
+        $or: [
+          { authorId: 2, title: 'Foo' },
+          { authorId: 3, title: 'Bar' },
+        ],
+      });
+      assert.ok(post);
+    });
+
+    it('Bone.fineOnd({ $and })', async function() {
+      const post = await Post.findOne({
+        $and: [
+          { authorId: 2, title: { $like: 'Foo%' } },
+          { title: { $like: '%bar' } },
+        ],
+      });
+      assert.ok(post);
+    });
   });
 });

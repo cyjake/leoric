@@ -160,6 +160,8 @@ type OperatorCondition = {
 
 type WhereConditions<T extends typeof Bone> = {
   [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal | Literal[] | OperatorCondition;
+} | {
+  [key in '$and' | '$or']?: WhereConditions<T>[];
 }
 
 type Values<T extends typeof Bone> = {
@@ -579,6 +581,7 @@ export class Bone {
    */
   static find<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
   static find<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
+  static find<T extends typeof Bone>(this: T, primaryKey: number | number[]): Spell<T, Collection<InstanceType<T>>>;
   static find<T extends typeof Bone>(this: T, ): Spell<T, Collection<InstanceType<T>>>;
 
   /**
@@ -601,6 +604,7 @@ export class Bone {
    */
   static findOne<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, InstanceType<T> | null>;
+  static findOne<T extends typeof Bone>(this: T, primaryKey: number | number[]): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, ): Spell<T, InstanceType<T> | null>;
 
   /**
