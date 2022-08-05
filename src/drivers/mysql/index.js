@@ -18,7 +18,6 @@ class MysqlDriver extends AbstractDriver {
 
   /**
    * Create a connection pool
-   * @param {string} clientName
    * @param {Object} opts
    * @param {string} opts.host
    * @param {string} opts.port
@@ -30,6 +29,7 @@ class MysqlDriver extends AbstractDriver {
    * @param {number} opts.connectTimeout  - The milliseconds before a timeout occurs during the initial connection to the MySQL server. (Default: `10000`)
    * @param {string} opts.charset
    * @param {boolean} opts.stringifyObjects  - stringify object value in dataValues
+   * @param {string} opts.client
    */
   constructor(opts = {}) {
     super(opts);
@@ -54,7 +54,7 @@ class MysqlDriver extends AbstractDriver {
     } = opts;
 
     if (client !== 'mysql' && client !== 'mysql2') {
-      throw new Error(`Unsupported mysql client ${client}`);
+      console.warn(`[leoric] mysql client "${client}" not tested`);
     }
 
     return require(client).createPool({
