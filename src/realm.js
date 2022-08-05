@@ -102,11 +102,14 @@ const rReplacementKey = /\s:(\w+)\b/g;
 
 class Realm {
   constructor(opts = {}) {
-    let { client, dialect, database, driver: CustomDriver, ...restOpts } = {
-      dialect: 'mysql',
-      database: opts.db || opts.storage,
-      ...opts
-    };
+    let { 
+      dialect = 'mysql', 
+      dialectModulePath, 
+      client = dialectModulePath, 
+      database = opts.db || opts.storage, 
+      driver: CustomDriver, 
+      ...restOpts
+    } = opts;
     const Spine = createSpine(opts);
     const models = {};
 
