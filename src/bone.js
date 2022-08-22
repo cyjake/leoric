@@ -102,7 +102,7 @@ function valuesValidate(values, attributes, ctx) {
     const value = values[valueKey];
     if (value == null && defaultValue == null) {
       if (allowNull === false) throw new LeoricValidateError('notNull', name);
-      if ((allowNull === true || allowNull === undefined) && validate.notNull === undefined ) continue;
+      if ((allowNull === true || allowNull === undefined) && validate.notNull === undefined) continue;
     }
     if (!validate) continue;
     for (const key in validate) {
@@ -700,7 +700,7 @@ class Bone {
   async _update(values, options = {}) {
     const Model = this.constructor;
     const { attributes, primaryKey, shardingKey } = Model;
-    let changes = {};
+    const changes = {};
     if (values == null) {
       for (const name in attributes) {
         if (this.changed(name)) changes[name] = this.attribute(name);
@@ -728,7 +728,7 @@ class Bone {
     if (attributes[updatedAt] && !changes[updatedAt] && !changes[deletedAt] && !options.silent) {
       changes[updatedAt] = new Date();
     }
-    if (options.validate !== false ) {
+    if (options.validate !== false) {
       this._validateAttributes(changes);
     }
     const spell = new Spell(Model, options).$where(where).$update(changes);
@@ -911,10 +911,9 @@ class Bone {
     const { attributes } = Model;
     for (const key in attributes) {
       const attribute = attributes[key];
-      if (attribute.primaryKey) continue;
       if (values[key] == null && attribute.defaultValue != null) {
         data[key] = attribute.defaultValue;
-      } else if (values[key] !== undefined){
+      } else if (values[key] !== undefined) {
         data[key] = values[key];
       }
     }
@@ -1668,7 +1667,7 @@ class Bone {
       if (force) {
         await driver.dropTable(table);
         await driver.createTable(table, attributes);
-      } else if (alter){
+      } else if (alter) {
         await driver.alterTable(table, compare(attributes, columnMap));
       } else {
         console.warn('[synchronize_fail] %s couldn\'t be synchronized, please use force or alter to specify execution', this.name);

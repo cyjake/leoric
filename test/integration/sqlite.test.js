@@ -59,6 +59,7 @@ describe('=> Table definitions (sqlite)', () => {
 
 describe('=> upsert (sqlite)', function () {
   const Post = require('../models/post');
+  const User = require('../models/user');
 
   it('upsert', function() {
     assert.equal(
@@ -85,6 +86,21 @@ describe('=> upsert (sqlite)', function () {
     assert.equal(
       Post.upsert({ title: 'New Post' }).toSqlString(),
       `INSERT INTO "articles" ("title", "is_private", "word_count", "gmt_create", "gmt_modified") VALUES ('New Post', false, 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "title"=EXCLUDED."title", "is_private"=EXCLUDED."is_private", "word_count"=EXCLUDED."word_count", "gmt_modified"=EXCLUDED."gmt_modified"`
+    );
+
+    assert.equal(
+      Post.upsert({ title: 'New Post', id: 1 }).toSqlString(),
+      `INSERT INTO "articles" ("id", "title", "is_private", "word_count", "gmt_create", "gmt_modified") VALUES (1, 'New Post', false, 0, '2017-12-12 00:00:00.000', '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "title"=EXCLUDED."title", "is_private"=EXCLUDED."is_private", "word_count"=EXCLUDED."word_count", "gmt_modified"=EXCLUDED."gmt_modified"`
+    );
+
+    assert.equal(
+      User.upsert({ email: 'dk@souls.com', nickname: 'Yhorm' }).toSqlString(),
+      `INSERT INTO "users" ("email", "nickname", "status", "level", "gmt_create") VALUES ('dk@souls.com', 'Yhorm', 1, 1, '2017-12-12 00:00:00.000') ON CONFLICT ("email") DO UPDATE SET "email"=EXCLUDED."email", "nickname"=EXCLUDED."nickname", "status"=EXCLUDED."status", "level"=EXCLUDED."level"`
+    );
+
+    assert.equal(
+      User.upsert({ email: 'dk@souls.com', nickname: 'Yhorm', id: 1 }).toSqlString(),
+      `INSERT INTO "users" ("id", "email", "nickname", "status", "level", "gmt_create") VALUES (1, 'dk@souls.com', 'Yhorm', 1, 1, '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "email"=EXCLUDED."email", "nickname"=EXCLUDED."nickname", "status"=EXCLUDED."status", "level"=EXCLUDED."level"`
     );
   });
 });

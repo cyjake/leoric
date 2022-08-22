@@ -1072,7 +1072,7 @@ describe('=> Realm', () => {
       assert.equal(Post.attributes.updatedAt.columnName, 'gmt_modified');
       assert.equal(Post.attributes.deletedAt.columnName, 'gmt_deleted');
     });
-    
+
     it('should auto assign driver if not exist', async function () {
 
       class User extends Bone {}

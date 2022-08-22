@@ -484,7 +484,7 @@ describe('=> Sequelize adapter', () => {
     });
 
     it('Model.findAll({ group: string })', async () => {
-      let result = await Post.findAll({
+      const result = await Post.findAll({
         attributes: 'count(*) AS count',
         group: 'title',
         order: [[ 'title', 'desc' ]],
@@ -496,7 +496,7 @@ describe('=> Sequelize adapter', () => {
     });
 
     it('Model.findAll({ group: [] })', async () => {
-      let result = await Post.findAll({
+      const result = await Post.findAll({
         attributes: 'count(*) AS count',
         group: [ 'title' ],
         order: [[ 'title', 'desc' ]],
@@ -518,7 +518,7 @@ describe('=> Sequelize adapter', () => {
     });
 
     it('Model.findAll({ having: string })', async () => {
-      let result = await Post.findAll({
+      const result = await Post.findAll({
         attributes: 'count(*) AS count',
         group: 'title',
         order: [[ 'title', 'desc' ]],
@@ -530,7 +530,7 @@ describe('=> Sequelize adapter', () => {
     });
 
     it('Model.findAll({ having: rawObject })', async () => {
-      let result = await Post.findAll({
+      const result = await Post.findAll({
         attributes: 'count(*) AS count',
         group: 'title',
         order: [[ 'title', 'desc' ]],
@@ -1423,7 +1423,7 @@ describe('Model.init with getterMethods and setterMethods', () => {
   const key = '12Tvzr3p67VC61jMw54rIHu1545x4Tlx';
   const iv = 'iceiceiceiceicei';
 
-  function encrypt(text){
+  function encrypt(text) {
     if (!text) return null;
     const cipher = crypto.createCipheriv(algorithm, key, iv);
     let crypted = cipher.update(text,'utf8','hex');
@@ -1431,7 +1431,7 @@ describe('Model.init with getterMethods and setterMethods', () => {
     return crypted;
   }
 
-  function decrypt(text){
+  function decrypt(text) {
     if (!text) return null;
     const decipher = crypto.createCipheriv(algorithm, key, iv);
     let dec = decipher.update(text,'hex','utf8');
