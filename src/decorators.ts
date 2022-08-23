@@ -1,19 +1,17 @@
 import Bone from './bone';
-import { DataType, BaseDataType, AbstractDataType } from './data_types';
+import DataTypes, { DataType, AbstractDataType } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
 import 'reflect-metadata';
 
 type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
 
 interface ColumnOption {
-  type?: AbstractDataType<BaseDataType>;
+  type?: AbstractDataType<DataType>;
   name?: string;
   defaultValue?: Literal;
   allowNull?: boolean;
   primaryKey?: boolean;
   columnName?: string;
-  setter?: (value: Literal) => void;
-  getter?: () => Literal;
   validate?: {
     [key: string]: boolean | RegExp | Function | Array<Array<Literal>> | string;
   }
@@ -25,7 +23,7 @@ function findType(tsType) {
     DATE,
     STRING,
     BOOLEAN,
-  } = DataType;
+  } = DataTypes;
 
   switch (tsType) {
     case BigInt:
@@ -43,13 +41,13 @@ function findType(tsType) {
   }
 }
 
-export function Column(options?: ColumnOption | AbstractDataType<BaseDataType>) {
+export function Column(options?: ColumnOption | AbstractDataType<DataType>) {
   return function(target: Bone, propertyKey: string) {
     if (options == null) {
       options = {};
     }
     // target refers to model prototype, an internal instance of `Bone {}`
-    if (options['prototype'] instanceof BaseDataType) options = { type: options as AbstractDataType<BaseDataType> };
+    if (options['prototype'] instanceof DataType) options = { type: options as AbstractDataType<DataType> };
 
     if (!('type' in options)) {
       const tsType = Reflect.getMetadata('design:type', target, propertyKey);
@@ -62,28 +60,8 @@ export function Column(options?: ColumnOption | AbstractDataType<BaseDataType>) 
     // target refers to model prototype, an internal instance of `Bone {}`
     const model = target.constructor;
     const { attributes = (model.attributes = {}) } = model;
-    const { name: columnName, setter, getter, ...restOptions } = options;
+    const { name: columnName, ...restOptions } = options;
     attributes[propertyKey] = { ...restOptions, columnName };
-
-    const customDescriptor: PropertyDescriptor = {};
-    if(setter && typeof setter === 'function') {
-      customDescriptor.set = setter;
-    }
-
-    if(getter && typeof getter === 'function') {
-      customDescriptor.get = getter;
-    }
-
-    if(!Object.keys(customDescriptor).length) return;
-    
-    customDescriptor.enumerable = true;
-    customDescriptor.configurable = true;
-
-    const defaultDescriptor = Object.getOwnPropertyDescriptor(target, propertyKey);
-    Object.defineProperty(target, propertyKey, {
-      ...defaultDescriptor,
-      ...customDescriptor,
-    })
   };
 }
 

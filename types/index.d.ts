@@ -1,7 +1,7 @@
-import { DataType, BaseDataType, AbstractDataType, LENGTH_VARIANTS } from '../src/data_types';
+import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from '../src/data_types';
 import { Hint, IndexHint } from './hint';
 
-export { DataType as DataTypes };
+export { DataTypes };
 export { LENGTH_VARIANTS as LENGTH_VARIANTS };
 export * from '../src/decorators';
 
@@ -184,7 +184,7 @@ declare type validator = Literal | Function | Array<Literal | Literal[]>;
 
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
-  type: AbstractDataType<BaseDataType>;
+  type: AbstractDataType<DataType>;
   virtual?: boolean,
   toSqlString?: () => string;
   validate?: {
@@ -343,14 +343,14 @@ declare class AbstractDriver {
    * @param tabe table name
    * @param attributes attributes
    */
-  createTable(tabe: string, attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta }): Promise<void>;
+  createTable(tabe: string, attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta }): Promise<void>;
 
   /**
    * alter table
    * @param tabe table name
    * @param attributes alter attributes
    */
-  alterTable(tabe: string, attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta }): Promise<void>;
+  alterTable(tabe: string, attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta }): Promise<void>;
 
   /**
    * describe table
@@ -459,7 +459,7 @@ export class Collection<T extends Bone> extends Array<T> {
 }
 
 export class Bone {
-  static DataTypes: typeof DataType;
+  static DataTypes: typeof DataTypes;
 
   /**
    * get the connection pool of the driver
@@ -499,7 +499,7 @@ export class Bone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: AbstractDataType<BaseDataType> | AttributeMeta };
+  static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
 
   /**
    * The schema info of current model.
@@ -877,7 +877,7 @@ interface RawQueryOptions {
 
 export default class Realm {
   Bone: typeof Bone;
-  DataTypes: typeof DataType;
+  DataTypes: typeof DataTypes;
   driver: AbstractDriver;
   models: Record<string, Bone>;
   connected?: boolean;
@@ -894,7 +894,7 @@ export default class Realm {
 
   define(
     name: string,
-    attributes: Record<string, AbstractDataType<BaseDataType> | AttributeMeta>,
+    attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>,
     options?: InitOptions,
     descriptors?: Record<string, Function>,
   ): typeof Bone;

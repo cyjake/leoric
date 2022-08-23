@@ -78,25 +78,10 @@ describe('=> Decorators (TypeScript)', function() {
       assert.equal((updatedAt as AttributeMeta).columnName, 'gmt_modified');
     });
 
-    it('should work with setter/getter', async () => {
+    it('should work with setter', async () => {
       class Note extends Bone {
         @Column()
         id: bigint;
-
-        @Column({ 
-          allowNull: false,
-          setter(v) {
-            if (v === 'zeus') {
-              this.attribute('name', 'thor');
-              return;
-            }
-            this.attribute('name', v);
-          },
-          getter() {
-            return this.attribute('name')?.toUpperCase();
-          }
-        })
-        name: string;
 
         @Column({ defaultValue: true })
         isPrivate: boolean;
@@ -106,6 +91,59 @@ describe('=> Decorators (TypeScript)', function() {
 
         @Column()
         updatedAt: Date;
+
+        get name(): string {
+          return (this.attribute('name') as string)?.toUpperCase() as string;
+        }
+
+        @Column({
+          allowNull: false,
+        })
+        set name(v: string) {
+          if (v === 'zeus') {
+            this.attribute('name', 'thor');
+            return;
+          }
+          this.attribute('name', v);
+        }
+      }
+      await Note.sync({ force: true });
+      const note = new Note({ name: 'zeus' });
+      assert.equal(note.name, 'THOR');
+      await note.save();
+      await note.reload();
+      assert.equal(note.name, 'THOR');
+      assert.equal(note.attribute('name'), 'thor');
+    });
+
+    it('should work with getter', async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column({ defaultValue: true })
+        isPrivate: boolean;
+
+        @Column()
+        createdAt: Date;
+
+        @Column()
+        updatedAt: Date;
+
+        @Column({
+          allowNull: false,
+        })
+        get name(): string {
+          return (this.attribute('name') as string)?.toUpperCase() as string;
+        }
+
+        set name(v: string) {
+          if (v === 'zeus') {
+            this.attribute('name', 'thor');
+            return;
+          }
+          this.attribute('name', v);
+        }
       }
       await Note.sync({ force: true });
       const note = new Note({ name: 'zeus' });

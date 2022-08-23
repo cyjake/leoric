@@ -12,8 +12,8 @@ export enum LENGTH_VARIANTS {
 };
 
 export interface AbstractDataType<T> {
-  new (dataLength?: LENGTH_VARIANTS | number): BaseDataType & T;
-  (dataLength?: LENGTH_VARIANTS | number): BaseDataType & T;
+  new (dataLength?: LENGTH_VARIANTS | number): DataType & T;
+  (dataLength?: LENGTH_VARIANTS | number): DataType & T;
 }
 
 /**
@@ -24,7 +24,7 @@ export interface AbstractDataType<T> {
  * });
  */
 
-export abstract class BaseDataType {
+export abstract class DataType {
   dataType: string;
   dataLength?: string | number;
 
@@ -34,7 +34,7 @@ export abstract class BaseDataType {
    * @returns {boolean}
    */
   static is(params: any): boolean {
-    return params instanceof BaseDataType;
+    return params instanceof DataType;
   }
 
   /**
@@ -55,7 +55,7 @@ export abstract class BaseDataType {
     return new Proxy(this, {
       get(target, p) {
         const value = target[p];
-        if (DataTypes.hasOwnProperty(p)) return invokableFunc(value);
+        if (AllDataTypes.hasOwnProperty(p)) return invokableFunc(value);
         return value;
       }
     }); 
@@ -75,7 +75,7 @@ export abstract class BaseDataType {
  * STRING.BINARY
  * @param {number} dataLength
  */
-class STRING extends BaseDataType {
+class STRING extends DataType {
   constructor(dataLength: number = 255) {
     super();
     this.dataType = 'varchar';
@@ -96,7 +96,7 @@ class STRING extends BaseDataType {
   }
 }
 
-class BINARY extends BaseDataType {
+class BINARY extends DataType {
   constructor(dataLength = 255) {
     super();
     this.dataLength = dataLength;
@@ -135,7 +135,7 @@ class VARBINARY extends BINARY {
  * INTEGER(10)
  * @param {number} dataLength
  */
-class INTEGER extends BaseDataType {
+class INTEGER extends DataType {
   unsigned?: boolean;
   zerofill?: boolean;
 
@@ -282,7 +282,7 @@ class DECIMAL extends INTEGER {
 }
 
 const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6}){0,1}$/;
-class DATE extends BaseDataType {
+class DATE extends DataType {
   precision?: number | null;
   timezone?: boolean = true;
 
@@ -364,7 +364,7 @@ class DATEONLY extends DATE {
   }
 }
 
-class BOOLEAN extends BaseDataType {
+class BOOLEAN extends DataType {
   constructor() {
     super();
     this.dataType = 'boolean';
@@ -380,7 +380,7 @@ class BOOLEAN extends BaseDataType {
   }
 }
 
-class TEXT extends BaseDataType {
+class TEXT extends DataType {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid text length: ${length}`);
@@ -395,7 +395,7 @@ class TEXT extends BaseDataType {
   }
 }
 
-class BLOB extends BaseDataType {
+class BLOB extends DataType {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid blob length: ${length}`);
@@ -417,7 +417,7 @@ class BLOB extends BaseDataType {
 }
 
 // JSON text type
-class MYJSON extends BaseDataType {
+class MYJSON extends DataType {
   constructor() {
     super();
     this.dataType = 'text';
@@ -467,7 +467,7 @@ class JSONB extends MYJSON {
   }
 }
 
-class VIRTUAL extends BaseDataType {
+class VIRTUAL extends DataType {
   virtual: boolean = true;
   constructor() {
     super();
@@ -485,7 +485,7 @@ class VIRTUAL extends BaseDataType {
 
 }
 
-const DataTypes = {
+const AllDataTypes = {
   STRING,
   TINYINT,
   SMALLINT,
@@ -507,7 +507,7 @@ const DataTypes = {
 
 type DATA_TYPE<T> =  AbstractDataType<T> & T;
 
-export class DataType extends BaseDataType {
+export class DataTypes extends DataType {
   static STRING: DATA_TYPE<STRING> = STRING as unknown as DATA_TYPE<STRING>;
   static TINYINT: DATA_TYPE<TINYINT> = TINYINT as unknown as DATA_TYPE<TINYINT>;
   static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as unknown as DATA_TYPE<SMALLINT>;
@@ -526,7 +526,7 @@ export class DataType extends BaseDataType {
   static DATEONLY: DATA_TYPE<DATEONLY> = DATEONLY as unknown as DATA_TYPE<DATEONLY>;
   static BOOLEAN: DATA_TYPE<BOOLEAN> = BOOLEAN as unknown as DATA_TYPE<BOOLEAN>;
 
-  static findType(columnType: string): DataType {
+  static findType(columnType: string): DataTypes {
     const {
       STRING, TEXT, DATE, DATEONLY,
       TINYINT, SMALLINT, MEDIUMINT, INTEGER, 
@@ -603,6 +603,6 @@ export class DataType extends BaseDataType {
   }
 }
 
-export const invokable = DataType.invokable;
+export const invokable = DataTypes.invokable;
 
-export default DataType;
+export default DataTypes;
