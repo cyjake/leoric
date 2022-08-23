@@ -508,23 +508,23 @@ const AllDataTypes = {
 type DATA_TYPE<T> =  AbstractDataType<T> & T;
 
 export class DataTypes extends DataType {
-  static STRING: DATA_TYPE<STRING> = STRING as unknown as DATA_TYPE<STRING>;
-  static TINYINT: DATA_TYPE<TINYINT> = TINYINT as unknown as DATA_TYPE<TINYINT>;
-  static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as unknown as DATA_TYPE<SMALLINT>;
-  static MEDIUMINT: DATA_TYPE<MEDIUMINT> = MEDIUMINT as unknown as DATA_TYPE<MEDIUMINT>;
-  static INTEGER: DATA_TYPE<INTEGER> = INTEGER as unknown as DATA_TYPE<INTEGER>;
-  static BIGINT: DATA_TYPE<BIGINT> = BIGINT as unknown as DATA_TYPE<BIGINT>;
-  static DECIMAL: DATA_TYPE<DECIMAL> = DECIMAL as unknown as DATA_TYPE<DECIMAL>;
-  static DATE: DATA_TYPE<DATE> = DATE as unknown as DATA_TYPE<DATE>;
-  static TEXT: DATA_TYPE<TEXT> = TEXT as unknown as DATA_TYPE<TEXT>;
-  static BLOB: DATA_TYPE<BLOB> = BLOB as unknown as DATA_TYPE<BLOB>;
-  static JSON: DATA_TYPE<MYJSON> = MYJSON as unknown as DATA_TYPE<MYJSON>;
-  static JSONB: DATA_TYPE<JSONB> = JSONB as unknown as DATA_TYPE<JSONB>;
-  static BINARY: DATA_TYPE<BINARY> = BINARY as unknown as DATA_TYPE<BINARY>;
-  static VARBINARY: DATA_TYPE<VARBINARY> = VARBINARY as unknown as DATA_TYPE<VARBINARY>;
-  static VIRTUAL: DATA_TYPE<VIRTUAL> = VIRTUAL as unknown as DATA_TYPE<VIRTUAL>;
-  static DATEONLY: DATA_TYPE<DATEONLY> = DATEONLY as unknown as DATA_TYPE<DATEONLY>;
-  static BOOLEAN: DATA_TYPE<BOOLEAN> = BOOLEAN as unknown as DATA_TYPE<BOOLEAN>;
+  static STRING: DATA_TYPE<STRING> = STRING as any;
+  static TINYINT: DATA_TYPE<TINYINT> = TINYINT as any;
+  static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as any;
+  static MEDIUMINT: DATA_TYPE<MEDIUMINT> = MEDIUMINT as any;
+  static INTEGER: DATA_TYPE<INTEGER> = INTEGER as any;
+  static BIGINT: DATA_TYPE<BIGINT> = BIGINT as any;
+  static DECIMAL: DATA_TYPE<DECIMAL> = DECIMAL as any;
+  static DATE: DATA_TYPE<DATE> = DATE as any;
+  static TEXT: DATA_TYPE<TEXT> = TEXT as any;
+  static BLOB: DATA_TYPE<BLOB> = BLOB as any;
+  static JSON: DATA_TYPE<MYJSON> = MYJSON as any;
+  static JSONB: DATA_TYPE<JSONB> = JSONB as any;
+  static BINARY: DATA_TYPE<BINARY> = BINARY as any;
+  static VARBINARY: DATA_TYPE<VARBINARY> = VARBINARY as any;
+  static VIRTUAL: DATA_TYPE<VIRTUAL> = VIRTUAL as any;
+  static DATEONLY: DATA_TYPE<DATEONLY> = DATEONLY as any;
+  static BOOLEAN: DATA_TYPE<BOOLEAN> = BOOLEAN as any;
 
   static findType(columnType: string): DataTypes {
     const {
