@@ -1,3 +1,15 @@
+2.6.3 / 2022-08-04
+==================
+
+## What's Changed
+* fix: aggregator not parse null result by @killagu in https://github.com/cyjake/leoric/pull/322
+* test: switch the auth protocol of test mysql database  by @cyjake in https://github.com/cyjake/leoric/pull/323
+* feat: add leoric_bone meta data to Bone by @JimmyDaddy in https://github.com/cyjake/leoric/pull/324
+* docs: fix declarations of findOne(primaryKey) & findOne({ $or }) by @cyjake in https://github.com/cyjake/leoric/pull/325
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.2...v2.6.3
+
 2.6.2 / 2022-07-12
 ==================
 

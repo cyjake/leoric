@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const path = require('path');
 const Realm = require('../../index');
 const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver } = Realm;
 
@@ -72,6 +73,22 @@ describe('=> Realm', () => {
     it('should rename opts.storage to opts.database', async () => {
       const realm = new Realm({ dialect: 'sqlite', storage: '/tmp/leoric.sqlite3' });
       assert.equal(realm.options.database, '/tmp/leoric.sqlite3');
+    });
+
+    it('should be able to switch client with opts.dialectModule', async () => {
+      assert.throws(function() {
+        new Realm({ dialectModulePath: 'maria' });
+      }, /Cannot find module 'maria'/);
+
+      const realm = new Realm({
+        dialectModulePath: 'mysql2',
+        host: 'localhost',
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: path.resolve(__dirname, '../models')
+      });
+      assert.equal(realm.driver.pool.constructor.name, 'Pool');
     });
 
     it('should work with custom driver', async () => {
