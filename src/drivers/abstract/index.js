@@ -36,8 +36,8 @@ class AbstractDriver {
 
   /**
    * query with spell
-   * @param {Spell} spell 
-   * @returns 
+   * @param {Spell} spell
+   * @returns
    */
   async cast(spell) {
     const { sql, values } = this.format(spell);
@@ -47,9 +47,9 @@ class AbstractDriver {
 
   /**
    * raw query
-   * @param {object|string} query 
-   * @param {object | array} values 
-   * @param {object} opts 
+   * @param {object|string} query
+   * @param {object | array} values
+   * @param {object} opts
    */
   async query(query, values, opts) {
     throw new Error('unimplemented!');
@@ -57,7 +57,7 @@ class AbstractDriver {
 
   /**
    * disconnect manually
-   * @param {Function} callback 
+   * @param {Function} callback
    */
   async disconnect(callback) {
     debug('[disconnect] called');
@@ -69,8 +69,8 @@ class AbstractDriver {
 
   /**
    * use spellbook to format spell
-   * @param {Spell} spell 
-   * @returns 
+   * @param {Spell} spell
+   * @returns
    */
   format(spell) {
     return this.spellbook.format(spell);

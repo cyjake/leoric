@@ -84,7 +84,7 @@ describe('=> Basic', () => {
 
     it('bone.hasAttribute(key) should work with VIRTUAL', async function() {
       await User.create({ nickname: 'yes', email: 'ee@1.com' });
-      let user = await User.first.select('nickname');
+      const user = await User.first.select('nickname');
       expect(user.hasAttribute('nickname')).to.be(true);
       expect(user.hasAttribute('NotExist')).to.be(false);
       expect(user.hasAttribute()).to.be(false);
@@ -450,7 +450,7 @@ describe('=> Basic', () => {
       const sql_mode = sql_mode_res.rows[0].sql_mode;
       await Post.driver.query('set SESSION sql_mode=""');
       const post = await Post.create({ title: 'Lothric' });
-      await Post.driver.query('UPDATE articles SET gmt_create = ? where id = ?', [ '0000-00-00 00:00:00', post.id ] );
+      await Post.driver.query('UPDATE articles SET gmt_create = ? where id = ?', [ '0000-00-00 00:00:00', post.id ]);
       await post.reload();
       assert.deepEqual(post.createdAt.toString(), 'Invalid Date');
       post.title = 'halo';
@@ -1160,6 +1160,16 @@ describe('=> Basic', () => {
           assert.equal(user.attribute('status'), 1);
           assert.equal(user.level, 1);
         });
+
+        it('Bone.upsert should work with primaryKey', async () => {
+          await User.upsert({ email: 'yes@yes', nickname: 'halo' });
+          const user = await User.findOne({ nickname: 'halo' });
+          assert.equal(user.nickname, 'halo');
+          await User.upsert({ id: user.id, nickname: 'Yhorm', email: 'yes1@yes', });
+          await user.reload();
+          assert.equal(user.nickname, 'Yhorm');
+          assert.equal(user.email, 'yes1@yes');
+        });
       });
     });
 
@@ -1241,7 +1251,7 @@ describe('=> Basic', () => {
       let post4 = await Post.findOne('id = ?', posts[3].id).unparanoid;
       assert(post4.deletedAt);
 
-      deleteCount = await Post.remove( {
+      deleteCount = await Post.remove({
         word_count: {
             $gte: 0
           }
@@ -1390,11 +1400,11 @@ describe('=> Basic', () => {
       });
 
       assert.equal(await User.count(), 2);
-      let p1 = await User.findOne({ email: 'hello@h1.com' });
+      const p1 = await User.findOne({ email: 'hello@h1.com' });
       assert.equal(p1.nickname, 'TYRAEL');
       const p1CreatedAt = p1.createdAt;
       assert(p1CreatedAt);
-      let p2 = await User.findOne({ email: 'hello1@h1.com' });
+      const p2 = await User.findOne({ email: 'hello1@h1.com' });
       assert.equal(p2.nickname, 'LEAH');
       const p2CreatedAt = p2.createdAt;
       assert(p2CreatedAt);
@@ -1406,11 +1416,11 @@ describe('=> Basic', () => {
         updateOnDuplicate: [ 'nickname', 'status' ]
       });
 
-      let p1Updated1 = await User.findOne({ email: 'hello@h1.com' });
+      const p1Updated1 = await User.findOne({ email: 'hello@h1.com' });
       assert.equal(p1Updated1.nickname, 'TYRAEL1');
       const p1Updated1CreatedAt = p1Updated1.createdAt;
       assert.deepEqual(p1Updated1CreatedAt, p1CreatedAt);
-      let p2Updated1 = await User.findOne({ email: 'hello1@h1.com' });
+      const p2Updated1 = await User.findOne({ email: 'hello1@h1.com' });
       assert.equal(p2Updated1.nickname, 'LEAH1');
       const p2Updated1CreatedAt = p2Updated1.createdAt;
       assert.deepEqual(p2Updated1CreatedAt, p2CreatedAt);
@@ -1422,11 +1432,11 @@ describe('=> Basic', () => {
         updateOnDuplicate: [ 'nickname', 'status', 'createdAt' ]
       });
 
-      let p1Updated2 = await User.findOne({ email: 'hello@h1.com' });
+      const p1Updated2 = await User.findOne({ email: 'hello@h1.com' });
       assert.equal(p1Updated2.nickname, 'TYRAEL2');
       const p1Updated2CreatedAt = p1Updated2.createdAt;
       assert.notDeepEqual(p1Updated2CreatedAt, p1CreatedAt);
-      let p2Updated2 = await User.findOne({ email: 'hello1@h1.com' });
+      const p2Updated2 = await User.findOne({ email: 'hello1@h1.com' });
       assert.equal(p2Updated2.nickname, 'LEAH2');
       const p2Updated2CreatedAt = p2Updated2.createdAt;
       assert.notDeepEqual(p2Updated2CreatedAt, p2CreatedAt);
