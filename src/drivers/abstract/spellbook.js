@@ -163,11 +163,11 @@ class SpellBook {
     const { shardingKey } = Model;
     const { createdAt } = Model.timestamps;
     const { escapeId } = Model.driver;
-    let columns = [];
-    let updateOnDuplicateColumns = [];
+    const columns = [];
+    const updateOnDuplicateColumns = [];
 
-    let values = [];
-    let placeholders = [];
+    const values = [];
+    const placeholders = [];
     if (Array.isArray(sets)) {
       // merge records to get the big picture of involved columnAttributes
       const involved = sets.reduce((result, entry) => {
@@ -318,7 +318,7 @@ class SpellBook {
       spell.updateOnDuplicate = true;
     }
 
-    let { sql, values } = this.formatInsert(spell);
+    const { sql, values } = this.formatInsert(spell);
     return {
       sql,
       values,
@@ -347,7 +347,7 @@ class SpellBook {
    * @param {Array} columns columns for value set
    */
   formatUpdateOnDuplicate(spell, columns) {
-    const { updateOnDuplicate, uniqueKeys, Model } = spell;
+    const { updateOnDuplicate, uniqueKeys, Model, sets } = spell;
     if (!updateOnDuplicate) return '';
     const { columnAttributes, primaryColumn } = Model;
     const { escapeId } = Model.driver;
@@ -358,25 +358,27 @@ class SpellBook {
         actualUniqueKeys.push(escapeId(field));
       }
     } else {
+      const setFields = Object.keys(sets);
       // conflict_target must be unique
       // get all unique keys
       if (columnAttributes) {
         for (const key in columnAttributes) {
           const att = columnAttributes[key];
           // use the first unique key
-          if (att.unique) {
+          if (att.unique || (att.primaryKey && setFields.includes(att.name))) {
             actualUniqueKeys.push(escapeId(att.columnName));
             break;
           }
         }
       }
+
       if (!actualUniqueKeys.length) actualUniqueKeys.push(escapeId(primaryColumn));
       // default use id as primary key
       if (!actualUniqueKeys.length) actualUniqueKeys.push(escapeId('id'));
     }
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName )|| column);
+      columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName)|| column);
     } else if (!columns.length) {
       columns = Object.values(columnAttributes).map(({ columnName }) => columnName);
     }

@@ -9,6 +9,9 @@
     "node": true,
     "es6": true
   },
+  "plugins": [
+    "no-only-tests"
+  ],
   "rules": {
     "curly": [2, "multi-line"],
     "consistent-return": 0,
@@ -22,6 +25,11 @@
     "no-unused-vars": [2, { "vars": "all", "args": "none", "ignoreRestSiblings": true }],
     "no-shadow": 2,
     "keyword-spacing": "error",
-    "eol-last": "error"
+    "eol-last": "error",
+    "prefer-const": "error",
+    "no-only-tests/no-only-tests": "error",
+    "no-trailing-spaces": "error",
+    "space-before-blocks": "error",
+    "space-in-parens": "error"
   }
 }

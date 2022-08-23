@@ -102,12 +102,12 @@ const rReplacementKey = /\s:(\w+)\b/g;
 
 class Realm {
   constructor(opts = {}) {
-    let { 
-      dialect = 'mysql', 
-      dialectModulePath, 
-      client = dialectModulePath, 
-      database = opts.db || opts.storage, 
-      driver: CustomDriver, 
+    const {
+      dialect = 'mysql',
+      dialectModulePath,
+      client = dialectModulePath,
+      database = opts.db || opts.storage,
+      driver: CustomDriver,
       ...restOpts
     } = opts;
     const Spine = createSpine(opts);
@@ -217,7 +217,7 @@ class Realm {
     const { rows, ...restRes } = await this.driver.query(query, values, opts);
     const results = [];
 
-    if (rows && rows.length && opts.model && opts.model.prototype instanceof this.Bone) {
+    if (rows && rows.length && opts.model && isBone(opts.model)) {
       const { attributeMap } = opts.model;
 
       for (const data of rows) {

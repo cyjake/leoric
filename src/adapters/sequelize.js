@@ -65,7 +65,7 @@ const setScopeToSpell = (scope) => (spell) => {
  * @returns {Object}
  */
 function mergeScope(scopes) {
-  let merged = {};
+  const merged = {};
   for (const scope of scopes) {
     if (scope.where) {
       merged.where = Object.assign({}, merged.where, scope.where);
@@ -227,7 +227,7 @@ module.exports = Bone => {
       }
 
       const { where } = options;
-      let spell = this._find(where, options)[`$${func}`](name);
+      const spell = this._find(where, options)[`$${func}`](name);
       if (options.paranoid === false) return spell.unparanoid;
       return spell;
     }
@@ -262,9 +262,9 @@ module.exports = Bone => {
 
     /**
      * see https://github.com/sequelize/sequelize/blob/a729c4df41fa3a58fbecaf879265d2fb73d80e5f/src/model.js#L2299
-     * @param {Array<Object>} valueSets 
-     * @param {Object} options 
-     * @returns 
+     * @param {Array<Object>} valueSets
+     * @param {Object} options
+     * @returns
      */
     static bulkBuild(valueSets, options = {}) {
       if (!valueSets.length) return [];
@@ -333,7 +333,7 @@ module.exports = Bone => {
     // static drop() {}
 
     static findAll(options = {}) {
-      let spell = this._find({}, filterOptions(options));
+      const spell = this._find({}, filterOptions(options));
       translateOptions(spell, options);
       if (options.paranoid === false) return spell.unparanoid;
       return spell;
