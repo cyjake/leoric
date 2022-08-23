@@ -3,13 +3,20 @@ import { DataType, BaseDataType, AbstractDataType } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
 import 'reflect-metadata';
 
+type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
+
 interface ColumnOption {
   type?: AbstractDataType<BaseDataType>;
   name?: string;
-  defaultValue?: null | boolean | number | string | Date | JSON;
+  defaultValue?: Literal;
   allowNull?: boolean;
   primaryKey?: boolean;
   columnName?: string;
+  setter?: (value: Literal) => void;
+  getter?: () => Literal;
+  validate?: {
+    [key: string]: boolean | RegExp | Function | Array<Array<Literal>> | string;
+  }
 }
 
 function findType(tsType) {
@@ -55,9 +62,28 @@ export function Column(options?: ColumnOption | AbstractDataType<BaseDataType>) 
     // target refers to model prototype, an internal instance of `Bone {}`
     const model = target.constructor;
     const { attributes = (model.attributes = {}) } = model;
-    const { name: columnName, ...restOptions } = options;
-    // TODO avoid calling load() manually, define attributes properties, primary key and timestamps at here
+    const { name: columnName, setter, getter, ...restOptions } = options;
     attributes[propertyKey] = { ...restOptions, columnName };
+
+    const customDescriptor: PropertyDescriptor = {};
+    if(setter && typeof setter === 'function') {
+      customDescriptor.set = setter;
+    }
+
+    if(getter && typeof getter === 'function') {
+      customDescriptor.get = getter;
+    }
+
+    if(!Object.keys(customDescriptor).length) return;
+    
+    customDescriptor.enumerable = true;
+    customDescriptor.configurable = true;
+
+    const defaultDescriptor = Object.getOwnPropertyDescriptor(target, propertyKey);
+    Object.defineProperty(target, propertyKey, {
+      ...defaultDescriptor,
+      ...customDescriptor,
+    })
   };
 }
 
