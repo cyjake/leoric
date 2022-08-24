@@ -166,7 +166,6 @@ describe('=> Decorators (TypeScript)', function() {
               if(!v) throw new Error('name cannot be null')
             },
             notIn: [ [ 'Yhorm', 'Gwyn' ] ],
-          
           }
         })
         name: string;
@@ -195,9 +194,7 @@ describe('=> Decorators (TypeScript)', function() {
         await note.save();
       }, /Validation notIn on name failed/);
 
-
-      note = new Note({ name: 'Yhorm', status: '3' });
-
+      note = new Note({ name: 'Github', status: 3 });
       await assert.rejects(async () => {
         await note.save();
       }, /Error status/);
