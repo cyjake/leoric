@@ -1,12 +1,17 @@
-import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from '../src/data_types';
-import { Hint, IndexHint } from './hint';
+import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from './src/data_types';
+import { Hint, IndexHint } from './src/types/hint';
+import { 
+  Literal, Validator, ColumnBase,
+  QueryResult, Connection, QueryOptions, 
+  AssociateOptions, command, ResultSet
+} from './src/types/common';
 
-export { DataTypes };
-export { LENGTH_VARIANTS as LENGTH_VARIANTS };
-export * from '../src/decorators';
-
-export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
-export type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
+export { 
+  LENGTH_VARIANTS as LENGTH_VARIANTS,
+  DataTypes, Literal, Validator, Connection,
+  Hint, IndexHint,
+};
+export * from './src/decorators';
 
 export class Raw {
   value: string;
@@ -141,7 +146,6 @@ export class Spell<T extends typeof Bone, U = InstanceType<T> | Collection<Insta
   toString(): string;
 }
 
-
 type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
 } & {
@@ -168,19 +172,10 @@ type InstanceValues<T> = {
   [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
 }
 
-export interface ColumnMeta {
-  columnName?: string;
-  columnType?: string;
-  allowNull?: boolean;
-  defaultValue?: Literal;
-  primaryKey?: boolean;
-  unique?: boolean;
+export interface ColumnMeta extends ColumnBase {
   dataType?: string;
-  comment?: string;
   datetimePrecision?: string;
 }
-
-declare type validator = Literal | Function | Array<Literal | Literal[]>;
 
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
@@ -188,43 +183,12 @@ export interface AttributeMeta extends ColumnMeta {
   virtual?: boolean,
   toSqlString?: () => string;
   validate?: {
-    [key: string]: validator;
+    [key: string]: Validator;
   }
-}
-
-interface RelateOptions {
-  className?: string;
-  foreignKey?: string;
-}
-
-interface QueryOptions {
-  validate?: boolean;
-  individualHooks?: boolean;
-  hooks?: boolean;
-  paranoid?: boolean;
-  silent?: boolean;
-  connection?: Connection;
 }
 
 interface TransactionOptions {
   connection: Connection;
-}
-
-interface QueryResult {
-  insertId?: number;
-  affectedRows?: number;
-  rows?: Array<Record<string, Literal>>,
-  fields?: Array<{ table: string, name: string }>,
-}
-
-export interface Connection {
-  /**
-   * MySQL
-   */
-  query(
-    query: string,
-    values: Array<Literal | Literal[]>,
-  ): Promise<QueryResult>;
 }
 
 declare class Pool {
@@ -448,10 +412,6 @@ export class SqliteDriver extends AbstractDriver {
   dialect: 'sqlite';
 }
 
-type ResultSet = {
-  [key: string]: Literal
-};
-
 export class Collection<T extends Bone> extends Array<T> {
   save(): Promise<void>;
   toJSON(): Object[];
@@ -544,9 +504,9 @@ export class Bone {
   static alias(data: Record<string, Literal>): Record<string, Literal>;
   static unalias(name: string): string;
 
-  static hasOne(name: string, opts?: RelateOptions): void;
-  static hasMany(name: string, opts?: RelateOptions): void;
-  static belongsTo(name: string, opts?: RelateOptions): void;
+  static hasOne(name: string, opts?: AssociateOptions): void;
+  static hasMany(name: string, opts?: AssociateOptions): void;
+  static belongsTo(name: string, opts?: AssociateOptions): void;
 
   /**
    * INSERT rows
@@ -923,7 +883,3 @@ export default class Realm {
  */
 export function connect(opts: ConnectOptions): Promise<Realm>;
 export function disconnect(realm: Realm, callback?: Function): Promise<boolean | void>;
-export {
-  Hint,
-  IndexHint,
-}

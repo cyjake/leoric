@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Attribute = require('../../../../src/drivers/mysql/attribute');
-const { BOOLEAN, DATE, JSONB } = Attribute.DataTypes;
+const { BOOLEAN, DATE, JSONB, STRING } = Attribute.DataTypes;
 
 describe('=> Attribute (mysql)', function() {
   it('should support TINYINT(1)', async function() {
@@ -33,4 +33,14 @@ describe('=> Attribute (mysql)', function() {
     });
     assert.equal(attribute.toSqlString(), "`created_at` DATETIME COMMENT '创建时间'");
   });
+
+  it('UNIQUE should work', async function() {
+    const attribute = new Attribute('isbn', {
+      type: STRING,
+      allowNull: false,
+      unique: true,
+    });
+    assert.equal(attribute.toSqlString(), '`isbn` VARCHAR(255) NOT NULL UNIQUE');
+  });
+
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const sinon = require('sinon');
 const { Bone, DataTypes } = require('../../..');
 const { checkDefinitions } = require('../helpers');
 
@@ -25,6 +26,33 @@ describe('=> Table definitions', () => {
     await checkDefinitions('notes', {
       title: { dataType: 'varchar', allowNull: false },
       body: { dataType: 'text' },
+    });
+  });
+
+  it('should be able to create table with unique column', async () => {
+    // sqlite PRAGMA table_info can't get columns' constraint type(unique or not)
+    if (Bone.driver.type === 'sqlite') {
+      const querySpy = sinon.spy(Bone.driver, 'query');
+      await Bone.driver.createTable('notes', {
+        title: { type: STRING, allowNull: false },
+        body: { type: TEXT },
+        noteIndex: { type: STRING, unique: true, allowNull: false }
+      });
+      assert.ok(querySpy.args[0][0].includes('"note_index" VARCHAR(255) NOT NULL UNIQUE'));
+      Bone.driver.query.restore();
+      return;
+    }
+
+    await Bone.driver.createTable('notes', {
+      title: { type: STRING, allowNull: false },
+      body: { type: TEXT },
+      noteIndex: { type: STRING, unique: true, allowNull: false }
+    });
+
+    await checkDefinitions('notes', {
+      title: { dataType: 'varchar', allowNull: false },
+      body: { dataType: 'text' },
+      note_index: { dataType: 'varchar', allowNull: false, unique: true }
     });
   });
 
@@ -133,6 +161,7 @@ describe('=> Table definitions', () => {
       await Bone.driver.removeIndex('notes', {});
     }, /Unexpected index name/i);
   });
+
 });
 
 describe('=> Bone.sync()', () => {

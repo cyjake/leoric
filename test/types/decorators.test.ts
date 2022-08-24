@@ -180,7 +180,7 @@ describe('=> Decorators (TypeScript)', function() {
               args: [ [ '1', '2' ] ],
               msg: 'Error status',
             },
-          }
+          },
         })
         status: number;
       }
@@ -198,6 +198,28 @@ describe('=> Decorators (TypeScript)', function() {
       await assert.rejects(async () => {
         await note.save();
       }, /Error status/);
+    });
+
+    it('should work with other options', async () => {
+      class Note extends Bone {
+        @Column({
+          primaryKey: true,
+          autoIncrement: true,
+        })
+        noteId: bigint;
+
+        @Column({
+          comment: 'note index',
+          unique: true,
+        })
+        noteIndex: number;
+      }
+      await Note.sync({ force: true });
+      assert.deepEqual(Object.keys(Note.attributes), [ 'noteId', 'noteIndex' ]);
+
+      const { noteId, noteIndex } = Note.attributes;
+      assert.equal((noteId as AttributeMeta).toSqlString(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((noteIndex as AttributeMeta).toSqlString(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
     });
   });
 

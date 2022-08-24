@@ -15,7 +15,7 @@ class PostgresAttribute extends Attribute {
 
   toSqlString() {
     const {
-      columnName, type, columnType, allowNull, defaultValue, primaryKey,
+      columnName, type, columnType, allowNull, defaultValue, primaryKey, unique,
     } = this;
     const chunks = [
       escapeId(columnName),
@@ -28,6 +28,10 @@ class PostgresAttribute extends Attribute {
     if (primaryKey) chunks.push('PRIMARY KEY');
 
     if (!primaryKey && !allowNull) chunks.push('NOT NULL');
+
+    if (unique === true) {
+      chunks.push('UNIQUE');
+    }
 
     if (defaultValue != null) {
       chunks.push(`DEFAULT ${escape(defaultValue)}`);
