@@ -1,3 +1,15 @@
+2.7.1 / 2022-08-24
+==================
+
+## What's Changed
+* fix: projects might have strictPropertyInitialization set to true by @cyjake in https://github.com/cyjake/leoric/pull/329
+* fix: types for validate in `Column` decorator by @vagusX in https://github.com/cyjake/leoric/pull/330
+
+## New Contributors
+* @vagusX made their first contribution in https://github.com/cyjake/leoric/pull/330
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.7.0...v2.7.1
+
 2.7.0 / 2022-08-24
 ==================
 
