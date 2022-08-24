@@ -1,23 +1,15 @@
+import 'reflect-metadata';
+
 import Bone from './bone';
 import DataTypes, { DataType, AbstractDataType } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
-import 'reflect-metadata';
+import { ColumnBase, Validator, AssociateOptions } from './types/common';
 
-type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
-type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string;
-
-interface ColumnOption {
+interface ColumnOption extends Omit<ColumnBase, 'columnName'| 'columnType'> {
   type?: AbstractDataType<DataType>;
   name?: string;
-  defaultValue?: Literal;
-  allowNull?: boolean;
-  primaryKey?: boolean;
-  columnName?: string;
   validate?: {
-    [key: string]: BaseValidateArgs | {
-      args: BaseValidateArgs;
-      msg: string;
-    };
+    [key: string]: Validator;
   }
 }
 
@@ -67,11 +59,6 @@ export function Column(options?: ColumnOption | AbstractDataType<DataType>) {
     const { name: columnName, ...restOptions } = options;
     attributes[propertyKey] = { ...restOptions, columnName };
   };
-}
-
-interface AssociateOptions {
-  className?: string;
-  foreignKey?: string;
 }
 
 const { hasMany, hasOne, belongsTo } = ASSOCIATE_METADATA_MAP;

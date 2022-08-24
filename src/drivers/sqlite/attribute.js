@@ -14,8 +14,7 @@ class SqliteAttribute extends Attribute {
   }
 
   toSqlString() {
-    const { allowNull, defaultValue, primaryKey } = this;
-    const { columnName, columnType, type } = this;
+    const { columnName, columnType, type, allowNull, defaultValue, primaryKey, unique } = this;
     const chunks = [
       escapeId(columnName),
       columnType.toUpperCase() || type.toSqlString(),
@@ -27,6 +26,10 @@ class SqliteAttribute extends Attribute {
     if (this.autoIncrement) chunks.push('AUTOINCREMENT');
 
     if (!primaryKey && !allowNull) chunks.push('NOT NULL');
+
+    if (unique === true) {
+      chunks.push('UNIQUE');
+    }
 
     if (defaultValue != null) {
       chunks.push(`DEFAULT ${escape(defaultValue)}`);

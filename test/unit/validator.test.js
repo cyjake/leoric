@@ -261,7 +261,7 @@ describe('validator', () => {
         desc: '123fin22',
       });
     });
-  
+
     it('multiple validator and custom msg', async () => {
       await assert.rejects(async () => {
         await User.create({
@@ -545,7 +545,7 @@ describe('validator', () => {
       await user.update({
         desc: '121hhhh'
       });
-      
+
       assert(user.getRawPrevious('desc') === '231hjjj');
     });
   });

@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Attribute = require('../../../../src/drivers/postgres/attribute');
-const { BIGINT, INTEGER, DATE, JSONB } = Attribute.DataTypes;
+const { BIGINT, INTEGER, DATE, JSONB, STRING } = Attribute.DataTypes;
 
 describe('=> Attribute (postgres)', function() {
   it('should support BIGSERIAL', async function() {
@@ -45,5 +45,14 @@ describe('=> Attribute (postgres)', function() {
   it('should support JSON binary', async function() {
     const attribute = new Attribute('params', { type: JSONB });
     assert.equal(attribute.toSqlString(), '"params" JSONB');
+  });
+
+  it('UNIQUE should work', async function() {
+    const attribute = new Attribute('isbn', {
+      type: STRING,
+      allowNull: false,
+      unique: true,
+    });
+    assert.equal(attribute.toSqlString(), '"isbn" VARCHAR(255) NOT NULL UNIQUE');
   });
 });

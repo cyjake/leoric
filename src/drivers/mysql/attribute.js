@@ -21,6 +21,7 @@ class MysqlAttribute extends Attribute {
       allowNull, defaultValue,
       primaryKey,
       comment,
+      unique,
     } = this;
 
     const chunks = [
@@ -33,6 +34,10 @@ class MysqlAttribute extends Attribute {
     if (primaryKey || this.autoIncrement) chunks.push('AUTO_INCREMENT');
 
     if (!primaryKey && !allowNull) chunks.push('NOT NULL');
+
+    if (unique === true) {
+      chunks.push('UNIQUE');
+    }
 
     if (defaultValue != null) {
       chunks.push(`DEFAULT ${escape(defaultValue)}`);

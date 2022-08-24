@@ -482,7 +482,7 @@ const AllDataTypes = {
   VIRTUAL,
 };
 
-type DATA_TYPE<T> =  AbstractDataType<T> & T;
+type DATA_TYPE<T> = AbstractDataType<T> & T;
 
 class DataTypes {
   static STRING: DATA_TYPE<STRING> = STRING as any;
@@ -590,7 +590,7 @@ class DataTypes {
    * @param {*} params
    * @returns {boolean}
    */
-   static is(params: any): boolean {
+  static is(params: any): boolean {
     return params instanceof DataType;
   }
 }
