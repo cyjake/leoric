@@ -1,3 +1,14 @@
+2.7.0 / 2022-08-24
+==================
+
+## What's Changed
+* fix: glue code for opts.dialectModulePath by @cyjake in https://github.com/cyjake/leoric/pull/326
+* fix: primaryKey in upsert values should be validate in sqlite and postgres by @JimmyDaddy in https://github.com/cyjake/leoric/pull/328
+* feat: change DataTypes to ts and complete decorators type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/319
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.6.3...v2.7.0
+
 2.6.3 / 2022-08-04
 ==================
 
