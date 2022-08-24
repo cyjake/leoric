@@ -1,6 +1,6 @@
 'use strict';
 
-const { DataTypes } = require('../../data_types');
+const { default: DataTypes } = require('../../data_types');
 const util = require('util');
 const Raw = require('../../raw');
 
@@ -29,7 +29,7 @@ class Postgres_JSONB extends DataTypes.JSONB {
   }
 }
 
-class Postgres_BINARY extends DataTypes {
+class Postgres_BINARY extends DataTypes.BINARY {
   constructor() {
     super();
     this.dataType = 'bytea';
