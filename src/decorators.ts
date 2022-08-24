@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 
 import Bone from './bone';
-import DataTypes, { DataType, AbstractDataType } from './data_types';
+import DataTypes, { DataType, DATA_TYPE } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
 import { ColumnBase, Validator, AssociateOptions } from './types/common';
 
 interface ColumnOption extends Omit<ColumnBase, 'columnName'| 'columnType'> {
-  type?: AbstractDataType<DataType>;
+  type?: DataType;
   name?: string;
   validate?: {
     [key: string]: Validator;
@@ -37,13 +37,13 @@ function findType(tsType) {
   }
 }
 
-export function Column(options?: ColumnOption | AbstractDataType<DataType>) {
+export function Column(options?: ColumnOption | DATA_TYPE<DataType>) {
   return function(target: Bone, propertyKey: string) {
     if (options == null) {
       options = {};
     }
     // target refers to model prototype, an internal instance of `Bone {}`
-    if (options['prototype'] instanceof DataType) options = { type: options as AbstractDataType<DataType> };
+    if (options['prototype'] instanceof DataType) options = { type: options as DATA_TYPE<DataType> };
 
     if (!('type' in options)) {
       const tsType = Reflect.getMetadata('design:type', target, propertyKey);

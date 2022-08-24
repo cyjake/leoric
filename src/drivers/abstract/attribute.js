@@ -73,10 +73,12 @@ function createType(DataTypes, params) {
     case 'MEDIUMINT':
     case 'INTEGER':
     case 'BIGINT':
+      return new DataType(type.dataLength, type.unsigned, type.zerofill);
     case 'BINARY':
     case 'VARBINARY':
     case 'CHAR':
     case 'VARCHAR':
+    case 'STRING':
       return new DataType(type.dataLength);
     default:
       return new DataType();

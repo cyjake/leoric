@@ -116,10 +116,12 @@ class INTEGER extends DataType {
   unsigned?: boolean;
   zerofill?: boolean;
 
-  constructor(dataLength?: number) {
+  constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
     super();
     this.dataLength = dataLength;
     this.dataType = 'integer';
+    this.unsigned = unsigned;
+    this.zerofill = zerofill;
   }
 
   get UNSIGNED() {
@@ -168,8 +170,8 @@ class INTEGER extends DataType {
  * @param {number} dataLength
  */
 class TINYINT extends INTEGER {
-  constructor(dataLength?: number) {
-    super(dataLength);
+  constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
+    super(dataLength, unsigned, zerofill);
     this.dataType = 'tinyint';
   }
 }
@@ -183,8 +185,8 @@ class TINYINT extends INTEGER {
  * @param {number} dataLength
  */
 class SMALLINT extends INTEGER {
-  constructor(dataLength?: number) {
-    super(dataLength);
+  constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
+    super(dataLength, unsigned, zerofill);
     this.dataType = 'smallint';
   }
 }
@@ -198,8 +200,8 @@ class SMALLINT extends INTEGER {
  * @param {number} dataLength
  */
 class MEDIUMINT extends INTEGER {
-  constructor(dataLength?: number) {
-    super(dataLength);
+  constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
+    super(dataLength, unsigned, zerofill);
     this.dataType = 'mediumint';
   }
 }
@@ -214,8 +216,8 @@ class MEDIUMINT extends INTEGER {
  * @param {number} dataLength
  */
 class BIGINT extends INTEGER {
-  constructor(dataLength?: number) {
-    super(dataLength);
+  constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
+    super(dataLength, unsigned, zerofill);
     this.dataType = 'bigint';
   }
 }
@@ -482,7 +484,7 @@ const AllDataTypes = {
   VIRTUAL,
 };
 
-type DATA_TYPE<T> = AbstractDataType<T> & T;
+export type DATA_TYPE<T> = AbstractDataType<T> & T;
 
 class DataTypes {
   static STRING: DATA_TYPE<STRING> = STRING as any;

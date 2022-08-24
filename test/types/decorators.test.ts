@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 import { AttributeMeta, Bone, DataTypes, Column, HasMany, connect } from '../..';
 
-const { TEXT } = DataTypes;
+const { TEXT, STRING, INTEGER } = DataTypes;
 
 describe('=> Decorators (TypeScript)', function() {
   before(async function() {
@@ -201,6 +201,37 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with other options', async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column({
+          type: STRING
+        })
+        body: string;
+
+        @Column({
+          type: STRING(64)
+        })
+        description: string;
+
+        @Column({
+          type: INTEGER(2).UNSIGNED,
+        })
+        status: number;
+      }
+      await Note.sync({ force: true });
+      assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
+
+      const { id, body, description, status } = Note.attributes;
+      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((body as AttributeMeta).toSqlString(), '`body` VARCHAR(255)');
+      assert.equal((description as AttributeMeta).toSqlString(), '`description` VARCHAR(64)');
+      assert.equal((status as AttributeMeta).toSqlString(), '`status` INTEGER(2) UNSIGNED');
+
+    });
+
+    it('should work with type options', async () => {
       class Note extends Bone {
         @Column({
           primaryKey: true,

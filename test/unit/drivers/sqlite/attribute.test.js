@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const Attribute = require('../../../../src/drivers/sqlite/attribute');
-const { BIGINT, DATE, STRING } = Attribute.DataTypes;
+const { BIGINT, DATE, STRING, INTEGER } = Attribute.DataTypes;
 
 describe('=> Attribute (sqlite)', function() {
   it('should support DATETIME', async function() {
@@ -27,5 +27,17 @@ describe('=> Attribute (sqlite)', function() {
       unique: true,
     });
     assert.equal(attribute.toSqlString(), '"isbn" VARCHAR(255) NOT NULL UNIQUE');
+  });
+
+  it('invokable type should work', async function() {
+    const attribute = new Attribute('isbn', {
+      type: new STRING(60),
+    });
+    assert.equal(attribute.toSqlString(), '"isbn" VARCHAR(60)');
+
+    const attribute1 = new Attribute('idd', {
+      type: new INTEGER(2).UNSIGNED,
+    });
+    assert.equal(attribute1.toSqlString(), '"idd" INTEGER(2) UNSIGNED');
   });
 });
