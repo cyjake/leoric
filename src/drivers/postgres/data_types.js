@@ -1,6 +1,6 @@
 'use strict';
 
-const DataTypes = require('../../data_types');
+const { DataTypes } = require('../../data_types');
 const util = require('util');
 const Raw = require('../../raw');
 

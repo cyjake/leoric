@@ -77,6 +77,109 @@ describe('=> Decorators (TypeScript)', function() {
       assert.equal((createdAt as AttributeMeta).columnName, 'gmt_create');
       assert.equal((updatedAt as AttributeMeta).columnName, 'gmt_modified');
     });
+
+    it('should work with setter', async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column({ defaultValue: true })
+        isPrivate: boolean;
+
+        @Column()
+        createdAt: Date;
+
+        @Column()
+        updatedAt: Date;
+
+        get name(): string {
+          return (this.attribute('name') as string)?.toUpperCase() as string;
+        }
+
+        @Column({
+          allowNull: false,
+        })
+        set name(v: string) {
+          if (v === 'zeus') {
+            this.attribute('name', 'thor');
+            return;
+          }
+          this.attribute('name', v);
+        }
+      }
+      await Note.sync({ force: true });
+      const note = new Note({ name: 'zeus' });
+      assert.equal(note.name, 'THOR');
+      await note.save();
+      await note.reload();
+      assert.equal(note.name, 'THOR');
+      assert.equal(note.attribute('name'), 'thor');
+    });
+
+    it('should work with getter', async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column({ defaultValue: true })
+        isPrivate: boolean;
+
+        @Column()
+        createdAt: Date;
+
+        @Column()
+        updatedAt: Date;
+
+        @Column({
+          allowNull: false,
+        })
+        get name(): string {
+          return (this.attribute('name') as string)?.toUpperCase() as string;
+        }
+
+        set name(v: string) {
+          if (v === 'zeus') {
+            this.attribute('name', 'thor');
+            return;
+          }
+          this.attribute('name', v);
+        }
+      }
+      await Note.sync({ force: true });
+      const note = new Note({ name: 'zeus' });
+      assert.equal(note.name, 'THOR');
+      await note.save();
+      await note.reload();
+      assert.equal(note.name, 'THOR');
+      assert.equal(note.attribute('name'), 'thor');
+    });
+
+    it('should work with validate',async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column({ 
+          allowNull: false,
+          validate: {
+            isNotNull(v?: string) {
+              if(!v) throw new Error('name cannot be null')
+            },
+            notIn: [ [ 'Yhorm', 'Gwyn' ] ],
+          }
+        })
+        name: string;
+      }
+      await Note.sync({ force: true });
+      let note = new Note({ name: '' });
+      await assert.rejects(async () => {
+        await note.save();
+      }, /name cannot be null/);
+      note = new Note({ name: 'Yhorm' });
+      await assert.rejects(async () => {
+        await note.save();
+      }, /Validation notIn on name failed/);
+    });
   });
 
   describe('=> @HasMany()', function() {

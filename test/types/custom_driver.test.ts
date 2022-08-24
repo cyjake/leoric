@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 const SqlString = require('sqlstring');
 
-import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult } from '../..';
+import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column } from '../..';
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
 const Raw = require('../../src/raw');
@@ -249,4 +249,49 @@ describe('=> Realm (TypeScript)', function () {
       });
     });
   });
+
+  describe('createTable', () => {
+    it('should work', async () => {
+      const { STRING, BIGINT, TEXT, INTEGER } = realm.DataTypes;
+
+      await realm.driver.createTable('test_user', {
+        id: BIGINT,
+        name: {
+          allowNull: true,
+          type: STRING,
+        },
+        content: TEXT,
+        rank: INTEGER.UNSIGNED,
+      });
+
+      class TestUser extends realm.Bone {
+        static table = 'test_user';
+
+        @Column()
+        id: bigint;
+
+        @Column()
+        name: string;
+
+        @Column(TEXT)
+        content: string;
+
+        @Column(INTEGER.UNSIGNED)
+        rank: number;
+      }
+
+      // TODO how to avoid calling load() manually
+      (TestUser as any).load();
+
+      const user = await TestUser.create({
+        name: 'giant Y',
+        content: 'hello world',
+        rank: 1
+      });
+
+      assert(user.id);
+      assert.equal(user.name, 'giant Y');
+
+    })
+  })
 });

@@ -1,7 +1,8 @@
-import DataType from './data_types';
+import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from '../src/data_types';
 import { Hint, IndexHint } from './hint';
 
-export { DataType as DataTypes };
+export { DataTypes };
+export { LENGTH_VARIANTS as LENGTH_VARIANTS };
 export * from '../src/decorators';
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
@@ -10,11 +11,6 @@ export type Literal = null | undefined | boolean | number | bigint | string | Da
 export class Raw {
   value: string;
   type: 'raw';
-}
-
-
-type DataTypes<T> = {
-  [Property in keyof T as Exclude<Property, "toSqlString">]: T[Property]
 }
 
 type RawQueryResult = typeof Bone | ResultSet | boolean | number;
@@ -188,10 +184,10 @@ declare type validator = Literal | Function | Array<Literal | Literal[]>;
 
 export interface AttributeMeta extends ColumnMeta {
   jsType?: Literal;
-  type: DataType;
+  type: AbstractDataType<DataType>;
   virtual?: boolean,
-  toSqlString: () => string;
-  validate: {
+  toSqlString?: () => string;
+  validate?: {
     [key: string]: validator;
   }
 }
@@ -347,14 +343,14 @@ declare class AbstractDriver {
    * @param tabe table name
    * @param attributes attributes
    */
-  createTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+  createTable(tabe: string, attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta }): Promise<void>;
 
   /**
    * alter table
    * @param tabe table name
    * @param attributes alter attributes
    */
-  alterTable(tabe: string, attributes: { [key: string]: DataTypes<DataType> | AttributeMeta }): Promise<void>;
+  alterTable(tabe: string, attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta }): Promise<void>;
 
   /**
    * describe table
@@ -463,7 +459,7 @@ export class Collection<T extends Bone> extends Array<T> {
 }
 
 export class Bone {
-  static DataTypes: typeof DataType;
+  static DataTypes: typeof DataTypes;
 
   /**
    * get the connection pool of the driver
@@ -503,7 +499,7 @@ export class Bone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: DataTypes<DataType> | AttributeMeta };
+  static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
 
   /**
    * The schema info of current model.
@@ -881,7 +877,7 @@ interface RawQueryOptions {
 
 export default class Realm {
   Bone: typeof Bone;
-  DataTypes: typeof DataType;
+  DataTypes: typeof DataTypes;
   driver: AbstractDriver;
   models: Record<string, Bone>;
   connected?: boolean;
@@ -898,7 +894,7 @@ export default class Realm {
 
   define(
     name: string,
-    attributes: Record<string, DataTypes<DataType> | AttributeMeta>,
+    attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>,
     options?: InitOptions,
     descriptors?: Record<string, Function>,
   ): typeof Bone;
