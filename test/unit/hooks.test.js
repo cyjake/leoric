@@ -55,7 +55,7 @@ describe('hooks', function() {
             obj.nickname = obj.realname + 'y';
           }
         },
-        afterCreate(obj){
+        afterCreate(obj) {
           obj.status = 10;
         },
         beforeBulkCreate() {
@@ -160,7 +160,7 @@ describe('hooks', function() {
       constructor(opts) {
         super(opts);
       }
-      
+
       getFingerprint() {
         return this.attribute('fingerprint');
       }
@@ -604,7 +604,7 @@ describe('hooks', function() {
             obj.email = 'hello@yo.com';
           }
         },
-        afterSave(obj){
+        afterSave(obj) {
           obj.status = 10;
         },
       }

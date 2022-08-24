@@ -34,8 +34,8 @@ class Sqlite_DATEONLY extends DataTypes.DATEONLY {
 }
 
 class Sqlite_INTEGER extends DataTypes.INTEGER {
-  constructor(dataLength) {
-    super(dataLength);
+  constructor(dataLength, unsigned, zerofill) {
+    super(dataLength, unsigned, zerofill);
   }
 
   uncast(value) {
@@ -44,8 +44,8 @@ class Sqlite_INTEGER extends DataTypes.INTEGER {
 
 }
 class Sqlite_BIGINT extends DataTypes.BIGINT {
-  constructor() {
-    super();
+  constructor(dataLength, unsigned, zerofill) {
+    super(dataLength, unsigned, zerofill);
     this.dataType = 'integer';
   }
 

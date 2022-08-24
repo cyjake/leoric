@@ -49,6 +49,8 @@ describe('=> Data Types', () => {
     assert.equal(new TINYINT(1).toSqlString(), 'TINYINT(1)');
     assert.equal(new TINYINT().UNSIGNED.toSqlString(), 'TINYINT UNSIGNED');
     assert.equal(new TINYINT().UNSIGNED.ZEROFILL.toSqlString(), 'TINYINT UNSIGNED ZEROFILL');
+    assert.equal(new TINYINT(1, true, true).toSqlString(), 'TINYINT(1) UNSIGNED ZEROFILL');
+
   });
 
   it('SMALLINT', () => {
@@ -56,6 +58,8 @@ describe('=> Data Types', () => {
     assert.equal(new SMALLINT(1).toSqlString(), 'SMALLINT(1)');
     assert.equal(new SMALLINT().UNSIGNED.toSqlString(), 'SMALLINT UNSIGNED');
     assert.equal(new SMALLINT().UNSIGNED.ZEROFILL.toSqlString(), 'SMALLINT UNSIGNED ZEROFILL');
+    assert.equal(new SMALLINT(1, true, true).toSqlString(), 'SMALLINT(1) UNSIGNED ZEROFILL');
+
   });
 
   it('MEDIUMINT', () => {
@@ -63,6 +67,7 @@ describe('=> Data Types', () => {
     assert.equal(new MEDIUMINT(1).toSqlString(), 'MEDIUMINT(1)');
     assert.equal(new MEDIUMINT().UNSIGNED.toSqlString(), 'MEDIUMINT UNSIGNED');
     assert.equal(new MEDIUMINT().UNSIGNED.ZEROFILL.toSqlString(), 'MEDIUMINT UNSIGNED ZEROFILL');
+    assert.equal(new MEDIUMINT(1, true, true).toSqlString(), 'MEDIUMINT(1) UNSIGNED ZEROFILL');
   });
 
   it('INTEGER', () => {
@@ -70,11 +75,13 @@ describe('=> Data Types', () => {
     assert.equal(new INTEGER(10).toSqlString(), 'INTEGER(10)');
     assert.equal(new INTEGER().UNSIGNED.toSqlString(), 'INTEGER UNSIGNED');
     assert.equal(new INTEGER().UNSIGNED.ZEROFILL.toSqlString(), 'INTEGER UNSIGNED ZEROFILL');
+    assert.equal(new INTEGER(1, true, true).toSqlString(), 'INTEGER(1) UNSIGNED ZEROFILL');
   });
 
   it('BIGINT', () => {
     assert.equal(new BIGINT().dataType, 'bigint');
     assert.equal(new BIGINT().UNSIGNED.toSqlString(), 'BIGINT UNSIGNED');
+    assert.equal(new BIGINT(1, true, true).toSqlString(), 'BIGINT(1) UNSIGNED ZEROFILL');
   });
 
   it('DECIMAL', () => {
