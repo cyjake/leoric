@@ -25,17 +25,8 @@ export interface AbstractDataType<T> {
  */
 
 export abstract class DataType {
-  dataType: string;
+  dataType: string = '';
   dataLength?: string | number;
-
-  /**
-   * Check if params is instance of DataType or not
-   * @param {*} params
-   * @returns {boolean}
-   */
-  static is(params: any): boolean {
-    return params instanceof DataType;
-  }
 
   /**
    * cast raw data returned from data packet into js type
@@ -51,21 +42,7 @@ export abstract class DataType {
     return value;
   }
 
-  static get invokable() {
-    return new Proxy(this, {
-      get(target, p) {
-        const value = target[p];
-        if (AllDataTypes.hasOwnProperty(p)) return invokableFunc(value);
-        return value;
-      }
-    }); 
-  }
-
   abstract toSqlString(): string;
-
-  static toSqlString(): string {
-    return '';
-  }
 }
 
 /**
@@ -507,7 +484,7 @@ const AllDataTypes = {
 
 type DATA_TYPE<T> =  AbstractDataType<T> & T;
 
-export class DataTypes extends DataType {
+class DataTypes {
   static STRING: DATA_TYPE<STRING> = STRING as any;
   static TINYINT: DATA_TYPE<TINYINT> = TINYINT as any;
   static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as any;
@@ -598,8 +575,23 @@ export class DataTypes extends DataType {
     }
   }
 
-  toSqlString(): string {
-    return '';
+  static get invokable() {
+    return new Proxy(this, {
+      get(target, p) {
+        const value = target[p];
+        if (AllDataTypes.hasOwnProperty(p)) return invokableFunc(value);
+        return value;
+      }
+    }); 
+  }
+
+  /**
+   * Check if params is instance of DataType or not
+   * @param {*} params
+   * @returns {boolean}
+   */
+   static is(params: any): boolean {
+    return params instanceof DataType;
   }
 }
 

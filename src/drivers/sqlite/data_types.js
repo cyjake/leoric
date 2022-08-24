@@ -1,6 +1,6 @@
 'use strict';
 
-const { DataTypes } = require('../../data_types');
+const { default: DataTypes } = require('../../data_types');
 
 class Sqlite_DATE extends DataTypes.DATE {
   constructor(precision, timezone) {
@@ -53,7 +53,7 @@ class Sqlite_BIGINT extends DataTypes.BIGINT {
     return this.dataType.toUpperCase();
   }
 }
-class Sqlite_BINARY extends DataTypes {
+class Sqlite_BINARY extends DataTypes.BINARY {
   constructor(dataLength = 255) {
     super(dataLength);
     this.dataLength = dataLength;
