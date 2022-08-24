@@ -4,6 +4,7 @@ import { ASSOCIATE_METADATA_MAP } from './constants';
 import 'reflect-metadata';
 
 type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
+type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string;
 
 interface ColumnOption {
   type?: AbstractDataType<DataType>;
@@ -13,7 +14,10 @@ interface ColumnOption {
   primaryKey?: boolean;
   columnName?: string;
   validate?: {
-    [key: string]: boolean | RegExp | Function | Array<Array<Literal>> | string;
+    [key: string]: BaseValidateArgs | {
+      args: BaseValidateArgs;
+      msg: string;
+    };
   }
 }
 
