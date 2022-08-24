@@ -169,6 +169,20 @@ describe('=> Decorators (TypeScript)', function() {
           }
         })
         name: string;
+
+        @Column({
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 1,
+          validate: {
+            isNumeric: true,
+            isIn: {
+              args: [ [ '1', '2' ] ],
+              msg: 'Error status',
+            },
+          }
+        })
+        status: number;
       }
       await Note.sync({ force: true });
       let note = new Note({ name: '' });
@@ -179,6 +193,11 @@ describe('=> Decorators (TypeScript)', function() {
       await assert.rejects(async () => {
         await note.save();
       }, /Validation notIn on name failed/);
+
+      note = new Note({ name: 'Github', status: 3 });
+      await assert.rejects(async () => {
+        await note.save();
+      }, /Error status/);
     });
   });
 
