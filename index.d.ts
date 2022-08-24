@@ -883,3 +883,21 @@ export default class Realm {
  */
 export function connect(opts: ConnectOptions): Promise<Realm>;
 export function disconnect(realm: Realm, callback?: Function): Promise<boolean | void>;
+
+/**
+ * Check if cls is subclass of Bone
+ * @param cls 
+ */
+export function isBone(cls: any): boolean;
+
+/**
+ * Concatenate multiline SQL into oneline
+ * @example
+ * heresql(`
+ *   SELECT *
+ *     FROM users
+ *    WHERE age >= 35
+ * `)
+ * @param text 
+ */
+export function heresql(text): string;
