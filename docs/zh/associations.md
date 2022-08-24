@@ -43,7 +43,7 @@ Leoric 支持四种关联关系：
   <img src="https://img.alicdn.com/tfscom/TB1qiWyfyqAXuNjy1XdXXaYcVXa.png">
 </figure>
 
-`belongsTo()` 方法设置的是一对一或者多对以的关联关系。例如，一家店铺可以有许多商品。而一个商品只能属于 `belongsTo()` 一家店铺。所以商品 `Item` 的数据模型定义可能是这样的：
+`belongsTo()` 方法设置的是一对一或者多对一的关联关系。例如，一家店铺可以有许多商品。而一个商品只能属于 `belongsTo()` 一家店铺。所以商品 `Item` 的数据模型定义可能是这样的：
 
 ```js
 class Item extends Bone {
