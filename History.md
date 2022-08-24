@@ -1,3 +1,17 @@
+2.7.2 / 2022-08-24
+==================
+
+## What's Changed
+* Update associations.md by @dxhuii in https://github.com/cyjake/leoric/pull/331
+* refactor: refactor type definitions and fix unique not work in columnOptions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/332
+* fix: declare more exported functions such as isBone and heresql by @cyjake in https://github.com/cyjake/leoric/pull/333
+* fix: INTEGER like data type and STRING extra options didn't work in polymorphism, fix decorators ColumnOptions.type to support invokable by @JimmyDaddy in https://github.com/cyjake/leoric/pull/334
+
+## New Contributors
+* @dxhuii made their first contribution in https://github.com/cyjake/leoric/pull/331
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.7.1...v2.7.2
+
 2.7.1 / 2022-08-24
 ==================
 
