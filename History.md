@@ -1,3 +1,12 @@
+2.7.3 / 2022-08-25
+==================
+
+## What's Changed
+* fix: should skip loading models that is loaded before by @cyjake in https://github.com/cyjake/leoric/pull/335
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.7.2...v2.7.3
+
 2.7.2 / 2022-08-24
 ==================
 
