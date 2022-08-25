@@ -83,7 +83,6 @@ async function loadModels(Spine, models, opts) {
     const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
     if (!model.attributes) initAttributes(model, columns);
     model.load(columns);
-    Spine.models[model.name] = model;
   }
 
   for (const model of models) {
@@ -158,8 +157,9 @@ class Realm {
       models = Object.values(this.models);
     }
 
+    for (const model of models) this.Bone.models[model.name] = model;
     // models could be connected already if cached
-    models = models.filter(model => !model.synchronized);
+    models = models.filter(model => model.synchronized == null);
 
     if (models.length > 0) {
       await loadModels(this.Bone, models, this.options);
