@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import { Bone, Column, DataTypes, connect } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
-  const { BIGINT, INTEGER, STRING, TEXT, DATE, BOOLEAN } = DataTypes;
+  const { TEXT } = DataTypes;
   class Post extends Bone {
     static table = 'articles';
 
@@ -52,6 +52,10 @@ describe('=> Basics (TypeScript)', function() {
       database: '/tmp/leoric.sqlite3',
       models: [ Post ],
     });
+  });
+
+  after(() => {
+    Bone.driver = null;
   });
 
   beforeEach(async function() {

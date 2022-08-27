@@ -37,7 +37,7 @@ function findType(tsType) {
   }
 }
 
-export function Column(options?: ColumnOption | DATA_TYPE<DataType>) {
+export function Column(options?: ColumnOption | DATA_TYPE<DataType> | DataType) {
   return function(target: Bone, propertyKey: string) {
     if (options == null) {
       options = {};

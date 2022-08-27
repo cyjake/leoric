@@ -144,6 +144,11 @@ describe('=> Decorators (TypeScript)', function() {
           }
           this.attribute('name', v);
         }
+
+        @Column(DataTypes.VIRTUAL)
+        get lowerCaseName(): string {
+          return this.name?.toLowerCase();
+        }
       }
       await Note.sync({ force: true });
       const note = new Note({ name: 'zeus' });
@@ -152,6 +157,7 @@ describe('=> Decorators (TypeScript)', function() {
       await note.reload();
       assert.equal(note.name, 'THOR');
       assert.equal(note.attribute('name'), 'thor');
+      assert.ok(Object.keys(note.toObject()).includes('lowerCaseName'));
     });
 
     it('should work with validate',async () => {

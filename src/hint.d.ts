@@ -1,5 +1,14 @@
+export interface BaseHintInterface {
+  index: string;
+}
+
+export interface HintInterface extends BaseHintInterface {
+  type?: INDEX_HINT_TYPE;
+  scope?: INDEX_HINT_SCOPE;
+}
+
 export class Hint {
-  static build(hint: Hint | { index: string } | string): typeof Hint;
+  static build(hint: Hint | BaseHintInterface | string): typeof Hint;
 
   constructor(text: string);
 
@@ -36,6 +45,11 @@ export enum INDEX_HINT_SCOPE {
   groupBy = 'group by',
 }
 
+export enum INDEX_HINT_SCOPE_TYPE {
+  join = 'join',
+  orderBy = 'orderBy',
+  groupBy = 'groupBy',
+}
 export class IndexHint {
   /**
    * build index hint
@@ -53,7 +67,7 @@ export class IndexHint {
    *   scope: INDEX_HINT_SCOPE.groupBy,
    * })
    */
-  static build(hint: string | Array<string> | { index: string, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE }, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE): IndexHint;
+  static build(hint: string | Array<string> | HintInterface, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE): IndexHint;
   
   /**
    * Creates an instance of IndexHint.
@@ -64,33 +78,37 @@ export class IndexHint {
    */
   constructor(index: string, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE);
   
-    set index(values: string | Array<string>);
-  
-    get index(): Array<string>;
-  
-    set type(value: string);
-  
-    get type(): string;
-  
-    set scope(value: string);
-  
-    get scope(): string;
-  
-    toSqlString(): string;
-  
-    /**
-     *
-     * @param {IndexHint} hint
-     * @returns {boolean}
-     * @memberof IndexHint
-     */
-    isEqual(hint: IndexHint): boolean;
-  
-    /**
-     * @static
-     * @param {IndexHint} hints
-     * @returns {Array<IndexHint>}
-     * @memberof IndexHint
-     */
-    static merge(hints: Array<IndexHint>): Array<IndexHint>;
+  set index(values: string | Array<string>);
+
+  get index(): Array<string>;
+
+  set type(value: string);
+
+  get type(): string;
+
+  set scope(value: string);
+
+  get scope(): string;
+
+  toSqlString(): string;
+
+  /**
+   *
+   * @param {IndexHint} hint
+   * @returns {boolean}
+   * @memberof IndexHint
+   */
+  isEqual(hint: IndexHint): boolean;
+
+  /**
+   * @static
+   * @param {IndexHint} hints
+   * @returns {Array<IndexHint>}
+   * @memberof IndexHint
+   */
+  static merge(hints: Array<IndexHint>): Array<IndexHint>;
 }
+
+export type CommonHintsArgs = string | HintInterface | Hint | IndexHint | {
+  [key in INDEX_HINT_SCOPE_TYPE]?: string | Array<string> 
+};

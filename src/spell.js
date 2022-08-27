@@ -14,7 +14,7 @@ const Raw = require('./raw');
 const { AGGREGATOR_MAP } = require('./constants');
 
 /**
- * check condition to avoid use virtual fields as where condtions
+ * check condition to avoid use virtual fields as where conditions
  * @param {Bone} Model
  * @param {Array<Object>} conds
  */
@@ -283,7 +283,7 @@ function scopeDeletedAt(spell) {
 scopeDeletedAt.__paranoid = true;
 
 /**
- * Spell is the query builder of Leoric which has several important charactors that made a powerful querying interface possible.
+ * Spell is the query builder of Leoric which has several important characters that made a powerful querying interface possible.
  *
  * - Deferred
  * - Method chaining
@@ -298,10 +298,10 @@ scopeDeletedAt.__paranoid = true;
  *
  *     const query = Post.find('createdAt > ?', new Date(2012, 4, 15));
  *     const [ { count } ] = query.count();
- *     cosnt posts = query.offset(page * pageSize).limit(pageSize);
+ *     const posts = query.offset(page * pageSize).limit(pageSize);
  *     this.body = { count, posts }
  *
- * `query.count()` and `query.offset()` won't interfere with each other because `new Spell` gets returned everytime these methods were called. For brevity, only the methods start with `$` are documented.
+ * `query.count()` and `query.offset()` won't interfere with each other because `new Spell` gets returned every time these methods were called. For brevity, only the methods start with `$` are documented.
  *
  * For performance reason, {@link Bone} use the prefixed with `$` ones mostly.
  * @alias Spell
@@ -743,7 +743,7 @@ class Spell {
   $having(conditions, ...values) {
     const Model = this.Model;
     for (const condition of parseConditions(Model, conditions, ...values)) {
-      // Postgres can't have alias in HAVING caluse
+      // Postgres can't have alias in HAVING clause
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
       if (Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
         const { value } = condition.args[0];
@@ -844,7 +844,12 @@ class Spell {
    * @memberof Spell
    */
   $useIndex(...hints) {
-    this.hints.push(...hints.map(hint => IndexHint.build(hint, INDEX_HINT_TYPE.use)));
+    this.hints.push(...hints.map((hint) => {
+      if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.use) {
+        console.warn('Do not recommend set non-use index hint in useIndex');
+      }
+      return IndexHint.build(hint, INDEX_HINT_TYPE.use)
+    }));
     return this;
   }
 
@@ -858,7 +863,12 @@ class Spell {
    * @memberof Spell
    */
   $forceIndex(...hints) {
-    this.hints.push(...hints.map(hint => IndexHint.build(hint, INDEX_HINT_TYPE.force)));
+    this.hints.push(...hints.map((hint) => {
+      if (hint instanceof Hint || (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.force)) {
+        console.warn('Do not recommend set non-force index hint in forceIndex');
+      }
+      return IndexHint.build(hint, INDEX_HINT_TYPE.force);
+    }));
     return this;
   }
 
@@ -872,7 +882,12 @@ class Spell {
    * @memberof Spell
    */
   $ignoreIndex(...hints) {
-    this.hints.push(...hints.map(hint => IndexHint.build(hint, INDEX_HINT_TYPE.ignore)));
+    this.hints.push(...hints.map((hint) => {
+      if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.ignore) {
+        console.warn('Do not recommend set non-ignore index hint in ignoreIndex');
+      }
+      return IndexHint.build(hint, INDEX_HINT_TYPE.ignore)
+    }));
     return this;
   }
 
@@ -941,7 +956,7 @@ for (const aggregator in AGGREGATOR_MAP) {
   Object.defineProperty(Spell.prototype, `$${aggregator}`, {
     configurable: true,
     writable: true,
-    value: function Spell_aggreator(name = '*') {
+    value: function Spell_aggregator(name = '*') {
       if (name != '*' && parseExpr(name).type != 'id') {
         throw new Error(`unexpected operand ${name} for ${func.toUpperCase()}()`);
       }

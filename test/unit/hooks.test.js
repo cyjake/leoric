@@ -599,7 +599,6 @@ describe('hooks', function() {
     User.init(attributes, {
       hooks: {
         beforeSave(obj) {
-          console.log(obj);
           if (!obj.email) {
             obj.email = 'hello@yo.com';
           }
