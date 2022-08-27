@@ -7,7 +7,7 @@ const Bone = require('./src/bone');
 const Collection = require('./src/collection');
 const { invokable: DataTypes, LENGTH_VARIANTS } = require('./src/data_types');
 const migrations = require('./src/migrations');
-const sequelize = require('./src/adapters/sequelize');
+const { sequelize, SequelizeBone} = require('./src/adapters/sequelize');
 const { heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 const Realm = require('./src/realm');
@@ -52,6 +52,7 @@ Object.assign(Realm, {
   connect,
   disconnect,
   Bone,
+  SequelizeBone,
   Collection,
   DataTypes,
   Logger,

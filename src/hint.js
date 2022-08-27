@@ -94,7 +94,7 @@ class IndexHint {
 
     if (isPlainObject(hint)) {
       if (hint.index != null) {
-        return new IndexHint(hint.index, hint.type, hint.scope);
+        return new IndexHint(hint.index, hint.type || type, hint.scope || scope);
       }
 
       for (const key in INDEX_HINT_SCOPE) {
@@ -104,6 +104,8 @@ class IndexHint {
         }
       }
     }
+
+    if (hint instanceof IndexHint) return hint;
 
     throw new SyntaxError(format('Unknown index hint %s', hint));
   }
@@ -218,4 +220,8 @@ module.exports = {
   IndexHint,
   INDEX_HINT_TYPE,
   INDEX_HINT_SCOPE,
+  INDEX_HINT_SCOPE_TYPE: Object.keys(INDEX_HINT_SCOPE).reduce((result, entry) => {
+    result[entry] = entry;
+    return result;
+  }, {}),
 };

@@ -850,7 +850,6 @@ describe('=> Sequelize adapter', () => {
 
   });
 
-
   it('Model.increment()', async () => {
     const isbn = 9787550616950;
     const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
