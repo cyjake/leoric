@@ -169,5 +169,4 @@ describe('=> Spell (TypeScript)', function() {
       );
     });
   })
-
 });

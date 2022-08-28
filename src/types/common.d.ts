@@ -148,8 +148,8 @@ type OrderOptions<T extends typeof AbstractBone> = {
 
 export class Collection<T extends AbstractBone> extends Array<T> {
   save(): Promise<void>;
-  toJSON(): Object[];
-  toObject(): Object[];
+  toJSON(): InstanceValues<T>[];
+  toObject(): InstanceValues<T>[];
 }
 
 export type WhereConditions<T extends typeof AbstractBone> = {

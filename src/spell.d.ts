@@ -146,9 +146,9 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   toString(): string;
 
   all: Spell<T, U>;
-  first: Spell<T, U>;
-  last: Spell<T, U>;
-  get(index: number): Spell<T, U>;
+  first: Spell<T, InstanceType<T>>;
+  last: Spell<T, InstanceType<T>>;
+  get(index: number): Spell<T, InstanceType<T>>;
 
   unscoped: Spell<T, U>;
   unparanoid: Spell<T, U>;

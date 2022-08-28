@@ -1,8 +1,8 @@
 import { 
   Attributes, Literal, OperatorCondition, 
-  BoneOptions, ResultSet, Raw, Connection,
+  BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
-  QueryOptions, OrderOptions,
+  QueryOptions, OrderOptions, QueryResult
 } from '../types/common';
 import { AbstractBone } from '../types/bone';
 import { Spell } from '../spell';
@@ -131,13 +131,13 @@ export class SequelizeBone extends AbstractBone {
     this: T,
     fields: string | Array<string> | { [Property in keyof Extract<InstanceType<T>, Literal>]?: number },
     options?: SequelizeConditions<T>
-  ): Spell<T>;
+  ): Spell<T, QueryResult>;
 
   static increment<T extends typeof SequelizeBone>(
     this: T,
     fields: string | Array<string> | { [Property in keyof Extract<InstanceType<T>, Literal>]?: number },
     options?: SequelizeConditions<T>
-  ): Spell<T>;
+  ): Spell<T, QueryResult>;
 
   static max<T extends typeof SequelizeBone>(this: T, filed: string, options?: SequelizeConditions<T>): Promise<Literal>;
   static min<T extends typeof SequelizeBone>(this: T, filed: string, options?: SequelizeConditions<T>): Promise<Literal>;
@@ -168,6 +168,9 @@ export class SequelizeBone extends AbstractBone {
   static update<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: BaseSequelizeConditions<T>): Promise<number>;
   static bulkUpdate<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: BaseSequelizeConditions<T>): Spell<T, number>;
 
+  /**
+   * An alias of instance constructor. Some legacy code access model name from instance with `this.Model.name`.
+   */
   get Model(): typeof SequelizeBone;
   get dataValues(): { [key: string]: Literal };
 
@@ -179,8 +182,8 @@ export class SequelizeBone extends AbstractBone {
   previous(key?: string): Literal | Literal[] | { [key: string]: Literal | Literal[] };
   isSoftDeleted(): boolean;
 
-  increment(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone>;
-  decrement(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone>;
+  increment(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
+  decrement(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   destroy(options?: SequelizeDestroyOptions): Promise<this| number>;
 }
 

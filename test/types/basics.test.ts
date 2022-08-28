@@ -44,6 +44,11 @@ describe('=> Basics (TypeScript)', function() {
 
     @Column()
     wordCount: number;
+
+    @Column(DataTypes.VIRTUAL)
+    get isEmptyContent(): boolean {
+      return this.wordCount <= 0;
+    }
   }
 
   before(async function() {
@@ -95,13 +100,25 @@ describe('=> Basics (TypeScript)', function() {
 
   describe('=> Integration', function() {
     it('bone.toJSON()', async function() {
-      const post = await Post.create({ title: 'Nephalem' });
+      const post = await Post.create({ title: 'Nephalem', wordCount: 0 });
       assert.equal(post.toJSON().title, 'Nephalem');
+      // virtual column should not be added to unset
+      assert.equal(post.toJSON().isEmptyContent, true);
+      const post1 = await Post.findOne();
+      assert.equal(post1.toJSON().title, 'Nephalem');
+      // virtual column should not be added to unset
+      assert.equal(post1.toJSON().isEmptyContent, true);
     });
 
     it('bone.toObject()', async function() {
       const post = await Post.create({ title: 'Leah' });
       assert.equal(post.toObject().title, 'Leah');
+      // virtual column should not be added to unset
+      assert.equal(post.toObject().isEmptyContent, true);
+      const post1 = await Post.findOne();
+      assert.equal(post1.toObject().title, 'Leah');
+      // virtual column should not be added to unset
+      assert.equal(post1.toObject().isEmptyContent, true);
     });
   });
 
@@ -134,7 +151,7 @@ describe('=> Basics (TypeScript)', function() {
 
   describe('=> Read', function() {
     beforeEach(async function() {
-      const posts = await Post.bulkCreate([
+      await Post.bulkCreate([
         { title: 'Leah' },
         { title: 'Cain' },
         { title: 'Nephalem' }
@@ -162,6 +179,28 @@ describe('=> Basics (TypeScript)', function() {
       const posts = await Post.where({ title: { $like: '%a%' } }).select('title');
       assert.equal(posts.length, 3);
     });
+
+    it('first', async () => {
+      const post1 = await Post.find().first;
+      assert.equal(post1.title, 'Leah');
+    });
+
+    it('last', async () => {
+      const post1 = await Post.find().last;
+      assert.equal(post1.title, 'Nephalem');
+    });
+
+    it('get(index)', async () => {
+      const post1 = await Post.find().get(0);
+      assert.equal(post1.title, 'Leah');
+    });
+
+    it('all', async () => {
+      const posts = await Post.find().all;
+      assert.equal(posts.length, 3);
+      assert.equal(posts[0].title, 'Leah');
+    });
+
   });
 
   describe('=> Update', function() {
