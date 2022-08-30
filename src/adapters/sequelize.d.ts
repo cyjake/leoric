@@ -4,7 +4,7 @@ import {
   SetOptions, BeforeHooksType, AfterHooksType,
   QueryOptions, OrderOptions, QueryResult
 } from '../types/common';
-import { AbstractBone } from '../types/bone';
+import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
 
 type WhereConditions<T extends typeof SequelizeBone> = {

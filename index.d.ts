@@ -10,8 +10,9 @@ import {
   BeforeHooksType, AfterHooksType, Collection,
 } from './src/types/common';
 import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
-import { Bone, RawQueryResult } from './src/types/bone';
+import Bone from './src/bone';
 import { ConnectOptions, AbstractDriver } from './src/drivers';
+import { RawQueryResult } from './src/types/abstract_bone';
 
 export { 
   LENGTH_VARIANTS as LENGTH_VARIANTS,

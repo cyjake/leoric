@@ -4,7 +4,7 @@ import {
   QueryOptions, SetOptions, WithOptions,
   Collection, WhereConditions, OrderOptions,
 } from './types/common';
-import { AbstractBone } from './types/bone';
+import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
 
 interface SpellBookFormatStandardResult {

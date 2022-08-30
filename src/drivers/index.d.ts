@@ -1,7 +1,7 @@
 import { Spellbook, SpellMeta, Spell } from '../spell';
 import { DataType, AbstractDataType } from '../data_types';
 import { Attribute, Pool, ResultSet, Literal, QueryResult, AttributeMeta, ColumnMeta } from '../types/common';
-import { AbstractBone } from '../types/bone';
+import { AbstractBone } from '../types/abstract_bone';
 
 export interface ConnectOptions {
   client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher';

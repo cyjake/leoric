@@ -1,7 +1,7 @@
 
 import { CommonHintsArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
-import { AbstractBone } from './bone';
+import { AbstractBone } from './abstract_bone';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
 
