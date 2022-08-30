@@ -1,3 +1,13 @@
+2.8.0 / 2022-08-30
+==================
+
+## What's Changed
+* feat: refactor type definitions to export SequelizeBone, complete spell type definitions and fix index hints logic by @JimmyDaddy in https://github.com/cyjake/leoric/pull/337
+* fix: throw error if token is not expected when parse expr by @cyjake in https://github.com/cyjake/leoric/pull/338
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.7.3...v2.8.0
+
 2.7.3 / 2022-08-25
 ==================
 
