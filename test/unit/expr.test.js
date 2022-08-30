@@ -461,3 +461,11 @@ describe('=> parse arithmetic operators', function() {
     );
   });
 });
+
+describe('parse malformed expression', function() {
+  it('parse )', function() {
+    assert.throws(function() {
+      parseExpr(')');
+    });
+  }, /unexpected token/i);
+});
