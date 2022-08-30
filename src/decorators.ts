@@ -37,7 +37,7 @@ function findType(tsType) {
   }
 }
 
-export function Column(options?: ColumnOption | DATA_TYPE<DataType>) {
+export function Column(options?: ColumnOption | DATA_TYPE<DataType> | DataType) {
   return function(target: Bone, propertyKey: string) {
     if (options == null) {
       options = {};
@@ -54,7 +54,7 @@ export function Column(options?: ColumnOption | DATA_TYPE<DataType>) {
     if (!('type' in options)) throw new Error(`unknown column options ${options}`);
 
     // target refers to model prototype, an internal instance of `Bone {}`
-    const model = target.constructor;
+    const model = target.constructor as any;
     const { attributes = (model.attributes = {}) } = model;
     const { name: columnName, ...restOptions } = options;
     attributes[propertyKey] = { ...restOptions, columnName };

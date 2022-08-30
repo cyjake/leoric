@@ -19,7 +19,7 @@ function translateOptions(spell, options) {
   if (having) spell.$having(having);
 
   if (order) {
-    if (typeof order === 'string' || order instanceof Raw) {
+    if (typeof order === 'string' || order instanceof Raw || isPlainObject(order)) {
       spell.$order(order);
     } else if (Array.isArray(order) && order.length) {
       if (order.some(item => Array.isArray(item))) {
@@ -45,15 +45,7 @@ function translateOptions(spell, options) {
 }
 
 const setScopeToSpell = (scope) => (spell) => {
-  if (scope.where) {
-    spell.$where(scope.where);
-  }
-  if (scope.order) {
-    spell.$order(scope.order);
-  }
-  if (scope.limit) {
-    spell.$limit(scope.limit);
-  }
+  translateOptions(spell, scope);
 };
 
 /**
@@ -78,7 +70,7 @@ function mergeScope(scopes) {
     }
   }
   return merged;
-};
+}
 
 /**
  * parse scope
@@ -114,7 +106,7 @@ function filterOptions(options = {}) {
 
 // https://sequelize.org/master/class/lib/model.js~Model.html
 // https://sequelize.org/master/manual/model-querying-finders.html
-module.exports = Bone => {
+exports.sequelize = Bone => {
   return class Spine extends Bone {
 
     /*
@@ -139,7 +131,7 @@ module.exports = Bone => {
 
     /**
      * add scope see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-addScope
-     *
+     * @deprecated scope is not recommended to use
      * @static
      * @param {string} name
      * @param {Object|Function} scope
@@ -156,13 +148,23 @@ module.exports = Bone => {
       }
     }
 
+    /**
+     * @deprecated scope is not recommended to use
+     * @param {string} name 
+     * @param  {...any} args 
+     * @returns 
+     */
     static scope(name, ...args) {
       const parentName = this.name;
       class ScopeClass extends this {
         static name = parentName;
-      };
+      }
       ScopeClass.setScope(name, ...args);
       return ScopeClass;
+    }
+
+    static get unscoped() {
+      return this.scope();
     }
 
     static unscoped() {
@@ -170,6 +172,7 @@ module.exports = Bone => {
     }
 
     /**
+     * @deprecated scope is not recommended to use
      * @static
      * @param {function|object|array} name
      */
@@ -274,12 +277,13 @@ module.exports = Bone => {
     // EXISTS
     // static bulkCreate() {}
 
-    static async count(options = {}) {
+    static count(options = {}) {
+      if (typeof options === 'string') return spell.$count(options);
       const { where, col, group, paranoid } = options;
       let spell = super.find(where, filterOptions(options));
       if (Array.isArray(group)) spell.$group(...group);
       if (paranoid === false) spell = spell.unparanoid;
-      return await spell.$count(col);
+      return spell.$count(col);
     }
 
     // EXISTS
@@ -562,7 +566,7 @@ module.exports = Bone => {
     // EXISTS
     // get isNewRecord() {}
 
-    async decrement(fields, options = {}) {
+    decrement(fields, options = {}) {
       const Model = this.constructor;
       const { primaryKey } = Model;
       if (this[primaryKey] == null) {
@@ -735,3 +739,5 @@ module.exports = Bone => {
     }
   };
 };
+
+exports.SequelizeBone = this.sequelize(require('../bone'));

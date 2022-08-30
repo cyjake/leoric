@@ -7,7 +7,7 @@ const Bone = require('./bone');
 const { findDriver, AbstractDriver } = require('./drivers');
 const { camelCase } = require('./utils/string');
 const { isBone } = require('./utils');
-const sequelize = require('./adapters/sequelize');
+const { sequelize } = require('./adapters/sequelize');
 const Raw = require('./raw');
 const { LEGACY_TIMESTAMP_MAP } = require('./constants');
 

@@ -1291,8 +1291,8 @@ class Bone {
     }
 
     for (const name in attributes) {
-      const { columnName } = attributes[name];
-      if (!(columnName in row)) {
+      const attribute = attributes[name];
+      if (!(attribute.columnName in row) && !attribute.virtual) {
         instance._getRawUnset().add(name);
       }
     }
