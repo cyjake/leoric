@@ -347,7 +347,8 @@ function parseExprList(str, ...values) {
   const results = [];
   while (chr) {
     results.push(expr());
-    if (chr === ',') next();
+    if (chr && chr !== ',') throw new Error(`Unexpected token ${chr}`);
+    next();
   }
   return results;
 }
