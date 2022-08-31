@@ -248,6 +248,15 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result3, 0);
   });
 
+  it('Model.count("id")', async () => {
+    await Promise.all([
+      Book.create({ name: 'By three they come', price: 42 }),
+      Book.create({ name: 'By three thy way opens', price: 23 }),
+    ]);
+    assert.equal(await Book.count('price'), 2);
+    assert.equal(await Book.count('deletedAt'), 0);
+  });
+
   it('Model.create()', async () => {
     const post = await Post.create({ title: 'By three they come' });
     assert.ok(post.id);
