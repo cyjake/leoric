@@ -106,7 +106,7 @@ function filterOptions(options = {}) {
 
 // https://sequelize.org/master/class/lib/model.js~Model.html
 // https://sequelize.org/master/manual/model-querying-finders.html
-const sequelize = Bone => {
+module.exports = function sequelize(Bone) {
   return class Spine extends Bone {
 
     /*
@@ -150,9 +150,9 @@ const sequelize = Bone => {
 
     /**
      * @deprecated scope is not recommended to use
-     * @param {string} name 
-     * @param  {...any} args 
-     * @returns 
+     * @param {string} name
+     * @param  {...any} args
+     * @returns
      */
     static scope(name, ...args) {
       const parentName = this.name;
@@ -278,7 +278,7 @@ const sequelize = Bone => {
     // static bulkCreate() {}
 
     static count(options = {}) {
-      if (typeof options === 'string') return spell.$count(options);
+      if (typeof options === 'string') return super.find().$count(options);
       const { where, col, group, paranoid } = options;
       let spell = super.find(where, filterOptions(options));
       if (Array.isArray(group)) spell.$group(...group);
@@ -738,11 +738,4 @@ const sequelize = Bone => {
       throw new Error('unimplemented');
     }
   };
-};
-
-const SequelizeBone = sequelize(require('../bone'));
-
-module.exports = {
-  sequelize,
-  SequelizeBone,
 };
