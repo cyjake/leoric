@@ -106,7 +106,7 @@ function filterOptions(options = {}) {
 
 // https://sequelize.org/master/class/lib/model.js~Model.html
 // https://sequelize.org/master/manual/model-querying-finders.html
-exports.sequelize = Bone => {
+const sequelize = Bone => {
   return class Spine extends Bone {
 
     /*
@@ -740,4 +740,9 @@ exports.sequelize = Bone => {
   };
 };
 
-exports.SequelizeBone = this.sequelize(require('../bone'));
+const SequelizeBone = sequelize(require('../bone'));
+
+module.exports = {
+  sequelize,
+  SequelizeBone,
+};
