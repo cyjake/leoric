@@ -1,3 +1,12 @@
+2.8.1 / 2022-08-31
+==================
+
+## What's Changed
+* fix: metro exports error by @JimmyDaddy in https://github.com/cyjake/leoric/pull/339
+* fix: Model.count(field) in sequelize adapter by @cyjake in https://github.com/cyjake/leoric/pull/340
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.0...v2.8.1
+
 2.8.0 / 2022-08-30
 ==================
 
