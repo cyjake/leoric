@@ -28,7 +28,7 @@ class Post extends Bone {
 
   // custom getters in class syntax should not make attributes not enumerable
   get title() {
-    if (this.attribute('title')){
+    if (this.attribute('title')) {
       return this.attribute('title').replace(/^([a-z])/, function(m, chr) {
         return chr.toUpperCase();
       });

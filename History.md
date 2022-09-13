@@ -1,3 +1,13 @@
+2.8.2 / 2022-09-13
+==================
+
+## What's Changed
+* fix: AssociateOptions in HasMany, BelongdsTo decorators by @cyjake in https://github.com/cyjake/leoric/pull/341
+* fix: invokable dataType in decorators should work and dts fix by @JimmyDaddy in https://github.com/cyjake/leoric/pull/342
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.1...v2.8.2
+
 2.8.1 / 2022-08-31
 ==================
 
