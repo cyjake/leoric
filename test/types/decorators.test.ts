@@ -225,6 +225,7 @@ describe('=> Decorators (TypeScript)', function() {
           type: INTEGER(2).UNSIGNED,
         })
         status: number;
+
       }
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
@@ -257,6 +258,31 @@ describe('=> Decorators (TypeScript)', function() {
       const { noteId, noteIndex } = Note.attributes;
       assert.equal((noteId as AttributeMeta).toSqlString(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
       assert.equal((noteIndex as AttributeMeta).toSqlString(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
+    });
+
+    it('should work with invokable data types', async () => {
+      class Note extends Bone {
+        @Column()
+        id: bigint;
+
+        @Column(STRING)
+        body: string;
+
+        @Column(STRING(64))
+        description: string;
+
+        @Column(INTEGER(2).UNSIGNED)
+        status: number;
+
+      }
+      await Note.sync({ force: true });
+      assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
+
+      const { id, body, description, status } = Note.attributes;
+      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((body as AttributeMeta).toSqlString(), '`body` VARCHAR(255)');
+      assert.equal((description as AttributeMeta).toSqlString(), '`description` VARCHAR(64)');
+      assert.equal((status as AttributeMeta).toSqlString(), '`status` INTEGER(2) UNSIGNED');
     });
   });
 

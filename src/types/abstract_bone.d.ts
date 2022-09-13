@@ -2,7 +2,7 @@ import DataTypes, { AbstractDataType, DataType } from "../data_types";
 import { 
   Pool, Literal, WhereConditions,
   Collection, ResultSet, InstanceValues, OrderOptions,
-  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection,
+  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions,
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
@@ -119,7 +119,7 @@ export class AbstractBone {
   /**
    * Batch INSERT
    */
-  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<Record<string, Literal>>, options?: QueryOptions): Promise<Array<InstanceType<T>>>;
+  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<Record<string, Literal>>, options?: BulkCreateOptions): Promise<Array<InstanceType<T>>>;
 
   /**
    * SELECT all rows. In production, when the table is at large, it is not recommended to access records in this way. To iterate over all records, {@link Bone.batch} shall be considered as the better alternative. For tables with soft delete enabled, which means they've got `deletedAt` attribute, use {@link Bone.unscoped} to discard the default scope.
