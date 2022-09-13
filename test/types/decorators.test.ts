@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { AttributeMeta, Bone, DataTypes, Column, HasMany, connect } from '../..';
+import { AttributeMeta, Bone, DataTypes, Column, HasMany, BelongsTo, connect } from '../..';
 
 const { TEXT, STRING, INTEGER } = DataTypes;
 
@@ -302,6 +302,85 @@ describe('=> Decorators (TypeScript)', function() {
       assert.equal(member.notes.length, 1);
       assert.ok(member.notes[0] instanceof Note);
       assert.equal(member.notes[0].memberId, memberId);
+    });
+  });
+
+  describe('=> @HasMany({ through })', function() {
+    class Tag extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      type: number;
+
+      @Column()
+      name: string;
+    }
+
+    enum TARGET_TYPE {
+      note = 1,
+    }
+
+    class TagMap extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      targetId: bigint;
+
+      @Column()
+      targetType: number;
+
+      @Column()
+      tagId: bigint;
+
+      @BelongsTo()
+      tag: Tag;
+    }
+
+    class Note extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      content: string;
+      
+      @HasMany({ 
+        foreignKey: 'targetId',
+        where: { targetType: TARGET_TYPE.note },
+      })
+      tagMaps: TagMap[];
+
+      @HasMany({ through: 'tagMaps' })
+      tags: Tag[];
+    }
+
+    before(async function() {
+      Object.assign(Bone.models, { Note, TagMap, Tag });
+      await Note.sync({ force: true });
+      await TagMap.sync({ force: true });
+      await Tag.sync({ force: true });
+      TagMap.initialize();
+      Note.initialize();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        Note.truncate(),
+        TagMap.truncate(),
+        Tag.truncate(),
+      ]);
+    });
+
+    it('should be able to declare n:m association', async function() {
+      const note = await Note.create({ content: '明月几时有' });
+      const tag = await Tag.create({ name: '中秋' });
+      await TagMap.create({ targetId: note.id, targetType: TARGET_TYPE.note, tagId: tag.id });
+      const result = await Note.findOne().with('tags');
+      assert.ok(Array.isArray(result.tagMaps));
+      assert.ok(Array.isArray(result.tags));
+      assert.equal(result.tags.length, 1);
+      assert.equal(result.tags[0].name, '中秋');
     });
   });
 });

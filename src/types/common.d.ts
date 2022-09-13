@@ -59,6 +59,8 @@ export interface QueryOptions {
 export interface AssociateOptions {
   className?: string;
   foreignKey?: string;
+  through?: string;
+  where?: Record<string, Literal>;
 }
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';

@@ -8,7 +8,7 @@ function uid() {
   let result = '';
 
   const charactersLength = CHARSET.length;
-    for ( var i = 0; i < 6; i++ ) {
+    for (var i = 0; i < 6; i++) {
       result += CHARSET.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
