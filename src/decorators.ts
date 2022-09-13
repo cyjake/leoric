@@ -42,8 +42,9 @@ export function Column(options?: ColumnOption | DATA_TYPE<DataType> | DataType) 
     if (options == null) {
       options = {};
     }
+
     // target refers to model prototype, an internal instance of `Bone {}`
-    if (options['prototype'] instanceof DataType) options = { type: options as DATA_TYPE<DataType> };
+    if (options['prototype'] instanceof DataType || options instanceof DataType) options = { type: options as DATA_TYPE<DataType> };
 
     if (!('type' in options)) {
       const tsType = Reflect.getMetadata('design:type', target, propertyKey);

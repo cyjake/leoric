@@ -25,6 +25,10 @@ interface BaseSequelizeConditions<T extends typeof SequelizeBone> extends QueryO
   offset?: number;
 }
 
+type SequelizeUpdateOptions<T extends typeof SequelizeBone> = BaseSequelizeConditions<T> & {
+  fields?: string[];
+}
+
 interface SequelizeConditions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
   group?: string | string[] | Raw;
   having?: WhereConditions<T> | string | { [key:string]: Literal | Literal[] } | Raw;
@@ -165,8 +169,8 @@ export class SequelizeBone extends AbstractBone {
 
   static restore<T extends typeof SequelizeBone>(this: T, options: BaseSequelizeConditions<T>): Spell<T, number>;
 
-  static update<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: BaseSequelizeConditions<T>): Promise<number>;
-  static bulkUpdate<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: BaseSequelizeConditions<T>): Spell<T, number>;
+  static update<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: SequelizeUpdateOptions<T>): Promise<number>;
+  static bulkUpdate<T extends typeof SequelizeBone>(this: T, values: SetOptions<T>, options: SequelizeUpdateOptions<T>): Spell<T, number>;
 
   /**
    * An alias of instance constructor. Some legacy code access model name from instance with `this.Model.name`.

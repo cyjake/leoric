@@ -5,7 +5,7 @@ import { AbstractBone } from './abstract_bone';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
 
-type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string;
+type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string | Array<Literal>;
 
 export type Validator = BaseValidateArgs | {
   args?: BaseValidateArgs,
@@ -53,7 +53,14 @@ export interface QueryOptions {
   connection?: Connection;
   hints?: Array<CommonHintsArgs>;
   hint?: CommonHintsArgs;
-  transaction?: Connection;
+  transaction?: Connection | {
+    connection: Connection
+  };
+}
+
+export type BulkCreateOptions = QueryOptions & {
+  updateOnDuplicate?: string[];
+  fields?: string[];
 }
 
 export interface AssociateOptions {
