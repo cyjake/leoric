@@ -319,7 +319,7 @@ describe('=> Decorators (TypeScript)', function() {
         Note.truncate(),
         Member.truncate(),
       ]);
-    })
+    });
 
     it('should be able to declare 1:n association', async function() {
       const { id: memberId } = await Member.create({ email: 'hi@example.com' });
@@ -407,6 +407,60 @@ describe('=> Decorators (TypeScript)', function() {
       assert.ok(Array.isArray(result.tags));
       assert.equal(result.tags.length, 1);
       assert.equal(result.tags[0].name, '中秋');
+    });
+  });
+
+  describe('HasMany({ select })', function() {
+    class Note extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column({ type: DataTypes.TEXT })
+      content: string;
+
+      @Column()
+      memberId: bigint;
+    }
+
+    class Member extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      email: string;
+
+      @HasMany({ 
+        select(name) {
+          return name !== 'content';
+        },
+      })
+      notes: Note[];
+    }
+
+    before(async function() {
+      Object.assign(Bone.models, { Note, Member });
+      await Note.sync({ force: true });
+      await Member.sync({ force: true });
+      // TODO: merge this method into `static sync()`?
+      Member.initialize();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        Note.truncate(),
+        Member.truncate(),
+      ]);
+    });
+
+    it('should be able to filter select fields of association', async function() {
+      const member = await Member.create({ email: 'hi@example.com' });
+      await Note.create({ memberId: member.id, content: 'hello' });
+      const result = await Member.findOne().with('notes');
+      assert.equal(result.notes.length, 1);
+      assert.equal(result.notes[0].content, undefined);
+      const [note] = result.notes;
+      await note.reload();
+      assert.equal(note.content, 'hello');
     });
   });
 });

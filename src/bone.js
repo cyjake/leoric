@@ -224,6 +224,7 @@ class Bone {
     this.#raw = Object.assign({}, this.getRaw(), target.getRaw());
     this.#rawSaved = Object.assign({}, this.getRawSaved(), target.getRawSaved());
     this.#rawPrevious = Object.assign({}, this.getRawPrevious(), target.getRawPrevious());
+    this.#rawUnset = target._getRawUnset();
   }
 
   /**

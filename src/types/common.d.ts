@@ -68,6 +68,7 @@ export interface AssociateOptions {
   foreignKey?: string;
   through?: string;
   where?: Record<string, Literal>;
+  select?: string[] | ((name: string) => boolean);
 }
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
