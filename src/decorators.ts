@@ -37,14 +37,12 @@ function findType(tsType) {
   }
 }
 
-export function Column(options?: ColumnOption | DATA_TYPE<DataType> | DataType) {
+export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = {}) {
   return function(target: Bone, propertyKey: string) {
-    if (options == null) {
-      options = {};
-    }
-
     // target refers to model prototype, an internal instance of `Bone {}`
-    if (options['prototype'] instanceof DataType || options instanceof DataType) options = { type: options as DATA_TYPE<DataType> };
+    if (options['prototype'] instanceof DataType || options instanceof DataType) {
+      options = { type: options as DATA_TYPE<DataType> };
+    }
 
     if (!('type' in options)) {
       const tsType = Reflect.getMetadata('design:type', target, propertyKey);
@@ -64,9 +62,10 @@ export function Column(options?: ColumnOption | DATA_TYPE<DataType> | DataType) 
 
 const { hasMany, hasOne, belongsTo } = ASSOCIATE_METADATA_MAP;
 
-export function HasMany(options?: AssociateOptions) {
+export function HasMany(options: AssociateOptions = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
+    // it seems it's not possible to get the type of array element at runtime
     Reflect.defineMetadata(hasMany, {
       ...Reflect.getMetadata(hasMany, model),
       [propertyKey]: options,
@@ -74,9 +73,13 @@ export function HasMany(options?: AssociateOptions) {
   }
 }
 
-export function HasOne(options?: AssociateOptions) {
+export function HasOne(options: AssociateOptions = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
+    if (options.className == null) {
+      const tsType = Reflect.getMetadata('design:type', target, propertyKey);
+      if (tsType.name !== 'Function') options.className = tsType.name;
+    }
     Reflect.defineMetadata(hasOne, {
       ...Reflect.getMetadata(hasOne, model),
       [propertyKey]: options,
@@ -84,9 +87,23 @@ export function HasOne(options?: AssociateOptions) {
   }
 }
 
-export function BelongsTo(options?: AssociateOptions) {
+/**
+ * design:type will be `Function { [native code] }` in following example
+ * 
+ * @example
+ * import type Foo from './foo';
+ * class Bar extends Bone {
+ *   @BelongsTo()
+ *   foo?: Foo;
+ * }
+ */
+export function BelongsTo(options: AssociateOptions = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
+    if (options.className == null) {
+      const tsType = Reflect.getMetadata('design:type', target, propertyKey);
+      if (tsType.name !== 'Function') options.className = tsType.name;
+    }
     Reflect.defineMetadata(belongsTo, {
       ...Reflect.getMetadata(belongsTo, model),
       [propertyKey]: options,

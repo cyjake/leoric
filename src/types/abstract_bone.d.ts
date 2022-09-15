@@ -2,12 +2,11 @@ import DataTypes, { AbstractDataType, DataType } from "../data_types";
 import { 
   Pool, Literal, WhereConditions,
   Collection, ResultSet, InstanceValues, OrderOptions,
-  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions,
+  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, 
+  GeneratorReturnType,
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
-
-export type RawQueryResult = typeof AbstractBone | ResultSet | boolean | number;
 
 interface SyncOptions {
   force?: boolean;
@@ -216,9 +215,9 @@ export class AbstractBone {
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
    * });
    */
-  static transaction(callback: GeneratorFunction): Promise<RawQueryResult>;
-  static transaction(callback: (connection: TransactionOptions) => Promise<RawQueryResult | void>): Promise<RawQueryResult>;
-
+  static transaction<T extends (connection: Connection) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
+  static transaction<T extends (connection: Connection) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
+  
   static describe(): Promise<{[key: string]: any[]}>;
 
   /**

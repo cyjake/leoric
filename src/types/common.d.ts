@@ -178,3 +178,6 @@ export type InstanceValues<T> = {
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';
+
+// https://stackoverflow.com/a/67232225/179691
+type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R, any> ? R: never;

@@ -706,7 +706,7 @@ describe('=> Transaction', function() {
   it('Bone.transaction()', async function() {
     const result = await Post.transaction(function* () {
       yield new Post({ title: 'Leah' }).create();
-      yield new Post({ title: 'Diablo' }).create();
+      return new Post({ title: 'Diablo' }).create();
     });
 
     const posts = await Post.find();

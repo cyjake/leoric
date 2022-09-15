@@ -3,9 +3,10 @@
 const { Bone } = require('../..');
 
 class Book extends Bone {
-  static get primaryKey() {
-    return 'isbn';
-  }
+  // static get primaryKey() {
+  //   return 'isbn';
+  // }
+  static primaryKey = 'isbn';
 
   set isbn(value) {
     if (!value) throw new Error('invalid isbn');

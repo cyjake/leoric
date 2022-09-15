@@ -5,7 +5,9 @@ describe('=> Realm (TypeScript)', function () {
   let realm: Realm;
   before(function() {
     realm = new Realm({
+      host: 'localhost',
       port: process.env.MYSQL_PORT,
+      user: 'root',
       database: 'leoric',
       subclass: true,
     });
@@ -39,7 +41,7 @@ describe('=> Realm (TypeScript)', function () {
 
   describe('realm.sync(options)', async function() {
     it('options should be optional', async function() {
-      assert.doesNotThrow(async () => {
+      await assert.doesNotReject(async () => {
         const { STRING } = realm.DataTypes;
         realm.define('User', { name: STRING });
         await realm.sync();
@@ -47,7 +49,7 @@ describe('=> Realm (TypeScript)', function () {
     });
 
     it('`force` can be passed individually', async function() {
-      assert.doesNotThrow(async () => {
+      await assert.doesNotReject(async () => {
         const { STRING } = realm.DataTypes;
         realm.define('User', { name: STRING });
         await realm.sync({ force: true });
@@ -55,7 +57,7 @@ describe('=> Realm (TypeScript)', function () {
     });
 
     it('`alter` can be passed individually', async function() {
-      assert.doesNotThrow(async () => {
+      await assert.doesNotReject(async () => {
         const { STRING } = realm.DataTypes;
         realm.define('User', { name: STRING });
         await realm.sync({ alter: true });
@@ -63,11 +65,34 @@ describe('=> Realm (TypeScript)', function () {
     });
 
     it('`force` and `alter` can be passed together', async function() {
-      assert.doesNotThrow(async () => {
+      await assert.doesNotReject(async () => {
         const { STRING } = realm.DataTypes;
         realm.define('User', { name: STRING });
         await realm.sync({ force: true, alter: true });
       });
+    });
+  });
+
+  describe('realm.query(sql, values, options)', async function() {
+    before(async function() {
+      const { STRING } = realm.DataTypes;
+      realm.define('User', { name: STRING, email: STRING });
+      await realm.sync({ force: true, alter: true });
+    });
+
+    it('values and options should be optional', async function() {
+      const result = await realm.query('SELECT * FROM users');
+      assert.ok(Array.isArray(result.rows));
+      assert.equal(result.rows.length, 0);
+    });
+
+    it('should pass on original properties in result', async function() {
+      const result = await realm.query('INSERT INTO users (name) VALUES (?)', [ 'Cain' ]);
+      assert.equal(result.affectedRows, 1);
+    });
+
+    it('should try to instantiate rows with options.model if possible', async function() {
+      await realm.query('SELECT * FROM users', [], { model: realm.models.User });
     });
   });
 });

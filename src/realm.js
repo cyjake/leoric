@@ -230,8 +230,8 @@ class Realm {
     }
 
     return {
+      ...restRes,
       rows: results.length > 0 ? results : rows,
-      ...restRes
     };
   }
 
