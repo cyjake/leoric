@@ -8,11 +8,11 @@ import {
   Connection, QueryOptions,
   Raw, ColumnMeta, AttributeMeta,
   BeforeHooksType, AfterHooksType, Collection,
+  GeneratorReturnType,
 } from './src/types/common';
 import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
 import Bone from './src/bone';
 import { ConnectOptions, AbstractDriver } from './src/drivers';
-import { RawQueryResult } from './src/types/abstract_bone';
 
 export { 
   LENGTH_VARIANTS as LENGTH_VARIANTS,
@@ -43,15 +43,14 @@ interface SyncOptions {
 
 interface RawQueryOptions {
   replacements?: { [key:string]: Literal | Literal[] };
-  model: Bone;
-  connection: Connection;
+  connection?: Connection;
 }
 
 export default class Realm {
   Bone: typeof Bone;
   DataTypes: typeof DataTypes;
   driver: AbstractDriver;
-  models: Record<string, Bone>;
+  models: Record<string, typeof Bone>;
   connected?: boolean;
 
   constructor(options: ConnectOptions);
@@ -75,10 +74,10 @@ export default class Realm {
 
   escape(value: Literal): string;
 
-  query(sql: string, values?: Array<Literal>, options?: RawQueryOptions): RawQueryResult;
+  query<T extends typeof Bone>(sql: string, values?: Array<Literal>, options?: RawQueryOptions & { model?: T }): Promise<{ rows: T extends typeof Bone ? InstanceType<T>[] : Object[], fields?: Object[], affectedRows?: number }>;
 
-  transaction(callback: GeneratorFunction): Promise<RawQueryResult>;
-  transaction(callback: (connection: Connection) => Promise<RawQueryResult>): Promise<RawQueryResult>;
+  transaction<T extends (connection: Connection) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
+  transaction<T extends (connection: Connection) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
 
   sync(options?: SyncOptions): Promise<void>;
 }

@@ -1067,9 +1067,7 @@ class Bone {
    * The primary key of the model, in camelCase.
    * @type {string}
    */
-  static get primaryKey() {
-    return 'id';
-  }
+  static primaryKey = 'id';
 
   /**
    * The primary column of the model, in snake_case, usually.
@@ -1255,7 +1253,7 @@ class Bone {
     }
     const { className } = opts;
     const Model = this.models[className];
-    if (!Model) throw new Error(`unable to find model "${className}"`);
+    if (!Model) throw new Error(`unable to find associated model "${className}" (model ${this.name})`);
     if (opts.foreignKey && Model.attributes[opts.foreignKey] && Model.attributes[opts.foreignKey].virtual) {
       throw new Error(`unable to use virtual attribute ${opts.foreignKey} as foreign key in model ${Model.name}`);
     }
@@ -1590,9 +1588,9 @@ class Bone {
         await this.driver.query('BEGIN', [], {  connection, Model: this, command: 'BEGIN' });
         while (true) {
           const { value: spell, done } = gen.next(result);
-          if (done) break;
           if (spell instanceof Spell) spell.connection = connection;
-          result = typeof spell.then === 'function' ? await spell : spell;
+          result = spell && typeof spell.then === 'function' ? await spell : spell;
+          if (done) break;
         }
         await this.driver.query('COMMIT', [], {  connection, Model: this, command: 'COMMIT' });
       } catch (err) {

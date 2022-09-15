@@ -463,4 +463,51 @@ describe('=> Decorators (TypeScript)', function() {
       assert.equal(note.content, 'hello');
     });
   });
+
+  describe('HasOne()', function() {
+    class Member extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      email: string;
+    }
+
+    class Note extends Bone {
+      @Column()
+      id: bigint;
+
+      @Column()
+      content: string;
+
+      @Column()
+      authorId: bigint;
+
+      @BelongsTo({ foreignKey: 'authorId' })
+      author?: Member;
+    }
+
+    before(async function() {
+      Object.assign(Bone.models, { Note, Member });
+      await Note.sync({ force: true });
+      await Member.sync({ force: true });
+      // TODO: merge this method into `static sync()`?
+      Note.initialize();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        Note.truncate(),
+        Member.truncate(),
+      ]);
+    });
+
+    it('should inference the type of note.author correctly', async function() {
+      const member = await Member.create({ email: 'hi@example.com' });
+      await Note.create({ authorId: member.id, content: 'hello' });
+      const note = await Note.findOne().with('author');
+      assert.ok(note.author);
+      assert.equal(note.author.email, member.email);
+    });
+  });
 });

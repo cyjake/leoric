@@ -1,8 +1,10 @@
 import { strict as assert } from 'assert';
-import { Bone, Column, DataTypes, connect } from '../..';
+import Realm, { Bone, Column, DataTypes, connect } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;
+  let realm: Realm;
+
   class Post extends Bone {
     static table = 'articles';
 
@@ -52,7 +54,7 @@ describe('=> Basics (TypeScript)', function() {
   }
 
   before(async function() {
-    await connect({
+    realm = await connect({
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
       models: [ Post ],
@@ -297,6 +299,25 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(posts[0].title, 'Leah');
       assert.equal(posts[1].title, 'Cain');
       assert.equal(posts[2].title, 'Nephalem');
+    });
+  });
+
+  describe('=> Transaction', function() {
+    it('realm.transaction(function* () {})', async function() {
+      const result = await realm.transaction(function* () {
+        yield true;
+        return 1;
+      });
+      // tsc should be able to infer that the type of result is number
+      assert.equal(result, 1);
+    });
+
+    it('realm.transaction(async function() {})', async function() {
+      const result = await realm.transaction(async function() {
+        return 1;
+      });
+      // tsc should be able to infer that the type of result is number
+      assert.equal(result, 1);
     });
   });
 });
