@@ -14,7 +14,6 @@ const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
 const { logger } = require('../../../src/utils');
-const {max} = require('dayjs');
 
 describe('=> Query', function() {
 
@@ -475,7 +474,7 @@ describe('=> Count / Group / Having', function() {
 
   it('Bone.group().count()', async function() {
     const result = await Post.group('title').count().order('count').order('title');
-    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
+    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title));
     expect(result).to.eql([
       { count: 1, title: 'Archangel Tyrael' },
       { count: 1, title: 'Archbishop Lazarus' },
@@ -495,7 +494,7 @@ describe('=> Count / Group / Having', function() {
       .having('count > 1')
       .orHaving('title = ?', 'Archangel Tyrael')
       .order('count', 'desc');
-    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title ));
+    expect(result.every((r) => (r instanceof Post) && !isNaN(r.count) & r.title));
     assert.deepEqual(Array.from(result.map(r => r.title)), [ 'New Post' , 'Archangel Tyrael' ]);
   });
 });

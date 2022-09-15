@@ -1,3 +1,13 @@
+2.8.3 / 2022-09-15
+==================
+
+## What's Changed
+* fix: AssociationOptions.select? should be supported by @cyjake in https://github.com/cyjake/leoric/pull/343
+* fix: return type of realm.query, realm.transaction, and Bone.transation by @cyjake in https://github.com/cyjake/leoric/pull/344
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.2...v2.8.3
+
 2.8.2 / 2022-09-13
 ==================
 
