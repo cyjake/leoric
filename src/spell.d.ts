@@ -89,7 +89,7 @@ export class Spellbook {
   formatUpsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
 }
 
-export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet | number | null> extends Promise<U> {
+export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
   command: string;
@@ -117,25 +117,28 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   orWhere(conditions: WhereConditions<T>): Spell<T, U>;
   orWhere(conditions: string, ...values: Literal[]): Spell<T, U>;
 
-  group(...names: Array<string | Raw>): Spell<T, ResultSet>;
+  group(...names: Array<string | Raw>): Spell<T, ResultSet<T>>;
 
-  having(conditions: string, ...values: Literal[]): Spell<T, ResultSet>;
-  having(conditions: WhereConditions<T>): Spell<T, ResultSet>;
+  having(conditions: string, ...values: Literal[]): Spell<T, ResultSet<T>>;
+  having(conditions: WhereConditions<T>): Spell<T, ResultSet<T>>;
 
-  orHaving(conditions: string, ...values: Literal[]): Spell<T, ResultSet>;
-  orHaving(conditions: WhereConditions<T>): Spell<T, ResultSet>;
+  orHaving(conditions: string, ...values: Literal[]): Spell<T, ResultSet<T>>;
+  orHaving(conditions: WhereConditions<T>): Spell<T, ResultSet<T>>;
 
   order(name: string, order?: 'desc' | 'asc'): Spell<T, U>;
   order(opts: OrderOptions<T>): Spell<T, U>;
 
+  $offset(skip: number): Spell<T, U>;
   offset(skip: number): Spell<T, U>;
-  limit(skip: number): Spell<T, U>;
+  
+  $limit(rowCount: number): Spell<T, U>;
+  limit(rowCount: number): Spell<T, U>;
 
-  count(name?: string): Spell<T, Extract<U, ResultSet | number>>;
-  average(name?: string): Spell<T, Extract<U, ResultSet | number>>;
-  minimum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
-  maximum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
-  sum(name?: string): Spell<T, Extract<U, ResultSet | number>>;
+  count(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+  average(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+  minimum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+  maximum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+  sum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
 
   batch(size?: number): AsyncIterable<T>;
 

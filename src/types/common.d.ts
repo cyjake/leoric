@@ -3,7 +3,7 @@ import { CommonHintsArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from './abstract_bone';
 
-export type Literal = null | undefined | boolean | number | bigint | string | Date | object | ArrayBuffer;
+export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
 type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string | Array<Literal>;
 
@@ -73,9 +73,7 @@ export interface AssociateOptions {
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
 
-export type ResultSet = {
-  [key: string]: Literal
-};
+export type ResultSet<T extends typeof AbstractBone> = Array<Values<InstanceType<T>> & Record<string, Literal>>;
 
 export interface ColumnMeta extends ColumnBase {
   dataType?: string;
@@ -158,8 +156,8 @@ type OrderOptions<T extends typeof AbstractBone> = {
 
 export class Collection<T extends AbstractBone> extends Array<T> {
   save(): Promise<void>;
-  toJSON(): InstanceValues<T>[];
-  toObject(): InstanceValues<T>[];
+  toJSON(): Values<T>[];
+  toObject(): Values<T>[];
 }
 
 export type WhereConditions<T extends typeof AbstractBone> = {
@@ -168,13 +166,10 @@ export type WhereConditions<T extends typeof AbstractBone> = {
   [key in '$and' | '$or']?: WhereConditions<T>[];
 }
 
-export type Values<T extends typeof AbstractBone> = {
-  [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal;
-}
+// https://stackoverflow.com/a/68077021/179691
+export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
-export type InstanceValues<T> = {
-  [Property in keyof Extract<T, Literal>]?: Extract<T, Literal>[Property]
-}
+export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function>>>;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';

@@ -53,6 +53,7 @@ class Sqlite_BIGINT extends DataTypes.BIGINT {
     return this.dataType.toUpperCase();
   }
 }
+
 class Sqlite_BINARY extends DataTypes.BINARY {
   constructor(dataLength = 255) {
     super(dataLength);

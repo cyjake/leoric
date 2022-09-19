@@ -848,7 +848,7 @@ class Spell {
       if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.use) {
         console.warn('Do not recommend set non-use index hint in useIndex');
       }
-      return IndexHint.build(hint, INDEX_HINT_TYPE.use)
+      return IndexHint.build(hint, INDEX_HINT_TYPE.use);
     }));
     return this;
   }
@@ -886,7 +886,7 @@ class Spell {
       if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.ignore) {
         console.warn('Do not recommend set non-ignore index hint in ignoreIndex');
       }
-      return IndexHint.build(hint, INDEX_HINT_TYPE.ignore)
+      return IndexHint.build(hint, INDEX_HINT_TYPE.ignore);
     }));
     return this;
   }

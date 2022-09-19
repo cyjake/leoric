@@ -26,7 +26,7 @@ export default class Bone extends AbstractBone {
   static findOne<T extends typeof Bone>(this: T, primaryKey: number | number[] | bigint): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, ): Spell<T, InstanceType<T> | null>;
 
-  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
 
   /**
    * restore rows

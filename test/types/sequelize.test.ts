@@ -254,8 +254,8 @@ describe('=> sequelize (TypeScript)', function() {
     });
 
     it('bone.save()', async function() {
-      await Post.create({ id: 1, title: 'Leah' });
-      const post = new Post({ id: 1, title: 'Diablo' });
+      await Post.create({ id: BigInt(1), title: 'Leah' });
+      const post = new Post({ id: BigInt(1), title: 'Diablo' });
       await post.save();
 
       const posts = await Post.all;
@@ -1212,7 +1212,7 @@ describe('=> sequelize (TypeScript)', function() {
     });
   
     it('Model.increment()', async () => {
-      const isbn = 9787550616950;
+      const isbn = BigInt(9787550616950);
       const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
       const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
       assert.notEqual(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
@@ -1229,7 +1229,7 @@ describe('=> sequelize (TypeScript)', function() {
     });
   
     it('Model.increment(, { paranoid })', async () => {
-      const isbn = 9787550616950;
+      const isbn = BigInt(9787550616950);
       const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
       const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
       assert.notEqual(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
@@ -1256,7 +1256,7 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.increment(, { silent })', async () => {
       const fakeDate = new Date(`2012-12-14 12:00-08:00`).getTime();
       const clock = sinon.useFakeTimers(fakeDate);
-      const isbn = 9787550616950;
+      const isbn = BigInt(9787550616950);
       const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
       assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
       clock.restore();
@@ -1267,7 +1267,7 @@ describe('=> sequelize (TypeScript)', function() {
     });
 
     it('Model.decrement()', async () => {
-      const isbn = 9787550616950;
+      const isbn = BigInt(9787550616950);
       const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
       await Book.decrement('price', { where: { isbn } });
       await book.reload();

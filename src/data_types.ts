@@ -145,15 +145,16 @@ class INTEGER extends DataType {
   }
 
   cast(value: number): number {
-    if (value == null || isNaN(value)) return value;
-    return Number(value);
+    const result = Number(value);
+    if (value == null || Number.isNaN(result)) return value;
+    return result;
   }
 
   uncast(value: any, strict = true): string | number {
     const originValue = value;
     if (value == null || value instanceof Raw) return value;
     if (typeof value === 'string') value = parseInt(value, 10);
-    if (isNaN(value)) {
+    if (Number.isNaN(value)) {
       if (strict) throw new Error(util.format('invalid integer: %s', originValue));
       return originValue;
     }
