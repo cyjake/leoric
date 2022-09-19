@@ -6,6 +6,7 @@
  */
 const util = require('util');
 const deepEqual = require('deep-equal');
+const debug = require('debug')('leoric');
 const pluralize = require('pluralize');
 const { executeValidator, LeoricValidateError } = require('./validator');
 require('reflect-metadata');
@@ -1039,6 +1040,10 @@ class Bone {
       tableAlias,
       synchronized: Object.keys(compare(attributes, columnMap)).length === 0,
     }));
+
+    if (!this.synchronized) {
+      debug('[load] %s not fully synchronized with %s', this.name, this.table);
+    }
 
     for (const hookName of hookNames) {
       if (this[hookName]) setupSingleHook(this, hookName, this[hookName]);
