@@ -30,7 +30,13 @@ describe('=> Basics (TypeScript)', function() {
     extra: string;
 
     @Column()
-    thumb: string;
+    get thumb(): string {
+      return this.attribute('thumb') as string;
+    };
+
+    set thumb(value: string) {
+      this.attribute('thumb', value.replace('http://', 'https://'));
+    }
 
     @Column()
     authorId: bigint;
@@ -51,6 +57,8 @@ describe('=> Basics (TypeScript)', function() {
     get isEmptyContent(): boolean {
       return this.wordCount <= 0;
     }
+
+    nodes: unknown;
   }
 
   before(async function() {
@@ -134,6 +142,18 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.toObject().title, 'Tyrael');
     });
 
+    it('Bone.create({ setter })', async function() {
+      const post = await Post.create({ title: 'Tyrael', thumb: 'http://example.com' });
+      assert.ok(post instanceof Post);
+      assert.ok(post.id);
+    });
+
+    it('Bone.create({ arbitrary })', async function() {
+      const post = await Post.create({ title: 'Apia', nodes: [] });
+      assert.ok(post instanceof Post);
+      assert.ok(post.nodes);
+    });
+
     it('bone.create()', async function() {
       const post = new Post({ title: 'Cain' });
       await post.create();
@@ -142,12 +162,12 @@ describe('=> Basics (TypeScript)', function() {
     });
 
     it('bone.save()', async function() {
-      await Post.create({ id: 1, title: 'Leah' });
+      await Post.create({ id: BigInt(1), title: 'Leah' });
       const post = new Post({ id: 1, title: 'Diablo' });
       await post.save();
 
       const posts = await Post.all;
-      assert.equal(posts.length, 1)
+      assert.equal(posts.length, 1);
     });
   });
 

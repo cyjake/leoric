@@ -92,8 +92,13 @@ describe('=> Querying (TypeScript)', function() {
     });
 
     it('Bone.group().count()', async function() {
-      const result = await Post.group('title').count();
-      assert.ok(Array.isArray(result));
+      await Post.create({ title: 'Samoa' })
+      const results = await Post.group('title').count();
+      assert.ok(Array.isArray(results));
+      const [result] = results;
+      assert.ok('title' in result);
+      assert.equal(result.title, 'Samoa');
+      assert.equal(result.count, 1);
     });
 
     it('Bone.where().count()', async function() {

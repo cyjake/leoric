@@ -69,7 +69,7 @@ export class AbstractDriver {
    * query with spell
    * @param spell
    */
-  cast(spell: Spell<typeof AbstractBone, ResultSet | number | null>): Promise<QueryResult>;
+  cast<T extends typeof AbstractBone>(spell: Spell<T, ResultSet<T> | number | null>): Promise<QueryResult>;
 
   /**
    * format spell

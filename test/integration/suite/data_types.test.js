@@ -230,19 +230,18 @@ describe('=> Data Types - INTEGER', function() {
       await assert.doesNotReject(async () => {
         await Note.where({ word_count: [ 'foo' ] });
         return true;
-      });
+      }, /invalid integer/i);
     }
     if (Bone.driver.type === 'sqlite') {
       await assert.doesNotReject(async () => {
         const note1 = await Note.create({ word_count: 'foo' });
         assert.equal(note1.word_count, 'foo');
-      });
+      }, /invalid integer/i);
     } else {
       await assert.rejects(async function() {
         await Note.create({ word_count: 'foo' });
       }, /invalid integer: foo/i);
     }
-
   });
 });
 

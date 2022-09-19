@@ -1,7 +1,7 @@
 import DataTypes, { AbstractDataType, DataType } from "../data_types";
 import { 
   Pool, Literal, WhereConditions,
-  Collection, ResultSet, InstanceValues, OrderOptions,
+  Collection, ResultSet, OrderOptions,
   QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, 
   GeneratorReturnType,
 } from './common';
@@ -104,7 +104,7 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: Values<T>, options?: QueryOptions): Promise<InstanceType<T>>;
+  static create<T extends typeof AbstractBone>(this: T, values: Values<InstanceType<T>> & Record<string, any>, options?: QueryOptions): Promise<InstanceType<T>>;
 
   /**
    * INSERT or UPDATE rows
@@ -185,7 +185,7 @@ export class AbstractBone {
    * Bone.group('foo')
    * Bone.group('MONTH(createdAt)')
    */
-  static group<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T, ResultSet>;
+  static group<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T, ResultSet<T>>;
 
   /**
    * Set ORDER fields
@@ -197,10 +197,10 @@ export class AbstractBone {
   static order<T extends typeof AbstractBone>(this: T, name: string, order?: 'desc' | 'asc'): Spell<T>;
   static order<T extends typeof AbstractBone>(this: T, opts: OrderOptions<T>): Spell<T>;
 
-  static count<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet | number>;
-  static average<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet | number>;
-  static minimum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet | number>;
-  static maximum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet | number>;
+  static count<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static average<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static minimum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static maximum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
 
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
@@ -344,7 +344,7 @@ export class AbstractBone {
    * post.toJSON()  // => { id: 1, ... }
    * @return {Object}
    */
-  toJSON(): InstanceValues<this>;
+  toJSON(): Values<this>;
 
   /**
    * This is the loyal twin of {@link Bone#toJSON} because when generating the result object, the raw values of attributes are used, instead of the values returned by custom getters (if any).
@@ -355,5 +355,5 @@ export class AbstractBone {
    * post.toObject()  // => { id: 1, ... }
    * @return {Object}
    */
-  toObject(): InstanceValues<this>;
+  toObject(): Values<this>;
 }

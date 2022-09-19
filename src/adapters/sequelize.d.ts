@@ -128,8 +128,8 @@ export class SequelizeBone extends AbstractBone {
    */
   static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<Values<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
-  static count<T extends typeof SequelizeBone>(this: T, name?: string): Spell<T, ResultSet | number>;
-  static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet | number>;
+  static count<T extends typeof SequelizeBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
 
   static decrement<T extends typeof SequelizeBone>(
     this: T,
