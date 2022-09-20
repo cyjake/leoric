@@ -1,3 +1,12 @@
+2.8.4 / 2022-09-20
+==================
+
+## What's Changed
+* fix: Literal type should not contain `object` & ResultSet should be derived from instance values by @cyjake in https://github.com/cyjake/leoric/pull/345
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.3...v2.8.4
+
 2.8.3 / 2022-09-15
 ==================
 
