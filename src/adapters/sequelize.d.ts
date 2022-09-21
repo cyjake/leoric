@@ -182,7 +182,7 @@ export class SequelizeBone extends AbstractBone {
   set(key: string, value: Literal | Literal[]): void;
   get(key?: string): Literal | { [key: string]: Literal };
   setDataValue(key: string, value: Literal | Literal[]): void;
-  getDataValue(key?: string): Literal | { [key: string]: Literal };
+  getDataValue<T = Literal | { [key: string]: Literal }>(key?: string): T;
   previous(key?: string): Literal | Literal[] | { [key: string]: Literal | Literal[] };
   isSoftDeleted(): boolean;
 
