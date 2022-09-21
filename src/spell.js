@@ -165,7 +165,11 @@ function joinOnConditions(spell, BaseModel, baseName, refName, { where, associat
   };
   if (!where) where = association.where;
   if (where) {
-    const whereConditions = walkExpr(parseConditions(BaseModel, where)[0], node => {
+    const whereConditions = parseConditions(BaseModel, where).reduce((result, condition) => {
+      if (!result) return condition;
+      return { type: 'op', name: 'and', args: [ result, condition ] };
+    });
+    walkExpr(whereConditions, node => {
       if (node.type == 'id') node.qualifiers = [refName];
     });
     return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] };

@@ -36,8 +36,14 @@ export interface Connection {
    */
   query(
     query: string,
-    values: Array<Literal | Literal[]>,
+    values?: Array<Literal | Literal[]>,
   ): Promise<QueryResult>;
+
+  query(
+    query: string,
+    values?: Array<Literal | Literal[]>,
+    callback?: (err: Error, result: QueryResult) => void,
+  ): void
 }
 
 export declare class Pool {

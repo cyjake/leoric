@@ -95,4 +95,21 @@ describe('=> Realm (TypeScript)', function () {
       await realm.query('SELECT * FROM users', [], { model: realm.models.User });
     });
   });
+
+  describe('realm.transaction({ connection })', async function() {
+    it('should return whatever the callback returns', async function() {
+      const result = await realm.transaction(async ({ connection }) => {
+        return await realm.query('SELECT 1');
+      });
+      assert.ok(Array.isArray(result.rows));
+    });
+
+    it('should accept generator functions as callback too', async function() {
+      const result = await realm.transaction(function* () {
+        yield 1;
+        return 2;
+      });
+      assert.equal(result, 2);
+    });
+  });
 });
