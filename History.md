@@ -1,3 +1,13 @@
+2.8.5 / 2022-09-21
+==================
+
+## What's Changed
+* fix: deletedAt should always be checked when associating models by @cyjake in https://github.com/cyjake/leoric/pull/347
+* fix: generic type for getDataValue by @vagusX in https://github.com/cyjake/leoric/pull/346
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.4...v2.8.5
+
 2.8.4 / 2022-09-20
 ==================
 
