@@ -118,7 +118,8 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('bone.getDataValue(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
-      assert.equal(post.getDataValue('title'), 'Cain');
+      const title = post.getDataValue('title');
+      assert.equal(title, 'Cain');
     });
 
     it('bone.setDataValue(name, value)', async function() {
@@ -219,7 +220,8 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('bone.dataValues', () => {
       const post = Post.build({ title: 'Yhorm' });
-      assert.deepEqual(post.dataValues, post.getDataValue());
+      const value = post.getDataValue();
+      assert.deepEqual(post.dataValues, value);
       assert.ok(Object.keys(post.dataValues).length);
     });
   });
