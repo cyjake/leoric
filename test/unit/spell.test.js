@@ -500,7 +500,7 @@ describe('=> Spell', function() {
   it('where in Spell', function() {
     assert.equal(
       Post.where({ id: TagMap.select('targetId').where({ tagId: 1 }) }).toString(),
-      'SELECT * FROM `articles` WHERE `id` IN (SELECT `target_id` FROM `tag_maps` WHERE `tag_id` = 1) AND `gmt_deleted` IS NULL'
+      'SELECT * FROM `articles` WHERE `id` IN (SELECT `target_id` FROM `tag_maps` WHERE `tag_id` = 1 AND `gmt_deleted` IS NULL) AND `gmt_deleted` IS NULL'
     );
   });
 

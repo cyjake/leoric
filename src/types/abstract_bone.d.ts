@@ -215,8 +215,8 @@ export class AbstractBone {
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
    * });
    */
-  static transaction<T extends (connection: Connection) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
-  static transaction<T extends (connection: Connection) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
+  static transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
+  static transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
   
   static describe(): Promise<{[key: string]: any[]}>;
 
