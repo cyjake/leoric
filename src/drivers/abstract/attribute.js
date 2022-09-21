@@ -131,7 +131,7 @@ class Attribute {
 
   equals(columnInfo) {
     if (!columnInfo) return false;
-    const props = [ 'allowNull', 'dataType', 'primaryKey' ];
+    const props = [ 'allowNull', 'dataType', 'defaultValue', 'primaryKey' ];
     for (const prop of props) {
       // SQLite has default value as string even if data type is integer
       if (this[prop] != columnInfo[prop]) {

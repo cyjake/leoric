@@ -1016,6 +1016,9 @@ class Bone {
       if (columnInfo && attribute.type instanceof DataTypes.DATE && attribute.type.precision == null) {
         attribute.type.precision = columnInfo.datetimePrecision;
       }
+      // if (columnInfo && columnInfo.defaultValue != null && attribute.defaultValue === undefined) {
+      //   attribute.defaultValue = columnInfo.defaultValue;
+      // }
     }
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
@@ -1263,10 +1266,8 @@ class Bone {
       throw new Error(`unable to use virtual attribute ${opts.foreignKey} as foreign key in model ${Model.name}`);
     }
 
-    const { deletedAt } = this.timestamps;
-    if (Model.attributes[deletedAt] && !opts.where) {
-      opts.where = { [deletedAt]: null };
-    }
+    const { deletedAt } = Model.timestamps;
+    if (Model.attributes[deletedAt]) opts.where = { [deletedAt]: null, ...opts.where };
     this.associations[name] = { ...opts, Model };
   }
 
