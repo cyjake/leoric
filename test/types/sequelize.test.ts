@@ -118,7 +118,7 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('bone.getDataValue(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
-      const title = post.getDataValue<string>('title');
+      const title = post.getDataValue('title');
       assert.equal(title, 'Cain');
     });
 

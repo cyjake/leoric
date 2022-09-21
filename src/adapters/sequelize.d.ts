@@ -1,5 +1,5 @@
-import { 
-  Attributes, Literal, OperatorCondition, 
+import {
+  Attributes, Literal, OperatorCondition,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
   QueryOptions, OrderOptions, QueryResult
@@ -181,8 +181,9 @@ export class SequelizeBone extends AbstractBone {
   where(): { [key: string]:  number | bigint | string };
   set(key: string, value: Literal | Literal[]): void;
   get(key?: string): Literal | { [key: string]: Literal };
-  setDataValue(key: string, value: Literal | Literal[]): void;
-  getDataValue<T = Literal | { [key: string]: Literal }>(key?: string): T;
+  setDataValue<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+  getDataValue<T>(this: T): T;
+  getDataValue<T, Key extends keyof T>(this: T, key: Key): T[Key];
   previous(key?: string): Literal | Literal[] | { [key: string]: Literal | Literal[] };
   isSoftDeleted(): boolean;
 
