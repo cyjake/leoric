@@ -11,6 +11,8 @@ const sequelize = require('./adapters/sequelize');
 const Raw = require('./raw');
 const { LEGACY_TIMESTAMP_MAP } = require('./constants');
 
+const SequelizeBone = sequelize(Bone);
+
 /**
  *
  * @typedef {Object} QueryResult
@@ -91,10 +93,13 @@ async function loadModels(Spine, models, opts) {
 }
 
 function createSpine(opts) {
-  if (opts.Bone && opts.Bone.prototype instanceof Bone) return opts.Bone;
-  if (opts.sequelize) return sequelize(Bone);
-  if (opts.subclass !== true) return Bone;
-  return class Spine extends Bone {};
+  let Model = Bone;
+  if (opts.Bone && opts.Bone.prototype instanceof Bone) {
+    Model = opts.Bone;
+  } else if (opts.sequelize) {
+    Model = SequelizeBone;
+  }
+  return opts.subclass === true ? class Spine extends Model {} : Model;
 }
 
 const rReplacementKey = /\s:(\w+)\b/g;
@@ -267,6 +272,8 @@ class Realm {
   escape(value) {
     return this.driver.escape(value);
   }
+
+  static SequelizeBone = SequelizeBone;
 }
 
 module.exports = Realm;
