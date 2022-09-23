@@ -5,7 +5,7 @@ const { Bone, DataTypes, connect, default: Realm } = require('../..');
 const expect = require('expect.js');
 
 const {
-  TINYINT, MEDIUMINT, BIGINT,
+  TINYINT, MEDIUMINT, BIGINT, INTEGER,
   STRING,
   DATE, VIRTUAL,
 } = DataTypes;

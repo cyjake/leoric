@@ -137,7 +137,7 @@ class Attribute {
       const target = columnInfo[prop];
       if (prop === 'dataType') {
         if (source === 'integer' && target === 'int') continue;
-        if (Object.values(LENGTH_VARIANTS).includes(this.type.dataLength)) {
+        if (source !== target && Object.values(LENGTH_VARIANTS).includes(this.type.dataLength)) {
           source = `${this.type.dataLength}${source}`;
         }
       } else if (prop === 'defaultValue') {

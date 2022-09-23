@@ -15,9 +15,9 @@ describe('=> Attribute', function() {
       const attribute = new Attribute('price', {
         type: INTEGER,
       });
-      assert.ok(attribute.equals({ 
-        dataType: 'int', 
-        allowNull: true, 
+      assert.ok(attribute.equals({
+        dataType: 'int',
+        allowNull: true,
         primaryKey: false,
       }));
     });
@@ -26,9 +26,9 @@ describe('=> Attribute', function() {
       const attribute = new Attribute('content', {
         type: new TEXT(LENGTH_VARIANTS.long),
       });
-      assert.ok(attribute.equals({ 
-        dataType: 'longtext', 
-        allowNull: true, 
+      assert.ok(attribute.equals({
+        dataType: 'longtext',
+        allowNull: true,
         primaryKey: false,
      }));
     });
