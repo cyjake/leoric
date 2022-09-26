@@ -241,8 +241,8 @@ export class AbstractBone {
    * bone.attribute('foo');     // => 1
    * bone.attribute('foo', 2);  // => bone
    */
-  attribute(name: string, value: Literal): void;
-  attribute(name: string): Literal;
+  attribute<T, Key extends keyof T>(this: T, name: Key, value: T[Key]): void;
+  attribute<T, Key extends keyof T>(this: T, name: Key): T[Key];
 
   /**
    * Get the original attribute value.

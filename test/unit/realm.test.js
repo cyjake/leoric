@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const path = require('path');
 const Realm = require('../../index');
-const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver } = Realm;
+const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver, SequelizeBone } = Realm;
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -55,6 +55,7 @@ describe('=> Realm', () => {
       const realm = new Realm({ sequelize: true });
       const { Bone: Spine } = realm;
       assert.ok(typeof Spine.prototype.setDataValue === 'function');
+      assert.equal(Spine, SequelizeBone);
     });
 
     it('should accept opts.Bone if it is subclass of Bone', async function() {

@@ -52,7 +52,6 @@ Object.assign(Realm, {
   connect,
   disconnect,
   Bone,
-  SequelizeBone: sequelize(Bone),
   Collection,
   DataTypes,
   Logger,

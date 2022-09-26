@@ -1016,9 +1016,6 @@ class Bone {
       if (columnInfo && attribute.type instanceof DataTypes.DATE && attribute.type.precision == null) {
         attribute.type.precision = columnInfo.datetimePrecision;
       }
-      // if (columnInfo && columnInfo.defaultValue != null && attribute.defaultValue === undefined) {
-      //   attribute.defaultValue = columnInfo.defaultValue;
-      // }
     }
 
     const primaryKey = Object.keys(attributes).find(key => attributes[key].primaryKey);
@@ -1032,6 +1029,7 @@ class Bone {
       }
     }
     for (const name in attributes) this.loadAttribute(name);
+    const diff = compare(attributes, columnMap);
 
     Object.defineProperties(this, looseReadonly({
       timestamps,
@@ -1041,11 +1039,11 @@ class Bone {
       attributeMap,
       associations,
       tableAlias,
-      synchronized: Object.keys(compare(attributes, columnMap)).length === 0,
+      synchronized: Object.keys(diff).length === 0,
     }));
 
     if (!this.synchronized) {
-      debug('[load] %s not fully synchronized with %s', this.name, this.table);
+      debug('[load] %s `%s` out of sync %j', this.name, this.table, Object.keys(diff));
     }
 
     for (const hookName of hookNames) {
