@@ -31,7 +31,7 @@ describe('=> Basics (TypeScript)', function() {
 
     @Column()
     get thumb(): string {
-      return this.attribute('thumb') as string;
+      return this.attribute('thumb');
     };
 
     set thumb(value: string) {
