@@ -61,7 +61,7 @@ export interface QueryOptions {
   hint?: CommonHintsArgs;
   transaction?: Connection | {
     connection: Connection
-  };
+  } | null;
 }
 
 export type BulkCreateOptions = QueryOptions & {
@@ -175,7 +175,7 @@ export type WhereConditions<T extends typeof AbstractBone> = {
 // https://stackoverflow.com/a/68077021/179691
 export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
-export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function>>>;
+export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';

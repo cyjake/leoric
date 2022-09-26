@@ -2,7 +2,7 @@ import {
   Attributes, Literal, OperatorCondition,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
-  QueryOptions, OrderOptions, QueryResult
+  QueryOptions, OrderOptions, QueryResult, Values as CommonValues,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
@@ -21,12 +21,17 @@ interface BaseSequelizeConditions<T extends typeof SequelizeBone> extends QueryO
   where?: WhereConditions<T>;
   order?: OrderOptions<T>;
   limit?: number;
-  attributes?: string | Raw | Array<[keyof Extract<InstanceType<T>, Literal>] | string | Raw> | [keyof Extract<InstanceType<T>, Literal>];
+  attributes?: string | Raw | Array<[keyof Extract<CommonValues<InstanceType<T>>, Literal>] | string | Raw> | [keyof Extract<CommonValues<InstanceType<T>>, Literal>];
   offset?: number;
 }
 
 type SequelizeUpdateOptions<T extends typeof SequelizeBone> = BaseSequelizeConditions<T> & {
-  fields?: string[];
+  fields?: Array<[keyof Extract<CommonValues<InstanceType<T>>, Literal>] | string | Raw> | [keyof Extract<CommonValues<InstanceType<T>>, Literal>];
+}
+
+interface SequelizeInstanceUpdateOptions<T extends SequelizeBone> extends QueryOptions {
+  attributes?: string | Raw | Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw> | [keyof Extract<CommonValues<T>, Literal>];
+  fields?: Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw> | [keyof Extract<CommonValues<T>, Literal>];
 }
 
 interface SequelizeConditions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
@@ -179,8 +184,8 @@ export class SequelizeBone extends AbstractBone {
   get dataValues(): { [key: string]: Literal };
 
   where(): { [key: string]:  number | bigint | string };
-  set(key: string, value: Literal | Literal[]): void;
-  get(key?: string): Literal | { [key: string]: Literal };
+  set<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+  get<T, Key extends keyof T>(this: T, key?: Key): T[Key];
   setDataValue<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
   getDataValue<T>(this: T): T;
   getDataValue<T, Key extends keyof T>(this: T, key: Key): T[Key];
@@ -190,6 +195,7 @@ export class SequelizeBone extends AbstractBone {
   increment(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   decrement(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   destroy(options?: SequelizeDestroyOptions): Promise<this| number>;
+  update<T = this>(this: T, changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
 }
 
 export const sequelize: (Bone: AbstractBone) => typeof SequelizeBone;
