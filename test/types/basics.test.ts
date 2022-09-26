@@ -100,6 +100,15 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.changed(), false);
       assert.equal(post.changed('title'), false);
     });
+
+    it('bone.attributeWas(name)',async () => {
+      const post = new Post({
+        title: 'Yhorm',
+      });
+      await post.save();
+      post.attribute('title', 'Cain');
+      assert.equal(post.attributeWas('title'), 'Yhorm');
+    });
   });
 
   describe('=> Accessors', function() {
@@ -240,10 +249,12 @@ describe('=> Basics (TypeScript)', function() {
     it('post.update()', async function() {
       const post = await Post.create({ title: 'Tyrael' });
       assert.equal(post.title, 'Tyrael');
-      const result = await post.update({ title: 'Stranger' });
+      let result = await post.update({ title: 'Stranger' });
       assert.equal(result, 1);
       await post.reload();
       assert.equal(post.title, 'Stranger');
+      result = await post.update({});
+      assert.equal(result, 0);
     });
 
     it('spell.increment()', async function() {

@@ -249,7 +249,7 @@ export class AbstractBone {
    * @example
    * bone.attributeWas('foo')  // => 1
    */
-  attributeWas(name: string): Literal;
+  attributeWas<T, Key extends keyof Values<T>>(this: T, key: Key): T[Key];
 
   /**
    * See if attribute has been changed or not.
@@ -316,7 +316,7 @@ export class AbstractBone {
    * @param changes data changes
    * @param opts query options
    */
-  update(changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]: Literal }, opts?: QueryOptions): Promise<number>;
+  update(changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: QueryOptions): Promise<number>;
 
   /**
    * create instance

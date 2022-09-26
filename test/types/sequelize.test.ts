@@ -1300,6 +1300,13 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(result, 1);
       await post.reload();
       assert.equal(post.title, 'Stranger');
+      const result1 = await post.update({ title: 'Stranger', content: 'Yhorm' }, {
+        fields: [ 'content' ],
+      });
+      assert.equal(result1, 1);
+      await post.reload();
+      assert.equal(post.title, 'Stranger');
+      assert.equal(post.content, 'Yhorm');
     });
 
     it('spell.increment()', async function() {
@@ -1388,5 +1395,16 @@ describe('=> sequelize (TypeScript)', function() {
     assert(Like.attributes.userId);
     Like.removeAttribute('userId');
     assert(Like.attributes.userId == null);
+  });
+
+  it('transaction support pass null', async function() {
+    const post = await Post.create({ title: 'By three they come' }, { transaction: null });
+    const result = await Post.find({
+      where: {
+        title: 'By three they come',
+      },
+      transaction: null,
+    });
+    assert.equal(result.id, post.id);
   });
 });
