@@ -73,6 +73,13 @@ class STRING extends DataType {
   }
 }
 
+class CHAR extends STRING {
+  constructor(dataLength: number = 255) {
+    super(dataLength);
+    this.dataType = 'char';
+  }
+}
+
 class BINARY extends DataType {
   constructor(dataLength = 255) {
     super();
@@ -466,6 +473,7 @@ class VIRTUAL extends DataType {
 }
 
 const AllDataTypes = {
+  CHAR,
   STRING,
   TINYINT,
   SMALLINT,
@@ -488,6 +496,7 @@ const AllDataTypes = {
 export type DATA_TYPE<T> = AbstractDataType<T> & T;
 
 class DataTypes {
+  static CHAR: DATA_TYPE<CHAR> = CHAR as any;
   static STRING: DATA_TYPE<STRING> = STRING as any;
   static TINYINT: DATA_TYPE<TINYINT> = TINYINT as any;
   static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as any;
@@ -508,7 +517,7 @@ class DataTypes {
 
   static findType(columnType: string): DataTypes {
     const {
-      STRING, TEXT, DATE, DATEONLY,
+      CHAR, STRING, TEXT, DATE, DATEONLY,
       TINYINT, SMALLINT, MEDIUMINT, INTEGER, 
       BIGINT, DECIMAL, BOOLEAN,
       BINARY, VARBINARY, BLOB,
@@ -525,8 +534,9 @@ class DataTypes {
     }
   
     switch (dataType) {
-      case 'varchar':
       case 'char':
+        return new CHAR(...params);
+      case 'varchar':
         return new STRING(...params);
       // longtext is only for MySQL
       case 'longtext':

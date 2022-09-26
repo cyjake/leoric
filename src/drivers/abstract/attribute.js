@@ -1,8 +1,7 @@
 'use strict';
 
-const debug = require('debug')('leoric');
-
 const { snakeCase } = require('../../utils/string');
+const { LENGTH_VARIANTS } = require('../../data_types');
 
 /**
  * Find the corresponding JavaScript type of the type in database.
@@ -79,6 +78,7 @@ function createType(DataTypes, params) {
     case 'CHAR':
     case 'VARCHAR':
     case 'STRING':
+    case 'TEXT':
       return new DataType(type.dataLength);
     default:
       return new DataType();
@@ -133,15 +133,18 @@ class Attribute {
     if (!columnInfo) return false;
     const props = [ 'allowNull', 'dataType', 'defaultValue', 'primaryKey' ];
     for (const prop of props) {
-      // SQLite has default value as string even if data type is integer
-      if (this[prop] != columnInfo[prop]) {
-        debug('[attribute] [%s] %s not equal (defined: %s, actual: %s)',
-          this.columnName,
-          prop,
-          this[prop],
-          columnInfo[prop]);
-        return false;
+      let source = this[prop];
+      const target = columnInfo[prop];
+      if (prop === 'dataType') {
+        if (source === 'integer' && target === 'int') continue;
+        if (source !== target && Object.values(LENGTH_VARIANTS).includes(this.type.dataLength)) {
+          source = `${this.type.dataLength}${source}`;
+        }
+      } else if (prop === 'defaultValue') {
+        if (source === null && target === 'CURRENT_TIMESTAMP') continue;
       }
+      // SQLite has default value as string even if data type is integer
+      if (source != target) return false;
     }
     return true;
   }
