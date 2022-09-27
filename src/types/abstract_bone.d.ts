@@ -241,15 +241,15 @@ export class AbstractBone {
    * bone.attribute('foo');     // => 1
    * bone.attribute('foo', 2);  // => bone
    */
-  attribute<T, Key extends keyof T>(this: T, name: Key, value: T[Key]): void;
-  attribute<T, Key extends keyof T>(this: T, name: Key): T[Key];
+  attribute<T, Key extends keyof T>(this: T, name: Key, value: Literal): void;
+  attribute<T, Key extends keyof T, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
 
   /**
    * Get the original attribute value.
    * @example
    * bone.attributeWas('foo')  // => 1
    */
-  attributeWas<T, Key extends keyof Values<T>>(this: T, key: Key): T[Key];
+  attributeWas<T, Key extends keyof Values<T>, U extends T[Key]>(this: T, key: Key): U extends Literal ? U : Literal;
 
   /**
    * See if attribute has been changed or not.

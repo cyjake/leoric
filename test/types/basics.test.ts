@@ -48,7 +48,20 @@ describe('=> Basics (TypeScript)', function() {
     summary: string;
 
     @Column(TEXT)
-    settings: string;
+    get settings(): Record<string, any> {
+      const text = this.attribute('settings') as string;
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }
+
+    set settings(value: string | Record<string, any>) {
+      if (typeof value !== 'string') value = JSON.stringify(value);
+      this.attribute('settings', value);
+    }
 
     @Column()
     wordCount: number;
@@ -81,12 +94,49 @@ describe('=> Basics (TypeScript)', function() {
     it('bone.attribute(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
       assert.equal(post.attribute('title'), 'Cain');
+      assert.equal(post.attributeWas('title'), 'Cain');
+      assert.equal(post.attribute('settings'), null);
     });
+
+    it('bone.attribute(name) type casting', async function() {
+      class Article extends Bone {
+        @Column(DataTypes.TEXT)
+        get settings(): Record<string, any> {
+          try {
+            // inferred type is Record<string, any>, fallback to Literal
+            return JSON.parse(this.attribute('settings') as string);
+          } catch {
+            return null;
+          }
+        }
+
+        @Column()
+        get isPrivate(): boolean {
+          return Boolean(this.attribute('isPrivate'));
+        }
+
+        @Column(DataTypes.TEXT)
+        get callback(): () => void {
+          // inferred type is Function, fallback to Literal
+          return eval(this.attribute('callback') as string);
+        }
+      }
+      const article = new Article({});
+      await Article.sync({});
+      article.attribute('settings', '{"bar":2}');
+      article.attribute('isPrivate', '1');
+      article.attribute('callback', '() => 1');
+      assert.deepEqual(article.settings, { bar: 2 });
+      assert.equal(article.isPrivate, true);
+      assert.equal(article.callback(), 1);
+    })
 
     it('bone.attribute(name, value)', async function() {
       const post = new Post({});
       post.attribute('title', 'Cain');
+      post.attribute('settings', '{"foo":1}');
       assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.settings, { foo: 1 });
     });
 
     it('bone.changed()', async function() {
