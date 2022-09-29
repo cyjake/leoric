@@ -146,19 +146,21 @@ export class Raw {
   type: 'raw';
 }
 
-export type SetOptions<T extends typeof AbstractBone> = { 
-  [key: string]: Literal
-} | {
+export type SetOptions<T extends typeof AbstractBone> = {
   [Property in keyof Extract<InstanceType<T>, Literal>]: Literal
+} | { 
+  [key: string]: Literal
 };
 
 export type WithOptions = {
   [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
-type OrderOptions<T extends typeof AbstractBone> = { 
-  [Property in keyof Extract<InstanceType<T>, Literal>]: 'desc' | 'asc'
-} | { [name: string]: 'desc' | 'asc' } | Array<string | string[] | Raw> | string | Raw;
+type OrderOptions<T extends typeof AbstractBone> = {
+  [key in keyof Extract<InstanceType<T>, Literal>]?: 'desc' | 'asc'
+} | [ BoneColumns<T>, 'desc' | 'asc' ] 
+| Array<BoneColumns<T> | [ BoneColumns<T>, 'desc' | 'asc' ] | Raw | string>
+| string | Raw;
 
 export class Collection<T extends AbstractBone> extends Array<T> {
   save(): Promise<void>;
@@ -176,6 +178,10 @@ export type WhereConditions<T extends typeof AbstractBone> = {
 export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
 export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
+
+export type BoneColumns<T extends typeof AbstractBone, Key extends keyof InstanceType<T> = keyof Values<InstanceType<T>>> = Key;
+
+export type InstanceColumns<T = typeof AbstractBone, Key extends keyof T = keyof Values<T>> = Key;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';

@@ -2,7 +2,7 @@ import {
   Literal, command, Raw, Connection,
   ResultSet, QueryResult,
   QueryOptions, SetOptions, WithOptions,
-  Collection, WhereConditions, OrderOptions,
+  Collection, WhereConditions, OrderOptions, BoneColumns,
 } from './types/common';
 import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
@@ -134,15 +134,27 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   $limit(rowCount: number): Spell<T, U>;
   limit(rowCount: number): Spell<T, U>;
 
+  count(name?: BoneColumns<T>): Spell<T, Extract<U, ResultSet<T> | number>>;
   count(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  average(name?: BoneColumns<T>): Spell<T, Extract<U, ResultSet<T> | number>>;
   average(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  minimum(name?: BoneColumns<T>): Spell<T, Extract<U, ResultSet<T> | number>>;
   minimum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  maximum(name?: BoneColumns<T>): Spell<T, Extract<U, ResultSet<T> | number>>;
   maximum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  sum(name?: BoneColumns<T>): Spell<T, Extract<U, ResultSet<T> | number>>;
   sum(name?: string): Spell<T, Extract<U, ResultSet<T> | number>>;
 
   batch(size?: number): AsyncIterable<T>;
 
+  increment(name: BoneColumns<T>, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
   increment(name: string, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
+
+  decrement(name: BoneColumns<T>, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
   decrement(name: string, by?: number, options?: QueryOptions): Spell<T, QueryResult>;
 
   toSqlString(): string;

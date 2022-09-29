@@ -4,7 +4,7 @@ const sinon = require('sinon');
 import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../..';
 
 describe('=> sequelize (TypeScript)', function() {
-  const { TEXT, STRING } = DataTypes;
+  const { TEXT, STRING, VIRTUAL } = DataTypes;
   class Post extends SequelizeBone {
     static table = 'articles';
 
@@ -50,6 +50,15 @@ describe('=> sequelize (TypeScript)', function() {
       defaultValue: 0,
     })
     wordCount: number;
+
+    @Column(VIRTUAL)
+    get virtualField() {
+      return this.getDataValue('content').toLowerCase();
+    }
+
+    set virtualField(v: string) {
+      this.setDataValue('content', v.toUpperCase());
+    }
   }
 
   class Book extends SequelizeBone {
@@ -74,7 +83,10 @@ describe('=> sequelize (TypeScript)', function() {
     price: number;
   }
 
-  class Like extends SequelizeBone {}
+  class Like extends SequelizeBone {
+    @Column()
+    userId: number;
+  }
 
   before(async function() {
     Bone.driver = null;
@@ -335,6 +347,7 @@ describe('=> sequelize (TypeScript)', function() {
         order: 'createdAt desc, id desc',
         limit: 1,
       });
+
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
   

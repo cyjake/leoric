@@ -71,6 +71,11 @@ describe('=> Basics (TypeScript)', function() {
       return this.wordCount <= 0;
     }
 
+    @Column(DataTypes.VIRTUAL)
+    get shouldBeRemove(): boolean {
+      return this.wordCount <= 0;
+    }
+
     nodes: unknown;
   }
 
@@ -91,6 +96,15 @@ describe('=> Basics (TypeScript)', function() {
   });
 
   describe('=> Attributes', function() {
+    it('Bone.renameAttribute', () => {
+      Post.renameAttribute('shouldBeRemove', 'newName');
+      assert.ok(Post.attributes['newName']);
+      assert.ok(!Post.attributes['shouldBeRemove']);
+      Post.renameAttribute('newName', 'shouldBeRemove');
+      assert.ok(Post.attributes['shouldBeRemove']);
+      assert.ok(!Post.attributes['newName']);
+    });
+
     it('bone.attribute(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
       assert.equal(post.attribute('title'), 'Cain');
@@ -151,7 +165,44 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.changed('title'), false);
     });
 
-    it('bone.attributeWas(name)',async () => {
+    it('bone.previousChanged()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.previousChanged(), false);
+      assert.equal(post.previousChanged('title'), false);
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.previousChanged().sort(), [ 'id', 'title', 'createdAt', 'updatedAt' ].sort());
+      assert.equal(post.previousChanged('title'), true);
+    });
+
+    it('bone.changes()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.changes(), { title: [ null, 'Cain' ] });
+      assert.deepEqual(post.changes('title'), { title: [ null, 'Cain' ] });
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.changes('title'), {});
+    });
+
+    it('bone.previousChanges()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.previousChanges(), {});
+      assert.deepEqual(post.previousChanges('title'), {});
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.changes('title'), {});
+    });
+
+    it('bone.attributeWas(name)', async () => {
       const post = new Post({
         title: 'Yhorm',
       });
@@ -159,6 +210,16 @@ describe('=> Basics (TypeScript)', function() {
       post.attribute('title', 'Cain');
       assert.equal(post.attributeWas('title'), 'Yhorm');
     });
+
+    it('bone.attributeChanged',async () => {
+      const post = new Post({
+        title: 'Yhorm',
+      });
+      await post.save();
+      assert.equal(post.attributeChanged('title'), false);
+    });
+
+
   });
 
   describe('=> Accessors', function() {

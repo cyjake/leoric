@@ -2,7 +2,7 @@ import {
   Attributes, Literal, OperatorCondition,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
-  QueryOptions, OrderOptions, QueryResult, Values as CommonValues,
+  QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
@@ -21,21 +21,21 @@ interface BaseSequelizeConditions<T extends typeof SequelizeBone> extends QueryO
   where?: WhereConditions<T>;
   order?: OrderOptions<T>;
   limit?: number;
-  attributes?: string | Raw | Array<[keyof Extract<CommonValues<InstanceType<T>>, Literal>] | string | Raw> | [keyof Extract<CommonValues<InstanceType<T>>, Literal>];
+  attributes?: BoneColumns<T> | Array<BoneColumns<T> | string | Raw> | string | Raw;
   offset?: number;
 }
 
 type SequelizeUpdateOptions<T extends typeof SequelizeBone> = BaseSequelizeConditions<T> & {
-  fields?: Array<[keyof Extract<CommonValues<InstanceType<T>>, Literal>] | string | Raw> | [keyof Extract<CommonValues<InstanceType<T>>, Literal>];
+  fields?: BoneColumns<T> | Array<BoneColumns<T> | string | Raw> | string;
 }
 
 interface SequelizeInstanceUpdateOptions<T extends SequelizeBone> extends QueryOptions {
-  attributes?: string | Raw | Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw> | [keyof Extract<CommonValues<T>, Literal>];
+  attributes?: [keyof Extract<CommonValues<T>, Literal>] | string | Raw | Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw>;
   fields?: Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw> | [keyof Extract<CommonValues<T>, Literal>];
 }
 
 interface SequelizeConditions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
-  group?: string | string[] | Raw;
+  group?: BoneColumns<T> | BoneColumns<T>[] | Raw | string;
   having?: WhereConditions<T> | string | { [key:string]: Literal | Literal[] } | Raw;
   include?: string | Raw;
 }
@@ -82,7 +82,7 @@ export class SequelizeBone extends AbstractBone {
 
   static getTableName(): boolean;
 
-  static removeAttribute(name: string): void;
+  static removeAttribute<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): void;
 
   /**
    *
@@ -122,7 +122,8 @@ export class SequelizeBone extends AbstractBone {
    */
   static setScope<T extends typeof SequelizeBone>(this: T, name: (string | ((...args: any[]) => SequelizeConditions<T>) | SequelizeConditions<T> | Array<SequelizeConditions<T>>), ...args: any[]): void;
 
-  static aggregate<T extends typeof SequelizeBone>(this: T, name: string, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
+  static aggregate<T extends typeof SequelizeBone>(this: T, name: BoneColumns<T>, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
+  static aggregate<T extends typeof SequelizeBone>(this: T, name: string | Raw, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
 
   static build<T extends typeof SequelizeBone>(this: T, values: Values<T>, options?: BoneOptions): InstanceType<T>;
 
@@ -133,24 +134,29 @@ export class SequelizeBone extends AbstractBone {
    */
   static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<Values<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
-  static count<T extends typeof SequelizeBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
 
   static decrement<T extends typeof SequelizeBone>(
     this: T,
-    fields: string | Array<string> | { [Property in keyof Extract<InstanceType<T>, Literal>]?: number },
+    fields: { [Property in keyof Extract<InstanceType<T>, Literal>]?: number } | string | Array<BoneColumns<T> | string> ,
     options?: SequelizeConditions<T>
   ): Spell<T, QueryResult>;
 
   static increment<T extends typeof SequelizeBone>(
     this: T,
-    fields: string | Array<string> | { [Property in keyof Extract<InstanceType<T>, Literal>]?: number },
+    fields: { [Property in keyof Extract<InstanceType<T>, Literal>]?: number } | string | Array<BoneColumns<T> | string> ,
     options?: SequelizeConditions<T>
   ): Spell<T, QueryResult>;
 
-  static max<T extends typeof SequelizeBone>(this: T, filed: string, options?: SequelizeConditions<T>): Promise<Literal>;
-  static min<T extends typeof SequelizeBone>(this: T, filed: string, options?: SequelizeConditions<T>): Promise<Literal>;
-  static sum<T extends typeof SequelizeBone>(this: T, filed: string, options?: SequelizeConditions<T>): Promise<Literal>;
+  static max<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
+  static max<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
+
+  static min<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
+  static min<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
+
+  static sum<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
+  static sum<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
 
   static destroy<T extends typeof SequelizeBone>(this: T, options?: DestroyOptions<T>): Promise<Array<number> | number>;
   static bulkDestroy<T extends typeof SequelizeBone>(this: T, options?: DestroyOptions<T>): Spell<T, number>;
@@ -184,18 +190,32 @@ export class SequelizeBone extends AbstractBone {
   get dataValues(): { [key: string]: Literal };
 
   where(): { [key: string]:  number | bigint | string };
+  set<T, Key extends keyof CommonValues<T>>(this: T, key: Key, value: T[Key]): void;
   set<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+
+  get<T, Key extends keyof CommonValues<T>>(this: T, key?: Key): T[Key];
   get<T, Key extends keyof T>(this: T, key?: Key): T[Key];
+
+  setDataValue<T, Key extends keyof CommonValues<T>>(this: T, key: Key, value: T[Key]): void;
   setDataValue<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+
   getDataValue<T>(this: T): T;
+  getDataValue<T, Key extends keyof CommonValues<T>>(this: T, key: Key): T[Key];
   getDataValue<T, Key extends keyof T>(this: T, key: Key): T[Key];
-  previous(key?: string): Literal | Literal[] | { [key: string]: Literal | Literal[] };
+
+  previous<T, Key extends keyof CommonValues<T>>(this: T, key?: Key): Literal | Literal[] | { [Property in keyof Extract<this, Literal>]?: Literal | Literal[] };
+  previous<T, Key extends keyof T>(this: T, key?: Key): Literal | Literal[] | { [Property in keyof Extract<this, Literal>]?: Literal | Literal[] };
+
   isSoftDeleted(): boolean;
 
-  increment(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
-  decrement(field: string | string[] | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
+  increment(field: InstanceColumns<this> | Array<InstanceColumns<this>> | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
+  increment(field: string | Raw | Array<string | Raw>, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
+  decrement(field: InstanceColumns<this> | Array<InstanceColumns<this>> | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
+  decrement(field: string | Raw | Array<string | Raw> , options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   destroy(options?: SequelizeDestroyOptions): Promise<this| number>;
-  update<T = this>(this: T, changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
+  update<T = this>(this: T, changes?: { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
+  update<T = this>(this: T, changes?: { [key: string]: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
+
 }
 
 export const sequelize: (Bone: AbstractBone) => typeof SequelizeBone;

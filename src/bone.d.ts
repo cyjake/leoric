@@ -1,6 +1,6 @@
 import { Spell } from './spell';
 import { AbstractBone } from './types/abstract_bone';
-import { Collection, Literal, QueryOptions, ResultSet, WhereConditions } from './types/common';
+import { BoneColumns, Collection, Literal, QueryOptions, ResultSet, Values, WhereConditions } from './types/common';
 
 export default class Bone extends AbstractBone {
 
@@ -26,6 +26,7 @@ export default class Bone extends AbstractBone {
   static findOne<T extends typeof Bone>(this: T, primaryKey: number | number[] | bigint): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, ): Spell<T, InstanceType<T> | null>;
 
+  static sum<T extends typeof Bone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
 
   /**
@@ -36,12 +37,12 @@ export default class Bone extends AbstractBone {
    * @param conditions query conditions
    * @param opts query options
    */
-  static restore<T extends typeof Bone>(this: T, conditions: Object, opts?: QueryOptions): Spell<T, number>;
+  static restore<T extends typeof Bone>(this: T, conditions: WhereConditions<T>, opts?: QueryOptions): Spell<T, number>;
 
   /**
    * UPDATE rows.
    */
-  static update<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>, values?: Object, opts?: QueryOptions): Spell<T, number>;
+  static update<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>, values?: Values<InstanceType<T>> & Partial<Record<BoneColumns<T>, Literal>>, opts?: QueryOptions): Spell<T, number>;
 
   /**
    * Discard all the applied scopes.
