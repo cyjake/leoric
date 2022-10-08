@@ -65,6 +65,11 @@ export class AbstractBone {
   static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
 
   /**
+   * The actual attribute definitions of the model.
+   */
+  static columnAttributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+
+  /**
    * The schema info of current model.
    */
   static columns: Array<AttributeMeta>;
