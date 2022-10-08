@@ -1,6 +1,6 @@
 import { Spell } from './spell';
 import { AbstractBone } from './types/abstract_bone';
-import { BoneColumns, Collection, Literal, QueryOptions, ResultSet, Values, WhereConditions } from './types/common';
+import { BoneColumns, Collection, Literal, QueryOptions, Raw, ResultSet, Values, WhereConditions } from './types/common';
 
 export default class Bone extends AbstractBone {
 
@@ -27,7 +27,7 @@ export default class Bone extends AbstractBone {
   static findOne<T extends typeof Bone>(this: T, ): Spell<T, InstanceType<T> | null>;
 
   static sum<T extends typeof Bone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
-  static sum<T extends typeof Bone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
+  static sum<T extends typeof Bone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
 
   /**
    * restore rows

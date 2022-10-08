@@ -12,7 +12,7 @@ const { heresql } = require('./src/utils/string');
 const Hint = require('./src/hint');
 const Realm = require('./src/realm');
 const Decorators = require('./src/decorators');
-const Raw = require('./src/raw');
+const Raw = require('./src/raw').default;
 const { MysqlDriver, PostgresDriver, SqliteDriver, AbstractDriver } = require('./src/drivers');
 const { isBone } = require('./src/utils');
 

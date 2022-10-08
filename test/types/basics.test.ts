@@ -1,5 +1,6 @@
 import { strict as assert } from 'assert';
-import Realm, { Bone, Column, DataTypes, connect } from '../..';
+import sinon from 'sinon';
+import Realm, { Bone, Column, DataTypes, connect, Raw } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;
@@ -460,6 +461,53 @@ describe('=> Basics (TypeScript)', function() {
       });
       // tsc should be able to infer that the type of result is number
       assert.equal(result, 1);
+    });
+  });
+
+  describe('Num', () => {
+
+    let clock;
+    before(() => {
+      const date = new Date(2017, 11, 12);
+      const fakeDate = date.getTime();
+      sinon.useFakeTimers(fakeDate);
+    });
+  
+    after(() => {
+      clock?.restore();
+    });
+
+    it('count', () => {
+      assert.equal(Post.count('authorId').toSqlString(), 'SELECT COUNT("author_id") AS "count" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.count(new Raw("DISTINCT(author_id)")).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('average', () => {
+      assert.equal(Post.average('wordCount').toSqlString(), 'SELECT AVG("word_count") AS "average" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.average(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT AVG(DISTINCT(word_count)) AS average FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('minimum', () => {
+      assert.equal(Post.minimum('wordCount').toSqlString(), 'SELECT MIN("word_count") AS "minimum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.minimum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MIN(DISTINCT(word_count)) AS minimum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('maximum', () => {
+      assert.equal(Post.maximum('wordCount').toSqlString(), 'SELECT MAX("word_count") AS "maximum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.maximum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MAX(DISTINCT(word_count)) AS maximum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('sum', () => {
+      assert.equal(Post.sum('wordCount').toSqlString(), 'SELECT SUM("word_count") AS "sum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.sum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT SUM(DISTINCT(word_count)) AS sum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('increment', () => {
+      assert.equal(Post.find().increment('wordCount').toSqlString(), 'UPDATE "articles" SET "word_count" = "word_count" + 1, "gmt_modified" = \'2017-12-12 00:00:00.000\' WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('decrement', () => {
+      assert.equal(Post.find().decrement('wordCount').toSqlString(), 'UPDATE "articles" SET "word_count" = "word_count" - 1, "gmt_modified" = \'2017-12-12 00:00:00.000\' WHERE "gmt_deleted" IS NULL');
     });
   });
 });

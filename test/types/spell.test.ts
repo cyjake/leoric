@@ -1,8 +1,10 @@
 import { strict as assert } from 'assert';
+import sinon from 'sinon';
+
 import { 
   Bone, DataTypes, Column,
   connect, INDEX_HINT_SCOPE_TYPE,
-  INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint
+  INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw
 } from '../..';
 
 describe('=> Spell (TypeScript)', function() {
@@ -168,5 +170,51 @@ describe('=> Spell (TypeScript)', function() {
         'UPDATE /*+ idx_title idx_user_id idx_halo */ `articles` USE INDEX (idx_is) USE INDEX FOR ORDER BY (idx_hello) IGNORE INDEX FOR ORDER BY (idx_haw) SET `title` = \'ssss\' WHERE `id` = 1 AND `gmt_deleted` IS NULL ORDER BY `author_id`'
       );
     });
-  })
+  });
+
+  describe('Num', () => {
+    let clock;
+    before(() => {
+      const date = new Date(2017, 11, 12);
+      const fakeDate = date.getTime();
+      sinon.useFakeTimers(fakeDate);
+    });
+  
+    after(() => {
+      clock?.restore();
+    });
+  
+    it('count', () => {
+      assert.equal(Post.all.count('authorId').toSqlString(), 'SELECT COUNT(`author_id`) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL');
+      assert.equal(Post.all.count(new Raw(`DISTINCT(author_id)`)).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM `articles` WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('average', () => {
+      assert.equal(Post.all.average('word_count').toSqlString(), 'SELECT AVG(`word_count`) AS `average` FROM `articles` WHERE `gmt_deleted` IS NULL');
+      assert.equal(Post.all.average(new Raw(`DISTINCT(word_count)`)).toSqlString(), 'SELECT AVG(DISTINCT(word_count)) AS average FROM `articles` WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('minimum', () => {
+      assert.equal(Post.all.minimum('word_count').toSqlString(), 'SELECT MIN(`word_count`) AS `minimum` FROM `articles` WHERE `gmt_deleted` IS NULL');
+      assert.equal(Post.all.minimum(new Raw(`DISTINCT(word_count)`)).toSqlString(), 'SELECT MIN(DISTINCT(word_count)) AS minimum FROM `articles` WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('maximum', () => {
+      assert.equal(Post.all.maximum('word_count').toSqlString(), 'SELECT MAX(`word_count`) AS `maximum` FROM `articles` WHERE `gmt_deleted` IS NULL');
+      assert.equal(Post.all.maximum(new Raw(`DISTINCT(word_count)`)).toSqlString(), 'SELECT MAX(DISTINCT(word_count)) AS maximum FROM `articles` WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('sum', () => {
+      assert.equal(Post.all.sum('word_count').toSqlString(), 'SELECT SUM(`word_count`) AS `sum` FROM `articles` WHERE `gmt_deleted` IS NULL');
+      assert.equal(Post.all.sum(new Raw(`DISTINCT(word_count)`)).toSqlString(), 'SELECT SUM(DISTINCT(word_count)) AS sum FROM `articles` WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('increment', () => {
+      assert.equal(Post.all.increment('word_count').toSqlString(), 'UPDATE `articles` SET `word_count` = `word_count` + 1, `gmt_modified` = \'2017-12-12 00:00:00.000\' WHERE `gmt_deleted` IS NULL');
+    });
+
+    it('decrement', () => {
+      assert.equal(Post.all.decrement('word_count').toSqlString(), 'UPDATE `articles` SET `word_count` = `word_count` - 1, `gmt_modified` = \'2017-12-12 00:00:00.000\' WHERE `gmt_deleted` IS NULL');
+    });
+  });
 });

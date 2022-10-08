@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const { default: DataTypes } = require('../../src/data_types');
-const Raw = require('../../src/raw');
+const Raw = require('../../src/raw').default;
 const Postgres_DataTypes = require('../../src/drivers/postgres/data_types');
 const SQLite_DataTypes = require('../../src/drivers/sqlite/data_types');
 

@@ -3,7 +3,7 @@ import {
   Pool, Literal, WhereConditions,
   Collection, ResultSet, OrderOptions,
   QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, 
-  GeneratorReturnType, BoneColumns, InstanceColumns,
+  GeneratorReturnType, BoneColumns, InstanceColumns, Raw,
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
@@ -210,11 +210,14 @@ export class AbstractBone {
   static order<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>, order?: 'desc' | 'asc'): Spell<T>;
   static order<T extends typeof AbstractBone>(this: T, opts: OrderOptions<T>): Spell<T>;
 
-  static count<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T> | string): Spell<T, ResultSet<T> | number>;
-  static average<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T> | string): Spell<T, ResultSet<T> | number>;
-  static minimum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T> | string): Spell<T, ResultSet<T> | number>;
-  static maximum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T> | string): Spell<T, ResultSet<T> | number>;
-
+  static count<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static average<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static average<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static minimum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static minimum<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static maximum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static maximum<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */

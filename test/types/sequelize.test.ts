@@ -53,11 +53,11 @@ describe('=> sequelize (TypeScript)', function() {
 
     @Column(VIRTUAL)
     get virtualField() {
-      return this.getDataValue('content').toLowerCase();
+      return this.getDataValue('content')?.toLowerCase();
     }
 
     set virtualField(v: string) {
-      this.setDataValue('content', v.toUpperCase());
+      this.setDataValue('content', v?.toUpperCase());
     }
   }
 
@@ -188,6 +188,7 @@ describe('=> sequelize (TypeScript)', function() {
         settings: null,
         summary: null,
         thumb: null,
+        virtualField: null,
       });
     });
 
@@ -1052,6 +1053,14 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Post.count(), 2);
     });
+
+    it('Model.count(name)', async () => {
+      await Promise.all([
+        Post.create({ title: 'By three they come' }),
+        Post.create({ title: 'By three thy way opens' }),
+      ]);
+      assert.equal(await Post.count('title'), 2);
+    });
   
     it('Model.count({ paranoid: false })', async () => {
       await Promise.all([
@@ -1173,6 +1182,7 @@ describe('=> sequelize (TypeScript)', function() {
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
         await Book.create({ name: 'Book of Cain', price: 10 }),
       ]);
+      Post.find().decrement('authorId')
       const min = await Book.min('price', {
         where: { name: 'Book of Tyrael' },
       });

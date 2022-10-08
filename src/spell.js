@@ -10,7 +10,7 @@ const { parseExprList, parseExpr, walkExpr } = require('./expr');
 const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
-const Raw = require('./raw');
+const Raw = require('./raw').default;
 const { AGGREGATOR_MAP } = require('./constants');
 
 /**
@@ -961,7 +961,11 @@ for (const aggregator in AGGREGATOR_MAP) {
     configurable: true,
     writable: true,
     value: function Spell_aggregator(name = '*') {
-      if (name != '*' && parseExpr(name).type != 'id') {
+      if (name instanceof Raw) {
+        this.$select(Raw.build(`${func.toUpperCase()}(${name}) AS ${aggregator}`));
+        return this
+      }
+      if (name !== '*' && parseExpr(name).type !== 'id') {
         throw new Error(`unexpected operand ${name} for ${func.toUpperCase()}()`);
       }
       this.$select(`${func}(${name}) as ${aggregator}`);

@@ -123,7 +123,7 @@ export class SequelizeBone extends AbstractBone {
   static setScope<T extends typeof SequelizeBone>(this: T, name: (string | ((...args: any[]) => SequelizeConditions<T>) | SequelizeConditions<T> | Array<SequelizeConditions<T>>), ...args: any[]): void;
 
   static aggregate<T extends typeof SequelizeBone>(this: T, name: BoneColumns<T>, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
-  static aggregate<T extends typeof SequelizeBone>(this: T, name: string | Raw, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
+  static aggregate<T extends typeof SequelizeBone>(this: T, name: Raw | '*', func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
 
   static build<T extends typeof SequelizeBone>(this: T, values: Values<T>, options?: BoneOptions): InstanceType<T>;
 
@@ -135,6 +135,7 @@ export class SequelizeBone extends AbstractBone {
   static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<Values<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
   static count<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof SequelizeBone>(this: T, name?: Raw | '*'): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
 
   static decrement<T extends typeof SequelizeBone>(
@@ -150,13 +151,13 @@ export class SequelizeBone extends AbstractBone {
   ): Spell<T, QueryResult>;
 
   static max<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
-  static max<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
+  static max<T extends typeof SequelizeBone>(this: T, field: Raw, options?: SequelizeConditions<T>): Promise<Literal>;
 
   static min<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
-  static min<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
+  static min<T extends typeof SequelizeBone>(this: T, field: Raw, options?: SequelizeConditions<T>): Promise<Literal>;
 
   static sum<T extends typeof SequelizeBone>(this: T, field: BoneColumns<T>, options?: SequelizeConditions<T>): Promise<Literal>;
-  static sum<T extends typeof SequelizeBone>(this: T, field: Raw | string, options?: SequelizeConditions<T>): Promise<Literal>;
+  static sum<T extends typeof SequelizeBone>(this: T, field: Raw, options?: SequelizeConditions<T>): Promise<Literal>;
 
   static destroy<T extends typeof SequelizeBone>(this: T, options?: DestroyOptions<T>): Promise<Array<number> | number>;
   static bulkDestroy<T extends typeof SequelizeBone>(this: T, options?: DestroyOptions<T>): Spell<T, number>;
