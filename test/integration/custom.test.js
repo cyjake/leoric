@@ -9,7 +9,7 @@ const { connect, raw, Bone, disconnect } = require('../..');
 const { checkDefinitions } = require('./helpers');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
-const Raw = require('../../src/raw');
+const Raw = require('../../src/raw').default;
 
 const SqliteDriver = require('../../src/drivers/sqlite');
 

@@ -87,7 +87,9 @@ describe('=> Querying (TypeScript)', function() {
 
   describe('=> Aggregations', function() {
     it('Bone.count()', async function() {
-      const count = await Post.count();
+      let count = await Post.count();
+      assert.equal(count, 0);
+      count = await Post.count('authorId');
       assert.equal(count, 0);
     });
 
@@ -102,7 +104,9 @@ describe('=> Querying (TypeScript)', function() {
     });
 
     it('Bone.where().count()', async function() {
-      const count = await Post.where({ title: 'Leah' }).count();
+      let count = await Post.where({ title: 'Leah' }).count();
+      assert.equal(count, 0);
+      count = await Post.where({ title: 'Leah' }).count('id');
       assert.equal(count, 0);
     });
   });

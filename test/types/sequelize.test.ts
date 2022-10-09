@@ -4,7 +4,7 @@ const sinon = require('sinon');
 import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../..';
 
 describe('=> sequelize (TypeScript)', function() {
-  const { TEXT, STRING } = DataTypes;
+  const { TEXT, STRING, VIRTUAL } = DataTypes;
   class Post extends SequelizeBone {
     static table = 'articles';
 
@@ -50,6 +50,15 @@ describe('=> sequelize (TypeScript)', function() {
       defaultValue: 0,
     })
     wordCount: number;
+
+    @Column(VIRTUAL)
+    get virtualField() {
+      return this.getDataValue('content')?.toLowerCase();
+    }
+
+    set virtualField(v: string) {
+      this.setDataValue('content', v?.toUpperCase());
+    }
   }
 
   class Book extends SequelizeBone {
@@ -74,7 +83,10 @@ describe('=> sequelize (TypeScript)', function() {
     price: number;
   }
 
-  class Like extends SequelizeBone {}
+  class Like extends SequelizeBone {
+    @Column()
+    userId: number;
+  }
 
   before(async function() {
     Bone.driver = null;
@@ -176,6 +188,7 @@ describe('=> sequelize (TypeScript)', function() {
         settings: null,
         summary: null,
         thumb: null,
+        virtualField: null,
       });
     });
 
@@ -335,6 +348,7 @@ describe('=> sequelize (TypeScript)', function() {
         order: 'createdAt desc, id desc',
         limit: 1,
       });
+
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
   
@@ -1039,6 +1053,14 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Post.count(), 2);
     });
+
+    it('Model.count(name)', async () => {
+      await Promise.all([
+        Post.create({ title: 'By three they come' }),
+        Post.create({ title: 'By three thy way opens' }),
+      ]);
+      assert.equal(await Post.count('title'), 2);
+    });
   
     it('Model.count({ paranoid: false })', async () => {
       await Promise.all([
@@ -1160,6 +1182,7 @@ describe('=> sequelize (TypeScript)', function() {
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
         await Book.create({ name: 'Book of Cain', price: 10 }),
       ]);
+      Post.find().decrement('authorId')
       const min = await Book.min('price', {
         where: { name: 'Book of Tyrael' },
       });

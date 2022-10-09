@@ -2,7 +2,7 @@
 
 const { setupSingleHook } = require('../setup_hooks');
 const { compose, isPlainObject } = require('../utils');
-const Raw = require('../raw');
+const Raw = require('../raw').default;
 
 function translateOptions(spell, options) {
   const { attributes, where, group, order, offset, limit, include, having } = options;

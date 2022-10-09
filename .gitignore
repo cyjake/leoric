@@ -9,4 +9,4 @@ test/types/*.js
 test/types/*.map
 src/decorators.js*
 src/data_types.js*
-
+src/raw.js*

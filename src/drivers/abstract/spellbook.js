@@ -4,7 +4,7 @@ const SqlString = require('sqlstring');
 
 const { copyExpr, findExpr, walkExpr } = require('../../expr');
 const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
-const Raw = require('../../raw');
+const Raw = require('../../raw').default;
 
 /**
  * Create a subquery to make sure OFFSET and LIMIT on left table takes effect.

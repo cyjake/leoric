@@ -1,8 +1,6 @@
-'use strict';
-
-const util = require('util');
+import Raw from './raw';
+import util from 'util';
 const invokableFunc = require('./utils/invokable');
-const Raw = require('./raw');
 
 export enum LENGTH_VARIANTS {
   tiny = 'tiny',
@@ -67,7 +65,7 @@ class STRING extends DataType {
     return chunks.join(' ');
   }
 
-  uncast(value: string | typeof Raw | null): string {
+  uncast(value: string | Raw | null): string | Raw {
     if (value == null || value instanceof Raw) return value;
     return '' + value;
   }
@@ -306,13 +304,14 @@ class DATE extends DataType {
     return this._round(value);
   }
 
-  uncast(value: null | typeof Raw | string | Date, _strict?: boolean): string | Date {
+  uncast(value: null | Raw | string | Date | { toDate: () => Date }, _strict?: boolean): string | Date | Raw {
     const originValue = value;
 
-    if (value == null || value instanceof Raw) return value;
-    if (typeof value.toDate === 'function') {
-      value = value.toDate();
-    }
+    // type narrowing doesn't handle `return value` correctly
+    if (value == null) return value as null | undefined;
+    if (value instanceof Raw) return value;
+    // Date | Moment
+    if (typeof value === 'object' && 'toDate' in value) value = value.toDate();
 
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
@@ -324,8 +323,8 @@ class DATE extends DataType {
 
     // 1634611135776
     // '2021-10-15T08:38:43.877Z'
-    if (!(value instanceof Date)) value = new Date(value);
-    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
+    if (!(value instanceof Date)) value = new Date((value as string));
+    if (isNaN((value as any))) throw new Error(util.format('invalid date: %s', originValue));
 
     return this._round(value);
   }

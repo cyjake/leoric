@@ -1,5 +1,6 @@
 import { strict as assert } from 'assert';
-import Realm, { Bone, Column, DataTypes, connect } from '../..';
+import sinon from 'sinon';
+import Realm, { Bone, Column, DataTypes, connect, Raw } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;
@@ -71,6 +72,11 @@ describe('=> Basics (TypeScript)', function() {
       return this.wordCount <= 0;
     }
 
+    @Column(DataTypes.VIRTUAL)
+    get shouldBeRemove(): boolean {
+      return this.wordCount <= 0;
+    }
+
     nodes: unknown;
   }
 
@@ -91,6 +97,15 @@ describe('=> Basics (TypeScript)', function() {
   });
 
   describe('=> Attributes', function() {
+    it('Bone.renameAttribute', () => {
+      Post.renameAttribute('shouldBeRemove', 'newName');
+      assert.ok(Post.attributes['newName']);
+      assert.ok(!Post.attributes['shouldBeRemove']);
+      Post.renameAttribute('newName', 'shouldBeRemove');
+      assert.ok(Post.attributes['shouldBeRemove']);
+      assert.ok(!Post.attributes['newName']);
+    });
+
     it('bone.attribute(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
       assert.equal(post.attribute('title'), 'Cain');
@@ -151,7 +166,44 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.changed('title'), false);
     });
 
-    it('bone.attributeWas(name)',async () => {
+    it('bone.previousChanged()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.previousChanged(), false);
+      assert.equal(post.previousChanged('title'), false);
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.previousChanged().sort(), [ 'id', 'title', 'createdAt', 'updatedAt' ].sort());
+      assert.equal(post.previousChanged('title'), true);
+    });
+
+    it('bone.changes()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.changes(), { title: [ null, 'Cain' ] });
+      assert.deepEqual(post.changes('title'), { title: [ null, 'Cain' ] });
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.changes('title'), {});
+    });
+
+    it('bone.previousChanges()', async function() {
+      const post = new Post({ title: 'Cain' });
+      assert.deepEqual(post.previousChanges(), {});
+      assert.deepEqual(post.previousChanges('title'), {});
+
+      await post.create();
+
+      assert.ok(post.id);
+      assert.equal(post.title, 'Cain');
+      assert.deepEqual(post.changes('title'), {});
+    });
+
+    it('bone.attributeWas(name)', async () => {
       const post = new Post({
         title: 'Yhorm',
       });
@@ -159,6 +211,16 @@ describe('=> Basics (TypeScript)', function() {
       post.attribute('title', 'Cain');
       assert.equal(post.attributeWas('title'), 'Yhorm');
     });
+
+    it('bone.attributeChanged',async () => {
+      const post = new Post({
+        title: 'Yhorm',
+      });
+      await post.save();
+      assert.equal(post.attributeChanged('title'), false);
+    });
+
+
   });
 
   describe('=> Accessors', function() {
@@ -399,6 +461,53 @@ describe('=> Basics (TypeScript)', function() {
       });
       // tsc should be able to infer that the type of result is number
       assert.equal(result, 1);
+    });
+  });
+
+  describe('Num', () => {
+
+    let clock;
+    before(() => {
+      const date = new Date(2017, 11, 12);
+      const fakeDate = date.getTime();
+      sinon.useFakeTimers(fakeDate);
+    });
+  
+    after(() => {
+      clock?.restore();
+    });
+
+    it('count', () => {
+      assert.equal(Post.count('authorId').toSqlString(), 'SELECT COUNT("author_id") AS "count" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.count(new Raw("DISTINCT(author_id)")).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('average', () => {
+      assert.equal(Post.average('wordCount').toSqlString(), 'SELECT AVG("word_count") AS "average" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.average(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT AVG(DISTINCT(word_count)) AS average FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('minimum', () => {
+      assert.equal(Post.minimum('wordCount').toSqlString(), 'SELECT MIN("word_count") AS "minimum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.minimum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MIN(DISTINCT(word_count)) AS minimum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('maximum', () => {
+      assert.equal(Post.maximum('wordCount').toSqlString(), 'SELECT MAX("word_count") AS "maximum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.maximum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MAX(DISTINCT(word_count)) AS maximum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('sum', () => {
+      assert.equal(Post.sum('wordCount').toSqlString(), 'SELECT SUM("word_count") AS "sum" FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.sum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT SUM(DISTINCT(word_count)) AS sum FROM "articles" WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('increment', () => {
+      assert.equal(Post.find().increment('wordCount').toSqlString(), 'UPDATE "articles" SET "word_count" = "word_count" + 1, "gmt_modified" = \'2017-12-12 00:00:00.000\' WHERE "gmt_deleted" IS NULL');
+    });
+
+    it('decrement', () => {
+      assert.equal(Post.find().decrement('wordCount').toSqlString(), 'UPDATE "articles" SET "word_count" = "word_count" - 1, "gmt_modified" = \'2017-12-12 00:00:00.000\' WHERE "gmt_deleted" IS NULL');
     });
   });
 });
