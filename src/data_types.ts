@@ -304,14 +304,14 @@ class DATE extends DataType {
     return this._round(value);
   }
 
-  uncast(value: null | Raw | string | Date, _strict?: boolean): string | Date | Raw {
+  uncast(value: null | Raw | string | Date | { toDate: () => Date }, _strict?: boolean): string | Date | Raw {
     const originValue = value;
 
-    if (value == null || value instanceof Raw) return value;
+    // type narrowing doesn't handle `return value` correctly
+    if (value == null) return value as null | undefined;
+    if (value instanceof Raw) return value;
     // Date | Moment
-    if (typeof (value as any).toDate === 'function') {
-      value = (value as any).toDate();
-    }
+    if (typeof value === 'object' && 'toDate' in value) value = value.toDate();
 
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
