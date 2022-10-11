@@ -80,10 +80,20 @@ describe('=> Realm (TypeScript)', function () {
       await realm.sync({ force: true, alter: true });
     });
 
+    beforeEach(async function() {
+      await realm.models.User.truncate();
+    });
+
     it('values and options should be optional', async function() {
       const result = await realm.query('SELECT * FROM users');
       assert.ok(Array.isArray(result.rows));
       assert.equal(result.rows.length, 0);
+    });
+
+    it('should have the type of rows fallback to Record<string, Literal>[]', async function() {
+      await realm.models.User.create({ name: 'Link' });
+      const { rows } = await realm.query('SELECT * FROM users');
+      assert.equal(rows[0].name, 'Link');
     });
 
     it('should pass on original properties in result', async function() {
