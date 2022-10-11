@@ -356,6 +356,8 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(await Post.findOne({ title: 'Leah' }), null);
       assert.equal((await Post.findOne({ title: 'Cain' }))!.title, 'Cain');
       assert.equal((await Post.findOne({ title: 'Diablo' }))!.title, 'Diablo');
+      await Post.update({ title: 'Diablo' }, { content: null });
+      assert.equal((await Post.findOne({ title: 'Diablo' }))!.content, null);
     });
 
     it('post.update()', async function() {

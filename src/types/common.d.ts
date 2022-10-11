@@ -177,7 +177,9 @@ export type WhereConditions<T extends typeof AbstractBone> = {
 // https://stackoverflow.com/a/68077021/179691
 export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
-export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
+export type NullablePartial<T> = { [P in keyof T]?: T[P] | null };
+
+export type Values<T> = NullablePartial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
 
 export type BoneColumns<T extends typeof AbstractBone, Key extends keyof InstanceType<T> = keyof Values<InstanceType<T>>> = Key;
 

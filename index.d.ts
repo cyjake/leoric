@@ -74,7 +74,7 @@ export default class Realm {
 
   escape(value: Literal): string;
 
-  query<T extends typeof Bone>(sql: string, values?: Array<Literal>, options?: RawQueryOptions & { model?: T }): Promise<{ rows: T extends typeof Bone ? InstanceType<T>[] : Object[], fields?: Object[], affectedRows?: number }>;
+  query<T>(sql: string, values?: Array<Literal>, options?: RawQueryOptions & { model?: T }): Promise<{ rows: T extends typeof Bone ? InstanceType<T>[] : Record<string, Literal>[], fields?: Record<string, ColumnMeta>[], affectedRows?: number }>;
 
   transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
   transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
