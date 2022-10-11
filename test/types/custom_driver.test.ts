@@ -42,9 +42,9 @@ class MySpellbook extends SqliteDriver.Spellbook {
 
     const { Model, sets, whereConditions } = spell;
     const { shardingKey } = Model;
-    const { escapeId } = Model.driver;
+    const { escapeId } = Model.driver!;
     if (shardingKey) {
-      if (sets.hasOwnProperty(shardingKey) && sets[shardingKey] == null) {
+      if (sets!.hasOwnProperty(shardingKey) && sets![shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL`);
       }
       if (!whereConditions.some(condition => findExpr(condition, { type: 'id', value: shardingKey }))) {
@@ -52,14 +52,14 @@ class MySpellbook extends SqliteDriver.Spellbook {
       }
     }
 
-    if (Object.keys(sets).length === 0) {
+    if (Object.keys(sets!).length === 0) {
       throw new Error('Unable to update with empty set');
     }
 
     const table = escapeId(spell.table.value);
     const opValues = {};
-    Object.keys(spell.sets).reduce((obj, key) => {
-      obj[escapeId(Model.unalias(key))] = spell.sets[key];
+    Object.keys(spell.sets!).reduce((obj, key) => {
+      obj[escapeId(Model.unalias(key))] = spell.sets![key];
       return obj;
     }, opValues);
   
@@ -79,7 +79,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
 
   formatDelete(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
     const { Model, whereConditions } = spell;
-    const { escapeId } = Model.driver;
+    const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);
     let whereArgs = [];
     let whereClause = '';
@@ -96,12 +96,12 @@ class MySpellbook extends SqliteDriver.Spellbook {
 
   formatMyInsert(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
     const { Model, sets } = spell;
-    const { escapeId } = Model.driver;
+    const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);
     let values = {};
 
     const { shardingKey } = Model;
-    if (shardingKey && sets[shardingKey] == null) {
+    if (shardingKey && sets![shardingKey] == null) {
       throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
     }
     for (const name in sets) {
@@ -148,8 +148,8 @@ class CustomDriver extends SqliteDriver {
   }
 
   async update({ table, values, whereClause, whereArgs }, options?: SpellMeta) {
-    const valueSets = [];
-    const assignValues = [];
+    const valueSets: string[] = [];
+    const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
       valueSets.push(`${key}=?`);
       assignValues.push(values[key]);
@@ -164,8 +164,8 @@ class CustomDriver extends SqliteDriver {
   }
 
   async insert({ table, values }: { table: string, values: {[key: string]: Literal}}, options?: SpellMeta) {
-    const valueSets = [];
-    const assignValues = [];
+    const valueSets: string[] = [];
+    const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
       valueSets.push(key);
       assignValues.push(values[key]);

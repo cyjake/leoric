@@ -52,12 +52,12 @@ describe('=> Querying (TypeScript)', function() {
 
   describe('=> Driver', function() {
     it('driver.query(SELECT)', async function() {
-      const { rows } = await Bone.driver.query('SELECT 1');
-      assert.equal(rows.length, 1);
+      const { rows } = await Bone.driver!.query('SELECT 1');
+      assert.equal(rows!.length, 1);
     });
 
     it('driver.query(INSERT)', async function() {
-      const { insertId, affectedRows } = await Bone.driver.query(
+      const { insertId, affectedRows } = await Bone.driver!.query(
         'INSERT INTO articles (title) VALUES ("Leah")'
       );
       assert.equal(affectedRows, 1);
@@ -78,10 +78,10 @@ describe('=> Querying (TypeScript)', function() {
         { title: 'Stranger', authorId: author.id }
       ])
       const user = await User.findOne({}).with({ posts: { select: 'title' } });
-      assert.equal(user.id, author.id);
-      assert.ok(Array.isArray(user.posts));
-      assert.equal(user.posts.length, 1);
-      assert.equal(user.posts[0].title, 'Stranger');
+      assert.equal(user!.id, author.id);
+      assert.ok(Array.isArray(user!.posts));
+      assert.equal(user!.posts.length, 1);
+      assert.equal(user!.posts[0].title, 'Stranger');
     });
   });
 
@@ -122,7 +122,7 @@ describe('=> Querying (TypeScript)', function() {
 
     it('Bone.findOne().select()', async function() {
       const post = await Post.findOne(1).select(name => [ 'id', 'title' ].includes(name));
-      assert.deepEqual(post.toJSON(), { id: post.id, title: 'There And Back Again' });
+      assert.deepEqual(post!.toJSON(), { id: post!.id, title: 'There And Back Again' });
     });
 
     it('Bone.findOne({ $or })', async function() {

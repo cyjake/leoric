@@ -65,7 +65,7 @@ class STRING extends DataType {
     return chunks.join(' ');
   }
 
-  uncast(value: string | Raw | null): string | Raw {
+  uncast(value: string | Raw | null): string | Raw | null {
     if (value == null || value instanceof Raw) return value;
     return '' + value;
   }
@@ -304,7 +304,7 @@ class DATE extends DataType {
     return this._round(value);
   }
 
-  uncast(value: null | Raw | string | Date | { toDate: () => Date }, _strict?: boolean): string | Date | Raw {
+  uncast(value: null | Raw | string | Date | { toDate: () => Date }, _strict?: boolean): string | Date | Raw | null | undefined {
     const originValue = value;
 
     // type narrowing doesn't handle `return value` correctly

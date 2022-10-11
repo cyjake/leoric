@@ -49,7 +49,7 @@ describe('=> Basics (TypeScript)', function() {
     summary: string;
 
     @Column(TEXT)
-    get settings(): Record<string, any> {
+    get settings(): Record<string, any> | null {
       const text = this.attribute('settings') as string;
       if (!text) return null;
       try {
@@ -59,7 +59,7 @@ describe('=> Basics (TypeScript)', function() {
       }
     }
 
-    set settings(value: string | Record<string, any>) {
+    set settings(value: string | Record<string, any> | null) {
       if (typeof value !== 'string') value = JSON.stringify(value);
       this.attribute('settings', value);
     }
@@ -116,7 +116,7 @@ describe('=> Basics (TypeScript)', function() {
     it('bone.attribute(name) type casting', async function() {
       class Article extends Bone {
         @Column(DataTypes.TEXT)
-        get settings(): Record<string, any> {
+        get settings(): Record<string, any> | null {
           try {
             // inferred type is Record<string, any>, fallback to Literal
             return JSON.parse(this.attribute('settings') as string);
@@ -236,9 +236,9 @@ describe('=> Basics (TypeScript)', function() {
       // virtual column should not be added to unset
       assert.equal(post.toJSON().isEmptyContent, true);
       const post1 = await Post.findOne();
-      assert.equal(post1.toJSON().title, 'Nephalem');
+      assert.equal(post1!.toJSON().title, 'Nephalem');
       // virtual column should not be added to unset
-      assert.equal(post1.toJSON().isEmptyContent, true);
+      assert.equal(post1!.toJSON().isEmptyContent, true);
     });
 
     it('bone.toObject()', async function() {
@@ -247,9 +247,9 @@ describe('=> Basics (TypeScript)', function() {
       // virtual column should not be added to unset
       assert.equal(post.toObject().isEmptyContent, true);
       const post1 = await Post.findOne();
-      assert.equal(post1.toObject().title, 'Leah');
+      assert.equal(post1!.toObject().title, 'Leah');
       // virtual column should not be added to unset
-      assert.equal(post1.toObject().isEmptyContent, true);
+      assert.equal(post1!.toObject().isEmptyContent, true);
     });
   });
 
@@ -313,9 +313,9 @@ describe('=> Basics (TypeScript)', function() {
 
     it('Post.findOne()', async function() {
       const post = await Post.findOne({ title: 'Leah' });
-      assert.equal(post.title, 'Leah');
-      const post1 = await Post.findOne({ id: post.id });
-      assert.equal(post1.id, post.id);
+      assert.equal(post!.title, 'Leah');
+      const post1 = await Post.findOne({ id: post!.id });
+      assert.equal(post1!.id, post!.id);
     });
 
     it('Post.where()', async function() {
@@ -354,8 +354,8 @@ describe('=> Basics (TypeScript)', function() {
       ]);
       await Post.update({ title: 'Leah' }, { title: 'Diablo' });
       assert.equal(await Post.findOne({ title: 'Leah' }), null);
-      assert.equal((await Post.findOne({ title: 'Cain' })).title, 'Cain');
-      assert.equal((await Post.findOne({ title: 'Diablo' })).title, 'Diablo');
+      assert.equal((await Post.findOne({ title: 'Cain' }))!.title, 'Cain');
+      assert.equal((await Post.findOne({ title: 'Diablo' }))!.title, 'Diablo');
     });
 
     it('post.update()', async function() {
@@ -408,7 +408,7 @@ describe('=> Basics (TypeScript)', function() {
       ]);
       await Post.remove({ title: 'Cain' });
       assert.equal((await Post.find()).length, 1);
-      assert.equal((await Post.findOne()).title, 'Leah');
+      assert.equal((await Post.findOne())!.title, 'Leah');
     });
 
     it('post.remove()', async function() {
@@ -427,7 +427,7 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(result.affectedRows, 1);
 
       assert.equal(await Post.count(), 1);
-      assert.equal((await Post.findOne()).title, 'Cain');
+      assert.equal((await Post.findOne())!.title, 'Cain');
     });
   });
 
