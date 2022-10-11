@@ -1,3 +1,13 @@
+2.8.7 / 2022-10-11
+==================
+
+## What's Changed
+* fix: enable strictNullChecks by @cyjake in https://github.com/cyjake/leoric/pull/357
+* fix: declaration types of realm.query() and static update values by @cyjake in https://github.com/cyjake/leoric/pull/358
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.6...v2.8.7
+
 2.8.6 / 2022-10-11
 ==================
 
