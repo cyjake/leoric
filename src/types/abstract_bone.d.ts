@@ -32,7 +32,7 @@ export class AbstractBone {
   /**
    * The driver that powers the model
    */
-  static driver: AbstractDriver;
+  static driver: AbstractDriver | null;
 
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`

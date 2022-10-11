@@ -52,8 +52,8 @@ describe('=> sequelize (TypeScript)', function() {
     wordCount: number;
 
     @Column(VIRTUAL)
-    get virtualField() {
-      return this.getDataValue('content')?.toLowerCase();
+    get virtualField(): string {
+      return this.getDataValue('content')?.toLowerCase() || '';
     }
 
     set virtualField(v: string) {
@@ -486,7 +486,7 @@ describe('=> sequelize (TypeScript)', function() {
   
     it('Model.findAll({ order: <malformed> })', async () => {
       const posts = await Post.findAll({
-        order: [ null ],
+        order: [ null as any ],
       });
       assert.equal(posts.length, 0);
     });
@@ -635,7 +635,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.deepEqual((await Post.findOne(id)).toJSON(), post.toJSON());
   
       // if passed null or undefined, return null
-      assert.equal(await Post.findOne(null), null);
+      assert.equal(await Post.findOne(null as any), null);
       assert.equal(await Post.findOne(undefined), null);
     });
   
@@ -758,7 +758,7 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('Post.find()', async function() {
       let post = await Post.find();
-      assert.ok(post.title);
+      assert.ok(post!.title);
 
       let posts = await Post.findAll();
       posts = posts.sort((a, b) => (a.id - b.id) as unknown as number);
@@ -773,7 +773,7 @@ describe('=> sequelize (TypeScript)', function() {
           id: 'asc',
         }
       });
-      assert.equal(post.id, posts[0].id);
+      assert.equal(post!.id, posts[0].id);
     });
 
     it('Post.where()', async function() {
@@ -1428,6 +1428,6 @@ describe('=> sequelize (TypeScript)', function() {
       },
       transaction: null,
     });
-    assert.equal(result.id, post.id);
+    assert.equal(result!.id, post.id);
   });
 });
