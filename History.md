@@ -1,3 +1,17 @@
+2.8.6 / 2022-10-11
+==================
+
+## What's Changed
+* fix: new Realm({ sequelize: true }).Bone == Realm.SequelizeBone by @cyjake in https://github.com/cyjake/leoric/pull/349
+* fix: edge cases in attribute.equals() by @cyjake in https://github.com/cyjake/leoric/pull/350
+* fix: bone.attribute(name, value?) type infer with this[name] by @cyjake in https://github.com/cyjake/leoric/pull/351
+* fix: ts type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/352
+* fix: this.attribute(name) should fallback to Literal by @cyjake in https://github.com/cyjake/leoric/pull/353
+* fix: type definitions for columns constraint by @JimmyDaddy in https://github.com/cyjake/leoric/pull/355
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.5...v2.8.6
+
 2.8.5 / 2022-09-21
 ==================
 
