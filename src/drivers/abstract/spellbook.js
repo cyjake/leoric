@@ -54,6 +54,7 @@ function createSubspell(spell) {
     const { type, qualifiers = [], value } = token;
     if (type == 'id' && qualifiers[0] == baseName) {
       subspell.orders.push([{ type, value }, direction]);
+      if (subspell.columns.length > 0) subspell.columns.push({ type, value });
     }
   }
 
