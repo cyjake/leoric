@@ -605,6 +605,14 @@ describe('=> Group / Join / Subqueries', function() {
       .order('id', 'desc');
     assert.deepEqual((await query)[0], await query.first);
   });
+
+  it('Bone.join().select().order()', async function() {
+    const query = Post.include('comments')
+      .select('id', 'title') // left out updatedAt on purpose
+      .order('updatedAt', 'desc')
+      .order('id', 'desc');
+    assert.deepEqual((await query)[0], await query.first);
+  });
 });
 
 describe('=> Calculations', function() {

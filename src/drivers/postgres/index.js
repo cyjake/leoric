@@ -109,15 +109,16 @@ class PostgresDriver extends AbstractDriver {
     tables = [].concat(tables);
     const text = heresql(`
       SELECT columns.*,
-            constraints.constraint_type
+             constraints.constraint_type
         FROM information_schema.columns AS columns
-    LEFT JOIN information_schema.key_column_usage AS usage
+   LEFT JOIN information_schema.key_column_usage AS usage
           ON columns.table_catalog = usage.table_catalog
-          AND columns.table_name = usage.table_name
-          AND columns.column_name = usage.column_name
-    LEFT JOIN information_schema.table_constraints AS constraints
+         AND columns.table_name = usage.table_name
+         AND columns.column_name = usage.column_name
+   LEFT JOIN information_schema.table_constraints AS constraints
           ON usage.constraint_name = constraints.constraint_name
-        WHERE columns.table_catalog = $1 AND columns.table_name = ANY($2)
+       WHERE columns.table_catalog = $1 AND columns.table_name = ANY($2)
+    ORDER BY columns.ordinal_position ASC   
     `);
 
     const { pool } = this;
