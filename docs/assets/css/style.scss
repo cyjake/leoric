@@ -9,24 +9,25 @@ $text-blue: var(--theme-color);
 :root {
   --container-width: 920px;
   --padding-base: 6px;
+}
 
+@mixin light-theme {
   --theme-color: #FF7F61;
   --color: #24292e;
   --bg-color: #fff;
   --border-color: #F4C1B5;
 }
 
-@media (prefers-color-scheme: dark) {
-  @import 'base16-dark';
+@mixin dark-theme {
+  --theme-color: #FF7F61;
+  --color: #bab4b4;
+  --bg-color: #130B09;
+  --border-color: #4b251d;
+}
 
-  :root {
-    --color: #bab4b4;
-    --bg-color: #130B09;
-    --border-color: #4b251d;
-  }
-
+@mixin dark-theme-overrides {
   .markdown-body {
-    .highlight {
+    div.highlight {
       background-color: rgba(255, 255, 255, 0.05);
 
       pre {
@@ -56,16 +57,49 @@ $text-blue: var(--theme-color);
     code, tt {
       background-color: rgba(255, 255, 255, 0.15);
     }
+
+    pre code {
+      background-color: transparent;
+    }
   }
 
   .border-gray-light {
     border-color: var(--border-color) !important;
   }
+
+  .color-scheme {
+    background: none;
+    color: var(--color);
+  }
+}
+
+:root.light {
+  @include light-theme;
+}
+
+:root.dark {
+  @include dark-theme;
+}
+
+html.dark {
+  @import 'base16-dark';
+  @include dark-theme-overrides;
 }
 
 body {
   color: var(--color);
   background: var(--bg-color);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    @include dark-theme;
+  }
+
+  html:not(.light):not(.dark) {
+    @import 'base16-dark';
+    @include dark-theme-overrides;
+  }
 }
 
 #header {
@@ -244,6 +278,10 @@ body {
         background-color: var(--border-color);
         opacity: 1;
       }
+    }
+
+    .color-scheme {
+      margin: 6px 6px 6px 36px;
     }
 
     nav {
