@@ -284,6 +284,35 @@ describe('=> Decorators (TypeScript)', function() {
       assert.equal((description as AttributeMeta).toSqlString!(), '`description` VARCHAR(64)');
       assert.equal((status as AttributeMeta).toSqlString!(), '`status` INTEGER(2) UNSIGNED');
     });
+
+    it('should not override attributes of parent class', async function() {
+      class Base extends Bone {
+        @Column()
+        id: bigint;
+      }
+
+      class Note extends Base {
+        @Column()
+        body: string;
+      }
+
+      class Comment extends Base {
+        @Column()
+        body: string;
+
+        @Column()
+        targetType: string;
+
+        @Column()
+        targetId: bigint;
+      }
+      await Note.sync({ force: true });
+      await Comment.sync({ force: true });
+
+      assert.deepEqual(Object.keys(Base.attributes), ['id']);
+      assert.deepEqual(Object.keys(Note.attributes), ['id', 'body']);
+      assert.deepEqual(Object.keys(Comment.attributes), ['id', 'body', 'targetType', 'targetId']);
+    });
   });
 
   describe('=> @HasMany()', function() {
