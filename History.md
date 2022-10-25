@@ -1,3 +1,15 @@
+2.8.8 / 2022-10-25
+==================
+
+## What's Changed
+* fix: join query with select columns should include order columns by @cyjake in https://github.com/cyjake/leoric/pull/360
+* docs: support switchable dark theme, at web app level by @cyjake in https://github.com/cyjake/leoric/pull/359
+* fix: @Column() should not tamper parent attributes directly by @cyjake in https://github.com/cyjake/leoric/pull/362
+* fix: bone.update({ deletedAt: null }) and likewise methods should work by @cyjake in https://github.com/cyjake/leoric/pull/363
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.7...v2.8.8
+
 2.8.7 / 2022-10-11
 ==================
 
