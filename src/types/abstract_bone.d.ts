@@ -7,7 +7,6 @@ import {
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
-import { Key } from "readline";
 
 interface SyncOptions {
   force?: boolean;
