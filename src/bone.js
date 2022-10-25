@@ -668,7 +668,7 @@ class Bone {
    * @public
    * @param {Object} values
    * @param {Object?} options
-   * @returns {number} affected rows
+   * @returns {Promise<number>} affected rows
    * @memberof Bone
    */
   async update(values, options = {}) {
@@ -697,7 +697,7 @@ class Bone {
   /**
    * Persist changes on current instance back to database with `UPDATE`.
    * @private
-   * @return {number}
+   * @return {Promise<number>}
    */
   async _update(values, options = {}) {
     const Model = this.constructor;
