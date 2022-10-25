@@ -263,12 +263,15 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
  * If Model supports soft delete, and deletedAt isn't specified in whereConditions yet, and the table isn't a subquery, append a default where({ deletedAt: null }).
  */
 function scopeDeletedAt(spell) {
-  const { table, whereConditions, Model } = spell;
+  const { table, sets, whereConditions, Model } = spell;
 
   const { deletedAt } = Model.timestamps;
 
   // from subquery
   if (table.type !== 'id') return;
+
+  // UPDATE users SET deleted_at = NULL WHERE id = 42;
+  if (sets && sets[deletedAt] === null) return;
 
   // deletedAt already specified
   for (const condition of whereConditions) {
@@ -963,7 +966,7 @@ for (const aggregator in AGGREGATOR_MAP) {
     value: function Spell_aggregator(name = '*') {
       if (name instanceof Raw) {
         this.$select(Raw.build(`${func.toUpperCase()}(${name}) AS ${aggregator}`));
-        return this
+        return this;
       }
       if (name !== '*' && parseExpr(name).type !== 'id') {
         throw new Error(`unexpected operand ${name} for ${func.toUpperCase()}()`);

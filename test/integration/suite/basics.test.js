@@ -1620,5 +1620,13 @@ describe('=> Basic', () => {
         await gywn.restore();
       }, /Error: instance is not persisted yet./);
     });
+
+    it('should be able to restore with vanilla update', async function() {
+      const note = await Note.create({ name: 'yes' });
+      await note.remove();
+      assert.equal(await Note.findOne(note.id), null);
+      await note.update({ deleted_at: null });
+      assert.ok(await Note.findOne(note.id));
+    });
   });
 });
