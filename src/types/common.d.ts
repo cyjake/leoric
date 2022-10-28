@@ -159,7 +159,7 @@ export type WithOptions = {
 type OrderOptions<T extends typeof AbstractBone> = {
   [key in keyof Extract<InstanceType<T>, Literal>]?: 'desc' | 'asc'
 } | [ BoneColumns<T>, 'desc' | 'asc' ] 
-| Array<BoneColumns<T> | [ BoneColumns<T>, 'desc' | 'asc' ] | Raw | string>
+| Array<BoneColumns<T> | [ BoneColumns<T>, 'desc' | 'asc' ] | Raw | string | Array<Raw | string>>
 | string | Raw;
 
 export class Collection<T extends AbstractBone> extends Array<T> {

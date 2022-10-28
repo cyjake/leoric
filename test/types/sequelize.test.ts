@@ -395,7 +395,18 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[1].id, ids[1]);
       assert.equal(posts[2].id, ids[2]);
       assert.equal(posts[3].id, ids[3]);
-  
+
+      assert.equal(Post.findAll({
+        order: [[new Raw(`FIND_IN_SET(id, '${ids.join(',')}')`)], ['createdAt', 'asc']],
+      }).toSqlString(), `SELECT * FROM \`articles\` WHERE \`gmt_deleted\` IS NULL ORDER BY FIND_IN_SET(id, '${ids.join(',')}'), \`gmt_create\``);
+      posts = await Post.findAll({
+        order: [[ new Raw(`FIND_IN_SET(id, '${ids.join(',')}')`) ], ['createdAt', 'asc']],
+      });
+      assert.equal(posts[0].id, ids[0]);
+      assert.equal(posts[1].id, ids[1]);
+      assert.equal(posts[2].id, ids[2]);
+      assert.equal(posts[3].id, ids[3]);
+
     });
   
     it('Model.findAll(opt) with { paranoid: false }', async () => {
