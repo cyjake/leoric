@@ -220,7 +220,18 @@ describe('=> Basics (TypeScript)', function() {
       assert.equal(post.attributeChanged('title'), false);
     });
 
+    it('bone.hasAttribute(name)', async () => {
+      const post = new Post({
+        title: 'Yhorm',
+      });
+      assert.equal(post.hasAttribute('title'), true);
+      assert.equal(post.hasAttribute('bloodborne'), false);
+    });
 
+    it('Bone.hasAttribute(name)', async () => {
+      assert.equal(Post.hasAttribute('title'), true);
+      assert.equal(Post.hasAttribute('bloodborne'), false);
+    });
   });
 
   describe('=> Accessors', function() {

@@ -171,9 +171,9 @@ export class SequelizeBone extends AbstractBone {
 
   static findByPk<T extends typeof SequelizeBone>(this:T, pk: number | bigint | string, options?: Pick<SequelizeConditions<T>, 'paranoid' | 'connection' | 'transaction' |'hint' | 'hints'>): Spell<T, InstanceType<T>>;
 
+  static findOne<T extends typeof SequelizeBone>(this: T, options?: SequelizeConditions<T>): Spell<T, InstanceType<T>>;
   static findOne<T extends typeof SequelizeBone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, InstanceType<T>>;
   static findOne<T extends typeof SequelizeBone>(this: T, primaryKey: number | number[] | bigint): Spell<T, InstanceType<T>>;
-  static findOne<T extends typeof SequelizeBone>(this: T, options?: SequelizeConditions<T>): Spell<T, InstanceType<T>>;
 
   static findCreateFind<T extends typeof SequelizeBone>(this: T, options: FindOrCreateOptions<T>): Promise<InstanceType<T>>;
   static findOrBuild<T extends typeof SequelizeBone>(this: T, options: FindOrBuildOptions<T>): Promise<[InstanceType<T>, boolean]>;

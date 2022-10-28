@@ -7,7 +7,6 @@ import {
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
-import { Key } from "readline";
 
 interface SyncOptions {
   force?: boolean;
@@ -92,6 +91,14 @@ export class AbstractBone {
    * Bone.attribute('foo', { type: JSON })
    */
   static attribute(name: string, meta: AttributeMeta): void;
+
+  /**
+   * Model.hasAttribute(name)
+   * @static
+   * @param {string} name
+   * @returns {boolean}
+   */
+  static hasAttribute(name: string): boolean;
 
   /**
    * Rename attribute
@@ -267,6 +274,13 @@ export class AbstractBone {
 
   attribute<T, Key extends keyof Values<T>, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
   attribute<T, Key extends keyof T, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
+
+  /**
+   * instance.hasAttribute(name)
+   * @param {string} name
+   * @returns {boolean}
+   */
+  hasAttribute(name: string): boolean;
 
   /**
    * Get the original attribute value.

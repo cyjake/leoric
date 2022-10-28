@@ -537,6 +537,8 @@ class DataTypes {
         return new CHAR(...params);
       case 'varchar':
         return new STRING(...params);
+      case 'tinytext':
+        return new TEXT(LENGTH_VARIANTS.tiny);
       // longtext is only for MySQL
       case 'longtext':
         return new TEXT(LENGTH_VARIANTS.long);
