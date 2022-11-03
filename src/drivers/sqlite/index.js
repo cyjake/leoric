@@ -1,6 +1,6 @@
 'use strict';
 
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 const { performance } = require('perf_hooks');
 
 const AbstractDriver = require('../abstract');
@@ -46,7 +46,7 @@ class SqliteDriver extends AbstractDriver {
     if (values) {
       values = values.map(entry => {
         if (entry instanceof Date) {
-          return strftime('%Y-%m-%d %H:%M:%S.%L %:z', entry);
+          return dayjs(entry).format('YYYY-MM-DD HH:mm:ss.SSS Z');
         }
         return entry;
       });

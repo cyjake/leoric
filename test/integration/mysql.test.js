@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 
 const { connect } = require('../..');
 
@@ -91,7 +91,7 @@ describe('=> Data types (mysql)', function() {
       birthday: new Date(2021, 5, 26),
       sex: 'M',
     });
-    assert.equal(strftime('%Y-%m-%d', user.birthday), '2021-06-26');
+    assert.equal(dayjs(user.birthday).format('YYYY-MM-DD'), '2021-06-26');
   });
 
   it('CHAR', async function() {

@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 
 const { heresql } = require('../../../../src/utils/string');
 const SqliteDriver = require('../../../../src/drivers/sqlite');
@@ -169,7 +169,7 @@ describe('=> SQLite driver.query()', () => {
     } = await driver.query(heresql(`
       SELECT datetime(created_at, 'localtime') AS created_at FROM notes
     `));
-    assert.equal(created_at, strftime('%Y-%m-%d %H:%M:%S', createdAt));
+    assert.equal(created_at, dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss'));
   });
 
   it('should handle boolean correctly', async () => {
