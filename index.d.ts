@@ -52,6 +52,7 @@ export default class Realm {
   driver: AbstractDriver;
   models: Record<string, typeof Bone>;
   connected?: boolean;
+  options: ConnectOptions;
 
   constructor(options: ConnectOptions);
 

@@ -19,7 +19,7 @@ interface TransactionOptions {
 
 type V<T, Key extends keyof T> = Record<Key, T[Key]>;
 export class AbstractBone {
-  static name: string;
+  static readonly name: string;
 
   static DataTypes: typeof DataTypes;
 
@@ -258,7 +258,7 @@ export class AbstractBone {
    */
   static truncate(): Promise<void>;
 
-  static sync(options: SyncOptions): Promise<void>;
+  static sync(options?: SyncOptions): Promise<void>;
 
   static initialize(): void;
 
