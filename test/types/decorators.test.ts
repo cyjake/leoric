@@ -296,22 +296,92 @@ describe('=> Decorators (TypeScript)', function() {
         body: string;
       }
 
-      class Comment extends Base {
-        @Column()
-        body: string;
+      class Comment extends Note {
+        static table: string = 'comments';
 
         @Column()
         targetType: string;
 
         @Column()
-        targetId: bigint;
+        targetId: number;
       }
+
+      class SubContent extends Comment {
+        static table: string = 'contents';
+
+        @Column()
+        description: string;
+
+        @Column({
+          allowNull: false,
+        })
+        status: number;
+      }
+
+      // normal subclass that not sync will inherent all the features from parent class
+      class ContentChildClass extends SubContent {
+        getMyDesc() {
+          return this.description?.toUpperCase();
+        }
+      }
+
       await Note.sync({ force: true });
       await Comment.sync({ force: true });
+      await SubContent.sync({ force: true });
 
       assert.deepEqual(Object.keys(Base.attributes), ['id']);
       assert.deepEqual(Object.keys(Note.attributes), ['id', 'body']);
       assert.deepEqual(Object.keys(Comment.attributes), ['id', 'body', 'targetType', 'targetId']);
+      assert.deepEqual(Object.keys(SubContent.attributes), ['id', 'body', 'targetType', 'targetId', 'description', 'status']);
+      assert.equal(SubContent.table, 'contents');
+      assert.equal(Note.table, 'notes');
+      assert.equal(Comment.table, 'comments');
+      assert.equal(ContentChildClass.table, 'contents');
+
+      const note = await Note.create({
+        body: 'yes',
+      });
+      assert.ok(note.id);
+      assert.equal(note.body, 'yes');
+
+      const comment = await Comment.create({
+        body: 'halo',
+        targetId: 1,
+        targetType: 'User',
+      });
+      assert.ok(comment.id);
+      assert.equal(comment.body, 'halo');
+      assert.equal(comment.targetType, 'User');
+
+      const subContent = await SubContent.create({
+        body: 'hello',
+        targetId: 2,
+        targetType: 'Book',
+        description: 'desc',
+        status: 1,
+      });
+
+      assert.ok(subContent.id);
+      assert.equal(subContent.body, 'hello');
+      assert.equal(subContent.targetType, 'Book');
+      assert.equal(subContent.description, 'desc');
+      assert.equal(subContent.status, 1);
+
+      const contentChildInstance = await ContentChildClass.create({
+        body: 'bloodborne',
+        targetId: 3,
+        targetType: 'Book',
+        description: 'bloodborne',
+        status: 1,
+      });
+
+      assert.ok(contentChildInstance.id);
+      assert.equal(contentChildInstance.body, 'bloodborne');
+      assert.equal(contentChildInstance.targetType, 'Book');
+      assert.equal(contentChildInstance.description, 'bloodborne');
+      assert.equal(contentChildInstance.status, 1);
+      assert.equal(contentChildInstance.getMyDesc(), 'bloodborne'.toUpperCase());
+
     });
   });
 

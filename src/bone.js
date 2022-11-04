@@ -172,6 +172,23 @@ class Bone {
     }
   }
 
+  static set synchronized(value) {
+    Reflect.defineMetadata(`leoric:bone:synchronized:${this.name}`, value, this);
+  }
+
+  static _getSynchronizedMeta() {
+    const metaKey = `leoric:bone:synchronized:${this.name}`;
+    return Reflect.getOwnMetadata(metaKey, this);
+  }
+
+  static get synchronized() {
+    const metaKey = `leoric:bone:synchronized:${this.name}`;
+    if (!Reflect.hasOwnMetadata(metaKey, this)) {
+      return Object.getPrototypeOf(this) && Object.getPrototypeOf(this).synchronized;
+    }
+    return Reflect.getOwnMetadata(metaKey, this);
+  }
+
   /**
    * Get or set attribute value by name. This method is quite similiar to `jQuery.attr()`. If the attribute isn't selected when queried from database, an error will be thrown when accessing it.
    *
@@ -1033,14 +1050,16 @@ class Bone {
 
     Object.defineProperties(this, looseReadonly({
       timestamps,
-      table,
       primaryKey,
       columns,
       attributeMap,
       associations,
       tableAlias,
-      synchronized: Object.keys(diff).length === 0,
     }));
+
+    this._defineMetaTable(table);
+
+    this.synchronized = Object.keys(diff).length === 0;
 
     if (!this.synchronized) {
       debug('[load] %s `%s` out of sync %j', this.name, this.table, Object.keys(diff));
@@ -1094,6 +1113,27 @@ class Bone {
     }
     // table name might be undefined, the default one will get set later.
     return this.table || snakeCase(pluralize(this.name));
+  }
+
+  static set table(v) {
+    this._defineMetaTable(v);
+  }
+
+  static _defineMetaTable(v) {
+    Reflect.defineMetadata(`leoric:bone:table:${this.name}`, v, this);
+  }
+
+  static _getTableMeta() {
+    const metaKey = `leoric:bone:table:${this.name}`;
+    return Reflect.getMetadata(metaKey, this);
+  }
+
+  static get table() {
+    const metaKey = `leoric:bone:table:${this.name}`;
+    if (!Reflect.hasOwnMetadata(metaKey, this)) {
+      return Object.getPrototypeOf(this) && Object.getPrototypeOf(this).table;
+    }
+    return Reflect.getMetadata(metaKey, this);
   }
 
   /**
@@ -1639,7 +1679,8 @@ class Bone {
     }, {});
 
     this[columnAttributesKey] = null;
-    Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
+    Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes }));
+    this._defineMetaTable(table);
   }
 
   static async sync({ force = false, alter = false } = {}) {
@@ -1647,7 +1688,7 @@ class Bone {
     const { database } = this.options;
 
     // a model that is not connected before
-    if (this.synchronized == null) {
+    if (this._getSynchronizedMeta() == null) {
       const schemaInfo = await driver.querySchemaInfo(database, [ table ]);
       this.load(schemaInfo[table]);
     }
