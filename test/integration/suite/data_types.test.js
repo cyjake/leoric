@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 
 const { Bone, DataTypes } = require('../../..');
 const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB, BIGINT } = DataTypes;
@@ -270,7 +270,7 @@ describe('=> Data types - DATE', function() {
     });
 
     await assert.doesNotReject(async function() {
-      const result = await Note.where({ createdAt: strftime('%Y-%m-%d %H:%M:%S,%L', date) });
+      const result = await Note.where({ createdAt: dayjs(date).format('YYYY-MM-DD HH:mm:ss,SSS') });
       assert.equal(result.length, 1);
     });
 
@@ -319,7 +319,7 @@ describe('=> Data types - DATEONLY', function() {
     const date = new Date('2021-10-15T08:38:43.877Z');
     const note = await Note.create({ createdAt: date });
     await note.reload();
-    assert.equal(strftime('%Y-%m-%d', note.createdAt), '2021-10-15');
+    assert.equal(dayjs(note.createdAt).format('YYYY-MM-DD'), '2021-10-15');
 
     await assert.doesNotReject(async function() {
       const result = await Note.where({ createdAt: date });

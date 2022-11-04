@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const fs = require('fs').promises;
 const path = require('path');
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 
 const Realm = require('../../..');
 const Logger = require('../../../src/drivers/abstract/logger');
@@ -15,7 +15,7 @@ const migrations = path.join(__dirname, '../migrations');
 // class Topic extends Realm.Bone {}
 
 async function createTopics() {
-  const name = `${strftime('%Y%m%d%H%M%S')}-create-topics.js`;
+  const name = `${dayjs().format('YYYYMMDDHHmmss')}-create-topics.js`;
   const fpath = path.join(migrations, name);
   await fs.writeFile(fpath, `'use strict';
 

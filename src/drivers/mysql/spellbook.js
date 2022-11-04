@@ -39,7 +39,7 @@ class MySQLSpellBook extends Spellbook {
     const { columnAttributes, primaryColumn } = Model;
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName ) || column)
+      columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName) || column)
         .filter(column => column !== primaryColumn);
     } else if (!columns.length) {
       columns = Object.values(columnAttributes).map(attribute => attribute.columnName).filter(column => column !== primaryColumn);
@@ -80,7 +80,7 @@ class MySQLSpellBook extends Spellbook {
 
   /**
    * DELETE ... ORDER BY ...LIMIT
-   * @param {Spell} spell 
+   * @param {Spell} spell
    */
   formatDelete(spell) {
     const result = super.formatDelete(spell);
