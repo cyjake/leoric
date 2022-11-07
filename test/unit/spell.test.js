@@ -469,6 +469,13 @@ describe('=> Spell', function() {
     );
   });
 
+  it('where date', function() {
+    assert.equal(
+      Post.where('createdAt > ?', '2022-11-03').toString(),
+      "SELECT * FROM `articles` WHERE `gmt_create` > '2022-11-03 00:00:00.000' AND `gmt_deleted` IS NULL"
+    );
+  });
+
   it('where compound string conditions', function() {
     assert.equal(
       Post.where('title like "Arch%" or (title = "New Post" || title = "Skeleton King")').toString(),
@@ -623,8 +630,8 @@ describe('=> Spell', function() {
 
   it('order by string with multiple condition', () => {
     assert.equal(
-      Post.order('id asc, gmt_created desc').toString(),
-      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_created` DESC'
+      Post.order('id asc, gmt_create desc').toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_create` DESC'
     );
   });
 

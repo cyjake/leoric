@@ -1,5 +1,6 @@
 import Raw from './raw';
 import util from 'util';
+import dayjs from 'dayjs';
 const invokableFunc = require('./utils/invokable');
 
 export enum LENGTH_VARIANTS {
@@ -316,14 +317,13 @@ class DATE extends DataType {
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
     if (typeof value === 'string' && rDateFormat.test(value)) {
-      // 2021-10-15 15:50:02,548 => 2021-10-15T15:50:02,548,
-      // 2021-10-15 15:50:02 => 2021-10-15T15:50:02.000
-      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}`);
+      // 2021-10-15 15:50:02,548 => 2021-10-15 15:50:02.548,
+      value = dayjs(`${value.replace(',', '.')}`).toDate();
     }
 
     // 1634611135776
     // '2021-10-15T08:38:43.877Z'
-    if (!(value instanceof Date)) value = new Date((value as string));
+    if (!(value instanceof Date)) value = dayjs((value as string)).toDate();
     if (isNaN((value as any))) throw new Error(util.format('invalid date: %s', originValue));
 
     return this._round(value);
