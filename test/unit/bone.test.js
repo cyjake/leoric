@@ -295,7 +295,7 @@ describe('=> Bone', function() {
       assert.doesNotThrow(function() {
         const user = new User();
         user.bar = 1;
-        assert.equal(user.bar, 1);
+        assert.equal(user.bar, '1');
       }, /TypeError: Cannot set property bar/);
     });
   });

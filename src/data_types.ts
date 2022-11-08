@@ -37,7 +37,7 @@ export abstract class DataType {
   /**
    * uncast js value into database type with precision
    */
-  uncast(value: any, _strict?: boolean): any {
+  uncast(value: any): any {
     return value;
   }
 
@@ -64,6 +64,16 @@ class STRING extends DataType {
     const chunks: string[] = [];
     chunks.push(dataLength && dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
+  }
+
+  cast(value: any): any {
+    if (typeof value === 'object' && value != null) {
+      return global.JSON.stringify(value);
+    }
+    if (value == null) {
+      return value;
+    }
+    return '' + value;
   }
 
   uncast(value: string | Raw | null): string | Raw | null {
@@ -305,7 +315,7 @@ class DATE extends DataType {
     return this._round(value);
   }
 
-  uncast(value: null | Raw | string | Date | { toDate: () => Date }, _strict?: boolean): string | Date | Raw | null | undefined {
+  uncast(value: null | Raw | string | Date | { toDate: () => Date }): string | Date | Raw | null | undefined {
     const originValue = value;
 
     // type narrowing doesn't handle `return value` correctly
@@ -366,7 +376,7 @@ class BOOLEAN extends DataType {
   }
 }
 
-class TEXT extends DataType {
+class TEXT extends STRING {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid text length: ${length}`);

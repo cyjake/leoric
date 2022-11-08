@@ -359,6 +359,103 @@ describe('=> Data types - DATEONLY', function() {
   });
 });
 
+describe('=> Data types - JSON', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: JSON,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.deepEqual(note.meta, meta);
+
+    const note1 = await Note.findOne({ meta });
+    assert.deepEqual(note1.meta, meta);
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, 1);
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, 1);
+    assert.equal(note3.id, note2.id);
+  });
+});
+
+describe('=> Data types - TEXT', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: TEXT,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.equal(note.meta, global.JSON.stringify(meta));
+
+    const note1 = await Note.findOne({ meta: global.JSON.stringify(meta) });
+    assert.equal(note1.meta, global.JSON.stringify(meta));
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, '1');
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, '1');
+    assert.equal(note3.id, note2.id);
+
+    const note4 = await Note.create({ meta: 'hardcore' });
+    assert.equal(note4.meta, 'hardcore');
+    const note5 = await Note.findOne({ meta: 'hardcore' });
+    assert.equal(note5.meta, 'hardcore');
+  });
+});
+
+describe('=> Data types - STRING', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: STRING,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.equal(note.meta, global.JSON.stringify(meta));
+
+    const note1 = await Note.findOne({ meta: global.JSON.stringify(meta) });
+    assert.equal(note1.meta, global.JSON.stringify(meta));
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, '1');
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, '1');
+    assert.equal(note3.id, note2.id);
+
+    const note4 = await Note.create({ meta: 'hardcore' });
+    assert.equal(note4.meta, 'hardcore');
+    const note5 = await Note.findOne({ meta: 'hardcore' });
+    assert.equal(note5.meta, 'hardcore');
+  });
+});
+
 describe('=> Data types - complementary', function() {
   class Note extends Bone {
     static attributes = {
