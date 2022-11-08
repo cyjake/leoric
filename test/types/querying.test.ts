@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, connect } from '../..'
+import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../..'
 
 describe('=> Querying (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING } = DataTypes;
@@ -103,6 +103,16 @@ describe('=> Querying (TypeScript)', function() {
       assert.equal(result.count, 1);
     });
 
+    it('Bone.group(raw).count()', async function() {
+      await Post.create({ title: 'Samoa' })
+      const results = await Post.group(new Raw('title')).count();
+      assert.ok(Array.isArray(results));
+      const [result] = results;
+      assert.ok('title' in result);
+      assert.equal(result.title, 'Samoa');
+      assert.equal(result.count, 1);
+    });
+
     it('Bone.where().count()', async function() {
       let count = await Post.where({ title: 'Leah' }).count();
       assert.equal(count, 0);
@@ -135,7 +145,7 @@ describe('=> Querying (TypeScript)', function() {
       assert.ok(post);
     });
 
-    it('Bone.fineOnd({ $and })', async function() {
+    it('Bone.fineOne({ $and })', async function() {
       const post = await Post.findOne({
         $and: [
           { authorId: 2, title: { $like: 'Foo%' } },
@@ -143,6 +153,16 @@ describe('=> Querying (TypeScript)', function() {
         ],
       });
       assert.ok(post);
+    });
+
+    it('Bone.select(Raw)', async function() {
+      const posts = await Post.select(new Raw('COUNT(author_id) as count'));
+      assert.equal(posts?.[0].count, 2);
+    });
+
+    it('Bone.where(Raw)', async function() {
+      const posts = await Post.where(new Raw('author_id = 2'));
+      assert.equal(posts.length, 2);
     });
   });
 });

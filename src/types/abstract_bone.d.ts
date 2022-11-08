@@ -184,6 +184,7 @@ export class AbstractBone {
    */
   static select<T extends typeof AbstractBone>(this: T, ...names: Array<BoneColumns<T>> | string[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T>;
+  static select<T extends typeof AbstractBone>(this: T, ...names: Raw[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, filter: (name: string) => boolean): Spell<T>;
 
   /**
@@ -201,7 +202,7 @@ export class AbstractBone {
    * Bone.where({ foo: { $eq: 1 } })
    */
   static where<T extends typeof AbstractBone>(this: T, whereConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
-  static where<T extends typeof AbstractBone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
+  static where<T extends typeof AbstractBone>(this: T, whereConditions: string | Raw, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
 
   /**
    * Set GROUP fields
@@ -211,6 +212,7 @@ export class AbstractBone {
    */
   static group<T extends typeof AbstractBone>(this: T, ...names: Array<BoneColumns<T>>): Spell<T, ResultSet<T>>;
   static group<T extends typeof AbstractBone>(this: T, ...names: Array<string>): Spell<T, ResultSet<T>>;
+  static group<T extends typeof AbstractBone>(this: T, ...names: Array<Raw>): Spell<T, ResultSet<T>>;
 
   /**
    * Set ORDER fields

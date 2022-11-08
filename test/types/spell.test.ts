@@ -217,4 +217,26 @@ describe('=> Spell (TypeScript)', function() {
       assert.equal(Post.all.decrement('word_count').toSqlString(), 'UPDATE `articles` SET `word_count` = `word_count` - 1, `gmt_modified` = \'2017-12-12 00:00:00.000\' WHERE `gmt_deleted` IS NULL');
     });
   });
+
+  describe('where/$where', () => {
+    it('where/$where', () => {
+      assert.equal(Post.find().where({ id: 1 }).toSqlString(), 'SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL');
+      assert.equal(Post.find().$where({ id: 1 }).toSqlString(), 'SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL');
+    });
+
+    it('where(raw)/$where(raw)', () => {
+      assert.equal(Post.find().where(new Raw('id = 1')).toSqlString(), 'SELECT * FROM `articles` WHERE id = 1 AND `gmt_deleted` IS NULL');
+      assert.equal(Post.find().$where(new Raw('id = 1')).toSqlString(), 'SELECT * FROM `articles` WHERE id = 1 AND `gmt_deleted` IS NULL');
+    });
+  });
+
+  describe('orWhere', () => {
+    it('orWhere', () => {
+      assert.equal(Post.find().where({ id: 1 }).orWhere({ id: 3 }).toSqlString(), 'SELECT * FROM `articles` WHERE (`id` = 1 OR `id` = 3) AND `gmt_deleted` IS NULL');
+    });
+
+    it('orWhere(raw)', () => {
+      assert.equal(Post.find().where({ id: 1 }).orWhere(new Raw('id = 3')).toSqlString(), 'SELECT * FROM `articles` WHERE (`id` = 1 OR id = 3) AND `gmt_deleted` IS NULL');
+    });
+  });
 });
