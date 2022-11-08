@@ -25,7 +25,9 @@ const {
   IS_LEORIC_BONE,
 } = require('./constants');
 
-const columnAttributesKey = Symbol('leoric#columns');
+const columnAttributesKey = Symbol('leoric#columnAttributes');
+const synchronizedKey = Symbol('leoric#synchronized');
+const tableKey = Symbol('leoric#table');
 
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
@@ -173,20 +175,11 @@ class Bone {
   }
 
   static set synchronized(value) {
-    Reflect.defineMetadata(`leoric:bone:synchronized:${this.name}`, value, this);
-  }
-
-  static _getSynchronizedMeta() {
-    const metaKey = `leoric:bone:synchronized:${this.name}`;
-    return Reflect.getOwnMetadata(metaKey, this);
+    this[synchronizedKey] = value;
   }
 
   static get synchronized() {
-    const metaKey = `leoric:bone:synchronized:${this.name}`;
-    if (!Reflect.hasOwnMetadata(metaKey, this)) {
-      return Object.getPrototypeOf(this) && Object.getPrototypeOf(this).synchronized;
-    }
-    return Reflect.getOwnMetadata(metaKey, this);
+    return this[synchronizedKey];
   }
 
   /**
@@ -1057,9 +1050,8 @@ class Bone {
       tableAlias,
     }));
 
-    this._defineMetaTable(table);
-
-    this.synchronized = Object.keys(diff).length === 0;
+    this[tableKey] = table;
+    this[synchronizedKey] = Object.keys(diff).length === 0;
 
     if (!this.synchronized) {
       debug('[load] %s `%s` out of sync %j', this.name, this.table, Object.keys(diff));
@@ -1115,25 +1107,12 @@ class Bone {
     return this.table || snakeCase(pluralize(this.name));
   }
 
-  static set table(v) {
-    this._defineMetaTable(v);
-  }
-
-  static _defineMetaTable(v) {
-    Reflect.defineMetadata(`leoric:bone:table:${this.name}`, v, this);
-  }
-
-  static _getTableMeta() {
-    const metaKey = `leoric:bone:table:${this.name}`;
-    return Reflect.getMetadata(metaKey, this);
+  static set table(value) {
+    this[tableKey] = value;
   }
 
   static get table() {
-    const metaKey = `leoric:bone:table:${this.name}`;
-    if (!Reflect.hasOwnMetadata(metaKey, this)) {
-      return Object.getPrototypeOf(this) && Object.getPrototypeOf(this).table;
-    }
-    return Reflect.getMetadata(metaKey, this);
+    return this[tableKey];
   }
 
   /**
@@ -1679,8 +1658,8 @@ class Bone {
     }, {});
 
     this[columnAttributesKey] = null;
+    this[tableKey] = table;
     Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes }));
-    this._defineMetaTable(table);
   }
 
   static async sync({ force = false, alter = false } = {}) {
@@ -1688,7 +1667,7 @@ class Bone {
     const { database } = this.options;
 
     // a model that is not connected before
-    if (this._getSynchronizedMeta() == null) {
+    if (!this.hasOwnProperty(synchronizedKey)) {
       const schemaInfo = await driver.querySchemaInfo(database, [ table ]);
       this.load(schemaInfo[table]);
     }
