@@ -1,3 +1,15 @@
+2.9.0 / 2022-11-09
+==================
+
+## What's Changed
+* fix: `tinytext` type error by @JimmyDaddy in https://github.com/cyjake/leoric/pull/364
+* fix: date strings should be parsed with system time zone considered by @cyjake in https://github.com/cyjake/leoric/pull/365
+* feat: support  multiple level inherent by @JimmyDaddy in https://github.com/cyjake/leoric/pull/366
+* fix: `cast/uncast` STRING and TEXT with non-string type value, and some type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/368
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.8...v2.9.0
+
 2.8.8 / 2022-10-25
 ==================
 
