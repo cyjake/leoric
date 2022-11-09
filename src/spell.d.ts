@@ -111,11 +111,14 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
 
   $where(conditions: WhereConditions<T>): this;
   $where(conditions: string, ...values: Literal[]): this;
+  $where(conditions: Raw, ...values: Literal[]): this;
   where(conditions: WhereConditions<T>): Spell<T, U>;
   where(conditions: string, ...values: Literal[]): Spell<T, U>;
+  where(conditions: Raw, ...values: Literal[]): Spell<T, U>;
 
   orWhere(conditions: WhereConditions<T>): Spell<T, U>;
   orWhere(conditions: string, ...values: Literal[]): Spell<T, U>;
+  orWhere(conditions: Raw, ...values: Literal[]): Spell<T, U>;
 
   group(...names: Array<string | Raw>): Spell<T, ResultSet<T>>;
 
