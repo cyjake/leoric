@@ -2,7 +2,7 @@ import DataTypes, { AbstractDataType, DataType } from "../data_types";
 import { 
   Pool, Literal, WhereConditions,
   Collection, ResultSet, OrderOptions,
-  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, 
+  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, BoneValues,
   GeneratorReturnType, BoneColumns, InstanceColumns, Raw,
 } from './common';
 import { AbstractDriver } from '../drivers';
@@ -127,7 +127,7 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: Values<InstanceType<T>> & Partial<Record<BoneColumns<T>, Literal>>, options?: QueryOptions): Promise<InstanceType<T>>;
+  static create<T extends typeof AbstractBone>(this: T, values: BoneValues<T> & Partial<Record<BoneColumns<T>, Literal>>, options?: QueryOptions): Promise<InstanceType<T>>;
 
   /**
    * INSERT or UPDATE rows
@@ -136,12 +136,12 @@ export class AbstractBone {
    * @param values values
    * @param opt query options
    */
-  static upsert<T extends typeof AbstractBone>(this: T, values: Partial<Record<BoneColumns<T>, Literal>>, options?: QueryOptions): Spell<T, number>;
+  static upsert<T extends typeof AbstractBone>(this: T, values: BoneValues<T>, options?: QueryOptions): Spell<T, number>;
 
   /**
    * Batch INSERT
    */
-  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<Partial<Record<BoneColumns<T>, Literal>>>, options?: BulkCreateOptions): Promise<Array<InstanceType<T>>>;
+  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<BoneValues<T>>, options?: BulkCreateOptions): Promise<Array<InstanceType<T>>>;
 
   /**
    * SELECT all rows. In production, when the table is at large, it is not recommended to access records in this way. To iterate over all records, {@link Bone.batch} shall be considered as the better alternative. For tables with soft delete enabled, which means they've got `deletedAt` attribute, use {@link Bone.unscoped} to discard the default scope.
