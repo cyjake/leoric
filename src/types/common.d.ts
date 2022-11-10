@@ -185,6 +185,8 @@ export type BoneColumns<T extends typeof AbstractBone, Key extends keyof Instanc
 
 export type InstanceColumns<T = typeof AbstractBone, Key extends keyof T = keyof Values<T>> = Key;
 
+export type BoneValues<T extends typeof AbstractBone> = Partial<Values<InstanceType<T>>>;
+
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';
 

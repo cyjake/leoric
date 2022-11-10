@@ -6,11 +6,11 @@ describe('=> Querying (TypeScript)', function() {
   class Post extends Bone {
     static table = 'articles'
 
-    @Column()
-    id: bigint;
+    @Column(BIGINT)
+    id: number;
 
-    @Column()
-    authorId: bigint
+    @Column(BIGINT)
+    authorId: number
 
     @Column()
     title: string;
