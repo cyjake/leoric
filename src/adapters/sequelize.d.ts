@@ -2,7 +2,7 @@ import {
   Attributes, Literal, OperatorCondition,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
-  QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneValues,
+  QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
@@ -121,14 +121,14 @@ export class SequelizeBone extends AbstractBone {
   static aggregate<T extends typeof SequelizeBone>(this: T, name: BoneColumns<T>, func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
   static aggregate<T extends typeof SequelizeBone>(this: T, name: Raw | '*', func: aggregators, options?: SequelizeConditions<T>): Spell<T, number>;
 
-  static build<T extends typeof SequelizeBone>(this: T, values: BoneValues<T>, options?: BoneOptions): InstanceType<T>;
+  static build<T extends typeof SequelizeBone>(this: T, values: BoneCreateValues<T>, options?: BoneOptions): InstanceType<T>;
 
   /**
    * see https://github.com/sequelize/sequelize/blob/a729c4df41fa3a58fbecaf879265d2fb73d80e5f/src/model.js#L2299
    * @param valueSets
    * @param options
    */
-  static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<BoneValues<T>>, options?: BoneOptions): Array<InstanceType<T>>;
+  static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<BoneCreateValues<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
   static count<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, name?: Raw | '*'): Spell<T, ResultSet<T> | number>;

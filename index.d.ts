@@ -8,7 +8,7 @@ import {
   Connection, QueryOptions,
   Raw, ColumnMeta, AttributeMeta,
   BeforeHooksType, AfterHooksType, Collection,
-  GeneratorReturnType, Values, BoneValues,
+  GeneratorReturnType, Values, BoneCreateValues, BoneInstanceValues,
 } from './src/types/common';
 import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
 import Bone from './src/bone';
@@ -19,7 +19,7 @@ export {
   DataTypes, Literal, Validator, Connection,
   Hint, IndexHint, HintInterface, INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE,
   Bone, Raw, Collection,
-  SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneValues,
+  SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneCreateValues, BoneInstanceValues,
 };
 
 export * from './src/decorators';

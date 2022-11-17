@@ -185,10 +185,19 @@ export type BoneColumns<T extends typeof AbstractBone, Key extends keyof Instanc
 
 export type InstanceColumns<T = typeof AbstractBone, Key extends keyof T = keyof Values<T>> = Key;
 
-export type BoneValues<T extends typeof AbstractBone> = Partial<Values<InstanceType<T>>>;
+/**
+ * Bone.create(values: BoneCreateValues<this>);
+ */
+export type BoneCreateValues<T extends typeof AbstractBone> = Partial<Values<InstanceType<T>>>;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';
 
 // https://stackoverflow.com/a/67232225/179691
 type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R, any> ? R: never;
+
+/**
+ * Plain keyMap type object of a Bone's attributes
+ * BoneInstanceValues<user> = { id: number, name: string }
+ */
+export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<InstanceType<T>, PickTypeKeys<InstanceType<T>, Function> | 'isNewRecord' | 'Model' | 'dataValues'>;
