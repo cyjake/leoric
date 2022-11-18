@@ -1423,6 +1423,17 @@ describe('=> sequelize (TypeScript)', function() {
       const rowCount = await Post.destroy({ force: true });
       assert.equal(rowCount, 2);
     });
+
+    it('bone.destroy()', async () => {
+      const post = await Post.create({ title: 'By three they come' });
+      class PostExtend extends Post {
+        subType?: string;
+      }
+
+      const p1: PostExtend = await post.destroy() as Post;
+      p1.subType = 'extend';
+      assert.equal(p1.id, post.id);
+    });
   })
 
   it('Model.removeAttribute()', async function() {

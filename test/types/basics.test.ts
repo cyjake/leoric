@@ -181,9 +181,14 @@ describe('=> Basics (TypeScript)', function() {
 
     it('bone.changes()', async function() {
       const post = new Post({ title: 'Cain' });
-      assert.deepEqual(post.changes(), { title: [ null, 'Cain' ] });
-      assert.deepEqual(post.changes('title'), { title: [ null, 'Cain' ] });
-
+      const changes = post.changes();
+      assert.deepEqual(changes, { title: [ null, 'Cain' ] });
+      assert.equal(changes.title?.[0], null);
+      assert.equal(changes.title[1], 'Cain');
+      const titleChanges = post.changes('title');
+      assert.equal(titleChanges.title[0], null);
+      assert.equal(titleChanges.title[1], 'Cain');
+      assert.deepEqual(titleChanges, { title: [ null, 'Cain' ] });
       await post.create();
 
       assert.ok(post.id);
