@@ -316,9 +316,8 @@ export class AbstractBone {
   /**
    * Get attribute changes
    */
-  changes<T, Key extends keyof Values<T>>(this: T, name: Key): Record<InstanceColumns<this>, [ Literal, Literal ]>;
-  changes<T, Key extends keyof T>(this: T, name: Key): Record<InstanceColumns<this>, [ Literal, Literal ]>;
-  changes(): Record<InstanceColumns<this>, [ Literal, Literal ]>;
+  changes<T, Key extends keyof Values<T>>(this: T, name: Key): Record<Key, [ T[Key] | null, T[Key] | null ]>;
+  changes<T, Key extends keyof Values<T>>(this: T): Record<Key, [ Literal, Literal ]>;
 
   /**
    * See if attribute was changed previously or not.

@@ -209,7 +209,7 @@ export class SequelizeBone extends AbstractBone {
   increment(field: string | Raw | Array<string | Raw>, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   decrement(field: InstanceColumns<this> | Array<InstanceColumns<this>> | { [Property in keyof Extract<this, Literal>]?: number }, options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
   decrement(field: string | Raw | Array<string | Raw> , options?: QueryOptions): Spell<typeof SequelizeBone, QueryResult>;
-  destroy(options?: SequelizeDestroyOptions): Promise<this| number>;
+  destroy<T>(this: T, options?: SequelizeDestroyOptions): Promise<T | number>;
   update<T = this>(this: T, changes?: { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
   update<T = this>(this: T, changes?: { [key: string]: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
 
