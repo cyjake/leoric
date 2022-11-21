@@ -1,3 +1,13 @@
+2.9.1 / 2022-11-21
+==================
+
+## What's Changed
+* fix: fix Bone.create(values) params type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/369
+* chore: export Utility Type BoneInstanceValues by @JimmyDaddy in https://github.com/cyjake/leoric/pull/370
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.9.0...v2.9.1
+
 2.9.0 / 2022-11-09
 ==================
 
