@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 
 const { Bone, DataTypes } = require('../../..');
 const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB, BIGINT } = DataTypes;
@@ -270,7 +270,7 @@ describe('=> Data types - DATE', function() {
     });
 
     await assert.doesNotReject(async function() {
-      const result = await Note.where({ createdAt: strftime('%Y-%m-%d %H:%M:%S,%L', date) });
+      const result = await Note.where({ createdAt: dayjs(date).format('YYYY-MM-DD HH:mm:ss,SSS') });
       assert.equal(result.length, 1);
     });
 
@@ -319,7 +319,7 @@ describe('=> Data types - DATEONLY', function() {
     const date = new Date('2021-10-15T08:38:43.877Z');
     const note = await Note.create({ createdAt: date });
     await note.reload();
-    assert.equal(strftime('%Y-%m-%d', note.createdAt), '2021-10-15');
+    assert.equal(dayjs(note.createdAt).format('YYYY-MM-DD'), '2021-10-15');
 
     await assert.doesNotReject(async function() {
       const result = await Note.where({ createdAt: date });
@@ -356,6 +356,103 @@ describe('=> Data types - DATEONLY', function() {
         assert.equal(note2.createdAt, null);
       }, /invalid date: halo/i);
     }
+  });
+});
+
+describe('=> Data types - JSON', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: JSON,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.deepEqual(note.meta, meta);
+
+    const note1 = await Note.findOne({ meta });
+    assert.deepEqual(note1.meta, meta);
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, 1);
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, 1);
+    assert.equal(note3.id, note2.id);
+  });
+});
+
+describe('=> Data types - TEXT', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: TEXT,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.equal(note.meta, global.JSON.stringify(meta));
+
+    const note1 = await Note.findOne({ meta: global.JSON.stringify(meta) });
+    assert.equal(note1.meta, global.JSON.stringify(meta));
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, '1');
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, '1');
+    assert.equal(note3.id, note2.id);
+
+    const note4 = await Note.create({ meta: 'hardcore' });
+    assert.equal(note4.meta, 'hardcore');
+    const note5 = await Note.findOne({ meta: 'hardcore' });
+    assert.equal(note5.meta, 'hardcore');
+  });
+});
+
+describe('=> Data types - STRING', function() {
+  class Note extends Bone {
+    static attributes = {
+      meta: STRING,
+    }
+  }
+
+  before(async () => {
+    await Note.driver.dropTable('notes');
+    await Note.sync();
+  });
+
+  it('type casting', async function() {
+    const meta = { name: 'bloodborne', type: 'Cthulhu' };
+    const note = await Note.create({ meta });
+    await note.reload();
+    assert.equal(note.meta, global.JSON.stringify(meta));
+
+    const note1 = await Note.findOne({ meta: global.JSON.stringify(meta) });
+    assert.equal(note1.meta, global.JSON.stringify(meta));
+
+    const note2 = await Note.create({ meta: 1 });
+    assert.equal(note2.meta, '1');
+    const note3 = await Note.findOne({ meta: 1 });
+    assert.equal(note3.meta, '1');
+    assert.equal(note3.id, note2.id);
+
+    const note4 = await Note.create({ meta: 'hardcore' });
+    assert.equal(note4.meta, 'hardcore');
+    const note5 = await Note.findOne({ meta: 'hardcore' });
+    assert.equal(note5.meta, 'hardcore');
   });
 });
 

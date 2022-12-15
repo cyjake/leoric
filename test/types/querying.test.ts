@@ -1,16 +1,16 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, connect } from '../..'
+import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../..'
 
 describe('=> Querying (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING } = DataTypes;
   class Post extends Bone {
     static table = 'articles'
 
-    @Column()
-    id: bigint;
+    @Column(BIGINT)
+    id: number;
 
-    @Column()
-    authorId: bigint
+    @Column(BIGINT)
+    authorId: number
 
     @Column()
     title: string;
@@ -52,12 +52,12 @@ describe('=> Querying (TypeScript)', function() {
 
   describe('=> Driver', function() {
     it('driver.query(SELECT)', async function() {
-      const { rows } = await Bone.driver.query('SELECT 1');
-      assert.equal(rows.length, 1);
+      const { rows } = await Bone.driver!.query('SELECT 1');
+      assert.equal(rows!.length, 1);
     });
 
     it('driver.query(INSERT)', async function() {
-      const { insertId, affectedRows } = await Bone.driver.query(
+      const { insertId, affectedRows } = await Bone.driver!.query(
         'INSERT INTO articles (title) VALUES ("Leah")'
       );
       assert.equal(affectedRows, 1);
@@ -78,16 +78,18 @@ describe('=> Querying (TypeScript)', function() {
         { title: 'Stranger', authorId: author.id }
       ])
       const user = await User.findOne({}).with({ posts: { select: 'title' } });
-      assert.equal(user.id, author.id);
-      assert.ok(Array.isArray(user.posts));
-      assert.equal(user.posts.length, 1);
-      assert.equal(user.posts[0].title, 'Stranger');
+      assert.equal(user!.id, author.id);
+      assert.ok(Array.isArray(user!.posts));
+      assert.equal(user!.posts.length, 1);
+      assert.equal(user!.posts[0].title, 'Stranger');
     });
   });
 
   describe('=> Aggregations', function() {
     it('Bone.count()', async function() {
-      const count = await Post.count();
+      let count = await Post.count();
+      assert.equal(count, 0);
+      count = await Post.count('authorId');
       assert.equal(count, 0);
     });
 
@@ -101,8 +103,20 @@ describe('=> Querying (TypeScript)', function() {
       assert.equal(result.count, 1);
     });
 
+    it('Bone.group(raw).count()', async function() {
+      await Post.create({ title: 'Samoa' })
+      const results = await Post.group(new Raw('title')).count();
+      assert.ok(Array.isArray(results));
+      const [result] = results;
+      assert.ok('title' in result);
+      assert.equal(result.title, 'Samoa');
+      assert.equal(result.count, 1);
+    });
+
     it('Bone.where().count()', async function() {
-      const count = await Post.where({ title: 'Leah' }).count();
+      let count = await Post.where({ title: 'Leah' }).count();
+      assert.equal(count, 0);
+      count = await Post.where({ title: 'Leah' }).count('id');
       assert.equal(count, 0);
     });
   });
@@ -118,7 +132,7 @@ describe('=> Querying (TypeScript)', function() {
 
     it('Bone.findOne().select()', async function() {
       const post = await Post.findOne(1).select(name => [ 'id', 'title' ].includes(name));
-      assert.deepEqual(post.toJSON(), { id: post.id, title: 'There And Back Again' });
+      assert.deepEqual(post!.toJSON(), { id: post!.id, title: 'There And Back Again' });
     });
 
     it('Bone.findOne({ $or })', async function() {
@@ -131,7 +145,7 @@ describe('=> Querying (TypeScript)', function() {
       assert.ok(post);
     });
 
-    it('Bone.fineOnd({ $and })', async function() {
+    it('Bone.fineOne({ $and })', async function() {
       const post = await Post.findOne({
         $and: [
           { authorId: 2, title: { $like: 'Foo%' } },
@@ -139,6 +153,16 @@ describe('=> Querying (TypeScript)', function() {
         ],
       });
       assert.ok(post);
+    });
+
+    it('Bone.select(Raw)', async function() {
+      const posts = await Post.select(new Raw('COUNT(author_id) as count'));
+      assert.equal(posts?.[0].count, 2);
+    });
+
+    it('Bone.where(Raw)', async function() {
+      const posts = await Post.where(new Raw('author_id = 2'));
+      assert.equal(posts.length, 2);
     });
   });
 });

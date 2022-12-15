@@ -14,7 +14,7 @@ require('reflect-metadata');
 const { default: DataTypes } = require('./data_types');
 const Collection = require('./collection');
 const Spell = require('./spell');
-const Raw = require('./raw');
+const Raw = require('./raw').default;
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');
 const {
@@ -25,7 +25,9 @@ const {
   IS_LEORIC_BONE,
 } = require('./constants');
 
-const columnAttributesKey = Symbol('leoric#columns');
+const columnAttributesKey = Symbol('leoric#columnAttributes');
+const synchronizedKey = Symbol('leoric#synchronized');
+const tableKey = Symbol('leoric#table');
 
 function looseReadonly(props) {
   return Object.keys(props).reduce((result, name) => {
@@ -170,6 +172,14 @@ class Bone {
         this[name] = dataValues[name];
       }
     }
+  }
+
+  static set synchronized(value) {
+    this[synchronizedKey] = value;
+  }
+
+  static get synchronized() {
+    return this[synchronizedKey];
   }
 
   /**
@@ -668,7 +678,7 @@ class Bone {
    * @public
    * @param {Object} values
    * @param {Object?} options
-   * @returns {number} affected rows
+   * @returns {Promise<number>} affected rows
    * @memberof Bone
    */
   async update(values, options = {}) {
@@ -697,7 +707,7 @@ class Bone {
   /**
    * Persist changes on current instance back to database with `UPDATE`.
    * @private
-   * @return {number}
+   * @return {Promise<number>}
    */
   async _update(values, options = {}) {
     const Model = this.constructor;
@@ -1029,20 +1039,22 @@ class Bone {
       }
     }
     for (const name in attributes) this.loadAttribute(name);
+    const diff = compare(attributes, columnMap);
 
     Object.defineProperties(this, looseReadonly({
       timestamps,
-      table,
       primaryKey,
       columns,
       attributeMap,
       associations,
       tableAlias,
-      synchronized: Object.keys(compare(attributes, columnMap)).length === 0,
     }));
 
+    this[tableKey] = table;
+    this[synchronizedKey] = Object.keys(diff).length === 0;
+
     if (!this.synchronized) {
-      debug('[load] %s not fully synchronized with %s', this.name, this.table);
+      debug('[load] %s `%s` out of sync %j', this.name, this.table, Object.keys(diff));
     }
 
     for (const hookName of hookNames) {
@@ -1093,6 +1105,14 @@ class Bone {
     }
     // table name might be undefined, the default one will get set later.
     return this.table || snakeCase(pluralize(this.name));
+  }
+
+  static set table(value) {
+    this[tableKey] = value;
+  }
+
+  static get table() {
+    return this[tableKey];
   }
 
   /**
@@ -1263,10 +1283,8 @@ class Bone {
       throw new Error(`unable to use virtual attribute ${opts.foreignKey} as foreign key in model ${Model.name}`);
     }
 
-    const { deletedAt } = this.timestamps;
-    if (Model.attributes[deletedAt] && !opts.where) {
-      opts.where = { [deletedAt]: null };
-    }
+    const { deletedAt } = Model.timestamps;
+    if (Model.attributes[deletedAt]) opts.where = { [deletedAt]: null, ...opts.where };
     this.associations[name] = { ...opts, Model };
   }
 
@@ -1640,7 +1658,8 @@ class Bone {
     }, {});
 
     this[columnAttributesKey] = null;
-    Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes, table }));
+    this[tableKey] = table;
+    Object.defineProperties(this, looseReadonly({ ...hookMethods, attributes }));
   }
 
   static async sync({ force = false, alter = false } = {}) {
@@ -1648,7 +1667,7 @@ class Bone {
     const { database } = this.options;
 
     // a model that is not connected before
-    if (this.synchronized == null) {
+    if (!this.hasOwnProperty(synchronizedKey)) {
       const schemaInfo = await driver.querySchemaInfo(database, [ table ]);
       this.load(schemaInfo[table]);
     }

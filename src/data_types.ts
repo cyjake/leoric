@@ -1,8 +1,7 @@
-'use strict';
-
-const util = require('util');
+import Raw from './raw';
+import util from 'util';
+import dayjs from 'dayjs';
 const invokableFunc = require('./utils/invokable');
-const Raw = require('./raw');
 
 export enum LENGTH_VARIANTS {
   tiny = 'tiny',
@@ -38,7 +37,7 @@ export abstract class DataType {
   /**
    * uncast js value into database type with precision
    */
-  uncast(value: any, _strict?: boolean): any {
+  uncast(value: any): any {
     return value;
   }
 
@@ -67,9 +66,26 @@ class STRING extends DataType {
     return chunks.join(' ');
   }
 
-  uncast(value: string | typeof Raw | null): string {
+  cast(value: any): any {
+    if (typeof value === 'object' && value != null) {
+      return global.JSON.stringify(value);
+    }
+    if (value == null) {
+      return value;
+    }
+    return '' + value;
+  }
+
+  uncast(value: string | Raw | null): string | Raw | null {
     if (value == null || value instanceof Raw) return value;
     return '' + value;
+  }
+}
+
+class CHAR extends STRING {
+  constructor(dataLength: number = 255) {
+    super(dataLength);
+    this.dataType = 'char';
   }
 }
 
@@ -299,26 +315,26 @@ class DATE extends DataType {
     return this._round(value);
   }
 
-  uncast(value: null | typeof Raw | string | Date, _strict?: boolean): string | Date {
+  uncast(value: null | Raw | string | Date | { toDate: () => Date }): string | Date | Raw | null | undefined {
     const originValue = value;
 
-    if (value == null || value instanceof Raw) return value;
-    if (typeof value.toDate === 'function') {
-      value = value.toDate();
-    }
+    // type narrowing doesn't handle `return value` correctly
+    if (value == null) return value as null | undefined;
+    if (value instanceof Raw) return value;
+    // Date | Moment
+    if (typeof value === 'object' && 'toDate' in value) value = value.toDate();
 
     // @deprecated
     // vaguely standard date formats such as 2021-10-15 15:50:02,548
     if (typeof value === 'string' && rDateFormat.test(value)) {
-      // 2021-10-15 15:50:02,548 => 2021-10-15T15:50:02,548,
-      // 2021-10-15 15:50:02 => 2021-10-15T15:50:02.000
-      value = new Date(`${value.replace(' ', 'T').replace(',', '.')}`);
+      // 2021-10-15 15:50:02,548 => 2021-10-15 15:50:02.548,
+      value = dayjs(`${value.replace(',', '.')}`).toDate();
     }
 
     // 1634611135776
     // '2021-10-15T08:38:43.877Z'
-    if (!(value instanceof Date)) value = new Date(value);
-    if (isNaN(value)) throw new Error(util.format('invalid date: %s', originValue));
+    if (!(value instanceof Date)) value = dayjs((value as string)).toDate();
+    if (isNaN((value as any))) throw new Error(util.format('invalid date: %s', originValue));
 
     return this._round(value);
   }
@@ -360,7 +376,7 @@ class BOOLEAN extends DataType {
   }
 }
 
-class TEXT extends DataType {
+class TEXT extends STRING {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
       throw new Error(`invalid text length: ${length}`);
@@ -466,6 +482,7 @@ class VIRTUAL extends DataType {
 }
 
 const AllDataTypes = {
+  CHAR,
   STRING,
   TINYINT,
   SMALLINT,
@@ -488,6 +505,7 @@ const AllDataTypes = {
 export type DATA_TYPE<T> = AbstractDataType<T> & T;
 
 class DataTypes {
+  static CHAR: DATA_TYPE<CHAR> = CHAR as any;
   static STRING: DATA_TYPE<STRING> = STRING as any;
   static TINYINT: DATA_TYPE<TINYINT> = TINYINT as any;
   static SMALLINT: DATA_TYPE<SMALLINT> = SMALLINT as any;
@@ -508,7 +526,7 @@ class DataTypes {
 
   static findType(columnType: string): DataTypes {
     const {
-      STRING, TEXT, DATE, DATEONLY,
+      CHAR, STRING, TEXT, DATE, DATEONLY,
       TINYINT, SMALLINT, MEDIUMINT, INTEGER, 
       BIGINT, DECIMAL, BOOLEAN,
       BINARY, VARBINARY, BLOB,
@@ -525,9 +543,12 @@ class DataTypes {
     }
   
     switch (dataType) {
-      case 'varchar':
       case 'char':
+        return new CHAR(...params);
+      case 'varchar':
         return new STRING(...params);
+      case 'tinytext':
+        return new TEXT(LENGTH_VARIANTS.tiny);
       // longtext is only for MySQL
       case 'longtext':
         return new TEXT(LENGTH_VARIANTS.long);

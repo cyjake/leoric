@@ -1,3 +1,71 @@
+2.9.1 / 2022-11-21
+==================
+
+## What's Changed
+* fix: fix Bone.create(values) params type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/369
+* chore: export Utility Type BoneInstanceValues by @JimmyDaddy in https://github.com/cyjake/leoric/pull/370
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.9.0...v2.9.1
+
+2.9.0 / 2022-11-09
+==================
+
+## What's Changed
+* fix: `tinytext` type error by @JimmyDaddy in https://github.com/cyjake/leoric/pull/364
+* fix: date strings should be parsed with system time zone considered by @cyjake in https://github.com/cyjake/leoric/pull/365
+* feat: support  multiple level inherent by @JimmyDaddy in https://github.com/cyjake/leoric/pull/366
+* fix: `cast/uncast` STRING and TEXT with non-string type value, and some type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/368
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.8...v2.9.0
+
+2.8.8 / 2022-10-25
+==================
+
+## What's Changed
+* fix: join query with select columns should include order columns by @cyjake in https://github.com/cyjake/leoric/pull/360
+* docs: support switchable dark theme, at web app level by @cyjake in https://github.com/cyjake/leoric/pull/359
+* fix: @Column() should not tamper parent attributes directly by @cyjake in https://github.com/cyjake/leoric/pull/362
+* fix: bone.update({ deletedAt: null }) and likewise methods should work by @cyjake in https://github.com/cyjake/leoric/pull/363
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.7...v2.8.8
+
+2.8.7 / 2022-10-11
+==================
+
+## What's Changed
+* fix: enable strictNullChecks by @cyjake in https://github.com/cyjake/leoric/pull/357
+* fix: declaration types of realm.query() and static update values by @cyjake in https://github.com/cyjake/leoric/pull/358
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.6...v2.8.7
+
+2.8.6 / 2022-10-11
+==================
+
+## What's Changed
+* fix: new Realm({ sequelize: true }).Bone == Realm.SequelizeBone by @cyjake in https://github.com/cyjake/leoric/pull/349
+* fix: edge cases in attribute.equals() by @cyjake in https://github.com/cyjake/leoric/pull/350
+* fix: bone.attribute(name, value?) type infer with this[name] by @cyjake in https://github.com/cyjake/leoric/pull/351
+* fix: ts type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/352
+* fix: this.attribute(name) should fallback to Literal by @cyjake in https://github.com/cyjake/leoric/pull/353
+* fix: type definitions for columns constraint by @JimmyDaddy in https://github.com/cyjake/leoric/pull/355
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.5...v2.8.6
+
+2.8.5 / 2022-09-21
+==================
+
+## What's Changed
+* fix: deletedAt should always be checked when associating models by @cyjake in https://github.com/cyjake/leoric/pull/347
+* fix: generic type for getDataValue by @vagusX in https://github.com/cyjake/leoric/pull/346
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.8.4...v2.8.5
+
 2.8.4 / 2022-09-20
 ==================
 

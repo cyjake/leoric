@@ -2,8 +2,8 @@ import DataTypes, { AbstractDataType, DataType } from "../data_types";
 import { 
   Pool, Literal, WhereConditions,
   Collection, ResultSet, OrderOptions,
-  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, 
-  GeneratorReturnType,
+  QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, BoneCreateValues,
+  GeneratorReturnType, BoneColumns, InstanceColumns, Raw,
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
@@ -17,7 +17,10 @@ interface TransactionOptions {
   connection: Connection;
 }
 
+type V<T, Key extends keyof T> = Record<Key, T[Key]>;
 export class AbstractBone {
+  static readonly name: string;
+
   static DataTypes: typeof DataTypes;
 
   /**
@@ -28,7 +31,7 @@ export class AbstractBone {
   /**
    * The driver that powers the model
    */
-  static driver: AbstractDriver;
+  static driver: AbstractDriver | null;
 
   /**
    * The connected models structured as `{ [model.name]: model }`, e.g. `Bone.model.Post => Post`
@@ -61,6 +64,11 @@ export class AbstractBone {
   static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
 
   /**
+   * The actual attribute definitions of the model.
+   */
+  static columnAttributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+
+  /**
    * The schema info of current model.
    */
   static columns: Array<AttributeMeta>;
@@ -85,15 +93,30 @@ export class AbstractBone {
   static attribute(name: string, meta: AttributeMeta): void;
 
   /**
+   * Model.hasAttribute(name)
+   * @static
+   * @param {string} name
+   * @returns {boolean}
+   */
+  static hasAttribute(name: string): boolean;
+
+  /**
    * Rename attribute
    * @example
    * Bone.renameAttribute('foo', 'bar')
    */
-  static renameAttribute(originalName: string, newName: string): void;
+  static renameAttribute<T extends typeof AbstractBone>(this: T, originalName: BoneColumns<T>, newName: string): void;
+  // after renamed
+  static renameAttribute<T extends typeof AbstractBone>(this: T, originalName: string, newName: string): void;
 
-  static alias(name: string): string;
-  static alias(data: Record<string, Literal>): Record<string, Literal>;
-  static unalias(name: string): string;
+  static alias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
+  static alias<T extends typeof AbstractBone>(this: T, data: Record<BoneColumns<T>, Literal>): Record<string, Literal>;
+  static unalias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
+
+  // after alias/unalias
+  static alias<T extends typeof AbstractBone>(this: T, name: string): string;
+  static alias<T extends typeof AbstractBone>(this: T, data: Record<string, Literal>): Record<string, Literal>;
+  static unalias<T extends typeof AbstractBone>(this: T, name: string): string;
 
   static hasOne(name: string, opts?: AssociateOptions): void;
   static hasMany(name: string, opts?: AssociateOptions): void;
@@ -104,7 +127,7 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: Values<InstanceType<T>> & Record<string, any>, options?: QueryOptions): Promise<InstanceType<T>>;
+  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T> & Partial<Record<BoneColumns<T>, Literal>>, options?: QueryOptions): Promise<InstanceType<T>>;
 
   /**
    * INSERT or UPDATE rows
@@ -113,12 +136,12 @@ export class AbstractBone {
    * @param values values
    * @param opt query options
    */
-  static upsert<T extends typeof AbstractBone>(this: T, values: Object, options?: QueryOptions): Spell<T, number>;
+  static upsert<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, options?: QueryOptions): Spell<T, number>;
 
   /**
    * Batch INSERT
    */
-  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<Record<string, Literal>>, options?: BulkCreateOptions): Promise<Array<InstanceType<T>>>;
+  static bulkCreate<T extends typeof AbstractBone>(this: T, records: Array<BoneCreateValues<T>>, options?: BulkCreateOptions): Promise<Array<InstanceType<T>>>;
 
   /**
    * SELECT all rows. In production, when the table is at large, it is not recommended to access records in this way. To iterate over all records, {@link Bone.batch} shall be considered as the better alternative. For tables with soft delete enabled, which means they've got `deletedAt` attribute, use {@link Bone.unscoped} to discard the default scope.
@@ -159,7 +182,9 @@ export class AbstractBone {
    * Bone.select('MONTH(date), foo + 1')
    * Bone.select(name => name !== foo)
    */
+  static select<T extends typeof AbstractBone>(this: T, ...names: Array<BoneColumns<T>> | string[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T>;
+  static select<T extends typeof AbstractBone>(this: T, ...names: Raw[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, filter: (name: string) => boolean): Spell<T>;
 
   /**
@@ -167,8 +192,8 @@ export class AbstractBone {
    * @example
    * Bone.join(Muscle, 'bones.id == muscles.boneId')
    */
-  static join<T extends typeof AbstractBone>(this: T, Model: AbstractBone, onConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
   static join<T extends typeof AbstractBone>(this: T, Model: AbstractBone, onConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
+  static join<T extends typeof AbstractBone>(this: T, Model: AbstractBone, onConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
 
   /**
    * Set WHERE conditions
@@ -176,8 +201,8 @@ export class AbstractBone {
    * Bone.where('foo = ?', 1)
    * Bone.where({ foo: { $eq: 1 } })
    */
-  static where<T extends typeof AbstractBone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
   static where<T extends typeof AbstractBone>(this: T, whereConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
+  static where<T extends typeof AbstractBone>(this: T, whereConditions: string | Raw, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
 
   /**
    * Set GROUP fields
@@ -185,7 +210,9 @@ export class AbstractBone {
    * Bone.group('foo')
    * Bone.group('MONTH(createdAt)')
    */
-  static group<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T, ResultSet<T>>;
+  static group<T extends typeof AbstractBone>(this: T, ...names: Array<BoneColumns<T>>): Spell<T, ResultSet<T>>;
+  static group<T extends typeof AbstractBone>(this: T, ...names: Array<string>): Spell<T, ResultSet<T>>;
+  static group<T extends typeof AbstractBone>(this: T, ...names: Array<Raw>): Spell<T, ResultSet<T>>;
 
   /**
    * Set ORDER fields
@@ -194,14 +221,17 @@ export class AbstractBone {
    * Bone.order('foo', 'desc')
    * Bone.order({ foo: 'desc' })
    */
-  static order<T extends typeof AbstractBone>(this: T, name: string, order?: 'desc' | 'asc'): Spell<T>;
+  static order<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>, order?: 'desc' | 'asc'): Spell<T>;
   static order<T extends typeof AbstractBone>(this: T, opts: OrderOptions<T>): Spell<T>;
 
-  static count<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
-  static average<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
-  static minimum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
-  static maximum<T extends typeof AbstractBone>(this: T, name?: string): Spell<T, ResultSet<T> | number>;
-
+  static count<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static average<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static average<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static minimum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static minimum<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
+  static maximum<T extends typeof AbstractBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
+  static maximum<T extends typeof AbstractBone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
@@ -215,8 +245,8 @@ export class AbstractBone {
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
    * });
    */
-  static transaction<T extends (connection: Connection) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
-  static transaction<T extends (connection: Connection) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
+  static transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
+  static transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
   
   static describe(): Promise<{[key: string]: any[]}>;
 
@@ -230,7 +260,7 @@ export class AbstractBone {
    */
   static truncate(): Promise<void>;
 
-  static sync(options: SyncOptions): Promise<void>;
+  static sync(options?: SyncOptions): Promise<void>;
 
   static initialize(): void;
 
@@ -241,15 +271,26 @@ export class AbstractBone {
    * bone.attribute('foo');     // => 1
    * bone.attribute('foo', 2);  // => bone
    */
-  attribute(name: string, value: Literal): void;
-  attribute(name: string): Literal;
+  attribute<T, Key extends keyof Values<T>>(this: T, name: Key, value: Literal): void;
+  attribute<T, Key extends keyof T>(this: T, name: Key, value: Literal): void;
+
+  attribute<T, Key extends keyof Values<T>, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
+  attribute<T, Key extends keyof T, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
+
+  /**
+   * instance.hasAttribute(name)
+   * @param {string} name
+   * @returns {boolean}
+   */
+  hasAttribute(name: string): boolean;
 
   /**
    * Get the original attribute value.
    * @example
    * bone.attributeWas('foo')  // => 1
    */
-  attributeWas(name: string): Literal;
+  attributeWas<T, Key extends keyof Values<T>, U extends T[Key]>(this: T, key: Key): U extends Literal ? U : Literal;
+  attributeWas<T, Key extends keyof T, U extends T[Key]>(this: T, key: Key): U extends Literal ? U : Literal;
 
   /**
    * See if attribute has been changed or not.
@@ -257,28 +298,41 @@ export class AbstractBone {
    * @example
    * bone.attributeChanged('foo')
    */
-  attributeChanged(name: string): boolean;
+  attributeChanged<T, Key extends keyof Values<T>>(this: T, name: Key): boolean;
+  // for getter/setter
+  attributeChanged<T, Key extends keyof T>(this: T, name: Key): boolean;
 
   /**
    * Get changed attributes or check if given attribute is changed or not
    */
-  changed(name: string): boolean;
-  changed(): Array<string> | false;
+  changed<T, Key extends keyof Values<T>>(this: T, name: Key): boolean;
+  // for getter/setter
+  changed<T, Key extends keyof T>(this: T, name: Key): boolean;
+
+  changed<T, Key extends keyof Values<T>>(this: T): Array<Key> | false;
+  // for getter/setter
+  changed<T, Key extends keyof T>(this: T): Array<Key> | false;
 
   /**
    * Get attribute changes
    */
-  changes(name: string): Record<string, [ Literal, Literal ]>;
-  changes(): Record<string, [ Literal, Literal ]>;
+  changes<T, Key extends keyof Values<T>>(this: T, name: Key): Record<Key, [ T[Key] | null, T[Key] | null ]>;
+  changes<T, Key extends keyof Values<T>>(this: T): Record<Key, [ Literal, Literal ]>;
 
   /**
    * See if attribute was changed previously or not.
    */
-  previousChanged(name: string): boolean;
-  previousChanged(): Array<string>;
+  previousChanged<T, Key extends keyof Values<T>>(this: T, name: Key): boolean;
+  previousChanged<T, Key extends keyof T>(this: T, name: Key): boolean;
 
-  previousChanges(name: string): boolean;
-  previousChanges(): Array<string>;
+  previousChanged<T, Key extends keyof Values<T>>(this: T): Array<Key>;
+  previousChanged<T, Key extends keyof T>(this: T): Array<Key>;
+
+  previousChanges<T, Key extends keyof Values<T>>(this: T, name: Key): boolean;
+  previousChanges<T, Key extends keyof T>(this: T, name: Key): boolean;
+
+  previousChanges<T, Key extends keyof Values<T>>(this: T ): Array<Key>;
+  previousChanges<T, Key extends keyof T>(this: T ): Array<Key>;
 
   /**
    * Persist changes of current record to database. If current record has never been saved before, an INSERT query is performed. If the primary key was set and is not changed since, an UPDATE query is performed. If the primary key is changed, an INSERT ... UPDATE query is performed instead.
@@ -316,7 +370,7 @@ export class AbstractBone {
    * @param changes data changes
    * @param opts query options
    */
-  update(changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]: Literal }, opts?: QueryOptions): Promise<number>;
+  update(changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: QueryOptions): Promise<number>;
 
   /**
    * create instance

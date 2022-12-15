@@ -28,6 +28,9 @@ before(async function() {
     });
   });
 
+  // database.close(callback) seems not working properly, wait for one extra second
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   const realm = new Realm({
     dialect: 'sqlite',
     database: encrypted,

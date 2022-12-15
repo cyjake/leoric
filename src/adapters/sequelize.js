@@ -2,7 +2,7 @@
 
 const { setupSingleHook } = require('../setup_hooks');
 const { compose, isPlainObject } = require('../utils');
-const Raw = require('../raw');
+const Raw = require('../raw').default;
 
 function translateOptions(spell, options) {
   const { attributes, where, group, order, offset, limit, include, having } = options;
@@ -156,9 +156,18 @@ module.exports = function sequelize(Bone) {
      */
     static scope(name, ...args) {
       const parentName = this.name;
+      const parentTable = this.table;
+      const parent = this;
       class ScopeClass extends this {
         static name = parentName;
+        static get synchronized() {
+          return parent.synchronized;
+        }
+        static get table() {
+          return parentTable;
+        }
       }
+
       ScopeClass.setScope(name, ...args);
       return ScopeClass;
     }

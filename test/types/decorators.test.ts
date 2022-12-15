@@ -38,10 +38,10 @@ describe('=> Decorators (TypeScript)', function() {
         'id', 'name', 'isPrivate', 'createdAt', 'updatedAt',
       ]);
       const { id, name, isPrivate, createdAt } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((name as AttributeMeta).toSqlString(), '`name` VARCHAR(255) NOT NULL');
-      assert.equal((isPrivate as AttributeMeta).toSqlString(), '`is_private` TINYINT(1) DEFAULT true');
-      assert.equal((createdAt as AttributeMeta).toSqlString(), '`created_at` DATETIME');
+      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((name as AttributeMeta).toSqlString!(), '`name` VARCHAR(255) NOT NULL');
+      assert.equal((isPrivate as AttributeMeta).toSqlString!(), '`is_private` TINYINT(1) DEFAULT true');
+      assert.equal((createdAt as AttributeMeta).toSqlString!(), '`created_at` DATETIME');
     });
 
     it('should be able to override column type', async function() {
@@ -55,8 +55,8 @@ describe('=> Decorators (TypeScript)', function() {
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'content' ]);
       const { id, content } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((content as AttributeMeta).toSqlString(), '`content` TEXT');
+      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((content as AttributeMeta).toSqlString!(), '`content` TEXT');
     });
 
     it('should be able to override column name', async function() {
@@ -73,7 +73,7 @@ describe('=> Decorators (TypeScript)', function() {
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'createdAt', 'updatedAt' ]);
       const { id, createdAt, updatedAt } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
       assert.equal((createdAt as AttributeMeta).columnName, 'gmt_create');
       assert.equal((updatedAt as AttributeMeta).columnName, 'gmt_modified');
     });
@@ -231,10 +231,10 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
 
       const { id, body, description, status } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((body as AttributeMeta).toSqlString(), '`body` VARCHAR(255)');
-      assert.equal((description as AttributeMeta).toSqlString(), '`description` VARCHAR(64)');
-      assert.equal((status as AttributeMeta).toSqlString(), '`status` INTEGER(2) UNSIGNED');
+      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((body as AttributeMeta).toSqlString!(), '`body` VARCHAR(255)');
+      assert.equal((description as AttributeMeta).toSqlString!(), '`description` VARCHAR(64)');
+      assert.equal((status as AttributeMeta).toSqlString!(), '`status` INTEGER(2) UNSIGNED');
 
     });
 
@@ -256,8 +256,8 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'noteId', 'noteIndex' ]);
 
       const { noteId, noteIndex } = Note.attributes;
-      assert.equal((noteId as AttributeMeta).toSqlString(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((noteIndex as AttributeMeta).toSqlString(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
+      assert.equal((noteId as AttributeMeta).toSqlString!(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((noteIndex as AttributeMeta).toSqlString!(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
     });
 
     it('should work with invokable data types', async () => {
@@ -279,10 +279,109 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
 
       const { id, body, description, status } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((body as AttributeMeta).toSqlString(), '`body` VARCHAR(255)');
-      assert.equal((description as AttributeMeta).toSqlString(), '`description` VARCHAR(64)');
-      assert.equal((status as AttributeMeta).toSqlString(), '`status` INTEGER(2) UNSIGNED');
+      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal((body as AttributeMeta).toSqlString!(), '`body` VARCHAR(255)');
+      assert.equal((description as AttributeMeta).toSqlString!(), '`description` VARCHAR(64)');
+      assert.equal((status as AttributeMeta).toSqlString!(), '`status` INTEGER(2) UNSIGNED');
+    });
+
+    it('should not override attributes of parent class', async function() {
+      class Base extends Bone {
+        @Column()
+        id: bigint;
+      }
+
+      class Note extends Base {
+        @Column()
+        body: string;
+      }
+
+      class Comment extends Note {
+        static table: string = 'comments';
+
+        @Column()
+        targetType: string;
+
+        @Column()
+        targetId: number;
+      }
+
+      class SubContent extends Comment {
+        static table: string = 'contents';
+
+        @Column()
+        description: string;
+
+        @Column({
+          allowNull: false,
+        })
+        status: number;
+      }
+
+      // normal subclass that not sync will inherent all the features from parent class
+      class ContentChildClass extends SubContent {
+        getMyDesc() {
+          return this.description?.toUpperCase();
+        }
+      }
+
+      await Note.sync({ force: true });
+      await Comment.sync({ force: true });
+      await SubContent.sync({ force: true });
+
+      assert.deepEqual(Object.keys(Base.attributes), ['id']);
+      assert.deepEqual(Object.keys(Note.attributes), ['id', 'body']);
+      assert.deepEqual(Object.keys(Comment.attributes), ['id', 'body', 'targetType', 'targetId']);
+      assert.deepEqual(Object.keys(SubContent.attributes), ['id', 'body', 'targetType', 'targetId', 'description', 'status']);
+      assert.equal(SubContent.table, 'contents');
+      assert.equal(Note.table, 'notes');
+      assert.equal(Comment.table, 'comments');
+      assert.equal(ContentChildClass.table, 'contents');
+
+      const note = await Note.create({
+        body: 'yes',
+      });
+      assert.ok(note.id);
+      assert.equal(note.body, 'yes');
+
+      const comment = await Comment.create({
+        body: 'halo',
+        targetId: 1,
+        targetType: 'User',
+      });
+      assert.ok(comment.id);
+      assert.equal(comment.body, 'halo');
+      assert.equal(comment.targetType, 'User');
+
+      const subContent = await SubContent.create({
+        body: 'hello',
+        targetId: 2,
+        targetType: 'Book',
+        description: 'desc',
+        status: 1,
+      });
+
+      assert.ok(subContent.id);
+      assert.equal(subContent.body, 'hello');
+      assert.equal(subContent.targetType, 'Book');
+      assert.equal(subContent.description, 'desc');
+      assert.equal(subContent.status, 1);
+
+      const contentChildInstance = await ContentChildClass.create({
+        body: 'bloodborne',
+        targetId: 3,
+        targetType: 'Book',
+        description: 'bloodborne',
+        status: 1,
+      });
+
+      assert.ok(contentChildInstance.id);
+      assert.equal(contentChildInstance.body, 'bloodborne');
+      assert.equal(contentChildInstance.targetType, 'Book');
+      assert.equal(contentChildInstance.description, 'bloodborne');
+      assert.equal(contentChildInstance.status, 1);
+      assert.equal(contentChildInstance.getMyDesc(), 'bloodborne'.toUpperCase());
+
     });
   });
 
@@ -325,9 +424,9 @@ describe('=> Decorators (TypeScript)', function() {
       const { id: memberId } = await Member.create({ email: 'hi@example.com' });
       await Note.create({ memberId })
       const member = await Member.findOne().with('notes');
-      assert.equal(member.notes.length, 1);
-      assert.ok(member.notes[0] instanceof Note);
-      assert.equal(member.notes[0].memberId, memberId);
+      assert.equal(member!.notes.length, 1);
+      assert.ok(member!.notes[0] instanceof Note);
+      assert.equal(member!.notes[0].memberId, memberId);
     });
   });
 
@@ -403,10 +502,10 @@ describe('=> Decorators (TypeScript)', function() {
       const tag = await Tag.create({ name: '中秋' });
       await TagMap.create({ targetId: note.id, targetType: TARGET_TYPE.note, tagId: tag.id });
       const result = await Note.findOne().with('tags');
-      assert.ok(Array.isArray(result.tagMaps));
-      assert.ok(Array.isArray(result.tags));
-      assert.equal(result.tags.length, 1);
-      assert.equal(result.tags[0].name, '中秋');
+      assert.ok(Array.isArray(result!.tagMaps));
+      assert.ok(Array.isArray(result!.tags));
+      assert.equal(result!.tags.length, 1);
+      assert.equal(result!.tags[0].name, '中秋');
     });
   });
 
@@ -456,9 +555,9 @@ describe('=> Decorators (TypeScript)', function() {
       const member = await Member.create({ email: 'hi@example.com' });
       await Note.create({ memberId: member.id, content: 'hello' });
       const result = await Member.findOne().with('notes');
-      assert.equal(result.notes.length, 1);
-      assert.equal(result.notes[0].content, undefined);
-      const [note] = result.notes;
+      assert.equal(result!.notes.length, 1);
+      assert.equal(result!.notes[0].content, undefined);
+      const [note] = result!.notes;
       await note.reload();
       assert.equal(note.content, 'hello');
     });
@@ -506,8 +605,8 @@ describe('=> Decorators (TypeScript)', function() {
       const member = await Member.create({ email: 'hi@example.com' });
       await Note.create({ authorId: member.id, content: 'hello' });
       const note = await Note.findOne().with('author');
-      assert.ok(note.author);
-      assert.equal(note.author.email, member.email);
+      assert.ok(note!.author);
+      assert.equal(note!.author.email, member.email);
     });
   });
 });

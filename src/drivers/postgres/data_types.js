@@ -2,7 +2,7 @@
 
 const { default: DataTypes } = require('../../data_types');
 const util = require('util');
-const Raw = require('../../raw');
+const Raw = require('../../raw').default;
 
 
 class Postgres_DATE extends DataTypes.DATE {

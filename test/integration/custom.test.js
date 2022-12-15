@@ -9,7 +9,7 @@ const { connect, raw, Bone, disconnect } = require('../..');
 const { checkDefinitions } = require('./helpers');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
-const Raw = require('../../src/raw');
+const Raw = require('../../src/raw').default;
 
 const SqliteDriver = require('../../src/drivers/sqlite');
 
@@ -58,8 +58,8 @@ class MySpellbook extends SqliteDriver.Spellbook {
       obj[escapeId(Model.unalias(key))] = spell.sets[key];
       return obj;
     }, values);
-  
-    let whereArgs = [];
+
+    const whereArgs = [];
     let whereClause = '';
     if (whereConditions.length > 0) {
       for (const condition of whereConditions) collectLiteral(spell, condition, whereArgs);
@@ -77,7 +77,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     const { Model, whereConditions } = spell;
     const { escapeId } = Model.driver;
     const table = escapeId(spell.table.value);
-    let whereArgs = [];
+    const whereArgs = [];
     let whereClause = '';
     if (whereConditions.length > 0) {
       for (const condition of whereConditions) collectLiteral(spell, condition, whereArgs);
@@ -94,7 +94,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     const { Model, sets } = spell;
     const { escapeId } = Model.driver;
     const table = escapeId(spell.table.value);
-    let values = {};
+    const values = {};
 
     const { shardingKey } = Model;
     if (shardingKey && sets[shardingKey] == null) {

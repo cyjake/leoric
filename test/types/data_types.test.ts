@@ -60,6 +60,8 @@ describe('=> Data types (TypeScript)', function() {
     assert.equal(TEXT.toSqlString(), 'TEXT');
     assert.equal(new TEXT(LENGTH_VARIANTS.long).toSqlString(), 'LONGTEXT');
     assert.equal((new TEXT).toSqlString(), 'TEXT');
+    assert.equal(new TEXT(LENGTH_VARIANTS.tiny).toSqlString(), 'TINYTEXT');
+    assert.equal(new TEXT(LENGTH_VARIANTS.medium).toSqlString(), 'MEDIUMTEXT');
   });
 
   it('BLOB', async function() {

@@ -4,7 +4,7 @@ const sinon = require('sinon');
 import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../..';
 
 describe('=> sequelize (TypeScript)', function() {
-  const { TEXT, STRING } = DataTypes;
+  const { TEXT, STRING, VIRTUAL } = DataTypes;
   class Post extends SequelizeBone {
     static table = 'articles';
 
@@ -50,6 +50,15 @@ describe('=> sequelize (TypeScript)', function() {
       defaultValue: 0,
     })
     wordCount: number;
+
+    @Column(VIRTUAL)
+    get virtualField(): string {
+      return this.getDataValue('content')?.toLowerCase() || '';
+    }
+
+    set virtualField(v: string) {
+      this.setDataValue('content', v?.toUpperCase());
+    }
   }
 
   class Book extends SequelizeBone {
@@ -74,7 +83,10 @@ describe('=> sequelize (TypeScript)', function() {
     price: number;
   }
 
-  class Like extends SequelizeBone {}
+  class Like extends SequelizeBone {
+    @Column()
+    userId: number;
+  }
 
   before(async function() {
     Bone.driver = null;
@@ -118,7 +130,8 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('bone.getDataValue(name)', async function() {
       const post = await Post.create({ title: 'Cain' });
-      assert.equal(post.getDataValue('title'), 'Cain');
+      const title = post.getDataValue('title');
+      assert.equal(title, 'Cain');
     });
 
     it('bone.setDataValue(name, value)', async function() {
@@ -175,6 +188,7 @@ describe('=> sequelize (TypeScript)', function() {
         settings: null,
         summary: null,
         thumb: null,
+        virtualField: null,
       });
     });
 
@@ -219,7 +233,8 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('bone.dataValues', () => {
       const post = Post.build({ title: 'Yhorm' });
-      assert.deepEqual(post.dataValues, post.getDataValue());
+      const value = post.getDataValue();
+      assert.deepEqual(post.dataValues, value);
       assert.ok(Object.keys(post.dataValues).length);
     });
   });
@@ -333,6 +348,7 @@ describe('=> sequelize (TypeScript)', function() {
         order: 'createdAt desc, id desc',
         limit: 1,
       });
+
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
   
@@ -379,7 +395,18 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[1].id, ids[1]);
       assert.equal(posts[2].id, ids[2]);
       assert.equal(posts[3].id, ids[3]);
-  
+
+      assert.equal(Post.findAll({
+        order: [[new Raw(`FIND_IN_SET(id, '${ids.join(',')}')`)], ['createdAt', 'asc']],
+      }).toSqlString(), `SELECT * FROM \`articles\` WHERE \`gmt_deleted\` IS NULL ORDER BY FIND_IN_SET(id, '${ids.join(',')}'), \`gmt_create\``);
+      posts = await Post.findAll({
+        order: [[ new Raw(`FIND_IN_SET(id, '${ids.join(',')}')`) ], ['createdAt', 'asc']],
+      });
+      assert.equal(posts[0].id, ids[0]);
+      assert.equal(posts[1].id, ids[1]);
+      assert.equal(posts[2].id, ids[2]);
+      assert.equal(posts[3].id, ids[3]);
+
     });
   
     it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -470,7 +497,7 @@ describe('=> sequelize (TypeScript)', function() {
   
     it('Model.findAll({ order: <malformed> })', async () => {
       const posts = await Post.findAll({
-        order: [ null ],
+        order: [ null as any ],
       });
       assert.equal(posts.length, 0);
     });
@@ -621,7 +648,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.deepEqual((await Post.findOne(id)).toJSON(), post.toJSON());
   
       // if passed null or undefined, return null
-      assert.equal(await Post.findOne(null), null);
+      assert.equal(await Post.findOne(null as any), null);
       assert.equal(await Post.findOne(undefined), null);
     });
   
@@ -744,7 +771,7 @@ describe('=> sequelize (TypeScript)', function() {
 
     it('Post.find()', async function() {
       let post = await Post.find();
-      assert.ok(post.title);
+      assert.ok(post!.title);
 
       let posts = await Post.findAll();
       posts = posts.sort((a, b) => (a.id - b.id) as unknown as number);
@@ -759,7 +786,7 @@ describe('=> sequelize (TypeScript)', function() {
           id: 'asc',
         }
       });
-      assert.equal(post.id, posts[0].id);
+      assert.equal(post!.id, posts[0].id);
     });
 
     it('Post.where()', async function() {
@@ -1039,6 +1066,14 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Post.count(), 2);
     });
+
+    it('Model.count(name)', async () => {
+      await Promise.all([
+        Post.create({ title: 'By three they come' }),
+        Post.create({ title: 'By three thy way opens' }),
+      ]);
+      assert.equal(await Post.count('title'), 2);
+    });
   
     it('Model.count({ paranoid: false })', async () => {
       await Promise.all([
@@ -1160,6 +1195,7 @@ describe('=> sequelize (TypeScript)', function() {
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
         await Book.create({ name: 'Book of Cain', price: 10 }),
       ]);
+      Post.find().decrement('authorId')
       const min = await Book.min('price', {
         where: { name: 'Book of Tyrael' },
       });
@@ -1300,6 +1336,13 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(result, 1);
       await post.reload();
       assert.equal(post.title, 'Stranger');
+      const result1 = await post.update({ title: 'Stranger', content: 'Yhorm' }, {
+        fields: [ 'content' ],
+      });
+      assert.equal(result1, 1);
+      await post.reload();
+      assert.equal(post.title, 'Stranger');
+      assert.equal(post.content, 'Yhorm');
     });
 
     it('spell.increment()', async function() {
@@ -1382,11 +1425,33 @@ describe('=> sequelize (TypeScript)', function() {
       const rowCount = await Post.destroy({ force: true });
       assert.equal(rowCount, 2);
     });
+
+    it('bone.destroy()', async () => {
+      const post = await Post.create({ title: 'By three they come' });
+      class PostExtend extends Post {
+        subType?: string;
+      }
+
+      const p1: PostExtend = await post.destroy() as Post;
+      p1.subType = 'extend';
+      assert.equal(p1.id, post.id);
+    });
   })
 
   it('Model.removeAttribute()', async function() {
     assert(Like.attributes.userId);
     Like.removeAttribute('userId');
     assert(Like.attributes.userId == null);
+  });
+
+  it('transaction support pass null', async function() {
+    const post = await Post.create({ title: 'By three they come' }, { transaction: null });
+    const result = await Post.find({
+      where: {
+        title: 'By three they come',
+      },
+      transaction: null,
+    });
+    assert.equal(result!.id, post.id);
   });
 });

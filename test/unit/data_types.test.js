@@ -3,19 +3,25 @@
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const { default: DataTypes } = require('../../src/data_types');
-const Raw = require('../../src/raw');
+const Raw = require('../../src/raw').default;
 const Postgres_DataTypes = require('../../src/drivers/postgres/data_types');
 const SQLite_DataTypes = require('../../src/drivers/sqlite/data_types');
 
 describe('=> Data Types', () => {
   const {
-    STRING, TEXT,
+    CHAR, STRING, TEXT,
     BOOLEAN,
     DATE, DATEONLY,
     TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT, DECIMAL,
     JSON, JSONB,
     BLOB, BINARY, VARBINARY, VIRTUAL,
   } = DataTypes;
+
+  it('CHAR', () => {
+    assert.equal(new CHAR().dataType, 'char');
+    assert.equal(new CHAR().toSqlString(), 'CHAR(255)');
+    assert.equal(new CHAR(127).toSqlString(), 'CHAR(127)');
+  });
 
   it('STRING', () => {
     assert.equal(new STRING().dataType, 'varchar');
@@ -259,6 +265,12 @@ describe('=> DataTypes type casting', function() {
 });
 
 describe('=> DataTypes.findType()', () => {
+  it('char => CHAR', () => {
+    const { CHAR } = DataTypes;
+    assert.ok(DataTypes.findType('char(255)') instanceof CHAR);
+    assert.equal(DataTypes.findType('char(127)').toSqlString(), 'CHAR(127)');
+  });
+
   it('varchar => STRING', () => {
     const { STRING } = DataTypes;
     assert.ok(DataTypes.findType('varchar(255)') instanceof STRING);
@@ -310,9 +322,10 @@ describe('=> DataTypes.findType()', () => {
 });
 
 describe('=> DataTypes.invokable', function() {
-  const { STRING, INTEGER, TEXT, BLOB, BIGINT } = DataTypes.invokable;
+  const { CHAR, STRING, INTEGER, TEXT, BLOB, BIGINT } = DataTypes.invokable;
 
   it('should wrap data types to support flexible invoking', async function() {
+    assert.equal(CHAR(511).toSqlString(), 'CHAR(511)');
     assert.equal(STRING(255).toSqlString(), 'VARCHAR(255)');
     assert.equal(STRING.toSqlString(), 'VARCHAR(255)');
 

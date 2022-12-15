@@ -21,8 +21,5 @@ description: > # this means to ignore newlines until "baseurl:"
 kramdown:
   toc_levels: 2..3
 theme: jekyll-theme-primer
-exclude:
-  - Gemfile
-  - Gemfile.lock
 include:
   - docs/api

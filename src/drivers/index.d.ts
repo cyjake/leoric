@@ -12,7 +12,7 @@ export interface ConnectOptions {
   password?: string;
   database: string;
   charset?: string;
-  models?: string | (typeof AbstractBone)[];
+  models?: (typeof AbstractBone)[] | string;
   subclass?: boolean;
   driver?: typeof AbstractDriver;
 }

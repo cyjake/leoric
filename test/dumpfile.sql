@@ -52,6 +52,7 @@ CREATE TABLE `tag_maps` (
   `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
   `gmt_create` timestamp(3) NULL,
   `gmt_modified` timestamp(3) NULL,
+  `gmt_deleted` timestamp(3) NULL,
   `target_id` bigint(20) NOT NULL,
   `target_type` bigint(20) NOT NULL,
   `tag_id` bigint(20) NOT NULL

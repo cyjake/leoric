@@ -4,7 +4,7 @@ const SqlString = require('sqlstring');
 
 const { copyExpr, findExpr, walkExpr } = require('../../expr');
 const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
-const Raw = require('../../raw');
+const Raw = require('../../raw').default;
 
 /**
  * Create a subquery to make sure OFFSET and LIMIT on left table takes effect.
@@ -54,6 +54,7 @@ function createSubspell(spell) {
     const { type, qualifiers = [], value } = token;
     if (type == 'id' && qualifiers[0] == baseName) {
       subspell.orders.push([{ type, value }, direction]);
+      if (subspell.columns.length > 0) subspell.columns.push({ type, value });
     }
   }
 

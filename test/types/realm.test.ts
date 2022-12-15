@@ -80,10 +80,20 @@ describe('=> Realm (TypeScript)', function () {
       await realm.sync({ force: true, alter: true });
     });
 
+    beforeEach(async function() {
+      await realm.models.User.truncate();
+    });
+
     it('values and options should be optional', async function() {
       const result = await realm.query('SELECT * FROM users');
       assert.ok(Array.isArray(result.rows));
       assert.equal(result.rows.length, 0);
+    });
+
+    it('should have the type of rows fallback to Record<string, Literal>[]', async function() {
+      await realm.models.User.create({ name: 'Link' });
+      const { rows } = await realm.query('SELECT * FROM users');
+      assert.equal(rows[0].name, 'Link');
     });
 
     it('should pass on original properties in result', async function() {
@@ -93,6 +103,23 @@ describe('=> Realm (TypeScript)', function () {
 
     it('should try to instantiate rows with options.model if possible', async function() {
       await realm.query('SELECT * FROM users', [], { model: realm.models.User });
+    });
+  });
+
+  describe('realm.transaction({ connection })', async function() {
+    it('should return whatever the callback returns', async function() {
+      const result = await realm.transaction(async ({ connection }) => {
+        return await realm.query('SELECT 1');
+      });
+      assert.ok(Array.isArray(result.rows));
+    });
+
+    it('should accept generator functions as callback too', async function() {
+      const result = await realm.transaction(function* () {
+        yield 1;
+        return 2;
+      });
+      assert.equal(result, 2);
     });
   });
 });

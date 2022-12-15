@@ -10,7 +10,7 @@ const { parseExprList, parseExpr, walkExpr } = require('./expr');
 const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
-const Raw = require('./raw');
+const Raw = require('./raw').default;
 const { AGGREGATOR_MAP } = require('./constants');
 
 /**
@@ -165,7 +165,11 @@ function joinOnConditions(spell, BaseModel, baseName, refName, { where, associat
   };
   if (!where) where = association.where;
   if (where) {
-    const whereConditions = walkExpr(parseConditions(BaseModel, where)[0], node => {
+    const whereConditions = parseConditions(BaseModel, where).reduce((result, condition) => {
+      if (!result) return condition;
+      return { type: 'op', name: 'and', args: [ result, condition ] };
+    });
+    walkExpr(whereConditions, node => {
       if (node.type == 'id') node.qualifiers = [refName];
     });
     return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] };
@@ -259,12 +263,15 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
  * If Model supports soft delete, and deletedAt isn't specified in whereConditions yet, and the table isn't a subquery, append a default where({ deletedAt: null }).
  */
 function scopeDeletedAt(spell) {
-  const { table, whereConditions, Model } = spell;
+  const { table, sets, whereConditions, Model } = spell;
 
   const { deletedAt } = Model.timestamps;
 
   // from subquery
   if (table.type !== 'id') return;
+
+  // UPDATE users SET deleted_at = NULL WHERE id = 42;
+  if (sets && sets[deletedAt] === null) return;
 
   // deletedAt already specified
   for (const condition of whereConditions) {
@@ -957,7 +964,11 @@ for (const aggregator in AGGREGATOR_MAP) {
     configurable: true,
     writable: true,
     value: function Spell_aggregator(name = '*') {
-      if (name != '*' && parseExpr(name).type != 'id') {
+      if (name instanceof Raw) {
+        this.$select(Raw.build(`${func.toUpperCase()}(${name}) AS ${aggregator}`));
+        return this;
+      }
+      if (name !== '*' && parseExpr(name).type !== 'id') {
         throw new Error(`unexpected operand ${name} for ${func.toUpperCase()}()`);
       }
       this.$select(`${func}(${name}) as ${aggregator}`);

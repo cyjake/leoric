@@ -3,7 +3,7 @@
 const util = require('util');
 const { isPlainObject } = require('./utils');
 const { parseExpr } = require('./expr');
-const Raw = require('./raw');
+const Raw = require('./raw').default;
 // deferred to break cyclic dependencies
 let Spell;
 

@@ -54,9 +54,16 @@ export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = 
 
     // target refers to model prototype, an internal instance of `Bone {}`
     const model = target.constructor as any;
-    const { attributes = (model.attributes = {}) } = model;
+    if (!model.hasOwnProperty('attributes') || !model.attributes) {
+      Object.defineProperty(model, 'attributes', { 
+        value: { ...model.attributes },
+        writable: false,
+        enumerable: false,
+        configurable: true,
+      });
+    }
     const { name: columnName, ...restOptions } = options;
-    attributes[propertyKey] = { ...restOptions, columnName };
+    model.attributes[propertyKey] = { ...restOptions, columnName };
   };
 }
 

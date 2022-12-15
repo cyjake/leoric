@@ -1,8 +1,8 @@
 'use strict';
 
+const dayjs = require('dayjs');
 const fs = require('fs').promises;
 const path = require('path');
-const strftime = require('strftime');
 
 async function loadTasks(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -61,7 +61,7 @@ async function rollback(step = 1) {
 
 async function createMigrationFile(name) {
   const { migrations: dir } = this.options;
-  const timestamp = strftime('%Y%m%d%H%M%S');
+  const timestamp = dayjs().format('YYYYMMDDHHmmss');
   const fpath = path.join(dir, `${timestamp}-${name}.js`);
   await fs.writeFile(fpath, `'use strict';
 

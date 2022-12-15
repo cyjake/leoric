@@ -1,5 +1,7 @@
 'use strict';
 
+const Raw = require('./raw').default;
+
 /**
  * This module contains a simple SQL expression parser which parses `select_expr` and `expr` in `WHERE`/`HAVING`/`ON` conditions. Most of {@link Spell}'s functionalities are made possible because of this parser. Currently, it cannot parse a full SQL.
  * @module
@@ -133,6 +135,7 @@ function parseValue(value) {
  * @returns {Object[]}
  */
 function parseExprList(str, ...values) {
+  if (str instanceof Raw) return [ str ];
   let i = 0;
   let chr = str[i];
   let valueIndex = 0;

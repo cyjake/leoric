@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const strftime = require('strftime');
+const dayjs = require('dayjs');
 const { connect, Bone } = require('../..');
 
 describe('=> formatExpr', function() {
@@ -35,7 +35,7 @@ describe('=> formatExpr', function() {
   it('should cast date with precision set in database', async function() {
     // users.birthday stores DATE without specific hours or so
     const today = new Date();
-    const formatted = strftime('%Y-%m-%d', today);
+    const formatted = dayjs(today).format('YYYY-MM-DD');
     assert.equal(
       User.where({ birthday: today }).toSqlString(),
       "SELECT * FROM `users` WHERE `birthday` = '" + formatted + " 00:00:00.000'"

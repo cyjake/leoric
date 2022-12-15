@@ -8,7 +8,7 @@ import {
   Connection, QueryOptions,
   Raw, ColumnMeta, AttributeMeta,
   BeforeHooksType, AfterHooksType, Collection,
-  GeneratorReturnType,
+  GeneratorReturnType, Values, BoneCreateValues, BoneInstanceValues,
 } from './src/types/common';
 import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
 import Bone from './src/bone';
@@ -19,7 +19,7 @@ export {
   DataTypes, Literal, Validator, Connection,
   Hint, IndexHint, HintInterface, INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE,
   Bone, Raw, Collection,
-  SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult
+  SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneCreateValues, BoneInstanceValues,
 };
 
 export * from './src/decorators';
@@ -52,6 +52,7 @@ export default class Realm {
   driver: AbstractDriver;
   models: Record<string, typeof Bone>;
   connected?: boolean;
+  options: ConnectOptions;
 
   constructor(options: ConnectOptions);
 
@@ -74,10 +75,10 @@ export default class Realm {
 
   escape(value: Literal): string;
 
-  query<T extends typeof Bone>(sql: string, values?: Array<Literal>, options?: RawQueryOptions & { model?: T }): Promise<{ rows: T extends typeof Bone ? InstanceType<T>[] : Object[], fields?: Object[], affectedRows?: number }>;
+  query<T>(sql: string, values?: Array<Literal>, options?: RawQueryOptions & { model?: T }): Promise<{ rows: T extends typeof Bone ? InstanceType<T>[] : Record<string, Literal>[], fields?: Record<string, ColumnMeta>[], affectedRows?: number }>;
 
-  transaction<T extends (connection: Connection) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
-  transaction<T extends (connection: Connection) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
+  transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
+  transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
 
   sync(options?: SyncOptions): Promise<void>;
 }

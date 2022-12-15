@@ -36,8 +36,14 @@ export interface Connection {
    */
   query(
     query: string,
-    values: Array<Literal | Literal[]>,
+    values?: Array<Literal | Literal[]>,
   ): Promise<QueryResult>;
+
+  query(
+    query: string,
+    values?: Array<Literal | Literal[]>,
+    callback?: (err: Error, result: QueryResult) => void,
+  ): void
 }
 
 export declare class Pool {
@@ -55,7 +61,7 @@ export interface QueryOptions {
   hint?: CommonHintsArgs;
   transaction?: Connection | {
     connection: Connection
-  };
+  } | null;
 }
 
 export type BulkCreateOptions = QueryOptions & {
@@ -140,19 +146,21 @@ export class Raw {
   type: 'raw';
 }
 
-export type SetOptions<T extends typeof AbstractBone> = { 
-  [key: string]: Literal
-} | {
+export type SetOptions<T extends typeof AbstractBone> = {
   [Property in keyof Extract<InstanceType<T>, Literal>]: Literal
+} | { 
+  [key: string]: Literal
 };
 
 export type WithOptions = {
   [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
-type OrderOptions<T extends typeof AbstractBone> = { 
-  [Property in keyof Extract<InstanceType<T>, Literal>]: 'desc' | 'asc'
-} | { [name: string]: 'desc' | 'asc' } | Array<string | string[] | Raw> | string | Raw;
+type OrderOptions<T extends typeof AbstractBone> = {
+  [key in keyof Extract<InstanceType<T>, Literal>]?: 'desc' | 'asc'
+} | [ BoneColumns<T>, 'desc' | 'asc' ] 
+| Array<BoneColumns<T> | [ BoneColumns<T>, 'desc' | 'asc' ] | Raw | string | Array<Raw | string>>
+| string | Raw;
 
 export class Collection<T extends AbstractBone> extends Array<T> {
   save(): Promise<void>;
@@ -169,10 +177,27 @@ export type WhereConditions<T extends typeof AbstractBone> = {
 // https://stackoverflow.com/a/68077021/179691
 export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
-export type Values<T> = Partial<Omit<T, PickTypeKeys<T, Function>>>;
+export type NullablePartial<T> = { [P in keyof T]?: T[P] | null };
+
+export type Values<T> = NullablePartial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
+
+export type BoneColumns<T extends typeof AbstractBone, Key extends keyof InstanceType<T> = keyof Values<InstanceType<T>>> = Key;
+
+export type InstanceColumns<T = typeof AbstractBone, Key extends keyof T = keyof Values<T>> = Key;
+
+/**
+ * Bone.create(values: BoneCreateValues<this>);
+ */
+export type BoneCreateValues<T extends typeof AbstractBone> = Partial<Values<InstanceType<T>>>;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';
 
 // https://stackoverflow.com/a/67232225/179691
 type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R, any> ? R: never;
+
+/**
+ * Plain keyMap type object of a Bone's attributes
+ * BoneInstanceValues<user> = { id: number, name: string }
+ */
+export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<InstanceType<T>, PickTypeKeys<InstanceType<T>, Function> | 'isNewRecord' | 'Model' | 'dataValues'>;
