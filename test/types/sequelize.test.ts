@@ -559,6 +559,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(rows.length, 1);
       assert.equal(count, 1);
+      assert.equal(rows[0].title, 'Leah');
   
       // with limit
       const { rows: rows1, count: count1 } = await Post.findAndCountAll({
@@ -571,6 +572,7 @@ describe('=> sequelize (TypeScript)', function() {
   
       assert.equal(rows1.length, 0);
       assert.equal(count1, 1);
+      assert.equal(rows1[0].title, 'Leah');
   
       //ignore attributes
   

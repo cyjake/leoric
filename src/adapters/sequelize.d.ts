@@ -153,7 +153,7 @@ export class SequelizeBone extends AbstractBone {
   static findAll<T extends typeof SequelizeBone>(this: T, options?: SequelizeConditions<T>): Spell<T, Collection<InstanceType<T>>>;
   static find<T extends typeof SequelizeBone>(this: T, options?: SequelizeConditions<T>): Spell<T, InstanceType<T> | null>;
   static findAndCountAll<T extends typeof SequelizeBone>(this: T, options?: SequelizeConditions<T>): Promise<{
-    rows: Array<typeof SequelizeBone>,
+    rows: Array<InstanceType<T>>,
     count: number,
   }>
 
