@@ -98,16 +98,18 @@ function dispatch(spell, rows, fields) {
 
   const results = new Collection();
   for (const row of rows) {
-    const result = {};
-    for (const prop in row) {
+    const result = Object.keys(row).reduce((res, prop) => {
       const data = row[prop];
       const qualifier = prop === table ? tableAlias : prop;
       if (qualifier === '' || qualifier === tableAlias) {
-        Object.assign(result, data);
+        Object.assign(res, data);
       } else {
-        if (Object.values(data).some(value => value != null)) result[prop] = data;
+        if (Object.values(data).some(value => value != null)) {
+          res[prop] = data;
+        }
       }
-    }
+      return res;
+    }, {});
     let current;
     if (joined && result[primaryColumn] != null) {
       current = results.find(r => r[primaryKey] == result[primaryColumn]);
