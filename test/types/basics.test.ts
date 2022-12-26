@@ -341,17 +341,17 @@ describe('=> Basics (TypeScript)', function() {
 
     it('first', async () => {
       const post1 = await Post.find().first;
-      assert.equal(post1.title, 'Leah');
+      assert.equal(post1?.title, 'Leah');
     });
 
     it('last', async () => {
       const post1 = await Post.find().last;
-      assert.equal(post1.title, 'Nephalem');
+      assert.equal(post1?.title, 'Nephalem');
     });
 
     it('get(index)', async () => {
       const post1 = await Post.find().get(0);
-      assert.equal(post1.title, 'Leah');
+      assert.equal(post1?.title, 'Leah');
     });
 
     it('all', async () => {

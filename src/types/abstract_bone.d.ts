@@ -3,7 +3,7 @@ import {
   Pool, Literal, WhereConditions,
   Collection, ResultSet, OrderOptions,
   QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, BoneCreateValues,
-  GeneratorReturnType, BoneColumns, InstanceColumns, Raw,
+  GeneratorReturnType, BoneColumns, InstanceColumns, Raw, OnConditions,
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
@@ -110,7 +110,7 @@ export class AbstractBone {
   static renameAttribute<T extends typeof AbstractBone>(this: T, originalName: string, newName: string): void;
 
   static alias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
-  static alias<T extends typeof AbstractBone>(this: T, data: Record<BoneColumns<T>, Literal>): Record<string, Literal>;
+  static alias<T extends typeof AbstractBone>(this: T, data: { [key in BoneColumns<T>]: Literal }): Record<string, Literal>;
   static unalias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
 
   // after alias/unalias
@@ -127,7 +127,7 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T> & Partial<Record<BoneColumns<T>, Literal>>, options?: QueryOptions): Promise<InstanceType<T>>;
+  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, options?: QueryOptions): Promise<InstanceType<T>>;
 
   /**
    * INSERT or UPDATE rows
@@ -192,8 +192,8 @@ export class AbstractBone {
    * @example
    * Bone.join(Muscle, 'bones.id == muscles.boneId')
    */
-  static join<T extends typeof AbstractBone>(this: T, Model: AbstractBone, onConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
-  static join<T extends typeof AbstractBone>(this: T, Model: AbstractBone, onConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
+  static join<T extends typeof AbstractBone, U extends typeof AbstractBone>(this: T, Model: U, onConditions: OnConditions<T>): Spell<T, Collection<InstanceType<T>>>;
+  static join<T extends typeof AbstractBone, U extends typeof AbstractBone>(this: T, Model: U, onConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
 
   /**
    * Set WHERE conditions

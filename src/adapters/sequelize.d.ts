@@ -8,7 +8,7 @@ import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
 
 type WhereConditions<T extends typeof SequelizeBone> = {
-  [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal | Literal[] | OperatorCondition;
+  [Property in BoneColumns<T>]?: Literal | Literal[] | OperatorCondition;
 } | {
   [key in '$and' | '$or']?: WhereConditions<T>[];
 }
@@ -41,9 +41,7 @@ interface SequelizeConditions<T extends typeof SequelizeBone> extends BaseSequel
 }
 
 interface FindOrCreateOptions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
-  defaults?: {
-    [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal
-  }
+  defaults?: BoneCreateValues<T>;
 }
 
 interface FindOrBuildOptions<T extends typeof SequelizeBone> extends FindOrCreateOptions<T> {
@@ -130,19 +128,19 @@ export class SequelizeBone extends AbstractBone {
    */
   static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<BoneCreateValues<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
+  static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, name?: Raw | '*'): Spell<T, ResultSet<T> | number>;
-  static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
 
   static decrement<T extends typeof SequelizeBone>(
     this: T,
-    fields: { [Property in keyof Extract<InstanceType<T>, Literal>]?: number } | string | Array<BoneColumns<T> | string> ,
+    fields: { [Property in BoneColumns<T>]?: number } | string | Array<BoneColumns<T> | string> ,
     options?: SequelizeConditions<T>
   ): Spell<T, QueryResult>;
 
   static increment<T extends typeof SequelizeBone>(
     this: T,
-    fields: { [Property in keyof Extract<InstanceType<T>, Literal>]?: number } | string | Array<BoneColumns<T> | string> ,
+    fields: { [Property in BoneColumns<T>]?: number } | string | Array<BoneColumns<T> | string> ,
     options?: SequelizeConditions<T>
   ): Spell<T, QueryResult>;
 
