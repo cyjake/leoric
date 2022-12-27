@@ -2,7 +2,7 @@ import {
   Literal, command, Raw, Connection,
   ResultSet, QueryResult,
   QueryOptions, SetOptions, WithOptions,
-  Collection, WhereConditions, OrderOptions, BoneColumns,
+  Collection, WhereConditions, OrderOptions, BoneColumns, OnConditions,
 } from './types/common';
 import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
@@ -92,6 +92,9 @@ export class Spellbook {
 export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
+  Model: T;
+  connection: Connection;
+
   command: string;
   scopes: Function[];
 
@@ -107,7 +110,7 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   with(...qualifiers: string[]): Spell<T, U>;
 
   join<V extends typeof AbstractBone>(Model: V, onConditions: string, ...values: Literal[]): Spell<T, U>;
-  join<V extends typeof AbstractBone>(Model: V, onConditions: WhereConditions<T>): Spell<T, U>;
+  join<V extends typeof AbstractBone>(Model: V, onConditions: OnConditions<T>): Spell<T, U>;
 
   $where(conditions: WhereConditions<T>): this;
   $where(conditions: string, ...values: Literal[]): this;
@@ -165,9 +168,9 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   toString(): string;
 
   all: Spell<T, U>;
-  first: Spell<T, InstanceType<T>>;
-  last: Spell<T, InstanceType<T>>;
-  get(index: number): Spell<T, InstanceType<T>>;
+  first: Spell<T, InstanceType<T> | null>;
+  last: Spell<T, InstanceType<T> | null>;
+  get(index: number): Spell<T, InstanceType<T> | null>;
 
   unscoped: Spell<T, U>;
   unparanoid: Spell<T, U>;

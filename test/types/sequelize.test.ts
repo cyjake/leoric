@@ -8,8 +8,8 @@ describe('=> sequelize (TypeScript)', function() {
   class Post extends SequelizeBone {
     static table = 'articles';
 
-    @Column()
-    id: bigint;
+    @Column(DataTypes.BIGINT)
+    id: number;
 
     @Column({ name: 'gmt_create' })
     createdAt: Date;
@@ -269,8 +269,8 @@ describe('=> sequelize (TypeScript)', function() {
     });
 
     it('bone.save()', async function() {
-      await Post.create({ id: BigInt(1), title: 'Leah' });
-      const post = new Post({ id: BigInt(1), title: 'Diablo' });
+      await Post.create({ id: 1, title: 'Leah' });
+      const post = new Post({ id: 1, title: 'Diablo' });
       await post.save();
 
       const posts = await Post.all;
@@ -713,7 +713,7 @@ describe('=> sequelize (TypeScript)', function() {
       const { id } = await Post.create({ title: 'Leah' });
       const [ post, isNewRecord ] = await Post.findOrBuild({
         where: { title: 'Tyrael' },
-        defaults: { isPrivate: 1 },
+        defaults: { isPrivate: true },
       });
       assert.notEqual(post.id, id);
       assert.equal(post.id, null);
@@ -856,7 +856,7 @@ describe('=> sequelize (TypeScript)', function() {
           title: 'Yhorm2',
         },
         order: {
-          id: 'asc',
+          id: 'ASC' as 'ASC',
         },
       }));
 
@@ -905,7 +905,7 @@ describe('=> sequelize (TypeScript)', function() {
           title: 'Yhorm2',
         },
         order: {
-          id: 'asc',
+          id: 'ASC' as 'ASC',
         },
       }));
 

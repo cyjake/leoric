@@ -30,6 +30,10 @@ export interface QueryResult {
   fields?: Array<{ table: string, name: string }>,
 }
 
+interface TransactionMethodOptions {
+  Model: typeof AbstractBone;
+}
+
 export interface Connection {
   /**
    * MySQL
@@ -44,6 +48,13 @@ export interface Connection {
     values?: Array<Literal | Literal[]>,
     callback?: (err: Error, result: QueryResult) => void,
   ): void
+
+  begin(opts: TransactionMethodOptions): Promise<void>;
+
+  commit(opts: TransactionMethodOptions): Promise<void>;
+
+  rollback(opts: TransactionMethodOptions): Promise<void>;
+
 }
 
 export declare class Pool {
@@ -65,7 +76,7 @@ export interface QueryOptions {
 }
 
 export type BulkCreateOptions = QueryOptions & {
-  updateOnDuplicate?: string[];
+  updateOnDuplicate?: string[] | true;
   fields?: string[];
 }
 
@@ -147,7 +158,7 @@ export class Raw {
 }
 
 export type SetOptions<T extends typeof AbstractBone> = {
-  [Property in keyof Extract<InstanceType<T>, Literal>]: Literal
+  [Property in BoneColumns<T>]: Literal
 } | { 
   [key: string]: Literal
 };
@@ -156,10 +167,12 @@ export type WithOptions = {
   [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
+type OrderSortType = 'desc' | 'asc' | Uppercase<'desc' | 'asc'>;
+
 type OrderOptions<T extends typeof AbstractBone> = {
-  [key in keyof Extract<InstanceType<T>, Literal>]?: 'desc' | 'asc'
-} | [ BoneColumns<T>, 'desc' | 'asc' ] 
-| Array<BoneColumns<T> | [ BoneColumns<T>, 'desc' | 'asc' ] | Raw | string | Array<Raw | string>>
+  [Property in Extract<BoneColumns<T>, Literal>]?: OrderSortType
+} | [ BoneColumns<T>, OrderSortType ] 
+| Array<BoneColumns<T> | [ BoneColumns<T>, OrderSortType ] | Raw | string | Array<Raw | string>>
 | string | Raw;
 
 export class Collection<T extends AbstractBone> extends Array<T> {
@@ -169,7 +182,13 @@ export class Collection<T extends AbstractBone> extends Array<T> {
 }
 
 export type WhereConditions<T extends typeof AbstractBone> = {
-  [Property in keyof Extract<InstanceType<T>, Literal>]?: Literal | Literal[] | OperatorCondition;
+  [Property in BoneColumns<T>]?: Literal | Literal[] | OperatorCondition;
+} | {
+  [key in '$and' | '$or']?: WhereConditions<T>[];
+}
+
+export type OnConditions<T extends typeof AbstractBone> = {
+  [Property in BoneColumns<T>]?: Literal | Literal[] | OperatorCondition ;
 } | {
   [key in '$and' | '$or']?: WhereConditions<T>[];
 }

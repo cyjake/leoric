@@ -6,9 +6,34 @@ import {
   connect, INDEX_HINT_SCOPE_TYPE,
   INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw
 } from '../..';
+import { HasOne } from '../../src/decorators';
 
 describe('=> Spell (TypeScript)', function() {
   const { STRING, TEXT, TINYINT } = DataTypes;
+
+  class Attachment extends Bone {
+    @Column()
+    id: number;
+
+    @Column()
+    articleId: number;
+
+    @Column()
+    url: string;
+
+    @Column()
+    width: number;
+
+    @Column()
+    height: number;
+
+    @Column({
+      name: 'gmt_deleted',
+    })
+    deletedAt: Date;
+
+  }
+
   class Post extends Bone {
     static table = 'articles'
 
@@ -61,6 +86,23 @@ describe('=> Spell (TypeScript)', function() {
 
     @Column(TEXT)
     settings: string;
+
+    @HasOne({
+      foreignKey: 'articleId',
+    })
+    attachment: Attachment;
+  }
+
+  class Comment extends Bone {
+    @Column()
+    id: number;
+
+    @Column()
+    articleId: number;
+
+    @Column()
+    content: string;
+
   }
 
   before(async function() {
@@ -70,7 +112,7 @@ describe('=> Spell (TypeScript)', function() {
       port: process.env.MYSQL_PORT,
       user: 'root',
       database: 'leoric',
-      models: [ Post ],
+      models: [ Post, Comment, Attachment ],
     });
   });
 
@@ -239,4 +281,20 @@ describe('=> Spell (TypeScript)', function() {
       assert.equal(Post.find().where({ id: 1 }).orWhere(new Raw('id = 3')).toSqlString(), 'SELECT * FROM `articles` WHERE (`id` = 1 OR id = 3) AND `gmt_deleted` IS NULL');
     });
   });
+
+  describe('associations', () => {
+    it('predefined hasOne join', function() {
+      assert.equal(
+        Post.select('title', 'createdAt').with('attachment').toString(),
+        'SELECT `posts`.`title`, `posts`.`gmt_create`, `attachment`.* FROM `articles` AS `posts` LEFT JOIN `attachments` AS `attachment` ON `posts`.`id` = `attachment`.`article_id` AND `attachment`.`gmt_deleted` IS NULL WHERE `posts`.`gmt_deleted` IS NULL'
+      );
+    });
+  
+    it('arbitrary join', function() {
+      assert.equal(
+        Post.join(Comment, 'comments.articleId = posts.id').toString(),
+        'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
+      );
+    });
+  })
 });
