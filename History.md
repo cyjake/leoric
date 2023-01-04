@@ -1,3 +1,13 @@
+2.9.2 / 2023-01-04
+==================
+
+## What's Changed
+* fix: types for findAndCountAll by @vagusX in https://github.com/cyjake/leoric/pull/372
+* fix: adapt facebook hermes or metro bundler for loop by @JimmyDaddy in https://github.com/cyjake/leoric/pull/374
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.9.1...v2.9.2
+
 2.9.1 / 2022-11-21
 ==================
 
