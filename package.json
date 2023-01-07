@@ -58,6 +58,26 @@
     "sqlstring": "^2.3.0",
     "validator": "^13.5.2"
   },
+  "peerDependencies": {
+    "mysql": "^2.17.1",
+    "mysql2": "^2.3.0",
+    "pg": "^8.5.1",
+    "sqlite3": "^5.0.2"
+  },
+  "peerDependenciesMeta": {
+    "mysql": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    },
+    "sqlite3": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@babel/eslint-parser": "^7.14.7",
