@@ -1591,33 +1591,37 @@ class Bone {
 
   static async transaction(callback) {
     const connection = await this.driver.getConnection();
+    const begin = async () => await this.driver.begin({ Model: this, connection });
+    const commit = async () => await this.driver.commit({ Model: this, connection });
+    const rollback = async () => await this.driver.rollback({ Model: this, connection });
+
     let result;
     if (callback.constructor.name === 'AsyncFunction') {
       // if callback is an AsyncFunction
-      await this.driver.query('BEGIN', [], { connection, Model: this, command: 'BEGIN'  });
+      await begin();
       try {
-        result = await callback({ connection });
-        await this.driver.query('COMMIT', [], { connection, Model: this, command: 'COMMIT'  });
+        result = await callback({ connection, commit, rollback });
+        await commit();
       } catch (err) {
-        await this.driver.query('ROLLBACK', [], { connection, Model: this, command: 'ROLLBACK' });
+        await rollback();
         throw err;
       } finally {
         connection.release();
       }
     } else if (callback.constructor.name === 'GeneratorFunction') {
-      const gen = callback({ connection });
+      const gen = callback({ connection, commit, rollback });
 
       try {
-        await this.driver.query('BEGIN', [], {  connection, Model: this, command: 'BEGIN' });
+        await begin();
         while (true) {
           const { value: spell, done } = gen.next(result);
           if (spell instanceof Spell) spell.connection = connection;
           result = spell && typeof spell.then === 'function' ? await spell : spell;
           if (done) break;
         }
-        await this.driver.query('COMMIT', [], {  connection, Model: this, command: 'COMMIT' });
+        await commit();
       } catch (err) {
-        await this.driver.query('ROLLBACK', [], { connection, Model: this, command: 'ROLLBACK' });
+        await rollback();
         throw err;
       } finally {
         connection.release();

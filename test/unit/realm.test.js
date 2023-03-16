@@ -515,6 +515,7 @@ describe('=> Realm', () => {
   });
 
   describe('realm.transaction', () => {
+
     it('realm.transaction generator callback should work', async () => {
       const queries = [];
       const email = 'lighting@valhalla.ne';
@@ -600,6 +601,123 @@ describe('=> Realm', () => {
       assert(rows.length === 0);
       assert(queries.includes('ROLLBACK'));
     });
+
+    it('realm.transaction generator manual rollback should work', async () => {
+      const queries = [];
+      const email = 'lighting@valhalla.ne';
+      let result;
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        },
+      });
+      await realm.connect();
+      // clean all prev data in users
+      await realm.query('TRUNCATE TABLE users');
+      await assert.doesNotReject(async () => {
+        result = await realm.transaction(function *({ connection, rollback }) {
+          const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+          yield realm.query(sql, [ new Date(), email, 'Thor', 1 ], { connection });
+          yield rollback(); // rollback
+        });
+      });
+      const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
+      assert(rows.length === 0);
+      assert(queries.includes('ROLLBACK'));
+      assert(!result);
+    });
+
+    it('realm.transaction async manual rollback should work', async () => {
+      const queries = [];
+      const email = 'lighting@valhalla.ne';
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        },
+      });
+      await realm.connect();
+      // clean all prev data in users
+      await realm.query('TRUNCATE TABLE users');
+      await assert.doesNotReject(async () => {
+        await realm.transaction(async ({ connection, rollback }) => {
+          const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+          await realm.query(sql, [ new Date(), email, 'Thor', 1 ], { connection });
+          await rollback();
+        }); // rollback
+      });
+      const { rows } = await realm.query(`SELECT * FROM users WHERE email = '${email}'`);
+      assert(rows.length === 0);
+      assert(queries.includes('ROLLBACK'));
+    });
+
+    it('realm.transaction async manual commit should work', async () => {
+      const queries = [];
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        },
+      });
+      await realm.connect();
+      // clean all prev data in users
+      await realm.query('TRUNCATE TABLE users');
+      await assert.rejects(async () => {
+        await realm.transaction(async ({ connection, commit }) => {
+          const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+          await realm.query(sql, [ new Date(), 'lighting@valhalla.ne', 'Thor', 1 ], { connection });
+          await realm.query(sql, [ new Date(), 'trick@valhalla.ne', 'Loki', 1 ], { connection });
+          await commit();
+          throw new Error('Odin Here');
+        }); // rollback
+      }, /Odin Here/);
+      const { rows } = await realm.query('SELECT * FROM users');
+      assert(rows.length, 2);
+      assert(queries.includes('COMMIT'));
+    });
+
+    it('realm.transaction generator manual commit should work', async () => {
+      const queries = [];
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        logger: {
+          logQuery(sql) {
+            queries.push(sql);
+          }
+        },
+      });
+      await realm.connect();
+      // clean all prev data in users
+      await realm.query('TRUNCATE TABLE users');
+      await assert.rejects(async () => {
+        await realm.transaction(function *({ connection, commit }) {
+          const sql = 'INSERT INTO users (gmt_create, email, nickname, status) VALUES (?, ?, ?, ?)';
+          yield realm.query(sql, [ new Date(), 'lighting@valhalla.ne', 'Thor', 1 ], { connection });
+          yield realm.query(sql, [ new Date(), 'trick@valhalla.ne', 'Loki', 1 ], { connection });
+          yield commit();
+          throw new Error('Odin Here');
+        }); // rollback
+      }, /Odin Here/);
+      const { rows } = await realm.query('SELECT * FROM users');
+      assert.equal(rows.length, 2);
+      assert(queries.includes('COMMIT'));
+    });
+
   });
 
   describe('realm.transaction (CRUD)', () => {
@@ -617,6 +735,10 @@ describe('=> Realm', () => {
       });
     });
 
+    beforeEach(async () => {
+      await User.truncate();
+    });
+
     afterEach(async () => {
       await User.truncate();
     });
@@ -629,7 +751,7 @@ describe('=> Realm', () => {
         });
       }, 'Error: ER_DUP_ENTRY: Duplicate entry \'h@h.com\' for key \'users.email\'');
       const users = await User.find();
-      assert(users.length === 0);
+      assert.equal(users.length, 0);
     });
 
     it('should work with update', async () => {
