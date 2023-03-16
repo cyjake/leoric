@@ -213,6 +213,22 @@ class AbstractDriver {
     await this.query(sql);
   }
 
+  async rollback(opts) {
+    const connection = opts.connection || await this.getConnection();
+    return await this.query('ROLLBACK', [], { command: 'ROLLBACK', ...opts, connection });
+  }
+
+  async commit(opts) {
+    const connection = opts.connection || await this.getConnection();
+
+    return await this.query('COMMIT', [], { command: 'COMMIT', ...opts, connection });
+  }
+
+  async begin(opts) {
+    const connection = opts.connection || await this.getConnection();
+    return await this.query('BEGIN', [], { command: 'BEGIN', ...opts, connection });
+  }
+
 };
 
 module.exports = AbstractDriver;
