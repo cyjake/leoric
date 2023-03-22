@@ -3,12 +3,15 @@
 const assert = require('assert').strict;
 const sinon = require('sinon');
 
-const { connect, raw, Bone } = require('../..');
+const { connect, raw, Bone, heresql } = require('../..');
 
 class Post extends Bone {
   static table = 'articles'
   static initialize() {
     this.hasOne('attachment', { foreignKey: 'articleId' });
+    this.hasMany('comments', {
+      foreignKey: 'articleId'
+    });
   }
 }
 class TagMap extends Bone {}
@@ -586,6 +589,130 @@ describe('=> Spell', function() {
       Post.join(Comment, 'comments.articleId = posts.id').toString(),
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
     );
+
+    assert.equal(Post.include('comments').limit(1).toSqlString(), heresql(function () {
+      /*
+      SELECT `posts`.*, `comments`.* FROM `articles` AS `posts`
+        LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+      WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1
+      */
+    }));
+
+    assert.equal(Post.include('comments').where({
+      'posts.title': { $like: '%oo%' },
+      'comments.content': { $like: '%oo%' },
+    }).limit(1).toSqlString(), heresql(function () {
+      /*
+      SELECT `posts`.*, `comments`.* FROM `articles` AS `posts`
+        LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+        WHERE
+          `posts`.`title` LIKE '%oo%'
+        AND `comments`.`content` LIKE '%oo%'
+        AND `posts`.`gmt_deleted` IS NULL
+        LIMIT 1
+      */
+    }));
+
+    assert.equal(
+      Post.join(Comment, 'comments.articleId = posts.id').limit(1).toString(),
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
+    );
+
+  });
+
+  describe('form should work', function () {
+    it('should work', function () {
+      assert.equal(Post.select('title').from(Post.select('id', 'title', 'createdAt').where({
+        title: {
+          $like: '%yoxi%',
+        }
+      }).limit(10).order('id'))
+      .where({
+        id: {
+          $gte: 1
+        }
+      })
+      .limit(1)
+      .order('createdAt').toSqlString(), heresql(function () {
+        /*
+          SELECT `title`
+            FROM (SELECT `id`, `title`, `gmt_create`
+              FROM `articles` WHERE `title` LIKE '%yoxi%'
+            AND `gmt_deleted` IS NULL ORDER BY `id` LIMIT 10)
+            AS `posts`
+          WHERE `id` >= 1 ORDER BY `gmt_create` LIMIT 1
+         */
+      }));
+    });
+
+    it('should work with nest', function () {
+      assert.equal(Post.select('title').from(
+        Post.from(
+          Post.where({
+            id: {
+              $gte: 10
+            }
+          }).limit(100)
+        ).select('id', 'title', 'createdAt').where({
+          title: {
+            $like: '%yoxi%',
+          }
+        }).limit(10).order('id')
+      ).where({
+        id: {
+          $gte: 1
+        }
+      })
+      .limit(1)
+      .order('createdAt').toSqlString(), heresql(function () {
+        /*
+          SELECT `title`
+            FROM (SELECT `id`, `title`, `gmt_create`
+              FROM (SELECT * FROM `articles` WHERE `id` >= 10 AND `gmt_deleted` IS NULL LIMIT 100)
+              AS `posts`
+              WHERE `title` LIKE '%yoxi%'
+            ORDER BY `id` LIMIT 10)
+            AS `posts`
+          WHERE `id` >= 1 ORDER BY `gmt_create` LIMIT 1
+         */
+      }));
+    });
+  });
+
+  it('make OFFSET and LIMIT on left table takes effect while use from', function () {
+    assert.equal(Post.from(Post.where({
+      title: {
+        $like: '%yoxi%',
+      }
+    })).with('comments').where({
+      'comments.content': { $like: '%oo1%' },
+      id: {
+        $gte: 1
+      }
+    }).limit(1).toSqlString(), heresql(function () {
+    /*
+      SELECT `posts`.*, `comments`.*
+        FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL) AS `posts`
+      LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+      WHERE `comments`.`content` LIKE '%oo1%'
+      AND `posts`.`id` >= 1
+      LIMIT 1
+    */}));
+
+    assert.equal(Post.from(Post.where({
+      title: {
+        $like: '%yoxi%',
+      }
+    }).limit(10)).with('comments').where({
+      'comments.content': { $like: '%oo1%' },
+    }).limit(1).toSqlString(), heresql(function () {
+    /*
+      SELECT `posts`.*, `comments`.*
+        FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL LIMIT 10) AS `posts`
+      LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+      WHERE `comments`.`content` LIKE '%oo1%'
+      LIMIT 1
+    */}));
   });
 
   it('select as', function() {

@@ -89,10 +89,10 @@ describe('=> Associations', function() {
   });
 
   it('Bone.hasMany', async function() {
-    const post = await Post.first.with('comments');
-    expect(post.comments.length).to.be.above(0);
-    expect(post.comments[0]).to.be.a(Comment);
-    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    const posts = await Post.from(Post.first).with('comments');
+    expect(posts[0].comments.length).to.be.above(0);
+    expect(posts[0].comments[0]).to.be.a(Comment);
+    expect(posts[0].comments.map(comment => comment.content).sort()).to.eql(comments.sort());
   });
 
   it('Bone.hasMany through', async function() {
@@ -116,19 +116,19 @@ describe('=> Associations', function() {
   });
 
   it('.with({ ...names })', async function() {
-    const post = await Post.first.with({
+    const posts = await Post.from(Post.first).with({
       attachment: {},
       comments: { select: 'id, content' },
       tags: {}
     });
-    expect(post.tags[0]).to.be.a(Tag);
-    expect(post.tagMaps[0]).to.be.a(TagMap);
-    expect(post.attachment).to.be.a(Attachment);
-    expect(post.comments.length).to.be.above(0);
-    expect(post.comments[0].id).to.be.ok();
+    expect(posts[0].tags[0]).to.be.a(Tag);
+    expect(posts[0].tagMaps[0]).to.be.a(TagMap);
+    expect(posts[0].attachment).to.be.a(Attachment);
+    expect(posts[0].comments.length).to.be.above(0);
+    expect(posts[0].comments[0].id).to.be.ok();
     // because createdAt is not selected
-    assert.deepEqual(post.comments[0].createdAt, undefined);
-    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    assert.deepEqual(posts[0].comments[0].createdAt, undefined);
+    expect(posts[0].comments.map(comment => comment.content).sort()).to.eql(comments.sort());
   });
 
   it('.with(...names).select()', async function() {

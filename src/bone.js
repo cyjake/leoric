@@ -1720,7 +1720,7 @@ class Bone {
 }
 
 const Spell_methods = [
-  'select', 'join', 'where', 'group', 'order', 'get', 'count', 'average', 'minimum', 'maximum', 'sum',
+  'select', 'join', 'where', 'group', 'order', 'get', 'count', 'average', 'minimum', 'maximum', 'sum', 'from',
 ];
 for (const method of Spell_methods) {
   Object.defineProperty(Bone, method, {

@@ -264,6 +264,8 @@ export class AbstractBone {
 
   static initialize(): void;
 
+  static from<T extends typeof AbstractBone>(table: string | Spell<T>): Spell<T>;
+
   constructor(values: { [key: string]: Literal }, opts?: { isNewRecord?: boolean });
 
   /**

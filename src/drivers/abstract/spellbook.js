@@ -2,64 +2,9 @@
 
 const SqlString = require('sqlstring');
 
-const { copyExpr, findExpr, walkExpr } = require('../../expr');
+const { findExpr, walkExpr } = require('../../expr');
 const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
 const Raw = require('../../raw').default;
-
-/**
- * Create a subquery to make sure OFFSET and LIMIT on left table takes effect.
- * @param {Spell} spell
- */
-function createSubspell(spell) {
-  const { Model, columns, joins, whereConditions, orders } = spell;
-  const baseName = Model.tableAlias;
-  const subspell = spell.dup;
-
-  subspell.columns = [];
-  for (const token of columns) {
-    walkExpr(token, ({ type, qualifiers, value }) => {
-      if (type == 'id' && qualifiers[0] == baseName) {
-        subspell.columns.push({ type, value });
-      }
-    });
-  }
-
-  // If columns were whitelisted, make sure JOIN columns are included.
-  if (subspell.columns.length > 0) {
-    for (const qualifier in joins) {
-      const association = joins[qualifier];
-      walkExpr(association.on, ({ type, qualifiers, value }) => {
-        if (type == 'id' && qualifiers[0] == baseName) {
-          subspell.columns.push({ type, value });
-        }
-      });
-    }
-  }
-
-  // TODO: how to handle subqueries with GROUP?
-  subspell.groups = [];
-
-  subspell.whereConditions = [];
-  while (whereConditions.length > 0) {
-    const condition = whereConditions.shift();
-    const token = copyExpr(condition, ({ type, value }) => {
-      if (type === 'id') return { type, value };
-    });
-    subspell.whereConditions.push(token);
-  }
-
-  subspell.orders = [];
-  for (const order of orders) {
-    const [token, direction] = order;
-    const { type, qualifiers = [], value } = token;
-    if (type == 'id' && qualifiers[0] == baseName) {
-      subspell.orders.push([{ type, value }, direction]);
-      if (subspell.columns.length > 0) subspell.columns.push({ type, value });
-    }
-  }
-
-  return subspell;
-}
 
 /**
  * Make sure columns are qualified
@@ -247,7 +192,8 @@ class SpellBook {
    * @param {Spell} spell
    */
   formatSelectWithoutJoin(spell) {
-    const { columns, whereConditions, groups, havingConditions, orders, rowCount, skip } = spell;
+    const { columns, whereConditions, groups, havingConditions, orders, rowCount, skip, Model } = spell;
+    const { escapeId } = Model.driver;
     const chunks = ['SELECT'];
     const values = [];
 
@@ -273,7 +219,8 @@ class SpellBook {
     const table = formatExpr(spell, spell.table);
     chunks.push(`FROM ${table}`);
     if (spell.table.value instanceof spell.constructor) {
-      chunks.push(`AS t${spell.subqueryIndex++}`);
+      const subTableAlias = spell.table.value.Model && spell.table.value.Model.tableAlias;
+      chunks.push(`AS ${subTableAlias? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
     }
 
     // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
@@ -534,24 +481,13 @@ class SpellBook {
     }
     chunks.push(selects.join(', '));
 
-    let hoistable = skip > 0 || rowCount > 0;
-    if (hoistable) {
-      function checkQualifier({ type, qualifiers = [] }) {
-        if (type === 'id' && qualifiers.length> 0 && !qualifiers.includes(baseName)) {
-          hoistable = false;
-        }
-      }
-      for (const condition of whereConditions) walkExpr(condition, checkQualifier);
-      for (const orderExpr of orders) walkExpr(orderExpr[0], checkQualifier);
-    }
-
-    if (hoistable) {
-      const subspell = createSubspell(spell);
-      const subquery = this.formatSelectWithoutJoin(subspell);
-      values.push(...subquery.values);
-      chunks.push(`FROM (${subquery.sql}) AS ${escapeId(baseName)}`);
+    const table = formatExpr(spell, spell.table);
+    chunks.push(`FROM ${table}`);
+    if (spell.table.value instanceof spell.constructor) {
+      const subTableAlias = spell.table.value.Model && spell.table.value.Model.tableAlias;
+      chunks.push(`AS ${subTableAlias? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
     } else {
-      chunks.push(`FROM ${escapeId(Model.table)} AS ${escapeId(baseName)}`);
+      chunks.push(`AS ${escapeId(baseName)}`);
     }
 
     for (const qualifier in joins) {
@@ -581,10 +517,8 @@ class SpellBook {
     }
 
     if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
-    if (!hoistable) {
-      if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
-      if (skip > 0) chunks.push(`OFFSET ${skip}`);
-    }
+    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    if (skip > 0) chunks.push(`OFFSET ${skip}`);
     return { sql: chunks.join(' '), values };
   }
 
