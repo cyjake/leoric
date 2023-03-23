@@ -715,6 +715,71 @@ describe('=> Spell', function() {
     */}));
   });
 
+  describe('make OFFSET and LIMIT on left table takes effect while use limit/offset on the left of join', function () {
+    it('should work', function () {
+      assert.equal(Post.where({
+        title: {
+          $like: '%yoxi%',
+        }
+      }).limit(1).with('comments').where({
+        'comments.content': { $like: '%oo1%' },
+        id: {
+          $gte: 1
+        }
+      }).limit(1).toSqlString(), heresql(function () {
+      /*
+        SELECT `posts`.*, `comments`.*
+          FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL LIMIT 1) AS `posts`
+        LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+        WHERE `comments`.`content` LIKE '%oo1%'
+        AND `posts`.`id` >= 1
+        LIMIT 1
+      */}));
+    });
+
+    it('should work with offset', function () {
+      assert.equal(Post.where({
+        title: {
+          $like: '%yoxi%',
+        }
+      }).limit(1).offset(1).with('comments').where({
+        'comments.content': { $like: '%oo1%' },
+        id: {
+          $gte: 1
+        }
+      }).limit(1).toSqlString(), heresql(function () {
+      /*
+        SELECT `posts`.*, `comments`.*
+          FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL LIMIT 1 OFFSET 1) AS `posts`
+        LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+        WHERE `comments`.`content` LIKE '%oo1%'
+        AND `posts`.`id` >= 1
+        LIMIT 1
+      */}));
+    });
+
+    it('should work with order in subquery', function () {
+      assert.equal(Post.where({
+        title: {
+          $like: '%yoxi%',
+        }
+      }).limit(1).order('id', 'desc').with('comments').where({
+        'comments.content': { $like: '%oo1%' },
+        id: {
+          $gte: 1
+        }
+      }).limit(1).toSqlString(), heresql(function () {
+      /*
+        SELECT `posts`.*, `comments`.*
+          FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL ORDER BY `id` DESC LIMIT 1) AS `posts`
+        LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
+        WHERE `comments`.`content` LIKE '%oo1%'
+        AND `posts`.`id` >= 1
+        LIMIT 1
+      */}));
+    });
+  });
+
   it('select as', function() {
     assert.equal(
       Post.select("IFNULL(title, 'foo') AS title").order('title', 'desc').toString(),

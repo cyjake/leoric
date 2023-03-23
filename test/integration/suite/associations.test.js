@@ -21,6 +21,11 @@ describe('=> Associations', function() {
     "Now you'll join him"
   ];
 
+  const comments1 = [
+    'Long may the sunshine!',
+    'Despicable outlanders!',
+  ];
+
   const tagNames = ['npc', 'boss', 'player'];
   const topicNames = ['nephalem', 'archangel', 'demon'];
 
@@ -54,6 +59,9 @@ describe('=> Associations', function() {
 
     await Promise.all(comments.map(content => {
       return Comment.create({ content, articleId: posts[0].id });
+    }));
+    await Promise.all(comments1.map(content => {
+      return Comment.create({ content, articleId: posts[1].id });
     }));
     await mapTags(posts[0], tags.slice(0, 2));
     await mapTags(posts[0], topics.slice(2, 3));
@@ -89,10 +97,17 @@ describe('=> Associations', function() {
   });
 
   it('Bone.hasMany', async function() {
-    const posts = await Post.from(Post.first).with('comments');
-    expect(posts[0].comments.length).to.be.above(0);
-    expect(posts[0].comments[0]).to.be.a(Comment);
-    expect(posts[0].comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    let post = await Post.first.with('comments');
+    expect(post.comments.length).to.be.above(0);
+    expect(post.comments[0]).to.be.a(Comment);
+    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    post = await Post.first.offset(1).with('comments');
+    expect(post.comments.length).to.be.above(0);
+    expect(post.comments[0]).to.be.a(Comment);
+    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments1.sort());
+    const posts = await Post.find().limit(100).offset(1).with('comments').limit(2);
+    assert.equal(posts.length, 1);
+    expect(posts[0].comments.map(comment => comment.content).sort()).to.eql(comments1.sort());
   });
 
   it('Bone.hasMany through', async function() {
@@ -116,19 +131,19 @@ describe('=> Associations', function() {
   });
 
   it('.with({ ...names })', async function() {
-    const posts = await Post.from(Post.first).with({
+    const posts = await Post.first.with({
       attachment: {},
       comments: { select: 'id, content' },
       tags: {}
     });
-    expect(posts[0].tags[0]).to.be.a(Tag);
-    expect(posts[0].tagMaps[0]).to.be.a(TagMap);
-    expect(posts[0].attachment).to.be.a(Attachment);
-    expect(posts[0].comments.length).to.be.above(0);
-    expect(posts[0].comments[0].id).to.be.ok();
+    expect(posts.tags[0]).to.be.a(Tag);
+    expect(posts.tagMaps[0]).to.be.a(TagMap);
+    expect(posts.attachment).to.be.a(Attachment);
+    expect(posts.comments.length).to.be.above(0);
+    expect(posts.comments[0].id).to.be.ok();
     // because createdAt is not selected
-    assert.deepEqual(posts[0].comments[0].createdAt, undefined);
-    expect(posts[0].comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    assert.deepEqual(posts.comments[0].createdAt, undefined);
+    expect(posts.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
   });
 
   it('.with(...names).select()', async function() {
@@ -155,6 +170,8 @@ describe('=> Associations', function() {
 
 describe('=> Associations order / offset / limit', function() {
   before(async function() {
+    await Post.remove({}, true);
+    await Comment.remove({}, true);
     const post1 = await Post.create({ title: 'New Post' });
     await Comment.create({ content: 'Abandon your foolish request!', articleId: post1.id });
     const post2 = await Post.create({ title: 'New Post 2' });
@@ -202,5 +219,110 @@ describe('=> Associations order / offset / limit', function() {
   it('should not throw if select and order by alias', async function() {
     const result = await Post.include('comments').select('content as cnt').order('cnt', 'desc').limit(1);
     assert.equal(result.length, 1);
+  });
+
+  describe('should limit/offset subquery if limit/offset is set', function() {
+    it('on root query', async function() {
+      /*
+        sample data in db query all result:
+        [
+          { id: 1, title: 'New Post', comments: [ { id: 2, content: 'Now you\'ll join them } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 1, content: 'Abandon your foolish request!' } ] },
+          { id: 2, title: 'New Post 2', comments: [ { id: 2, content: 'You are too late to save the child!' } ] },
+        ]
+      */
+      let posts = await Post.include('comments').limit(1).order('id');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post');
+      assert.equal(posts[0].comments.length, 1);
+
+      posts = await Post.include('comments').limit(1).offset(1).order('id');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post');
+      assert.equal(posts[0].comments.length, 1);
+
+      posts = await Post.include('comments').limit(1).offset(2).order('id');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post 2');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'You are too late to save the child!');
+
+      /*
+        sample data in db query all result:
+        [
+          { id: 2, title: 'New Post 2', comments: [ { id: 2, content: 'You are too late to save the child!' } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 2, content: 'Now you\'ll join them } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 1, content: 'Abandon your foolish request!' } ] },
+        ]
+      */
+      posts = await Post.include('comments').limit(1).offset(0).order('id', 'desc');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post 2');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'You are too late to save the child!');
+
+      /*
+        sample data in db query all result:
+        [
+          { id: 2, title: 'New Post 2', comments: [ { id: 2, content: 'You are too late to save the child!' } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 1, content: 'Now you\'ll join them } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 1, content: 'Abandon your foolish request!' } ] },
+        ]
+      */
+      posts = await Post.include('comments').order('id', 'desc');
+      assert.equal(posts.length, 2);
+      assert.equal(posts[0].title, 'New Post 2');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'You are too late to save the child!');
+    });
+
+    it('on root query order join table', async function() {
+      /*
+        sample data in db query all result:
+        [
+          { id: 1, title: 'New Post', comments: [ { id: 2, content: 'Now you\'ll join them' } ] },
+          { id: 2, title: 'New Post 2', comments: [ { id: 2, content: 'You are too late to save the child!' } ] },
+          { id: 1, title: 'New Post', comments: [ { id: 1, content: 'Abandon your foolish request!' } ] },
+        ]
+      */
+      let posts = await Post.include('comments').limit(1).order('comments.id', 'desc');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'Now you\'ll join them');
+
+      posts = await Post.include('comments').limit(1).offset(1).order('comments.id', 'desc');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post 2');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'You are too late to save the child!');
+
+      posts = await Post.include('comments').limit(1).offset(2).order('comments.id', 'desc');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post');
+      assert.equal(posts[0].comments.length, 1);
+      assert.equal(posts[0].comments[0].content, 'Abandon your foolish request!');
+
+    });
+
+    it('on subquery', async function() {
+      let post = await Post.first.with('comments');
+      assert.equal(post.title, 'New Post');
+      assert.equal(post.comments.length, 2);
+      post = await Post.first.offset(1).with('comments');
+      assert.equal(post.title, 'New Post 2');
+      assert.equal(post.comments.length, 1);
+    });
+
+    it('on subquery with order', async function() {
+      let posts = await Post.all.limit(1).order('id', 'desc').with('comments');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post 2');
+      assert.equal(posts[0].comments.length, 1);
+      posts = await Post.all.limit(1).order('id', 'asc').with('comments');
+      assert.equal(posts.length, 1);
+      assert.equal(posts[0].title, 'New Post');
+      assert.equal(posts[0].comments.length, 2);
+    });
   });
 });
