@@ -477,6 +477,36 @@ Post.include('comments', 'author')
 Post.find().with('comments').with('author')
 ```
 
+Please be noted that the chaining order of `.with()` matters, queries like below are not equivalent:
+
+```js
+Post.findOne().with('comments')
+// NOT EQUALS TO
+Post.find().with('comments').first
+```
+
+By type definitions, both queries will return a Post instance or null depending on the record can be found or not. But the generated SQLs are quite different:
+
+```sql
+SELECT * FROM (SELECT * FROM posts LIMIT 1) AS posts LEFT JOIN comments ON comments.post_id = posts.id
+-- NOT EQUALS TO
+SELECT * FROM posts AS posts LEFT JOIN comments ON comments.post_id = posts.id LIMIT 1
+```
+
+The major difference is the place of `LIMIT`, the former query will fetch the first post and all of its associated comments, the latter query however, will only return the first post and its first comment.
+
+We can keep on chaining the query methods if comments need to be limited as well:
+
+```js
+Post.findOne().with('comments').limit(10)
+```
+
+which is equivalent of SQL below:
+
+```sql
+SELECT * FROM (SELECT * FROM posts LIMIT 1) AS posts LEFT JOIN comments ON comments.post_id = posts.id LIMIT 10
+```
+
 ### Arbitrary Joins
 
 If a join is needed but not predefined in `Model.describe()`, it can still be accomplished with `.join()`:
