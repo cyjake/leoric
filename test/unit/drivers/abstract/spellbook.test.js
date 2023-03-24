@@ -32,12 +32,13 @@ describe('=> Spellbook', function() {
 
       assert.equal(query.limit(10).toString(), heresql(function() {/*
         SELECT `posts`.*, `author`.*
-          FROM (SELECT * FROM `articles`
-                  WHERE `is_private` = true
-                    AND `author_id` IN (SELECT * FROM `users` WHERE `stauts` = 1)
-                    AND `gmt_deleted` IS NULL LIMIT 10) AS `posts`
+          FROM `articles` AS `posts`
       LEFT JOIN `users` AS `author`
             ON `posts`.`userId` = `author`.`id`
+      WHERE `posts`.`is_private` = true
+          AND `posts`.`author_id` IN (SELECT * FROM `users` WHERE `stauts` = 1)
+          AND `posts`.`gmt_deleted` IS NULL
+          LIMIT 10
       */}));
 
       assert.doesNotThrow(function() {

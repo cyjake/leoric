@@ -385,6 +385,21 @@ class Spell {
     return { ...parseExpr(text), __expr: true };
   }
 
+  #emptySpell() {
+    Object.assign(this, {
+      columns: [],
+      whereConditions: [],
+      groups: [],
+      orders: [],
+      havingConditions: [],
+      joins: {},
+      skip: 0,
+      subqueryIndex: 0,
+      rowCount: 0,
+      skip: 0,
+    });
+  }
+
   get unscoped() {
     const spell = this.dup;
     spell.scopes = [];
@@ -790,6 +805,12 @@ class Spell {
    * @returns {Spell}
    */
   $with(...qualifiers) {
+    if (this.rowCount > 0 || this.skip > 0) {
+      const spell = this.dup;
+      this.#emptySpell();
+      this.table = { type: 'subquery', value: spell };
+    }
+
     for (const qualifier of qualifiers) {
       if (isPlainObject(qualifier)) {
         for (const key in qualifier) {
