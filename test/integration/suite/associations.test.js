@@ -131,19 +131,19 @@ describe('=> Associations', function() {
   });
 
   it('.with({ ...names })', async function() {
-    const posts = await Post.first.with({
+    const post = await Post.first.with({
       attachment: {},
       comments: { select: 'id, content' },
       tags: {}
     });
-    expect(posts.tags[0]).to.be.a(Tag);
-    expect(posts.tagMaps[0]).to.be.a(TagMap);
-    expect(posts.attachment).to.be.a(Attachment);
-    expect(posts.comments.length).to.be.above(0);
-    expect(posts.comments[0].id).to.be.ok();
+    expect(post.tags[0]).to.be.a(Tag);
+    expect(post.tagMaps[0]).to.be.a(TagMap);
+    expect(post.attachment).to.be.a(Attachment);
+    expect(post.comments.length).to.be.above(0);
+    expect(post.comments[0].id).to.be.ok();
     // because createdAt is not selected
-    assert.deepEqual(posts.comments[0].createdAt, undefined);
-    expect(posts.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
+    assert.deepEqual(post.comments[0].createdAt, undefined);
+    expect(post.comments.map(comment => comment.content).sort()).to.eql(comments.sort());
   });
 
   it('.with(...names).select()', async function() {
