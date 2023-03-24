@@ -35,7 +35,8 @@ async function findModels(dir) {
   for (const entry of entries) {
     const extname = path.extname(entry.name);
     if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
-      const model = require(path.join(dir, entry.name));
+      const exports = require(path.join(dir, entry.name));
+      const model = exports.__esModule ? exports.default : exports;
       if (isBone(model)) models.push(model);
     }
   }
