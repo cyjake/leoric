@@ -1,3 +1,13 @@
+2.10.1 / 2023-03-24
+===================
+
+## What's Changed
+* fix: retain where conditions when sharding key is necessary by @cyjake in https://github.com/cyjake/leoric/pull/381
+* fix: select everything when forming subspell by @cyjake in https://github.com/cyjake/leoric/pull/382
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.10.0...v2.10.1
+
 2.10.0 / 2023-03-24
 ===================
 
