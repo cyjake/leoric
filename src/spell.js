@@ -388,7 +388,8 @@ class Spell {
   #emptySpell() {
     Object.assign(this, {
       columns: [],
-      whereConditions: [],
+      whereConditions: this.Model.shardingKey ? this.whereConditions : [],
+      // whereConditions: [],
       groups: [],
       orders: [],
       havingConditions: [],

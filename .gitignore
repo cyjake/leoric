@@ -7,6 +7,8 @@ package-lock.json
 .DS_Store
 test/types/*.js
 test/types/*.map
+test/integration/suite/sharding.test.js*
+test/models/photo.js*
 src/decorators.js*
 src/data_types.js*
 src/raw.js*

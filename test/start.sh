@@ -29,25 +29,28 @@ function integration {
 ##
 # definition type tests
 function dts {
-  npx tsc
   run "$(ls test/types/*.test.js)";
 }
 
 case $1 in
   unit)
     args=("${@:2}")
+    npx tsc
     unit
     ;;
   integration)
     args=("${@:2}")
+    npx tsc
     integration
     ;;
   dts)
     args=("${@:2}")
+    npx tsc
     dts
     ;;
   *.js)
     args=("${@:1}")
+    npx tsc
     run $1
     ;;
   *)
