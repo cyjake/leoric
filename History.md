@@ -1,3 +1,14 @@
+2.10.0 / 2023-03-24
+===================
+
+## What's Changed
+* feat: add db pacakges to peerDependencies by @fengmk2 in https://github.com/cyjake/leoric/pull/375
+* feat: support manual rollback & commit for transaction, fix #371 by @JimmyDaddy in https://github.com/cyjake/leoric/pull/376
+* feat: optimize join query parsing fix #378 by @JimmyDaddy in https://github.com/cyjake/leoric/pull/380
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.9.2...v2.10.0
+
 2.9.2 / 2023-01-04
 ==================
 
