@@ -387,9 +387,7 @@ class Spell {
 
   #emptySpell() {
     Object.assign(this, {
-      columns: [],
-      whereConditions: this.Model.shardingKey ? this.whereConditions : [],
-      // whereConditions: [],
+      whereConditions: [],
       groups: [],
       orders: [],
       havingConditions: [],
@@ -808,6 +806,7 @@ class Spell {
   $with(...qualifiers) {
     if (this.rowCount > 0 || this.skip > 0) {
       const spell = this.dup;
+      spell.columns = [];
       this.#emptySpell();
       this.table = { type: 'subquery', value: spell };
     }

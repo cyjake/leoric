@@ -324,5 +324,13 @@ describe('=> Associations order / offset / limit', function() {
       assert.equal(posts[0].title, 'New Post');
       assert.equal(posts[0].comments.length, 2);
     });
+
+    it('on subquery with select', async function() {
+      await assert.doesNotReject(async function() {
+        const post = await Post.first.select('title').with('comments');
+        assert.ok(post);
+        assert.ok(Array.isArray(post.comments));
+      });
+    });
   });
 });

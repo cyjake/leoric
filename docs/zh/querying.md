@@ -471,6 +471,36 @@ Post.include('comments', 'author')
 Post.find().with('comments').with('author')
 ```
 
+注意，链式调用 `.with()` 产生的作用会跟调用顺序有关系，下面两个写法是不等价的：
+
+```js
+Post.findOne().with('comments')
+// 不等同于
+Post.find().with('comments').first
+```
+
+虽然从接口定义来看，两者都会返回 Post 实例或者 null，但是两者所执行的 SQL 会有差别：
+
+```sql
+SELECT * FROM (SELECT * FROM posts LIMIT 1) AS posts LEFT JOIN comments ON comments.post_id = posts.id
+-- 不等同于
+SELECT * FROM posts AS posts LEFT JOIN comments ON comments.post_id = posts.id LIMIT 1
+```
+
+可以看到区别在于 LIMIT 所在的位置，前者会返回第一条 Post 及其所有的 Comment，后者则只会返回第一条 Post 及其第一条 Comment。
+
+使用第一种查询时，如果需要限制返回的评论数量，可以直接写：
+
+```js
+Post.findOne().with('comments').limit(10)
+```
+
+等价于下面的 SQL：
+
+```sql
+SELECT * FROM (SELECT * FROM posts LIMIT 1) AS posts LEFT JOIN comments ON comments.post_id = posts.id LIMIT 10
+```
+
 ### 任意 JOIN
 
 如果需要 JOIN 未在 `Model.describe()` 预先定义的关联关系，可以使用 `.join()` 方法：
