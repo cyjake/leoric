@@ -775,6 +775,7 @@ describe('=> Spell', function() {
         LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL
         WHERE `comments`.`content` LIKE '%oo1%'
         AND `posts`.`id` >= 1
+        ORDER BY `posts`.`id` DESC
         LIMIT 1
       */}));
     });
