@@ -389,10 +389,9 @@ class Spell {
     Object.assign(this, {
       whereConditions: [],
       groups: [],
-      orders: [],
+      orders: JSON.parse(JSON.stringify(this.orders)),
       havingConditions: [],
       joins: {},
-      skip: 0,
       subqueryIndex: 0,
       rowCount: 0,
       skip: 0,

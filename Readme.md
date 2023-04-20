@@ -118,3 +118,36 @@ If you are interested in fixing issues and contributing directly to the code bas
 ## egg-orm
 
 If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm](https://github.com/eggjs/egg-orm) plugin. More detailed examples about setting up egg-orm with egg framework in either JavaScript or TypeScript can be found at <https://github.com/eggjs/egg-orm/tree/master/examples>
+
+## mysql nuances
+
+macOS binds localhost to ipv6 `::1`, yet both mysql and mysql2 connect database with localhost by default, which means both will try connecting to mysql with `::1`. However, the mysql distribution installed with HomeBrew sets `bind_address = 127.0.0.1`, hence causes following error:
+
+```js
+Error: connect ECONNREFUSED ::1:3306
+  at __node_internal_captureLargerStackTrace (node:internal/errors:490:5)
+  at __node_internal_exceptionWithHostPort (node:internal/errors:668:12)
+  at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1494:16)
+```
+
+Please change the configuration as below:
+
+```diff
+diff --git a/usr/local/etc/my.cnf b/usr/local/etc/my.cnf
+index 7218354..d31859c 100644
+--- a/usr/local/etc/my.cnf
++++ b/usr/local/etc/my.cnf
+@@ -1,5 +1,5 @@
+ # Default Homebrew MySQL server config
+ [mysqld]
+ # Only allow connections from localhost
+-bind-address = 127.0.0.1
++bind-address = 127.0.0.1,::1
+ mysqlx-bind-address = 127.0.0.1
+ ```
+
+ and restart the mysql service:
+
+ ```bash
+ brew services mysql restart
+ ```
