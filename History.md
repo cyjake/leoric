@@ -1,3 +1,12 @@
+2.10.2 / 2023-04-23
+===================
+
+## What's Changed
+* fix: order clause need be repeated on the main query by @cyjake in https://github.com/cyjake/leoric/pull/383
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.10.1...v2.10.2
+
 2.10.1 / 2023-03-24
 ===================
 
