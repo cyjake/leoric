@@ -50,6 +50,10 @@ function isBone(bone) {
   return metaValue === true;
 }
 
+const deepClone = typeof structuredClone === 'function'
+  ? structuredClone
+  : (value) => JSON.parse(JSON.stringify(value));
+
 module.exports = {
   isPlainObject,
   compose,
@@ -57,4 +61,5 @@ module.exports = {
   calculateDuration,
   logger,
   isBone,
+  deepClone,
 };

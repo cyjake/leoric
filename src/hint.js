@@ -117,7 +117,7 @@ class IndexHint {
    * @param {INDEX_HINT_SCOPE?} scope
    * @memberof IndexHint
    */
-  constructor(index, type = INDEX_HINT_TYPE.use, scope = ''){
+  constructor(index, type = INDEX_HINT_TYPE.use, scope = '') {
     this.index = index;
     this.type = type;
     this.scope = scope;
