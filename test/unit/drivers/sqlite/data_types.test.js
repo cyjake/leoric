@@ -12,7 +12,7 @@ describe('=> Data Types', () => {
     assert.equal(new STRING().dataType, 'varchar');
     assert.equal(new STRING().toSqlString(), 'VARCHAR(255)');
     assert.equal(new STRING(127).toSqlString(), 'VARCHAR(127)');
-    
+
   });
 
   it('BINARY', () => {

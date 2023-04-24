@@ -7,7 +7,7 @@
 const pluralize = require('pluralize');
 const SqlString = require('sqlstring');
 const { parseExprList, parseExpr, walkExpr } = require('./expr');
-const { isPlainObject } = require('./utils');
+const { isPlainObject, deepClone } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
 const Raw = require('./raw').default;
@@ -389,7 +389,7 @@ class Spell {
     Object.assign(this, {
       whereConditions: [],
       groups: [],
-      orders: JSON.parse(JSON.stringify(this.orders)),
+      orders: deepClone(this.orders),
       havingConditions: [],
       joins: {},
       subqueryIndex: 0,
@@ -769,7 +769,7 @@ class Spell {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {
-            condition.args[0] = JSON.parse(JSON.stringify(column.args[0]));
+            condition.args[0] = deepClone(column.args[0]);
             break;
           }
         }
