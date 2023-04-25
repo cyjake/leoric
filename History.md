@@ -1,3 +1,13 @@
+2.10.3 / 2023-04-25
+===================
+
+## What's Changed
+* feat: try to use structuredClone first by @fengmk2 in https://github.com/cyjake/leoric/pull/384
+* fix: avoid ts type detect error by @fengmk2 in https://github.com/cyjake/leoric/pull/385
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.10.2...v2.10.3
+
 2.10.2 / 2023-04-23
 ===================
 
