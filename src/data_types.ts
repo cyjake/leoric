@@ -44,6 +44,13 @@ export abstract class DataType {
   abstract toSqlString(): string;
 }
 
+function hasDataLength(dataLength: string | number | undefined) {
+  if (typeof dataLength === 'number') {
+    return dataLength > 0;
+  }
+  return !!dataLength;
+}
+
 /**
  * @example
  * STRING
@@ -62,7 +69,7 @@ class STRING extends DataType {
     const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
-    chunks.push(dataLength && dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
+    chunks.push(hasDataLength(dataLength) ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -100,7 +107,7 @@ class BINARY extends DataType {
     const { dataLength } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
-    chunks.push(dataLength && dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
+    chunks.push(hasDataLength(dataLength) ? `${dataType}(${dataLength})` : dataType);
     return chunks.join(' ');
   }
 
@@ -154,7 +161,7 @@ class INTEGER extends DataType {
     const { dataLength, unsigned, zerofill } = this;
     const dataType = this.dataType.toUpperCase();
     const chunks: string[] = [];
-    chunks.push(dataLength && dataLength > 0 ? `${dataType}(${dataLength})` : dataType);
+    chunks.push(hasDataLength(dataLength) ? `${dataType}(${dataLength})` : dataType);
     if (unsigned) chunks.push('UNSIGNED');
     if (zerofill) chunks.push('ZEROFILL');
     return chunks.join(' ');
