@@ -1,15 +1,13 @@
 'use strict';
 
-const fs = require('fs').promises;
-const path = require('path');
-
-const Bone = require('./bone');
-const { findDriver, AbstractDriver } = require('./drivers');
-const { camelCase } = require('./utils/string');
-const { isBone } = require('./utils');
-const sequelize = require('./adapters/sequelize');
-const Raw = require('./raw').default;
-const { LEGACY_TIMESTAMP_MAP } = require('./constants');
+const Bone = require('../bone');
+const AbstractDriver = require('../drivers/abstract');
+const { camelCase } = require('../utils/string');
+const { isBone } = require('../utils');
+const sequelize = require('../adapters/sequelize');
+const Raw = require('../raw').default;
+const { LEGACY_TIMESTAMP_MAP } = require('../constants');
+const assert = require('assert');
 
 const SequelizeBone = sequelize(Bone);
 
@@ -19,30 +17,6 @@ const SequelizeBone = sequelize(Bone);
  * @property {Array} rows
  * @property {Array} fields
  */
-
-/**
- * find models in directory
- * @param {string} dir
- * @returns {Array.<Bone>}
- */
-async function findModels(dir) {
-  if (!dir || typeof dir !== 'string') {
-    throw new Error(`Unexpected models dir (${dir})`);
-  }
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const models = [];
-
-  for (const entry of entries) {
-    const extname = path.extname(entry.name);
-    if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
-      const exports = require(path.join(dir, entry.name));
-      const model = exports.__esModule ? exports.default : exports;
-      if (isBone(model)) models.push(model);
-    }
-  }
-
-  return models;
-}
 
 /**
  * construct model attributes entirely from column definitions
@@ -105,14 +79,16 @@ function createSpine(opts) {
 
 const rReplacementKey = /\s:(\w+)\b/g;
 
-class Realm {
+class BaseRealm {
   constructor(opts = {}) {
+    const { dialect = 'mysql', driver: driverOpt } = opts;
+    const CustomDriver = this.getDriverClass(driverOpt, dialect);
+
     const {
-      dialect = 'mysql',
       dialectModulePath,
       client = dialectModulePath,
       database = opts.db || opts.storage,
-      driver: CustomDriver,
+      driver: _,
       ...restOpts
     } = opts;
     const Spine = createSpine(opts);
@@ -122,8 +98,7 @@ class Realm {
       for (const model of opts.models) models[model.name] = model;
     }
 
-    const DriverClass = CustomDriver && CustomDriver.prototype instanceof AbstractDriver? CustomDriver : findDriver(dialect);
-    const driver = new DriverClass({
+    const driver = new CustomDriver({
       client,
       database,
       ...restOpts,
@@ -144,6 +119,12 @@ class Realm {
     this.options = Spine.options = options;
   }
 
+  getDriverClass(driver, dialect) {
+    const CustomDriver = driver;
+    assert(CustomDriver && CustomDriver.prototype instanceof AbstractDriver, 'DriverClass must be a subclass of AbstractDriver');
+    return CustomDriver;
+  }
+
   define(name, attributes, opts = {}, descriptors = {}) {
     const Model = class extends this.Bone {
       static name = name;
@@ -153,15 +134,12 @@ class Realm {
     return Model;
   }
 
-  async connect() {
-    const { models: dir } = this.options;
+  async getModels() {
+    return Object.values(this.models);
+  }
 
-    let models;
-    if (dir) {
-      models = Array.isArray(dir) ? dir : (await findModels(dir));
-    } else {
-      models = Object.values(this.models);
-    }
+  async connect() {
+    let models = await this.getModels();
 
     for (const model of models) this.Bone.models[model.name] = model;
     // models could be connected already if cached
@@ -261,7 +239,7 @@ class Realm {
 
   // instance.raw
   raw(sql) {
-    return Realm.raw(sql);
+    return BaseRealm.raw(sql);
   }
 
   /**
@@ -277,4 +255,4 @@ class Realm {
   static SequelizeBone = SequelizeBone;
 }
 
-module.exports = Realm;
+module.exports = BaseRealm;

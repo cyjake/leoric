@@ -3,6 +3,7 @@
   "version": "2.10.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
+  "browser": "browser.js",
   "types": "index.d.ts",
   "files": [
     "src",
