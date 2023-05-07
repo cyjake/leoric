@@ -43,13 +43,15 @@ class Realm extends BaseRealm {
   /**
    * @override
    */
-  getDriverClass(driver, dialect) {
-    const CustomDriver = driver;
+  getDriverClass(CustomDriver, dialect) {
     const DriverClass =  CustomDriver && CustomDriver.prototype instanceof AbstractDriver? CustomDriver : findDriver(dialect);
     assert(DriverClass && DriverClass.prototype instanceof AbstractDriver, 'DriverClass must be a subclass of AbstractDriver');
     return DriverClass;
   }
 
+  /**
+   * @override
+   */
   async getModels() {
     const { models: dir } = this.options;
 

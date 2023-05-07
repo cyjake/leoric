@@ -81,14 +81,12 @@ const rReplacementKey = /\s:(\w+)\b/g;
 
 class BaseRealm {
   constructor(opts = {}) {
-    const { dialect = 'mysql', driver: driverOpt } = opts;
-    const CustomDriver = this.getDriverClass(driverOpt, dialect);
-
     const {
+      dialect = 'mysql',
       dialectModulePath,
       client = dialectModulePath,
       database = opts.db || opts.storage,
-      driver: _,
+      driver: CustomDriver,
       ...restOpts
     } = opts;
     const Spine = createSpine(opts);
@@ -98,7 +96,9 @@ class BaseRealm {
       for (const model of opts.models) models[model.name] = model;
     }
 
-    const driver = new CustomDriver({
+    const DriverClass = this.getDriverClass(CustomDriver, dialect);
+
+    const driver = new DriverClass({
       client,
       database,
       ...restOpts,
@@ -108,7 +108,7 @@ class BaseRealm {
       client,
       dialect: driver.dialect,
       database,
-      driver: CustomDriver,
+      driver: DriverClass,
       ...restOpts,
       define: { underscored: true, ...opts.define },
     };
@@ -119,8 +119,7 @@ class BaseRealm {
     this.options = Spine.options = options;
   }
 
-  getDriverClass(driver, dialect) {
-    const CustomDriver = driver;
+  getDriverClass(CustomDriver, dialect) {
     assert(CustomDriver && CustomDriver.prototype instanceof AbstractDriver, 'DriverClass must be a subclass of AbstractDriver');
     return CustomDriver;
   }
