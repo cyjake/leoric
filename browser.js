@@ -9,7 +9,6 @@ const sequelize = require('./src/adapters/sequelize');
 const { heresql } = require('./src/utils/string');
 
 const Realm = require('./src/realm/base');
-const Raw = require('./src/raw').default;
 const AbstractDriver = require('./src/drivers/abstract');
 const { isBone } = require('./src/utils');
 
@@ -56,7 +55,7 @@ export { heresql };
 export * from './src/hint';
 export * from './src/decorators';
 export { AbstractDriver };
-export { Raw };
+export { default as Raw } from './src/raw';
 export { LENGTH_VARIANTS };
 export { isBone };
 
