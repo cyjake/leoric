@@ -38,7 +38,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
   }
 
   formatUpdate(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
-    const a = super.formatDelete(spell);
+    // const a = super.formatDelete(spell);
 
     const { Model, sets, whereConditions } = spell;
     const { shardingKey } = Model;
