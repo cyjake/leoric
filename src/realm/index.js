@@ -2,7 +2,6 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const assert = require('assert');
 
 const { findDriver, AbstractDriver } = require('../drivers');
 const { isBone } = require('../utils');
