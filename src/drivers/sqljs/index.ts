@@ -33,18 +33,6 @@ export default class SqljsDriver extends SqliteDriver {
     return await this.pool.getConnection();
   }
 
-  async disconnect(callback) {
-    console.log('-- [ORM] will disconnect driver');
-
-    try {
-      await this.pool.close();
-      console.log('-- [ORM] driver disconnect success');
-      callback?.();
-    } catch (e) {
-      console.error('-- [ORM] driver disconnect error', e);
-    }
-  }
-
   async query(query: SQLJSQueryQuery, values?: SQLJSQueryValues, spell?: SpellMeta) {
     const connection = await this.getConnection();
 
