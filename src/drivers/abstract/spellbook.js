@@ -52,7 +52,7 @@ function formatSelectExpr(spell, values) {
     const list = map[qualifier];
     if (list) {
       for (const selectExpr of list) selects.add(selectExpr);
-    } else if (groups.length === 0 && Model.driver.type !== 'sqlite' && !isAggregate) {
+    } else if (groups.length === 0 && !['sqlite', 'sqljs'].includes(Model.driver.type) && !isAggregate) {
       selects.add(`${escapeId(qualifier)}.*`);
     }
   }
