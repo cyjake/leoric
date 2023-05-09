@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { performance } from 'perf_hooks';
 
 import SqliteDriver from '../sqlite';
 import { SQLJSConnectionOptions, SQLJSQueryQuery, SQLJSQueryValues } from './interface';
