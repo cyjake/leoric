@@ -8,8 +8,8 @@ function run {
     args=("${args[@]:1}");
   fi
   echo "";
-  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --exit --timeout 5000 ${file}";
-  printf '"%s" ' "${args[@]}" | DEBUG=leoric NODE_OPTIONS=--enable-source-maps xargs mocha --exit --timeout 5000 ${file} || exit $?;
+  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha -R dot --exit --timeout 5000 ${file}";
+  printf '"%s" ' "${args[@]}" | DEBUG=leoric NODE_OPTIONS=--enable-source-maps xargs mocha -R dot --exit --timeout 5000 ${file} || exit $?;
 }
 
 ##
