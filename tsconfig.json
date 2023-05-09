@@ -11,8 +11,5 @@
     "noUnusedLocals": true,
     "strictNullChecks": true,
     "declaration": true
-  },
-  "include": [
-    "./src"
-  ]
+  }
 }

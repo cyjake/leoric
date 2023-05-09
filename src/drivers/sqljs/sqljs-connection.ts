@@ -1,6 +1,6 @@
 import type { Database, QueryExecResult } from 'sql.js';
 
-import type { SQLJSConnectionOptions, SQLJSConnectionQueryResult, SQLJSQueryParams } from './interface';
+import type { SQLJSConnectionOptions, SQLJSConnectionQueryResult, SQLJSQueryQuery, SQLJSQueryValues } from './interface';
 
 /**
  * 组装和转换结果
@@ -61,6 +61,10 @@ export class SQLJSConnection {
     return this;
   }
 
+  release() {
+    // noop
+  }
+
   async close() {
     if (!this.database) {
       console.warn('close: database is null');
@@ -70,16 +74,16 @@ export class SQLJSConnection {
     this.database = undefined;
   }
 
-  async query(params: SQLJSQueryParams) {
-    return await this._executeSQL(params);
+  async query(query: SQLJSQueryQuery, values?: SQLJSQueryValues) {
+    return await this._executeSQL(query, values);
   }
 
-  async _executeSQL(params: SQLJSQueryParams) {
+  async _executeSQL(query: SQLJSQueryQuery, values?: SQLJSQueryValues) {
     if (!this.database) {
       throw new Error('database not opened!');
     }
 
-    const res = this.database.exec(params.query, params.values);
+    const res = this.database.exec(query, values);
     return normalizeResult(res);
   }
 }

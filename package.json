@@ -24,6 +24,7 @@
     "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
     "test:postgres": "./test/start.sh test/integration/postgres.test.js",
     "test:sqlite": "./test/start.sh test/integration/sqlite.test.js",
+    "test:sqljs": "./test/start.sh test/integration/sqljs.test.js",
     "test:custom": "./test/start.sh test/integration/custom.test.js",
     "test:sqlcipher": "./test/start.sh test/integration/sqlcipher.test.js",
     "test:dts": "./test/start.sh dts",

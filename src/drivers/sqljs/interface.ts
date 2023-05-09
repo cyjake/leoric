@@ -1,9 +1,7 @@
 import type { Database } from 'sql.js';
 
-export interface SQLJSQueryParams {
-  query: Parameters<Database['exec']>[0];
-  values?: Parameters<Database['exec']>[1];
-}
+export type SQLJSQueryQuery = Parameters<Database['exec']>[0];
+export type SQLJSQueryValues = Parameters<Database['exec']>[1];
 
 export interface SQLJSConnectionQueryResult {
   fields: string[];
@@ -12,7 +10,7 @@ export interface SQLJSConnectionQueryResult {
 
 export interface BaseConnectionOptions {
   name: string;
-  version: number;
+  version?: number;
   logger: any;
 }
 
