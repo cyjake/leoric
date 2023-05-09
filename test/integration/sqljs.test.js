@@ -10,18 +10,31 @@ const Realm = require('../../src/realm/base');
 const { checkDefinitions } = require('./helpers');
 const { default: SqljsDriver } = require('../../src/drivers/sqljs');
 
+async function migrate(dbDriver) {
+  let content = await fs.readFile(path.resolve(__dirname, '../dumpfile.sql'), 'utf-8');
+  content = content
+    .replace(/bigint\(\d+\) AUTO_INCREMENT/ig, 'INTEGER')
+    .replace(/tinyint\(1\) DEFAULT 0/ig, 'boolean DEFAULT false');
+  await dbDriver.query(content);
+}
+
 before(async function() {
   const modelDir = path.resolve(__dirname, '../models');
   const files = await fs.readdir(modelDir);
   const models = files
-    .filter(file => path.extname(file) === 'js')
-    .map(file => require(path.resolve(modelDir, file)));
+    .filter(file => path.extname(file) === '.js')
+    .map(file => {
+      const model = require(path.resolve(modelDir, file));
+      return model?.default || model;
+    });
 
   const realm = new Realm({
     database: 'sqljs',
     driver: SqljsDriver,
     models,
   });
+  // migrate
+  await migrate(realm.driver);
   await realm.connect();
 });
 

@@ -5,6 +5,7 @@ import { SQLJSConnectionOptions, SQLJSQueryQuery, SQLJSQueryValues } from './int
 import { SQLJSConnection } from './sqljs-connection';
 
 import { calculateDuration } from '../../utils';
+import { SpellMeta } from '../../spell';
 
 interface DriverOptions extends Omit<SQLJSConnectionOptions, 'name'> {
   database: string;
@@ -43,31 +44,7 @@ export default class SqljsDriver extends SqliteDriver {
     }
   }
 
-  async cast(spell) {
-    const { command } = spell;
-    // @ts-ignore
-    const { sql, values } = this.format(spell);
-    switch (command) {
-      case 'insert': {
-        return await this.insert(sql, values);
-      }
-      default:
-        return await this.query(sql, values);
-    }
-  }
-
-  async insert(query: SQLJSQueryQuery, values?: SQLJSQueryValues) {
-    await this.query(query, values);
-    // 模拟 node-sqlite3 的行为
-    const lastInsertRowIdRet = await this.query(
-      'SELECT last_insert_rowid() as lastInsertRowId;',
-    );
-    return {
-      insertId: lastInsertRowIdRet?.rows[0]?.lastInsertRowId,
-    };
-  }
-
-  async query(query: SQLJSQueryQuery, values?: SQLJSQueryValues, opts = {}) {
+  async query(query: SQLJSQueryQuery, values?: SQLJSQueryValues, spell?: SpellMeta) {
     const connection = await this.getConnection();
 
     // sql.js does not support Date as parameterized value
@@ -82,13 +59,13 @@ export default class SqljsDriver extends SqliteDriver {
 
     // @ts-ignore
     const { logger } = this;
-    const logOpts = { ...opts, query };
-    const sql = logger.format(query, values, opts);
+    const logOpts = { ...spell, query };
+    const sql = logger.format(query, values, spell);
     const start = performance.now();
     let result;
 
     try {
-      result = await connection.query(query, values);
+      result = await connection.query(query, values, spell);
     } catch (err) {
       logger.logQueryError(err, sql, calculateDuration(start), logOpts);
       throw err;
