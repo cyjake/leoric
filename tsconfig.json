@@ -2,12 +2,17 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "CommonJS",
+    "moduleResolution": "Node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "noUnusedLocals": true,
-    "strictNullChecks": true
-  }
+    "strictNullChecks": true,
+    "declaration": true
+  },
+  "include": [
+    "./src"
+  ]
 }
