@@ -20,7 +20,7 @@ describe('=> Concat', function() {
 
   it('concat single', async function() {
     let result;
-    if (Book.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Book.driver.type)) {
       result = await Book.select('printf("%s%s", isbn, name) as fullname').where('price=?', 21);
     } else {
       result = await Book.select('CONCAT(isbn ,name) as fullname').where('price=?', 21);
@@ -31,7 +31,7 @@ describe('=> Concat', function() {
 
   it('concat more than one', async function() {
     let result;
-    if (Book.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Book.driver.type)) {
       // sqlite ||
       result = await Book.select('printf("%s%s", isbn, name) as fullname').order('price');
     } else {

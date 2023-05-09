@@ -39,10 +39,6 @@ describe('integration tests for sqljs', () => {
     await realm.connect();
   });
 
-  describe('=> suites for (sqljs)', () => {
-    require('./suite/index.test');
-  });
-
   describe('=> Table definitions (sqljs)', () => {
     beforeEach(async () => {
       await Bone.driver.dropTable('notes');
@@ -129,5 +125,15 @@ describe('integration tests for sqljs', () => {
         `INSERT INTO "users" ("id", "email", "nickname", "status", "level", "gmt_create") VALUES (1, 'dk@souls.com', 'Yhorm', 1, 1, '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "email"=EXCLUDED."email", "nickname"=EXCLUDED."nickname", "status"=EXCLUDED."status", "level"=EXCLUDED."level"`
       );
     });
+  });
+
+  describe('=> suites for (sqljs)', () => {
+    // 时序问题: string.test 必须先放在第一个
+    require('./suite/string.test');
+    require('./suite/querying.test');
+    require('./suite/associations.test');
+    require('./suite/data_types.test');
+    require('./suite/definitions.test');
+    require('./suite/migrations.test');
   });
 });

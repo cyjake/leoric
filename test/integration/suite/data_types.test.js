@@ -232,7 +232,7 @@ describe('=> Data Types - INTEGER', function() {
         return true;
       }, /invalid integer/i);
     }
-    if (Bone.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Bone.driver.type)) {
       await assert.doesNotReject(async () => {
         const note1 = await Note.create({ word_count: 'foo' });
         assert.equal(note1.word_count, 'foo');
@@ -274,7 +274,7 @@ describe('=> Data types - DATE', function() {
       assert.equal(result.length, 1);
     });
 
-    if (Bone.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Bone.driver.type)) {
       await assert.doesNotReject(async function() {
         await Note.where({ createdAt: 'invalid date' });
         return true;
@@ -331,7 +331,7 @@ describe('=> Data types - DATEONLY', function() {
       assert.equal(result.length, 1);
     });
 
-    if (Bone.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Bone.driver.type)) {
       await assert.doesNotReject(async function() {
         await Note.where({ createdAt: 'invalid date' });
         return true;
