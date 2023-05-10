@@ -54,7 +54,7 @@
     "node": ">= 12.0.0"
   },
   "lint-staged": {
-    "*.js": [
+    "*.{js,ts}": [
       "eslint --no-ignore --fix"
     ]
   },
