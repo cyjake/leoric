@@ -126,7 +126,7 @@ export class SQLJSConnection {
     const lastInsertRowRet = await this._executeSQL(
       'SELECT last_insert_rowid() as lastId;',
     );
-    const lastId = lastInsertRowRet?.rows[0]?.lastId;
+    const lastId = lastInsertRowRet?.rows?.[0]?.lastId;
     return {
       insertId: lastId,
       affectedRows,
