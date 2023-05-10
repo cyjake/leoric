@@ -16,7 +16,7 @@
     "clean": "tsc -b --clean",
     "lint-staged": "lint-staged",
     "prepack": "tsc",
-    "prepack:browser": "tsc -p tsconfig.browser.json",
+    "prepack:browser": "rm -rf dist && tsc -p tsconfig.browser.json",
     "prepublishOnly": "npm run prepack && npm run prepack:browser",
     "pretest": "tsc && ./test/prepare.sh",
     "test": "./test/start.sh",

@@ -7,7 +7,6 @@ const { isBone } = require('../utils');
 const sequelize = require('../adapters/sequelize');
 const Raw = require('../raw').default;
 const { LEGACY_TIMESTAMP_MAP } = require('../constants');
-const assert = require('assert');
 
 const SequelizeBone = sequelize(Bone);
 
@@ -120,7 +119,9 @@ class BaseRealm {
   }
 
   getDriverClass(CustomDriver, dialect) {
-    assert(CustomDriver && CustomDriver.prototype instanceof AbstractDriver, 'DriverClass must be a subclass of AbstractDriver');
+    if (CustomDriver?.prototype instanceof AbstractDriver) {
+      throw new Error('DriverClass must be a subclass of AbstractDriver');
+    }
     return CustomDriver;
   }
 
