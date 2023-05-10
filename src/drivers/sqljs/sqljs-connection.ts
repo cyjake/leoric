@@ -68,7 +68,7 @@ async function defaultInitSqlJs(options: SqljsConnectionOptions): Promise<Databa
   return database;
 }
 
-export class SQLJSConnection {
+export class SqljsConnection {
   constructor(private options: SqljsConnectionOptions) {}
 
   private database: Database | undefined = undefined;

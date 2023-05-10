@@ -3,7 +3,7 @@ import { performance } from 'perf_hooks';
 
 import SqliteDriver from '../sqlite';
 import { SqljsConnectionOptions, SqljsQueryQuery, SqljsQueryValues } from './interface';
-import { SQLJSConnection } from './sqljs-connection';
+import { SqljsConnection } from './sqljs-connection';
 
 import { calculateDuration } from '../../utils';
 import { SpellMeta } from '../../spell';
@@ -19,11 +19,19 @@ export default class SqljsDriver extends SqliteDriver {
   }
 
   type: string;
-  pool: SQLJSConnection;
+  /**
+   * @override
+   */
+  // @ts-ignore
+  pool: SqljsConnection;
 
+  /**
+   * @override
+   */
+  // @ts-ignore
   createPool(opts: DriverOptions) {
     const { database, ...restOpts } = opts;
-    return new SQLJSConnection({
+    return new SqljsConnection({
       ...restOpts,
       name: database,
     });
