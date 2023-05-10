@@ -3,7 +3,7 @@
   "version": "2.10.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
-  "browser": "browser.js",
+  "browser": "dist/browser.js",
   "types": "index.d.ts",
   "files": [
     "src",
@@ -15,6 +15,8 @@
     "clean": "tsc -b --clean",
     "lint-staged": "lint-staged",
     "prepack": "tsc",
+    "prepack:browser": "tsc -p tsconfig.browser.json",
+    "prepublishOnly": "npm run prepack && npm run prepack:browser",
     "pretest": "tsc && ./test/prepare.sh",
     "test": "./test/start.sh",
     "test:local": "./test/start.sh",
@@ -66,6 +68,7 @@
     "pluralize": "^7.0.0",
     "reflect-metadata": "^0.1.13",
     "sqlstring": "^2.3.0",
+    "tslib": "^2.5.0",
     "validator": "^13.5.2"
   },
   "peerDependencies": {

@@ -1,16 +1,14 @@
-'use strict';
+const Logger = require('./drivers/abstract/logger');
+const Spell = require('./spell');
+const Bone = require('./bone');
+const Collection = require('./collection');
+const { invokable: DataTypes, LENGTH_VARIANTS } = require('./data_types');
+const sequelize = require('./adapters/sequelize');
+const { heresql } = require('./utils/string');
 
-const Logger = require('./src/drivers/abstract/logger');
-const Spell = require('./src/spell');
-const Bone = require('./src/bone');
-const Collection = require('./src/collection');
-const { invokable: DataTypes, LENGTH_VARIANTS } = require('./src/data_types');
-const sequelize = require('./src/adapters/sequelize');
-const { heresql } = require('./src/utils/string');
-
-const Realm = require('./src/realm/base');
-const AbstractDriver = require('./src/drivers/abstract');
-const { isBone } = require('./src/utils');
+const Realm = require('./realm/base');
+const AbstractDriver = require('./drivers/abstract');
+const { isBone } = require('./utils');
 
 /**
  * @typedef {Object} RawSql
@@ -52,10 +50,10 @@ export { Logger };
 export { Spell };
 export { sequelize };
 export { heresql };
-export * from './src/hint';
-export * from './src/decorators';
+export * from './hint';
+export * from './decorators';
 export { AbstractDriver };
-export { default as Raw } from './src/raw';
+export { default as Raw } from './raw';
 export { LENGTH_VARIANTS };
 export { isBone };
 
