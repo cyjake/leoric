@@ -1,6 +1,6 @@
 import type { Database, QueryExecResult } from 'sql.js';
 
-import type { SQLJSConnectionOptions, SQLJSConnectionQueryResult, SQLJSQueryQuery, SQLJSQueryValues } from './interface';
+import type { SqljsConnectionOptions, SqljsConnectionQueryResult, SqljsQueryQuery, SqljsQueryValues } from './interface';
 import type { SpellMeta } from '../../spell';
 
 /**
@@ -22,7 +22,7 @@ function dataConvert(result: QueryExecResult) {
   };
 }
 
-function normalizeResult(res: QueryExecResult[]): SQLJSConnectionQueryResult {
+function normalizeResult(res: QueryExecResult[]): SqljsConnectionQueryResult {
   if (res?.[0]) {
     const hydratedData = dataConvert(res[0]);
     return hydratedData;
@@ -58,7 +58,7 @@ function nest(rows, fields, spell) {
   return { rows: results, fields };
 }
 
-async function defaultInitSqlJs(options: SQLJSConnectionOptions): Promise<Database> {
+async function defaultInitSqlJs(options: SqljsConnectionOptions): Promise<Database> {
   const { default: initSqlJs } = await import('sql.js');
   const SQL = await initSqlJs();
 
@@ -69,7 +69,7 @@ async function defaultInitSqlJs(options: SQLJSConnectionOptions): Promise<Databa
 }
 
 export class SQLJSConnection {
-  constructor(private options: SQLJSConnectionOptions) {}
+  constructor(private options: SqljsConnectionOptions) {}
 
   private database: Database | undefined = undefined;
 
@@ -99,7 +99,7 @@ export class SQLJSConnection {
     this.database = undefined;
   }
 
-  async query(query: string | { sql: string, nestTables?: boolean}, values?: SQLJSQueryValues, spell?: SpellMeta) {
+  async query(query: string | { sql: string, nestTables?: boolean}, values?: SqljsQueryValues, spell?: SpellMeta) {
     const { sql, nestTables } = typeof query === 'string'
       ? { sql: query, nestTables: false }
       : query;
@@ -113,7 +113,7 @@ export class SQLJSConnection {
     return await this._runSQL(sql, values);
   }
 
-  async _runSQL(query: SQLJSQueryQuery, values?: SQLJSQueryValues) {
+  async _runSQL(query: SqljsQueryQuery, values?: SqljsQueryValues) {
     if (!this.database) {
       throw new Error('database not opened!');
     }
@@ -133,7 +133,7 @@ export class SQLJSConnection {
     };
   }
 
-  async _executeSQL(query: SQLJSQueryQuery, values?: SQLJSQueryValues) {
+  async _executeSQL(query: SqljsQueryQuery, values?: SqljsQueryValues) {
     if (!this.database) {
       throw new Error('database not opened!');
     }

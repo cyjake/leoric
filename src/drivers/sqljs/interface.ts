@@ -1,9 +1,9 @@
 import type { Database } from 'sql.js';
 
-export type SQLJSQueryQuery = Parameters<Database['exec']>[0];
-export type SQLJSQueryValues = Parameters<Database['exec']>[1];
+export type SqljsQueryQuery = Parameters<Database['exec']>[0];
+export type SqljsQueryValues = Parameters<Database['exec']>[1];
 
-export interface SQLJSConnectionQueryResult {
+export interface SqljsConnectionQueryResult {
   fields: string[];
   rows: any[];
 }
@@ -14,7 +14,7 @@ export interface BaseConnectionOptions {
   logger: any;
 }
 
-export interface SQLJSConnectionOptions extends BaseConnectionOptions {
+export interface SqljsConnectionOptions extends BaseConnectionOptions {
   data?: ArrayLike<number> | Buffer | null;
-  initSqlJs?: (options: Omit<SQLJSConnectionOptions, 'initSqlJs'>) => Promise<Database>;
+  initSqlJs?: (options: Omit<SqljsConnectionOptions, 'initSqlJs'>) => Promise<Database>;
 }

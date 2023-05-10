@@ -2,13 +2,13 @@ import dayjs from 'dayjs';
 import { performance } from 'perf_hooks';
 
 import SqliteDriver from '../sqlite';
-import { SQLJSConnectionOptions, SQLJSQueryQuery, SQLJSQueryValues } from './interface';
+import { SqljsConnectionOptions, SqljsQueryQuery, SqljsQueryValues } from './interface';
 import { SQLJSConnection } from './sqljs-connection';
 
 import { calculateDuration } from '../../utils';
 import { SpellMeta } from '../../spell';
 
-interface DriverOptions extends Omit<SQLJSConnectionOptions, 'name'> {
+interface DriverOptions extends Omit<SqljsConnectionOptions, 'name'> {
   database: string;
 }
 
@@ -33,7 +33,7 @@ export default class SqljsDriver extends SqliteDriver {
     return await this.pool.getConnection();
   }
 
-  async query(query: SQLJSQueryQuery, values?: SQLJSQueryValues, spell?: SpellMeta) {
+  async query(query: SqljsQueryQuery, values?: SqljsQueryValues, spell?: SpellMeta) {
     const connection = await this.getConnection();
 
     // sql.js does not support Date as parameterized value
