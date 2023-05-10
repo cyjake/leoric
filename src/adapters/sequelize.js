@@ -176,10 +176,6 @@ module.exports = function sequelize(Bone) {
       return this.scope();
     }
 
-    static unscoped() {
-      return this.scope();
-    }
-
     /**
      * @deprecated scope is not recommended to use
      * @static
