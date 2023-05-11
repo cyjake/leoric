@@ -107,7 +107,7 @@ export class SequelizeBone extends AbstractBone {
    */
   static scope<T extends typeof SequelizeBone>(this: T, name?: (string | ((...args: any[]) => SequelizeConditions<T>) | SequelizeConditions<T> | Array<SequelizeConditions<T>>), ...args: any[]): T;
 
-  static unscoped(): Spell<typeof SequelizeBone>;
+  static get unscoped(): Spell<typeof SequelizeBone>;
 
   /**
    * @deprecated scope is not recommended to use
