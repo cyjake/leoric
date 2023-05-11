@@ -31,7 +31,7 @@ describe('=> Table definitions', () => {
 
   it('should be able to create table with unique column', async () => {
     // sqlite PRAGMA table_info can't get columns' constraint type(unique or not)
-    if (Bone.driver.type === 'sqlite') {
+    if (['sqlite', 'sqljs'].includes(Bone.driver.type)) {
       const querySpy = sinon.spy(Bone.driver, 'query');
       await Bone.driver.createTable('notes', {
         title: { type: STRING, allowNull: false },

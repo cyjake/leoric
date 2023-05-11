@@ -1495,7 +1495,7 @@ class Bone {
       }
     } else if (unset && affectedRows === instances.length) {
       // otherwise, use last insert id to generate bulk inserted ids
-      if (driver.type === 'sqlite') {
+      if (['sqlite', 'sqljs'].includes(driver.type)) {
         for (let i = instances.length - 1; i >= 0; i--) {
           instances[i][primaryKey] = insertId--;
         }

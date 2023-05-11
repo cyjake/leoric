@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "pretest",
+			"problemMatcher": [],
+			"label": "npm: pretest",
+			"detail": "tsc && ./test/prepare.sh",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+	]
+}

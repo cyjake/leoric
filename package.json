@@ -3,16 +3,22 @@
   "version": "2.10.3",
   "description": "JavaScript Object-relational mapping alchemy",
   "main": "index.js",
+  "browser": "dist/browser.js",
   "types": "index.d.ts",
   "files": [
+    "dist",
     "src",
     "index.js",
     "index.d.ts"
   ],
   "scripts": {
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
+    "clean": "tsc -b --clean",
+    "lint-staged": "lint-staged",
     "prepack": "tsc",
-    "pretest": "tsc && ./test/prepare.sh",
+    "prepack:browser": "rm -rf dist && tsc -p tsconfig.browser.json",
+    "prepublishOnly": "npm run prepack && npm run prepack:browser",
+    "pretest": "npm run prepack && ./test/prepare.sh",
     "test": "./test/start.sh",
     "test:local": "./test/start.sh",
     "test:unit": "./test/start.sh unit",
@@ -21,12 +27,14 @@
     "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
     "test:postgres": "./test/start.sh test/integration/postgres.test.js",
     "test:sqlite": "./test/start.sh test/integration/sqlite.test.js",
+    "test:sqljs": "./test/start.sh test/integration/sqljs.test.js",
     "test:custom": "./test/start.sh test/integration/custom.test.js",
     "test:sqlcipher": "./test/start.sh test/integration/sqlcipher.test.js",
     "test:dts": "./test/start.sh dts",
     "test:coverage": "nyc ./test/start.sh && nyc report --reporter=lcov",
     "lint": "eslint ./",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -48,6 +56,11 @@
   "engines": {
     "node": ">= 12.0.0"
   },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --no-ignore --fix"
+    ]
+  },
   "dependencies": {
     "dayjs": "^1.10.3",
     "debug": "^3.1.0",
@@ -56,12 +69,14 @@
     "pluralize": "^7.0.0",
     "reflect-metadata": "^0.1.13",
     "sqlstring": "^2.3.0",
+    "tslib": "^2.5.0",
     "validator": "^13.5.2"
   },
   "peerDependencies": {
     "mysql": "^2.17.1",
     "mysql2": "^2.3.0",
     "pg": "^8.5.1",
+    "sql.js": "^1.8.0",
     "sqlite3": "^5.0.2"
   },
   "peerDependenciesMeta": {
@@ -76,6 +91,9 @@
     },
     "sqlite3": {
       "optional": true
+    },
+    "sql.js": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -85,16 +103,22 @@
     "@journeyapps/sqlcipher": "^5.2.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.1",
+    "@types/sql.js": "^1.4.4",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^7.20.0",
     "eslint-plugin-no-only-tests": "^3.0.0",
     "expect.js": "^0.3.1",
+    "husky": "^8.0.3",
     "jsdoc": "^3.6.3",
+    "lint-staged": "^13.2.2",
     "mocha": "^8.2.1",
     "mysql": "^2.17.1",
     "mysql2": "^2.3.0",
     "nyc": "^15.1.0",
     "pg": "^8.5.1",
     "sinon": "^10.0.0",
+    "sql.js": "^1.8.0",
     "sqlite3": "^5.0.2",
     "typescript": "^4.6.2"
   }
