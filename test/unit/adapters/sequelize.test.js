@@ -1346,9 +1346,9 @@ describe('Model scope', () => {
     );
   });
 
-  it('unscoped() should work', function() {
+  it('getter unscoped should work', function() {
     assert.equal(
-      MyPost.scope('MHW').unscoped().where({ title: 'New Post' }).toString(),
+      MyPost.scope('MHW').unscoped.where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL'
     );
   });
