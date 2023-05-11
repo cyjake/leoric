@@ -971,7 +971,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.ok(!!(MyPost as any)._scopes.dk);
       assert.deepEqual((MyPost as any)._scopes.dk, (Scopped as any)._scope);
 
-      const Scopped1 = Scopped.unscoped();
+      const Scopped1 = Scopped.unscoped;
       assert.ok(!(Scopped1 as any)._scope);
 
     });

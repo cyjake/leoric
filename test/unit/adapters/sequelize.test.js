@@ -1409,7 +1409,7 @@ describe('Model scope', () => {
     );
 
     assert.equal(
-      User.unscoped().where({ nickname: 'OldHunter' }).toString(),
+      User.unscoped.where({ nickname: 'OldHunter' }).toString(),
       'SELECT * FROM "users" WHERE "nickname" = \'OldHunter\''
     );
 
