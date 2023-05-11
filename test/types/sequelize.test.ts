@@ -1393,7 +1393,7 @@ describe('=> sequelize (TypeScript)', function() {
     });
 
     it('spell.delete()', async function() {
-      const [ post, post2 ] = await Post.bulkCreate([
+      await Post.bulkCreate([
         { title: 'Leah', wordCount: 20 },
         { title: 'Cain', wordCount: 10 },
       ]);

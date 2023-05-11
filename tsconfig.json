@@ -1,12 +1,21 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "moduleResolution": "Node",
     "module": "CommonJS",
+    "moduleResolution": "Node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "strictNullChecks": true
-  }
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "importHelpers": true,
+  },
+  "exclude": [
+    "dist",
+    "Readme.md"
+  ]
 }

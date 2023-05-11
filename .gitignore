@@ -12,3 +12,8 @@ test/models/photo.js*
 src/decorators.js*
 src/data_types.js*
 src/raw.js*
+
+# Logs
+logs
+*.log
+dist/
