@@ -119,10 +119,10 @@ class BaseRealm {
   }
 
   getDriverClass(CustomDriver, dialect) {
-    if (CustomDriver?.prototype instanceof AbstractDriver) {
-      throw new Error('DriverClass must be a subclass of AbstractDriver');
+    if (CustomDriver && CustomDriver.prototype instanceof AbstractDriver) {
+      return CustomDriver;
     }
-    return CustomDriver;
+    throw new Error('DriverClass must be a subclass of AbstractDriver');
   }
 
   define(name, attributes, opts = {}, descriptors = {}) {

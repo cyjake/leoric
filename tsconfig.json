@@ -15,6 +15,7 @@
     "importHelpers": true,
   },
   "exclude": [
-    "dist"
+    "dist",
+    "Readme.md"
   ]
 }

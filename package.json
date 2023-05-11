@@ -18,7 +18,7 @@
     "prepack": "tsc",
     "prepack:browser": "rm -rf dist && tsc -p tsconfig.browser.json",
     "prepublishOnly": "npm run prepack && npm run prepack:browser",
-    "pretest": "tsc && ./test/prepare.sh",
+    "pretest": "npm run prepack && ./test/prepare.sh",
     "test": "./test/start.sh",
     "test:local": "./test/start.sh",
     "test:unit": "./test/start.sh unit",
