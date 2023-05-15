@@ -170,7 +170,7 @@ function joinOnConditions(spell, BaseModel, baseName, refName, { where, associat
       return { type: 'op', name: 'and', args: [ result, condition ] };
     });
     walkExpr(whereConditions, node => {
-      if (node.type == 'id') node.qualifiers = [refName];
+      if (node.type == 'id' && !node.qualifiers) node.qualifiers = [refName];
     });
     return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] };
   } else {
@@ -386,8 +386,18 @@ class Spell {
   }
 
   #emptySpell() {
+    const whereConditions = [];
+    const { shardingKey } = this.Model;
+    if (shardingKey) {
+      for (const condition of this.whereConditions) {
+        const [arg] = condition.args;
+        if (arg.type === 'id' && arg.value === shardingKey) {
+          whereConditions.push(deepClone(condition));
+        }
+      }
+    }
     Object.assign(this, {
-      whereConditions: [],
+      whereConditions,
       groups: [],
       orders: deepClone(this.orders),
       havingConditions: [],

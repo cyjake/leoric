@@ -768,13 +768,13 @@ describe('=> Sharding', function() {
 
   it('should throw if sharding key is defined but not set when INSERT', async function() {
     await assert.rejects(async () => {
-      await new Like({ articleId: 1, userId: null }).create({ validate: false });
+      await new Like({ targetId: 1, targetType: 0, userId: null }).create({ validate: false });
     }, /sharding key/i);
   });
 
   it('should not throw if sharding key is defined and set when INSERT', async function() {
     await assert.doesNotReject(async () => {
-      await new Like({ userId: 1, articleId: 1 }).create();
+      await new Like({ userId: 1, targetId: 1, targetType: 0 }).create();
     }, /sharding key/i);
   });
 
@@ -803,7 +803,7 @@ describe('=> Sharding', function() {
   });
 
   it('should append sharding key to DELETE condition', async function() {
-    const like = await Like.create({ articleId: 1, userId: 1 });
+    const like = await Like.create({ targetId: 1, targetType: 0, userId: 1 });
     await assert.doesNotReject(async () => {
       await like.remove();
       await like.remove(true);
@@ -811,15 +811,15 @@ describe('=> Sharding', function() {
   });
 
   it('should append sharding key to UPDATE condition', async function() {
-    const like = await Like.create({ articleId: 1, userId: 1});
-    like.articleId = 2;
+    const like = await Like.create({ targetId: 1, targetType: 0, userId: 1});
+    like.targetId = 2;
     await assert.doesNotReject(async () => {
       await like.update();
     }, /sharding key/i);
   });
 
   it('should append sharking key to SELECT condition', async function() {
-    const like = await Like.create({ articleId: 1, userId: 1});
+    const like = await Like.create({ targetId: 1, targetType: 0, userId: 1});
     await assert.doesNotReject(async () => {
       await like.reload();
     }, /sharding key/);

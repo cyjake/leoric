@@ -1,7 +1,11 @@
+.nyc_output
+coverage
+dist
+logs
 node_modules
 tmp
-coverage
-.nyc_output
+
+*.log
 docs/Gemfile.lock
 package-lock.json
 .DS_Store
@@ -9,11 +13,8 @@ test/types/*.js
 test/types/*.map
 test/integration/suite/sharding.test.js*
 test/models/photo.js*
+src/browser.js*
 src/decorators.js*
 src/data_types.js*
+src/drivers/sqljs/*.js*
 src/raw.js*
-
-# Logs
-logs
-*.log
-dist/

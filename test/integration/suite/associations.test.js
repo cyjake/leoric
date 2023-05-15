@@ -6,6 +6,7 @@ const sinon = require('sinon');
 
 const Attachment = require('../../models/attachment');
 const Comment = require('../../models/comment');
+const Like = require('../../models/like');
 const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
@@ -76,7 +77,8 @@ describe('=> Associations', function() {
       Attachment.remove({}, true),
       Comment.remove({}, true),
       TagMap.remove({}, true),
-      Tag.remove({}, true)
+      Tag.remove({}, true),
+      Like.remove({ userId: 1 }, true),
     ]);
   });
 
@@ -94,6 +96,14 @@ describe('=> Associations', function() {
   it('Bone.belongsTo', async function() {
     const attachment = await Attachment.first.with('post');
     expect(attachment.post).to.be.a(Post);
+  });
+
+  it('Bone.belongsTo({ where })', async function() {
+    await Like.create({ targetId: 1, targetType: 0, userId: 1 });
+    await assert.doesNotReject(async function() {
+      const like = await Like.findOne({ userId: 1 }).with('post');
+      assert.ok('post' in like);
+    });
   });
 
   it('Bone.hasMany', async function() {
