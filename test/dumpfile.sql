@@ -74,7 +74,8 @@ CREATE TABLE `likes` (
   `id` bigint(20) AUTO_INCREMENT PRIMARY KEY,
   `gmt_create` timestamp(3) NULL,
   `gmt_modified` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `article_id` bigint(20) NOT NULL,
+  `target_id` bigint(20) NOT NULL,
+  `target_type` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `gmt_deleted` timestamp(3) NULL
 );
