@@ -1,3 +1,14 @@
+2.11.0 / 2023-05-17
+===================
+
+## What's Changed
+* feat: support browser and support sql.js driver by @vagusX in https://github.com/cyjake/leoric/pull/386
+* fix: remove unscoped fn in src/adapters/sequelize.js by @vagusX in https://github.com/cyjake/leoric/pull/387
+* fix: join conditions containing fields of base model should be allowed by @cyjake in https://github.com/cyjake/leoric/pull/388
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.10.3...v2.11.0
+
 2.10.3 / 2023-04-25
 ===================
 
