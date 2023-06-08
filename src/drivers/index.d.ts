@@ -20,7 +20,7 @@ export interface ConnectOptions {
 export class AbstractDriver {
 
   static Spellbook: typeof Spellbook;
-  static DataType: typeof DataType;
+  static DataTypes: typeof DataType;
   static Attribute: typeof Attribute;
 
   /**
