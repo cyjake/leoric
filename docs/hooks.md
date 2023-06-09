@@ -91,7 +91,7 @@ Note that calling `save` may trigger the other functions' hooks (such as `create
 
 ```javascript
 instance.beforeUpsert(opts) // function's context is the instance
-instance.bafterUpsert(instance, upsertResult)
+instance.afterUpsert(instance, upsertResult)
 ```
 
 ### remove
@@ -130,7 +130,7 @@ instance.afterSave(instance, options)
 
 // upsert hooks
 instance.beforeUpsert(opts)
-instance.bafterUpsert(instance, upsertResult)
+instance.afterUpsert(instance, upsertResult)
 
 // remove hooks
 Model.beforeRemove(args)
