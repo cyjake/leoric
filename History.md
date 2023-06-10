@@ -1,3 +1,14 @@
+2.11.1 / 2023-06-10
+===================
+
+## What's Changed
+* fix: typo DataType for AbstractDriver by @vagusX in https://github.com/cyjake/leoric/pull/390
+* fix: wrong export from sequelize by @vagusX in https://github.com/cyjake/leoric/pull/391
+* fix: typo in hooks.md by @vagusX in https://github.com/cyjake/leoric/pull/392
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.0...v2.11.1
+
 2.11.0 / 2023-05-17
 ===================
 
