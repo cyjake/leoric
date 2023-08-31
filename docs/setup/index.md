@@ -7,6 +7,7 @@ title: Setup
 
 - [Setup with Egg / Chair]({{ '/setup/egg' | relative_url }})
 - [Setup with Express]({{ '/setup/express' | relative_url }})
+- [Setup wtih Midway]({{ '/setup/midway' | relative_url }})
 
 ## RDMS / dialects
 

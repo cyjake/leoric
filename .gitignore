@@ -1,5 +1,7 @@
 .nyc_output
 coverage
+docs/vendor
+docs/.bundle
 dist
 logs
 node_modules

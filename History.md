@@ -1,3 +1,13 @@
+2.11.2 / 2023-08-31
+===================
+
+## What's Changed
+* docs: introduce @midwayjs/leoric by @cyjake in https://github.com/cyjake/leoric/pull/399
+* fix: don't overwrite primaryKey with LAST_INSERT_ID() if exists by @cyjake in https://github.com/cyjake/leoric/pull/398
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.1...v2.11.2
+
 2.11.1 / 2023-06-10
 ===================
 
