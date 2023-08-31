@@ -666,7 +666,7 @@ class Bone {
     // - http://dev.mysql.com/doc/refman/5.7/en/information-functions.html#function_last-insert-id
     const spell = new Spell(Model, opts).$upsert(data);
     return spell.later(result => {
-      // LAST_INSERT_ID() breaks on TDDL
+      // LAST_INSERT_ID() breaks on TDDL, and on OceanBase if primary key is not integer
       if (this[primaryKey] == null) this[primaryKey] = result.insertId;
       this.syncRaw();
       return result.affectedRows;
@@ -806,7 +806,8 @@ class Bone {
 
     const spell = new Spell(Model, opts).$insert(data);
     return spell.later(result => {
-      this[primaryKey] = result.insertId;
+      // LAST_INSERT_ID() breaks on TDDL, and on OceanBase if primary key is not integer
+      if (this[primaryKey] == null) this[primaryKey] = result.insertId;
       // this.#rawSaved[primaryKey] = null;
       this.syncRaw();
       return this;
