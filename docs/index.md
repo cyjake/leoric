@@ -50,7 +50,7 @@ async function() {
 
 ## Use in Web Frameworks
 
-Leoric can be used in many web frameworkds from Node.js community. If you are developing with egg framework, it is highly recommended using the egg-orm plugin:
+Leoric can be used in many web frameworkds from Node.js community. If you are developing with Egg framework, it is highly recommended using the egg-orm plugin:
 
 ```javascript
 /* config/plugin.js */
@@ -371,7 +371,8 @@ If you are interested in fixing issues and contributing directly to the code bas
 - Submitting pull requests
 - Contributing to translations
 
-## egg-orm
+## Plugin & Component
 
-If developing web applications with [egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm]({% link setup/egg.md %}) plugin. More detailed examples about setting up egg-orm with egg framework in either JavaScript or TypeScript can be found at <https://github.com/eggjs/egg-orm/tree/master/examples>
+If developing web applications with [Egg framework](https://eggjs.org/), it's highly recommended using the [egg-orm]({% link setup/egg.md %}) plugin. More detailed examples about setting up egg-orm with egg framework in either JavaScript or TypeScript can be found at <https://github.com/eggjs/egg-orm/tree/master/examples>
 
+If developing web applications (or serverless functions) with [Midway](https://midwayjs.org/), the corresponding component called [@midwayjs/leoric]({% link setup/midway.md %}) is what you need. Please refer to the linked documentation for starter, or the [repo directory](https://github.com/midwayjs/midway/tree/main/packages/leoric) for more examples.

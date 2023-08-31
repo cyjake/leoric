@@ -364,6 +364,8 @@ LEFT JOIN tags
 - 如何提交合并请求
 - 文档翻译
 
-## egg-orm
+## 插件 & 组件
 
-使用 [egg framework](https://eggjs.org/) 的开发者，不妨通过 [egg-orm]({% link zh/setup/egg.md %}) 插件来使用 Leoric，可以参考 egg-orm 仓库中已经包含的示例项目：<https://github.com/eggjs/egg-orm/tree/master/examples>
+使用 [Egg 框架](https://eggjs.org/) 的开发者，不妨通过 [egg-orm]({% link zh/setup/egg.md %}) 插件来使用 Leoric，可以参考 egg-orm 仓库中已经包含的[示例项目](https://github.com/eggjs/egg-orm/tree/master/examples)。
+
+使用 [Midway](https://midwayjs.org/) 的开发者也可以选择我们为 Midway 专门开发的连接组件 [@midwayjs/leoric]({% link setup/midway.md %})，可以参考文档快速上手，也可以浏览 [仓库目录](https://github.com/midwayjs/midway/tree/main/packages/leoric) 了解更多使用示例。

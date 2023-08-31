@@ -1,9 +1,9 @@
 ---
 layout: en
-title: Setup with Egg / Chair / Midway
+title: Setup with Egg
 ---
 
-To reduce the effort to setup Leoric in Egg applications, a specific Egg plugin called [egg-orm](https://github.com/eggjs/egg-orm) is provided. Those frameworks that are built on top of Egg, such as Chair and [Midway](https://midwayjs.org/), can all be supported with [egg-orm](https://github.com/eggjs/egg-orm) as well.
+To reduce the effort to setup Leoric in Egg applications, a specific Egg plugin called [egg-orm](https://github.com/eggjs/egg-orm) is provided.
 
 ## Table of Contents
 {:.no_toc}
