@@ -1,4 +1,4 @@
-import { 
+import {
   Literal, command, Raw, Connection,
   ResultSet, QueryResult,
   QueryOptions, SetOptions, WithOptions,
@@ -54,6 +54,8 @@ interface ExprTernaryOperator {
 type ExprOperator = ExprBinaryOperator | ExprTernaryOperator;
 type SpellColumn = ExprIdentifier | Raw;
 
+type ScopeFunction = (spell: SpellMeta) => void;
+
 interface SpellOptions {
   command?: command;
   columns: SpellColumn[];
@@ -64,7 +66,7 @@ interface SpellOptions {
   havingCondtions: ExprOperator[];
   joins: Join;
   skip: number;
-  scopes: Function[];
+  scopes: ScopeFunction[];
   subqueryIndex: number;
   rowCount?: number;
   connection?: Connection;
@@ -96,7 +98,7 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   connection: Connection;
 
   command: string;
-  scopes: Function[];
+  scopes: Array<(spell: this) => void>;
 
   select(...names: Array<string | Raw> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions<T>): Spell<T, QueryResult>;
@@ -136,7 +138,7 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
 
   $offset(skip: number): Spell<T, U>;
   offset(skip: number): Spell<T, U>;
-  
+
   $limit(rowCount: number): Spell<T, U>;
   limit(rowCount: number): Spell<T, U>;
 
