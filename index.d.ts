@@ -1,11 +1,11 @@
 import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from './src/data_types';
-import { 
+import {
   Hint, IndexHint, HintInterface,
   INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE
 } from './src/hint';
 import {
   Literal, Validator,
-  Connection, QueryOptions,
+  Connection, QueryOptions, WhereConditions,
   Raw, ColumnMeta, AttributeMeta,
   BeforeHooksType, AfterHooksType, Collection,
   GeneratorReturnType, Values, BoneCreateValues, BoneInstanceValues,
@@ -14,9 +14,9 @@ import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
 import Bone from './src/bone';
 import { ConnectOptions, AbstractDriver } from './src/drivers';
 
-export { 
+export {
   LENGTH_VARIANTS as LENGTH_VARIANTS,
-  DataTypes, Literal, Validator, Connection,
+  DataTypes, Literal, Validator, Connection, WhereConditions,
   Hint, IndexHint, HintInterface, INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE,
   Bone, Raw, Collection,
   SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneCreateValues, BoneInstanceValues,
@@ -32,7 +32,7 @@ interface InitOptions {
   hooks?: {
     [key in BeforeHooksType ]: (options: QueryOptions) => Promise<void>
   } | {
-    [key in AfterHooksType ]: (instance: Bone, result: Object) => Promise<void>
+    [key in AfterHooksType ]: (instance: Bone, result: object) => Promise<void>
   };
 }
 
@@ -62,13 +62,13 @@ export default class Realm {
    * disconnect manually
    * @param callback
    */
-  disconnect(callback?: Function): Promise<boolean | void>;
+  disconnect(callback?: () => Promise<void>): Promise<boolean | void>;
 
   define(
     name: string,
     attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>,
     options?: InitOptions,
-    descriptors?: Record<string, Function>,
+    descriptors?: Record<string, PropertyDescriptor>,
   ): typeof Bone;
 
   raw(sql: string): Raw;
@@ -94,11 +94,11 @@ export default class Realm {
  * })
  */
 export function connect(opts: ConnectOptions): Promise<Realm>;
-export function disconnect(realm: Realm, callback?: Function): Promise<boolean | void>;
+export function disconnect(realm: Realm, callback?: () => Promise<void>): Promise<boolean | void>;
 
 /**
  * Check if cls is subclass of Bone
- * @param cls 
+ * @param cls
  */
 export function isBone(cls: any): boolean;
 
@@ -110,6 +110,6 @@ export function isBone(cls: any): boolean;
  *     FROM users
  *    WHERE age >= 35
  * `)
- * @param text 
+ * @param text
  */
 export function heresql(text): string;

@@ -1,17 +1,11 @@
 import {
-  Attributes, Literal, OperatorCondition,
+  Attributes, Literal, WhereConditions,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
   QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
-
-type WhereConditions<T extends typeof SequelizeBone> = {
-  [Property in BoneColumns<T>]?: Literal | Literal[] | OperatorCondition;
-} | {
-  [key in '$and' | '$or']?: WhereConditions<T>[];
-}
 
 interface SequelizeDestroyOptions extends QueryOptions {
   force?: boolean;
@@ -62,8 +56,8 @@ type aggregators = 'count' | 'COUNT' | 'average' | 'AVERAGE' | 'minimum' | 'MINI
 
 export class Collection<T extends SequelizeBone> extends Array<T> {
   save(): Promise<void>;
-  toJSON(): Object[];
-  toObject(): Object[];
+  toJSON(): object[];
+  toObject(): object[];
 }
 
 export class SequelizeBone extends AbstractBone {
@@ -85,10 +79,10 @@ export class SequelizeBone extends AbstractBone {
    * @param {string | Function} fnNameOrFun function name or function
    * @param {Function} func hook function
    */
-  static addHook(
+  static addHook<T extends typeof SequelizeBone>(
     name: BeforeHooksType | AfterHooksType | 'beforeDestroy' | 'afterDestroy' | 'beforeBulkDestroy' | 'afterBulkDestroy' | 'beforeBulkUpdate' | 'afterBulkUpdate',
-    fnNameOrFun: string | Function,
-    func?: Function,
+    fnNameOrFun: string | ((target: T, ...args: unknown[]) => void),
+    func?: (target: T, ...args: unknown[]) => void,
   ): void;
 
   /**
