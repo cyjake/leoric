@@ -1,10 +1,10 @@
 import { strict as assert } from 'assert';
 import sinon from 'sinon';
 
-import { 
+import {
   Bone, DataTypes, Column,
   connect, INDEX_HINT_SCOPE_TYPE,
-  INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw
+  INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw, heresql,
 } from '../..';
 import { HasOne } from '../../src/decorators';
 
@@ -198,7 +198,7 @@ describe('=> Spell (TypeScript)', function() {
 
     it('mixing', () => {
       assert.equal(
-        Post.update({ id: 1 }, { title: 'ssss' }, { 
+        Post.update({ id: 1 }, { title: 'ssss' }, {
           silent: true,
           hints: [
             'idx_title',
@@ -221,11 +221,11 @@ describe('=> Spell (TypeScript)', function() {
       const fakeDate = date.getTime();
       sinon.useFakeTimers(fakeDate);
     });
-  
+
     after(() => {
       clock?.restore();
     });
-  
+
     it('count', () => {
       assert.equal(Post.all.count('authorId').toSqlString(), 'SELECT COUNT(`author_id`) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL');
       assert.equal(Post.all.count(new Raw(`DISTINCT(author_id)`)).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM `articles` WHERE `gmt_deleted` IS NULL');
@@ -289,12 +289,27 @@ describe('=> Spell (TypeScript)', function() {
         'SELECT `posts`.`title`, `posts`.`gmt_create`, `attachment`.* FROM `articles` AS `posts` LEFT JOIN `attachments` AS `attachment` ON `posts`.`id` = `attachment`.`article_id` AND `attachment`.`gmt_deleted` IS NULL WHERE `posts`.`gmt_deleted` IS NULL'
       );
     });
-  
+
     it('arbitrary join', function() {
       assert.equal(
         Post.join(Comment, 'comments.articleId = posts.id').toString(),
         'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
       );
     });
-  })
+  });
+
+  describe('from', () => {
+    it('should work', function () {
+      assert.equal(Post.from(Post.where({
+        title: {
+          $like: '%yoxi%',
+        }
+      })).limit(1).toSqlString(), heresql(function () {
+      /*
+        SELECT *
+          FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL) AS `posts`
+        LIMIT 1
+      */}));
+    });
+  });
 });

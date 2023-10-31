@@ -98,7 +98,7 @@ export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collecti
   connection: Connection;
 
   command: string;
-  scopes: Array<(spell: this) => void>;
+  scopes: Array<ScopeFunction>;
 
   select(...names: Array<string | Raw> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions<T>): Spell<T, QueryResult>;
