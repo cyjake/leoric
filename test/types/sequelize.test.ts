@@ -274,7 +274,7 @@ describe('=> sequelize (TypeScript)', function() {
       await post.save();
 
       const posts = await Post.all;
-      assert.equal(posts.length, 1)
+      assert.equal(posts.length, 1);
     });
 
     it('Bone.bulkCreate()', async function() {
@@ -296,7 +296,7 @@ describe('=> sequelize (TypeScript)', function() {
         { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
         { title: 'Tyrael' },
       ].map(opts => Post.create(opts)));
-  
+
       let posts = await Post.findAll({
         where: {
           title: { $like: '%ea%' },
@@ -304,14 +304,14 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
       });
       assert.equal(posts.length, 2);
       assert.equal(posts[0].title, 'Tyrael');
       assert.equal(posts[1].title, 'Leah');
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
         offset: 1,
@@ -319,14 +319,14 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
         limit: 1,
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
-  
+
       posts = await Post.findAll({
         attributes: [ 'title' ],
         where: { title: 'Leah' },
@@ -334,8 +334,8 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
       assert.deepEqual(posts[0].content, undefined);
-  
-  
+
+
       // empty id array should be NULL
       posts = await Post.findAll({
         where: {
@@ -343,7 +343,7 @@ describe('=> sequelize (TypeScript)', function() {
         }
       });
       assert.equal(posts.length, 0);
-  
+
       posts = await Post.findAll({
         order: 'createdAt desc, id desc',
         limit: 1,
@@ -351,21 +351,21 @@ describe('=> sequelize (TypeScript)', function() {
 
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
-  
+
       posts = await Post.findAll({
         order: ['createdAt desc', 'id desc'],
         limit: 1,
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
-  
+
       posts = await Post.findAll({
         order: [['createdAt', 'desc'], ['id', 'desc']],
         limit: 1,
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
-  
+
       // order raw
       await Promise.all([
         { title: 'Leah1', createdAt: new Date(Date.now() - 1000) },
@@ -384,7 +384,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[1].id, ids[1]);
       assert.equal(posts[2].id, ids[2]);
       assert.equal(posts[3].id, ids[3]);
-  
+
       assert.equal(Post.findAll({
         order: [ new Raw(`FIND_IN_SET(id, '${ids.join(',')}')`), 'createdAt asc' ],
       }).toSqlString(), `SELECT * FROM \`articles\` WHERE \`gmt_deleted\` IS NULL ORDER BY FIND_IN_SET(id, '${ids.join(',')}'), \`gmt_create\``);
@@ -408,13 +408,13 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[3].id, ids[3]);
 
     });
-  
+
     it('Model.findAll(opt) with { paranoid: false }', async () => {
       await Promise.all([
         { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
         { title: 'Tyrael' },
       ].map(opts => Post.create(opts)));
-  
+
       let posts = await Post.findAll({
         where: {
           title: { $like: '%ea%' },
@@ -422,11 +422,11 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
-  
+
       await Post.destroy({ where: { title: 'Leah' } });
       const post = await Post.findOne({ where: { title: 'Leah' } });
       assert.equal(post, null);
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
         paranoid: false,
@@ -434,7 +434,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts.length, 2);
       assert.equal(posts[0].title, 'Tyrael');
       assert.equal(posts[1].title, 'Leah');
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
         offset: 1,
@@ -443,7 +443,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
-  
+
       posts = await Post.findAll({
         order: [[ 'createdAt', 'desc' ]],
         limit: 1,
@@ -451,7 +451,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Tyrael');
-  
+
       posts = await Post.findAll({
         attributes: [ 'title' ],
         where: { title: 'Leah' },
@@ -460,16 +460,16 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts.length, 1);
       assert.equal(posts[0].title, 'Leah');
       assert.deepEqual(posts[0].content, undefined);
-  
+
     });
-  
+
     it('Model.findAll({ order })', async () => {
       await Promise.all([
         { title: 'Leah' },
         { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
         { title: 'Tyrael' },
       ].map(opts => Post.create(opts)));
-  
+
       const posts = await Post.findAll({
         order: [
           [ 'title', 'desc' ],
@@ -480,13 +480,13 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[0].title, 'Tyrael');
       assert.ok(posts[1].createdAt > posts[2].createdAt);
     });
-  
+
     it('Mode.findAll({ order: [] })', async function() {
       await Promise.all([
         { title: 'Leah' },
         { title: 'Tyrael' },
       ].map(opts => Post.create(opts)));
-  
+
       const posts = await Post.findAll({
         order: [ 'title', 'desc' ],
       });
@@ -494,14 +494,14 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(posts[0].title, 'Tyrael');
       assert.equal(posts[1].title, 'Leah');
     });
-  
+
     it('Model.findAll({ order: <malformed> })', async () => {
       const posts = await Post.findAll({
         order: [ null as any ],
       });
       assert.equal(posts.length, 0);
     });
-  
+
     describe('Model.findAll({ group })', () => {
       beforeEach(async () => {
         await Promise.all([
@@ -510,7 +510,7 @@ describe('=> sequelize (TypeScript)', function() {
           { title: 'Tyrael' },
         ].map(opts => Post.create(opts)));
       });
-  
+
       it('Model.findAll({ group: string })', async () => {
         const result = await Post.findAll({
           attributes: 'count(*) AS count',
@@ -522,7 +522,7 @@ describe('=> sequelize (TypeScript)', function() {
           { title: 'Leah', count: 2 },
         ]);
       });
-  
+
       it('Model.findAll({ group: [] })', async () => {
         const result = await Post.findAll({
           attributes: 'count(*) AS count',
@@ -535,7 +535,7 @@ describe('=> sequelize (TypeScript)', function() {
         ]);
       });
     });
-  
+
     describe('Model.findAll({ having })', () => {
       beforeEach(async () => {
         await Promise.all([
@@ -544,7 +544,7 @@ describe('=> sequelize (TypeScript)', function() {
           { title: 'Tyrael' },
         ].map(opts => Post.create(opts)));
       });
-  
+
       it('Model.findAll({ having: string })', async () => {
         const result = await Post.findAll({
           attributes: 'count(*) AS count',
@@ -556,7 +556,7 @@ describe('=> sequelize (TypeScript)', function() {
           { title: 'Leah', count: 2 },
         ]);
       });
-  
+
       it('Model.findAll({ having: rawObject })', async () => {
         const result = await Post.findAll({
           attributes: 'count(*) AS count',
@@ -564,7 +564,7 @@ describe('=> sequelize (TypeScript)', function() {
           order: [[ 'title', 'desc' ]],
           having: new Raw('count(*) = 2')
         });
-  
+
         assert.deepEqual(result.toJSON(), [
           { title: 'Leah', count: 2 },
         ]);
@@ -578,7 +578,7 @@ describe('=> sequelize (TypeScript)', function() {
         { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
         { title: 'Tyrael' },
       ].map(opts => Post.create(opts)));
-  
+
       const { rows, count } = await Post.findAndCountAll({
         where: {
           title: { $like: '%ea%' },
@@ -587,7 +587,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(rows.length, 1);
       assert.equal(count, 1);
       assert.equal(rows[0].title, 'Leah');
-  
+
       // with limit
       const { rows: rows1, count: count1 } = await Post.findAndCountAll({
         where: {
@@ -596,23 +596,23 @@ describe('=> sequelize (TypeScript)', function() {
         offset: 1,
         limit: 2,
       });
-  
+
       assert.equal(rows1.length, 0);
-      assert.equal(count1, 1);  
+      assert.equal(count1, 1);
       //ignore attributes
-  
+
       const { rows: rows2, count: count2 } = await Post.findAndCountAll({
         where: {
           title: { $like: '%ea%' },
         },
         attributes: [ 'id' ],
       });
-  
+
       assert.equal(rows2.length, 1);
       assert.equal(count2, 1);
       assert.deepEqual(Object.keys((rows2[0] as any).getRaw()), [ 'id' ]);
     });
-  
+
     it('Model.findAndCountAll(opt) with paranoid = false', async () => {
       await Promise.all([
         { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
@@ -623,7 +623,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(post, null);
       const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
       assert.equal(post1.title, 'Leah');
-  
+
       const { rows, count } = await Post.findAndCountAll({
         where: {
           title: { $like: '%ea%' },
@@ -639,21 +639,21 @@ describe('=> sequelize (TypeScript)', function() {
   describe('=> findOne', () => {
     it('Model.findOne(id)', async () => {
       const { id } = await Post.create({ title: 'Leah' });
-  
+
       const post = await Post.findOne();
       assert.equal(post.title, 'Leah');
-  
+
       // if passed value, take the value as primary key
       assert.deepEqual((await Post.findOne(id)).toJSON(), post.toJSON());
-  
+
       // if passed null or undefined, return null
       assert.equal(await Post.findOne(null as any), null);
       assert.equal(await Post.findOne(undefined), null);
     });
-  
+
     it('Model.findOne(id) with paranoid = false', async () => {
       const { id } = await Post.create({ title: 'Leah' });
-  
+
       const post = await Post.findOne();
       assert.equal(post.title, 'Leah');
       await post.remove();
@@ -662,7 +662,7 @@ describe('=> sequelize (TypeScript)', function() {
       const post2 = await Post.findOne({ paranoid: false });
       assert.equal(post2.isNewRecord, false);
       assert(post2);
-  
+
       const post3 = await Post.findOne({ where: { id }, paranoid: false });
       assert.equal(post3.title, 'Leah');
       assert.equal(post3.isNewRecord, false);
@@ -675,22 +675,22 @@ describe('=> sequelize (TypeScript)', function() {
   describe('=> findByPk', () => {
     it('Model.findByPk(pk)', async () => {
       const { id } = await Post.create({ title: 'Leah' });
-  
+
       const post = await Post.findByPk(id);
       assert.equal(post.title, 'Leah');
       assert.equal(post.isNewRecord, false);
     });
-  
+
     it('Model.findByPk(pk, { paranoid: false })', async () => {
       const { id } = await Post.create({ title: 'Leah' });
-  
+
       const post = await Post.findByPk(id);
       assert.equal(post.title, 'Leah');
-  
+
       await post.remove();
       const post1 = await Post.findByPk(id);
       assert.equal(post1, null);
-  
+
       const post2 = await Post.findByPk(id, { paranoid: false });
       assert.equal(post2.title, 'Leah');
       await post2.destroy({ force: true });
@@ -708,7 +708,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(post.id, id);
       assert.equal(isNewRecord, false);
     });
-  
+
     it('Model.findOrBuild({ defaults })', async function() {
       const { id } = await Post.create({ title: 'Leah' });
       const [ post, isNewRecord ] = await Post.findOrBuild({
@@ -731,7 +731,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(post.id, id);
       assert.equal(isNewRecord, false);
     });
-  
+
     it('Model.findOrCreate({ defaults })', async function() {
       const { id } = await Post.create({ title: 'Leah' });
       const [ post, isNewRecord ] = await Post.findOrCreate({
@@ -795,7 +795,7 @@ describe('=> sequelize (TypeScript)', function() {
   });
 
   describe('=> Scope', () => {
-    class MyPost extends Post {};
+    class MyPost extends Post {}
 
     it('addScope', () => {
       MyPost.addScope('dk', {
@@ -856,7 +856,7 @@ describe('=> sequelize (TypeScript)', function() {
           title: 'Yhorm2',
         },
         order: {
-          id: 'ASC' as 'ASC',
+          id: 'ASC' as const,
         },
       }));
 
@@ -905,7 +905,7 @@ describe('=> sequelize (TypeScript)', function() {
           title: 'Yhorm2',
         },
         order: {
-          id: 'ASC' as 'ASC',
+          id: 'ASC' as const,
         },
       }));
 
@@ -989,6 +989,21 @@ describe('=> sequelize (TypeScript)', function() {
       const post = await Post.create({ title: 'Yhorm' });
       assert.equal(probe, true);
       assert.deepEqual(instance, post);
+
+      Post.addHook<Post>('beforeUpdate', (obj, values) => {
+        obj.changed('title');
+        if (!values.content) {
+          values.content = 'yahaha';
+        }
+      });
+
+      Post.addHook('beforeUpdate', (obj: Post, values) => {
+        obj.changed('title');
+        if (!values.content) {
+          values.content = 'yahaha';
+        }
+      });
+
     });
   });
 
@@ -998,13 +1013,13 @@ describe('=> sequelize (TypeScript)', function() {
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
         await Book.create({ name: 'Book of Cain', price: 10 }),
       ]);
-  
+
       const count = await Book.aggregate('*', 'count');
       assert.equal(count, 2);
-  
+
       const average = await Book.aggregate('price', 'average');
       assert.equal(Math.round(average), 15);
-  
+
       let minimum = await Book.aggregate('price', 'minimum');
       assert.equal(Math.round(minimum), 10);
 
@@ -1073,7 +1088,7 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Post.count('title'), 2);
     });
-  
+
     it('Model.count({ paranoid: false })', async () => {
       await Promise.all([
         Post.create({ title: 'By three they come' }),
@@ -1084,7 +1099,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(await Post.count(), 1);
       assert.equal(await Post.count({ paranoid: false }), 2);
     });
-  
+
     it('Model.count({ where })', async () => {
       await Promise.all([
         Post.create({ title: 'By three they come' }),
@@ -1095,7 +1110,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(result, 1);
     });
-  
+
     it('Model.count({ where, paranoid: false })', async () => {
       const books = await Promise.all([
         Post.create({ title: 'By three they come' }),
@@ -1115,7 +1130,7 @@ describe('=> sequelize (TypeScript)', function() {
         paranoid: false,
       });
       assert.equal(result2, 1);
-  
+
       await books[0].destroy({ force: true });
       const result3 = await Post.count({
         where: { title: 'By three they come' },
@@ -1132,14 +1147,14 @@ describe('=> sequelize (TypeScript)', function() {
         'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
       );
     });
-  
+
     it('findByPk', () => {
       assert.equal(
         Post.findByPk(1, { hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
         'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
       );
     });
-  
+
     it('findAll', () => {
       assert.equal(
         Post.findAll({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
@@ -1156,7 +1171,7 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Book.max('price'), 20);
     });
-  
+
     it('Model.max(attribute, { where })', async () => {
       await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1167,7 +1182,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(max, 10);
     });
-  
+
     it('Model.max(attribute, { paranoid })', async () => {
       const books = await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1180,7 +1195,7 @@ describe('=> sequelize (TypeScript)', function() {
       await books[0].destroy({ force: true });
       assert.equal(await Book.max('price', { paranoid: false }), 10);
     });
-  
+
     it('Model.min(attribute)', async () => {
       await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1188,19 +1203,19 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Book.min('price'), 10);
     });
-  
+
     it('Model.min(attribute, { where })', async () => {
       await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
         await Book.create({ name: 'Book of Cain', price: 10 }),
       ]);
-      Post.find().decrement('authorId')
+      Post.find().decrement('authorId');
       const min = await Book.min('price', {
         where: { name: 'Book of Tyrael' },
       });
       assert.equal(min, 20);
     });
-  
+
     it('Model.max(attribute, { paranoid })', async () => {
       const books = await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1213,7 +1228,7 @@ describe('=> sequelize (TypeScript)', function() {
       await books[1].destroy({ force: true });
       assert.equal(await Book.min('price', { paranoid: false }), 20);
     });
-  
+
     it('Model.sum(attribute)', async () => {
       await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1221,7 +1236,7 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       assert.equal(await Book.sum('price'), 30);
     });
-  
+
     it('Model.sum(attribute, { where })', async () => {
       await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1232,7 +1247,7 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(sum, 10);
     });
-  
+
     it('Model.sum(attribute, { paranoid })', async () => {
       const books = await Promise.all([
         await Book.create({ name: 'Book of Tyrael', price: 20 }),
@@ -1242,12 +1257,12 @@ describe('=> sequelize (TypeScript)', function() {
       await books[0].destroy();
       assert.equal(await Book.sum('price'), 10);
       assert.equal(await Book.sum('price', { paranoid: false }), 30);
-  
+
       await books[0].destroy({ force: true });
       assert.equal(await Book.sum('price', { paranoid: false }), 10);
-  
+
     });
-  
+
     it('Model.increment()', async () => {
       const isbn = BigInt(9787550616950);
       const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
@@ -1258,13 +1273,13 @@ describe('=> sequelize (TypeScript)', function() {
       await book.reload();
       assert.equal(book.price, 11);
       assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
-  
+
       await Book.increment({ price: 2 }, { where: { isbn } });
       await book.reload();
       assert.equal(book.price, 13);
       clock.restore();
     });
-  
+
     it('Model.increment(, { paranoid })', async () => {
       const isbn = BigInt(9787550616950);
       const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
@@ -1276,11 +1291,11 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(book.price, 11);
       assert.equal(new Date(book.updatedAt).toString(), new Date(fakeDate).toString());
       clock.restore();
-  
+
       await Book.increment({ price: 2 }, { where: { isbn } });
       await book.reload();
       assert.equal(book.price, 13);
-  
+
       await book.destroy();
       await Book.increment({ price: 2 }, { where: { isbn } });
       await book.reload();
@@ -1289,7 +1304,7 @@ describe('=> sequelize (TypeScript)', function() {
       await book.reload();
       assert.equal(book.price, 15);
     });
-  
+
     it('Model.increment(, { silent })', async () => {
       const fakeDate = new Date(`2012-12-14 12:00-08:00`).getTime();
       const clock = sinon.useFakeTimers(fakeDate);
@@ -1309,7 +1324,7 @@ describe('=> sequelize (TypeScript)', function() {
       await Book.decrement('price', { where: { isbn } });
       await book.reload();
       assert.equal(book.price, 9);
-  
+
       await Book.decrement({ price: 2 }, { where: { isbn } });
       await book.reload();
       assert.equal(book.price, 7);
@@ -1322,7 +1337,7 @@ describe('=> sequelize (TypeScript)', function() {
         { title: 'Leah' },
         { title: 'Cain' },
       ]);
-      await Post.update( { title: 'Diablo' }, { where: { title: 'Leah' } });
+      await Post.update({ title: 'Diablo' }, { where: { title: 'Leah' } });
       assert.equal(await Post.findOne({ where: { title: 'Leah' }}), null);
       assert.equal((await Post.findOne({ where: { title: 'Cain' }})).title, 'Cain');
       assert.equal((await Post.findOne({ where: { title: 'Diablo' }})).title, 'Diablo');
@@ -1435,7 +1450,7 @@ describe('=> sequelize (TypeScript)', function() {
       p1.subType = 'extend';
       assert.equal(p1.id, post.id);
     });
-  })
+  });
 
   it('Model.removeAttribute()', async function() {
     assert(Like.attributes.userId);

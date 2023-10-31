@@ -24,7 +24,7 @@ const eslintConfig = {
     'no-const-assign': 'error',
     'no-undef': 2,
     'no-underscore-dangle': 0,
-    'no-use-before-define': [2, 'nofunc'],
+    'no-use-before-define': ['error', {'functions': false, 'classes': false}],
     'no-unused-vars': [2, { 'vars': 'all', 'args': 'none', 'ignoreRestSiblings': true }],
     'no-shadow': 2,
     'keyword-spacing': 'error',
@@ -42,7 +42,7 @@ const tslintConfig = {
     'plugin:@typescript-eslint/recommended',
   ],
   parser: '@typescript-eslint/parser',
-  files: ['*.ts'],
+  files: ['**/*.ts'],
   plugins: [
     '@typescript-eslint',
     'no-only-tests',
@@ -50,8 +50,8 @@ const tslintConfig = {
   rules: {
     ...eslintConfig.rules,
     '@typescript-eslint/no-var-requires': 0,
-    '@typescript-eslint/no-use-before-define': ['error'],
-    strict: 0,
+    'no-use-before-define': 'off',
+    '@typescript-eslint/no-use-before-define': ['error', {'functions': false, 'classes': false}],
     '@typescript-eslint/ban-ts-comment': ['warn'],
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['warn'],
