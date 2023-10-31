@@ -5,10 +5,10 @@ const path = require('path');
 const fs = require('fs').promises;
 const sinon = require('sinon');
 
-const { raw, Bone } = require('../..');
-const Realm = require('../../src/realm/base');
+const Realm = require('../..');
 const { checkDefinitions } = require('./helpers');
-const { default: SqljsDriver } = require('../../src/drivers/sqljs');
+
+const { raw, Bone, SqljsDriver } = Realm;
 
 async function migrate(dbDriver) {
   let content = await fs.readFile(path.resolve(__dirname, '../dumpfile.sql'), 'utf-8');
@@ -29,7 +29,7 @@ describe('integration tests for sqljs', () => {
         return model?.default || model;
       });
 
-    const realm = new Realm({
+    const realm = await new Realm({
       database: 'sqljs',
       driver: SqljsDriver,
       models,

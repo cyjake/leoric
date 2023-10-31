@@ -2,23 +2,23 @@ import { BelongsTo, Bone, Column } from '../..';
 import User from './user';
 
 export default class Photo extends Bone {
-  static shardingKey: string = 'userId';
+  static shardingKey = 'userId';
 
   @Column()
-  id: bigint;
+  id!: bigint;
 
   @Column()
-  userId: bigint;
+  userId!: bigint;
 
   @Column()
-  url: string;
+  url!: string;
 
   @Column()
-  filename: string;
+  filename!: string;
 
   @Column({ allowNull: true })
   caption?: string;
 
   @BelongsTo({ foreignKey: 'userId' })
-  user: User;
+  user?: User;
 }

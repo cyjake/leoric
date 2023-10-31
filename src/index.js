@@ -1,20 +1,20 @@
 'use strict';
 
 
-const Logger = require('./src/drivers/abstract/logger');
-const Spell = require('./src/spell');
-const Bone = require('./src/bone');
-const Collection = require('./src/collection');
-const { invokable: DataTypes, LENGTH_VARIANTS } = require('./src/data_types');
-const migrations = require('./src/migrations');
-const sequelize = require('./src/adapters/sequelize');
-const { heresql } = require('./src/utils/string');
-const Hint = require('./src/hint');
-const Realm = require('./src/realm');
-const Decorators = require('./src/decorators');
-const Raw = require('./src/raw').default;
-const { MysqlDriver, PostgresDriver, SqliteDriver, AbstractDriver } = require('./src/drivers');
-const { isBone } = require('./src/utils');
+const Logger = require('./drivers/abstract/logger');
+const Spell = require('./spell');
+const Bone = require('./bone');
+const Collection = require('./collection');
+const { invokable: DataTypes, LENGTH_VARIANTS } = require('./data_types');
+const migrations = require('./migrations');
+const sequelize = require('./adapters/sequelize');
+const { heresql } = require('./utils/string');
+const Hint = require('./hint');
+const Realm = require('./realm');
+const Decorators = require('./decorators');
+const Raw = require('./raw').default;
+const { MysqlDriver, PostgresDriver, SqliteDriver, SqljsDriver, AbstractDriver } = require('./drivers');
+const { isBone } = require('./utils');
 
 /**
  * @typedef {Object} RawSql
@@ -63,6 +63,7 @@ Object.assign(Realm, {
   MysqlDriver,
   PostgresDriver,
   SqliteDriver,
+  SqljsDriver,
   AbstractDriver,
   Raw,
   LENGTH_VARIANTS,

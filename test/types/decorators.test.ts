@@ -19,19 +19,19 @@ describe('=> Decorators (TypeScript)', function() {
     it('should be able to deduce column type from typescript', async function() {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column({ allowNull: false })
-        name: string;
+        name!: string;
 
         @Column({ defaultValue: true })
-        isPrivate: boolean;
+        isPrivate!: boolean;
 
         @Column()
-        createdAt: Date;
+        createdAt!: Date;
 
         @Column()
-        updatedAt: Date;
+        updatedAt!: Date;
       }
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [
@@ -47,10 +47,10 @@ describe('=> Decorators (TypeScript)', function() {
     it('should be able to override column type', async function() {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column(TEXT)
-        content: string;
+        content!: string;
       }
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'content' ]);
@@ -62,13 +62,13 @@ describe('=> Decorators (TypeScript)', function() {
     it('should be able to override column name', async function() {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column({ name: 'gmt_create' })
-        createdAt: Date;
+        createdAt!: Date;
 
         @Column({ name: 'gmt_modified' })
-        updatedAt: Date;
+        updatedAt!: Date;
       }
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'createdAt', 'updatedAt' ]);
@@ -81,16 +81,16 @@ describe('=> Decorators (TypeScript)', function() {
     it('should work with setter', async () => {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column({ defaultValue: true })
-        isPrivate: boolean;
+        isPrivate!: boolean;
 
         @Column()
-        createdAt: Date;
+        createdAt!: Date;
 
         @Column()
-        updatedAt: Date;
+        updatedAt!: Date;
 
         get name(): string {
           return (this.attribute('name') as string)?.toUpperCase() as string;
@@ -119,16 +119,16 @@ describe('=> Decorators (TypeScript)', function() {
     it('should work with getter', async () => {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column({ defaultValue: true })
-        isPrivate: boolean;
+        isPrivate!: boolean;
 
         @Column()
-        createdAt: Date;
+        createdAt!: Date;
 
         @Column()
-        updatedAt: Date;
+        updatedAt!: Date;
 
         @Column({
           allowNull: false,
@@ -163,18 +163,18 @@ describe('=> Decorators (TypeScript)', function() {
     it('should work with validate',async () => {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
-        @Column({ 
+        @Column({
           allowNull: false,
           validate: {
             isNotNull(v?: string) {
-              if(!v) throw new Error('name cannot be null')
+              if (!v) throw new Error('name cannot be null');
             },
-            notIn: [ [ 'Yhorm', 'Gwyn' ] ],
+            notIn: [['Yhorm', 'Gwyn']],
           }
         })
-        name: string;
+        name!: string;
 
         @Column({
           type: DataTypes.INTEGER,
@@ -183,12 +183,12 @@ describe('=> Decorators (TypeScript)', function() {
           validate: {
             isNumeric: true,
             isIn: {
-              args: [ [ '1', '2' ] ],
+              args: [['1', '2']],
               msg: 'Error status',
             },
           },
         })
-        status: number;
+        status!: number;
       }
       await Note.sync({ force: true });
       let note = new Note({ name: '' });
@@ -209,22 +209,22 @@ describe('=> Decorators (TypeScript)', function() {
     it('should work with other options', async () => {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column({
           type: STRING
         })
-        body: string;
+        body!: string;
 
         @Column({
           type: STRING(64)
         })
-        description: string;
+        description!: string;
 
         @Column({
           type: INTEGER(2).UNSIGNED,
         })
-        status: number;
+        status!: number;
 
       }
       await Note.sync({ force: true });
@@ -244,13 +244,13 @@ describe('=> Decorators (TypeScript)', function() {
           primaryKey: true,
           autoIncrement: true,
         })
-        noteId: bigint;
+        noteId!: bigint;
 
         @Column({
           comment: 'note index',
           unique: true,
         })
-        noteIndex: number;
+        noteIndex!: number;
       }
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'noteId', 'noteIndex' ]);
@@ -263,16 +263,16 @@ describe('=> Decorators (TypeScript)', function() {
     it('should work with invokable data types', async () => {
       class Note extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column(STRING)
-        body: string;
+        body!: string;
 
         @Column(STRING(64))
-        description: string;
+        description!: string;
 
         @Column(INTEGER(2).UNSIGNED)
-        status: number;
+        status!: number;
 
       }
       await Note.sync({ force: true });
@@ -288,34 +288,34 @@ describe('=> Decorators (TypeScript)', function() {
     it('should not override attributes of parent class', async function() {
       class Base extends Bone {
         @Column()
-        id: bigint;
+        id!: bigint;
       }
 
       class Note extends Base {
         @Column()
-        body: string;
+        body!: string;
       }
 
       class Comment extends Note {
-        static table: string = 'comments';
+        static table = 'comments';
 
         @Column()
-        targetType: string;
+        targetType!: string;
 
         @Column()
-        targetId: number;
+        targetId!: number;
       }
 
       class SubContent extends Comment {
-        static table: string = 'contents';
+        static table = 'contents';
 
         @Column()
-        description: string;
+        description!: string;
 
         @Column({
           allowNull: false,
         })
-        status: number;
+        status!: number;
       }
 
       // normal subclass that not sync will inherent all the features from parent class
@@ -388,21 +388,21 @@ describe('=> Decorators (TypeScript)', function() {
   describe('=> @HasMany()', function() {
     class Note extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      memberId: bigint;
+      memberId!: bigint;
     }
 
     class Member extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      email: string;
+      email!: string;
 
       @HasMany()
-      notes: Note[];
+      notes!: Note[];
     }
 
     before(async function() {
@@ -422,7 +422,7 @@ describe('=> Decorators (TypeScript)', function() {
 
     it('should be able to declare 1:n association', async function() {
       const { id: memberId } = await Member.create({ email: 'hi@example.com' });
-      await Note.create({ memberId })
+      await Note.create({ memberId });
       const member = await Member.findOne().with('notes');
       assert.equal(member!.notes.length, 1);
       assert.ok(member!.notes[0] instanceof Note);
@@ -433,13 +433,13 @@ describe('=> Decorators (TypeScript)', function() {
   describe('=> @HasMany({ through })', function() {
     class Tag extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      type: number;
+      type!: number;
 
       @Column()
-      name: string;
+      name!: string;
     }
 
     enum TARGET_TYPE {
@@ -448,36 +448,36 @@ describe('=> Decorators (TypeScript)', function() {
 
     class TagMap extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      targetId: bigint;
+      targetId!: bigint;
 
       @Column()
-      targetType: number;
+      targetType!: number;
 
       @Column()
-      tagId: bigint;
+      tagId!: bigint;
 
       @BelongsTo()
-      tag: Tag;
+      tag!: Tag;
     }
 
     class Note extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      content: string;
-      
-      @HasMany({ 
+      content!: string;
+
+      @HasMany({
         foreignKey: 'targetId',
         where: { targetType: TARGET_TYPE.note },
       })
-      tagMaps: TagMap[];
+      tagMaps!: TagMap[];
 
       @HasMany({ through: 'tagMaps' })
-      tags: Tag[];
+      tags!: Tag[];
     }
 
     before(async function() {
@@ -512,28 +512,28 @@ describe('=> Decorators (TypeScript)', function() {
   describe('HasMany({ select })', function() {
     class Note extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column({ type: DataTypes.TEXT })
-      content: string;
+      content!: string;
 
       @Column()
-      memberId: bigint;
+      memberId!: bigint;
     }
 
     class Member extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      email: string;
+      email!: string;
 
-      @HasMany({ 
+      @HasMany({
         select(name) {
           return name !== 'content';
         },
       })
-      notes: Note[];
+      notes?: Note[];
     }
 
     before(async function() {
@@ -555,8 +555,8 @@ describe('=> Decorators (TypeScript)', function() {
       const member = await Member.create({ email: 'hi@example.com' });
       await Note.create({ memberId: member.id, content: 'hello' });
       const result = await Member.findOne().with('notes');
-      assert.equal(result!.notes.length, 1);
-      assert.equal(result!.notes[0].content, undefined);
+      assert.equal(result!.notes?.length, 1);
+      assert.equal(result!.notes?.[0].content, undefined);
       const [note] = result!.notes;
       await note.reload();
       assert.equal(note.content, 'hello');
@@ -566,21 +566,21 @@ describe('=> Decorators (TypeScript)', function() {
   describe('HasOne()', function() {
     class Member extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      email: string;
+      email!: string;
     }
 
     class Note extends Bone {
       @Column()
-      id: bigint;
+      id!: bigint;
 
       @Column()
-      content: string;
+      content!: string;
 
       @Column()
-      authorId: bigint;
+      authorId!: bigint;
 
       @BelongsTo({ foreignKey: 'authorId' })
       author?: Member;

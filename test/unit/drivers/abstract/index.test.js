@@ -1,8 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Logger } = require('../../../..');
-const AbstractDriver = require('../../../../src/drivers/abstract');
+const { Logger, AbstractDriver } = require('../../../..');
 
 describe('=> AbstractDriver#logger', function() {
   it('should create logger by default', async function() {

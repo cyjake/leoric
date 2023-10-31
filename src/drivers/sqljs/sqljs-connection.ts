@@ -2,6 +2,7 @@ import type { Database, QueryExecResult } from 'sql.js';
 
 import type { SqljsConnectionOptions, SqljsConnectionQueryResult, SqljsQueryQuery, SqljsQueryValues } from './interface';
 import type { SpellMeta } from '../../spell';
+import type { Literal } from '../../types/common';
 
 /**
  * 组装和转换结果
@@ -14,7 +15,7 @@ function dataConvert(result: QueryExecResult) {
   return {
     fields: columns,
     rows: values.map((val) => {
-      return columns.reduce((prev, col, index) => {
+      return columns.reduce((prev: Record<string, Literal>, col, index) => {
         prev[col] = val[index];
         return prev;
       }, {});
@@ -36,13 +37,13 @@ function normalizeResult(res: QueryExecResult[]): SqljsConnectionQueryResult {
 
 // SELECT users.id AS "users:id", ...
 // => [ { users: { id, ... } } ]
-function nest(rows, fields, spell) {
+function nest(rows: Record<string, Literal>[], fields: string[], spell: SpellMeta) {
   const { Model } = spell;
   const { tableAlias } = Model;
   const results: any[] = [];
 
   for (const row of rows) {
-    const result = {};
+    const result: Record<string, Record<string, Literal>> = {};
     const qualified = Object.keys(row).some(entry => entry.includes(':'));
     for (const key in row) {
       const parts = key.split(':');
@@ -106,7 +107,7 @@ export class SqljsConnection {
 
     if (/^(?:pragma|select)/i.test(sql)) {
       const result = await this._executeSQL(sql, values);
-      if (nestTables) return nest(result.rows, result.fields, spell);
+      if (nestTables && spell) return nest(result.rows, result.fields, spell);
       return result;
     }
 

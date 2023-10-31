@@ -113,7 +113,7 @@ module.exports = function sequelize(Bone) {
      * @protect
      * store all configured scopes
      */
-    static _scopes = {}
+    static _scopes = {};
     // scope
     static _scope = null;
 
@@ -159,7 +159,6 @@ module.exports = function sequelize(Bone) {
       const parentTable = this.table;
       const parent = this;
       class ScopeClass extends this {
-        static name = parentName;
         static get synchronized() {
           return parent.synchronized;
         }
@@ -167,6 +166,12 @@ module.exports = function sequelize(Bone) {
           return parentTable;
         }
       }
+      Object.defineProperty(ScopeClass, 'name', {
+        value: parentName,
+        writable: false,
+        enumerable: false,
+        configurable: true,
+      });
 
       ScopeClass.setScope(name, ...args);
       return ScopeClass;

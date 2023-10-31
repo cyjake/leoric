@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const Realm = require('../../index');
+const Realm = require('../..');
 const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver, SequelizeBone } = Realm;
 
 const attributes = {
@@ -148,7 +148,7 @@ describe('=> Realm', () => {
     it('should hold models as object in realm.models', async function() {
       class User extends Bone {}
       class Post extends Bone {
-        static table = 'articles'
+        static table = 'articles';
       }
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
@@ -1078,7 +1078,7 @@ describe('=> Realm', () => {
         static attributes = {
           id: DataTypes.BIGINT,
           name: DataTypes.STRING,
-        }
+        };
         static initialize() {
           this.hasMany('recipients', { foreignKey: 'clientId' });
         }
@@ -1090,7 +1090,7 @@ describe('=> Realm', () => {
           clientId: DataTypes.BIGINT,
           name: DataTypes.STRING,
           address: DataTypes.STRING,
-        }
+        };
         static initialize() {
           this.belongsTo('client', { foreignkey: 'clientId' });
         }
@@ -1148,7 +1148,7 @@ describe('=> Realm', () => {
       });
 
       class Post extends Bone {
-        static table = 'articles'
+        static table = 'articles';
       }
       await assert.doesNotReject(async function() {
         const realm2 = new Realm({

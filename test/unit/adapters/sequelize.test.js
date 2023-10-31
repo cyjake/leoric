@@ -3,8 +3,7 @@
 const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
-const { Bone, connect, sequelize, DataTypes, raw } = require('../../..');
-const { Hint } = require('../../../src/hint');
+const { Bone, connect, sequelize, DataTypes, raw, Hint } = require('../../..');
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -1901,7 +1900,7 @@ describe('Transaction', function() {
   const Spine = sequelize(Bone);
 
   class User extends Spine {
-    static table = 'users'
+    static table = 'users';
   }
 
   before(async function() {

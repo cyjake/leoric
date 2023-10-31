@@ -1,107 +1,105 @@
 import { strict as assert } from 'assert';
-import sinon from 'sinon';
+import sinon, { SinonFakeTimers } from 'sinon';
 
 import {
-  Bone, DataTypes, Column,
+  Bone, DataTypes, Column, HasOne,
   connect, INDEX_HINT_SCOPE_TYPE,
   INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw, heresql,
 } from '../..';
-import { HasOne } from '../../src/decorators';
 
 describe('=> Spell (TypeScript)', function() {
   const { STRING, TEXT, TINYINT } = DataTypes;
 
   class Attachment extends Bone {
     @Column()
-    id: number;
+    id!: number;
 
     @Column()
-    articleId: number;
+    articleId!: number;
 
     @Column()
-    url: string;
+    url!: string;
 
     @Column()
-    width: number;
+    width!: number;
 
     @Column()
-    height: number;
+    height!: number;
 
     @Column({
       name: 'gmt_deleted',
     })
-    deletedAt: Date;
-
+    deletedAt!: Date;
   }
 
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
 
     @Column()
-    id: bigint;
+    id!: bigint;
 
     @Column()
-    authorId: bigint
+    authorId!: bigint;
 
     @Column()
-    title: string;
+    title!: string;
 
     @Column({
       name: 'gmt_create',
     })
-    createdAt: Date;
+    createdAt!: Date;
 
     @Column({
       name: 'gmt_modified',
     })
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @Column({
       name: 'gmt_deleted',
     })
-    deletedAt: Date;
+    deletedAt!: Date;
 
     @Column(TEXT)
-    content: string;
+    content!: string;
 
     @Column(TEXT)
-    extra: string;
+    extra!: string;
 
     @Column(STRING(1000))
-    thumb: string;
+    thumb!: string;
 
     @Column({
       type: TINYINT,
       defaultValue: 0,
     })
-    isPrivate: number;
+    isPrivate!: number;
 
     @Column(TEXT)
-    summary: string;
+    summary!: string;
 
     @Column({
       defaultValue: 0,
     })
-    word_count: number;
+    word_count!: number;
 
     @Column(TEXT)
-    settings: string;
+    settings!: string;
 
     @HasOne({
       foreignKey: 'articleId',
     })
-    attachment: Attachment;
+    attachment!: Attachment;
   }
 
   class Comment extends Bone {
     @Column()
-    id: number;
+    id!: number;
 
     @Column()
-    articleId: number;
+    articleId!: number;
 
     @Column()
-    content: string;
+    content!: string;
 
   }
 
@@ -215,11 +213,11 @@ describe('=> Spell (TypeScript)', function() {
   });
 
   describe('Num', () => {
-    let clock;
+    let clock: SinonFakeTimers;
     before(() => {
       const date = new Date(2017, 11, 12);
       const fakeDate = date.getTime();
-      sinon.useFakeTimers(fakeDate);
+      clock = sinon.useFakeTimers(fakeDate);
     });
 
     after(() => {

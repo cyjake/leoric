@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import sinon from 'sinon';
+import sinon, { SinonFakeTimers } from 'sinon';
 import Realm, { Bone, Column, DataTypes, connect, Raw } from '../..';
 
 describe('=> Basics (TypeScript)', function() {
@@ -10,43 +10,43 @@ describe('=> Basics (TypeScript)', function() {
     static table = 'articles';
 
     @Column()
-    id: bigint;
+    id!: bigint;
 
     @Column({ name: 'gmt_create' })
-    createdAt: Date;
+    createdAt!: Date;
 
-    @Column({ name: 'gmt_modified'})
-    updatedAt: Date;
+    @Column({ name: 'gmt_modified' })
+    updatedAt!: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt: Date;
+    deletedAt!: Date;
 
     @Column()
-    title: string;
+    title!: string;
 
     @Column(TEXT)
-    content: string;
+    content!: string;
 
     @Column(TEXT)
-    extra: string;
+    extra!: string;
 
     @Column()
     get thumb(): string {
       return this.attribute('thumb');
-    };
+    }
 
     set thumb(value: string) {
       this.attribute('thumb', value.replace('http://', 'https://'));
     }
 
     @Column()
-    authorId: bigint;
+    authorId!: bigint;
 
     @Column()
-    isPrivate: boolean;
+    isPrivate!: boolean;
 
     @Column(TEXT)
-    summary: string;
+    summary!: string;
 
     @Column(TEXT)
     get settings(): Record<string, any> | null {
@@ -65,7 +65,7 @@ describe('=> Basics (TypeScript)', function() {
     }
 
     @Column()
-    wordCount: number;
+    wordCount!: number;
 
     @Column(DataTypes.VIRTUAL)
     get isEmptyContent(): boolean {
@@ -144,7 +144,7 @@ describe('=> Basics (TypeScript)', function() {
       assert.deepEqual(article.settings, { bar: 2 });
       assert.equal(article.isPrivate, true);
       assert.equal(article.callback(), 1);
-    })
+    });
 
     it('bone.attribute(name, value)', async function() {
       const post = new Post({});
@@ -484,40 +484,40 @@ describe('=> Basics (TypeScript)', function() {
 
   describe('Num', () => {
 
-    let clock;
+    let clock: SinonFakeTimers;
     before(() => {
       const date = new Date(2017, 11, 12);
       const fakeDate = date.getTime();
-      sinon.useFakeTimers(fakeDate);
+      clock = sinon.useFakeTimers(fakeDate);
     });
-  
+
     after(() => {
       clock?.restore();
     });
 
     it('count', () => {
       assert.equal(Post.count('authorId').toSqlString(), 'SELECT COUNT("author_id") AS "count" FROM "articles" WHERE "gmt_deleted" IS NULL');
-      assert.equal(Post.count(new Raw("DISTINCT(author_id)")).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.count(new Raw('DISTINCT(author_id)')).toSqlString(), 'SELECT COUNT(DISTINCT(author_id)) AS count FROM "articles" WHERE "gmt_deleted" IS NULL');
     });
 
     it('average', () => {
       assert.equal(Post.average('wordCount').toSqlString(), 'SELECT AVG("word_count") AS "average" FROM "articles" WHERE "gmt_deleted" IS NULL');
-      assert.equal(Post.average(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT AVG(DISTINCT(word_count)) AS average FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.average(new Raw('DISTINCT(word_count)')).toSqlString(), 'SELECT AVG(DISTINCT(word_count)) AS average FROM "articles" WHERE "gmt_deleted" IS NULL');
     });
 
     it('minimum', () => {
       assert.equal(Post.minimum('wordCount').toSqlString(), 'SELECT MIN("word_count") AS "minimum" FROM "articles" WHERE "gmt_deleted" IS NULL');
-      assert.equal(Post.minimum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MIN(DISTINCT(word_count)) AS minimum FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.minimum(new Raw('DISTINCT(word_count)')).toSqlString(), 'SELECT MIN(DISTINCT(word_count)) AS minimum FROM "articles" WHERE "gmt_deleted" IS NULL');
     });
 
     it('maximum', () => {
       assert.equal(Post.maximum('wordCount').toSqlString(), 'SELECT MAX("word_count") AS "maximum" FROM "articles" WHERE "gmt_deleted" IS NULL');
-      assert.equal(Post.maximum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT MAX(DISTINCT(word_count)) AS maximum FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.maximum(new Raw('DISTINCT(word_count)')).toSqlString(), 'SELECT MAX(DISTINCT(word_count)) AS maximum FROM "articles" WHERE "gmt_deleted" IS NULL');
     });
 
     it('sum', () => {
       assert.equal(Post.sum('wordCount').toSqlString(), 'SELECT SUM("word_count") AS "sum" FROM "articles" WHERE "gmt_deleted" IS NULL');
-      assert.equal(Post.sum(new Raw("DISTINCT(word_count)")).toSqlString(), 'SELECT SUM(DISTINCT(word_count)) AS sum FROM "articles" WHERE "gmt_deleted" IS NULL');
+      assert.equal(Post.sum(new Raw('DISTINCT(word_count)')).toSqlString(), 'SELECT SUM(DISTINCT(word_count)) AS sum FROM "articles" WHERE "gmt_deleted" IS NULL');
     });
 
     it('increment', () => {
