@@ -1,3 +1,12 @@
+2.11.3 / 2023-10-31
+===================
+
+## What's Changed
+* chore: export { WhereConditions } by @cyjake in https://github.com/cyjake/leoric/pull/400
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.2...v2.11.3
+
 2.11.2 / 2023-08-31
 ===================
 
