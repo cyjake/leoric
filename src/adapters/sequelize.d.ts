@@ -79,10 +79,10 @@ export class SequelizeBone extends AbstractBone {
    * @param {string | Function} fnNameOrFun function name or function
    * @param {Function} func hook function
    */
-  static addHook<T extends typeof SequelizeBone>(
+  static addHook<T extends SequelizeBone>(
     name: BeforeHooksType | AfterHooksType | 'beforeDestroy' | 'afterDestroy' | 'beforeBulkDestroy' | 'afterBulkDestroy' | 'beforeBulkUpdate' | 'afterBulkUpdate',
-    fnNameOrFun: string | ((target: T, ...args: unknown[]) => void),
-    func?: (target: T, ...args: unknown[]) => void,
+    fnNameOrFun: string | ((target: T, ...args: [Record<keyof Extract<CommonValues<T>, Literal>, Literal>, ...any[]]) => void),
+    func?: (target: T, ...args: [Record<keyof Extract<CommonValues<T>, Literal>, Literal>, ...any[]]) => void,
   ): void;
 
   /**
