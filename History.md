@@ -1,3 +1,12 @@
+2.11.4 / 2023-10-31
+===================
+
+## What's Changed
+* fix: fix scope type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/402
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.3...v2.11.4
+
 2.11.3 / 2023-10-31
 ===================
 
