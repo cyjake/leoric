@@ -25,13 +25,13 @@ describe('=> Realm (TypeScript)', function () {
       const { STRING } = realm.DataTypes;
       const User = realm.define('User', { name: STRING }, {}, {
         get name() {
-          return this.attribute('name').replace(/^([a-z])/, function(m, chr) {
+          return this.attribute('name').replace(/^([a-z])/, function(m: string, chr: string) {
             return chr.toUpperCase();
           });
         },
         set name(value) {
           if (typeof value !== 'string') throw new Error('unexpected name' + value);
-          this.attribute('name', value);
+          if (this instanceof realm.Bone) this.attribute('name', value);
         }
       });
       // User.findOne should exists

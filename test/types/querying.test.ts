@@ -1,36 +1,36 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../..'
+import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../..';
 
 describe('=> Querying (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING } = DataTypes;
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
 
     @Column(BIGINT)
-    id: number;
+    id!: number;
 
     @Column(BIGINT)
-    authorId: number
+    authorId!: number;
 
     @Column()
-    title: string;
+    title!: string;
   }
 
   class User extends Bone {
     @Column(BIGINT)
-    id: number;
+    id!: number;
 
     @Column(STRING)
-    email: string;
+    email!: string;
 
     @Column(STRING)
-    nickname: string;
+    nickname!: string;
 
     @Column({ type: INTEGER, allowNull: false })
-    status: number;
+    status!: number;
 
     @Column(INTEGER)
-    level: number;
+    level!: number;
 
     @HasMany({ foreignKey: 'authorId' })
     posts?: Post[];
@@ -76,7 +76,7 @@ describe('=> Querying (TypeScript)', function() {
       await Post.bulkCreate([
         { title: 'Leah' },
         { title: 'Stranger', authorId: author.id }
-      ])
+      ]);
       const user = await User.findOne({}).with({ posts: { select: 'title' } });
       assert.equal(user!.id, author.id);
       assert.ok(Array.isArray(user!.posts));
@@ -94,7 +94,7 @@ describe('=> Querying (TypeScript)', function() {
     });
 
     it('Bone.group().count()', async function() {
-      await Post.create({ title: 'Samoa' })
+      await Post.create({ title: 'Samoa' });
       const results = await Post.group('title').count();
       assert.ok(Array.isArray(results));
       const [result] = results;
@@ -104,7 +104,7 @@ describe('=> Querying (TypeScript)', function() {
     });
 
     it('Bone.group(raw).count()', async function() {
-      await Post.create({ title: 'Samoa' })
+      await Post.create({ title: 'Samoa' });
       const results = await Post.group(new Raw('title')).count();
       assert.ok(Array.isArray(results));
       const [result] = results;
@@ -157,7 +157,8 @@ describe('=> Querying (TypeScript)', function() {
 
     it('Bone.select(Raw)', async function() {
       const posts = await Post.select(new Raw('COUNT(author_id) as count'));
-      assert.equal(posts?.[0].count, 2);
+      assert.ok(Array.isArray(posts));
+      if ('count' in posts[0]) assert.equal(posts[0].count, 2);
     });
 
     it('Bone.where(Raw)', async function() {

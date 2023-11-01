@@ -4,10 +4,5 @@
     "target": "ES5",
     "module": "ESNext",
     "outDir": "dist",
-    "declaration": true,
-    "allowJs": true,
-  },
-  "include": [
-    "./src",
-  ]
+  }
 }

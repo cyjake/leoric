@@ -5,13 +5,10 @@ const path = require('path');
 const sinon = require('sinon');
 const SqlString = require('sqlstring');
 
-const { connect, raw, Bone, disconnect } = require('../..');
+const { connect, raw, Bone, disconnect, Raw, SqliteDriver } = require('../..');
 const { checkDefinitions } = require('./helpers');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
-const Raw = require('../../src/raw').default;
-
-const SqliteDriver = require('../../src/drivers/sqlite');
 
 class MySpellbook extends SqliteDriver.Spellbook {
 

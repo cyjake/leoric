@@ -126,9 +126,13 @@ class BaseRealm {
   }
 
   define(name, attributes, opts = {}, descriptors = {}) {
-    const Model = class extends this.Bone {
-      static name = name;
-    };
+    const Model = class extends this.Bone {};
+    Object.defineProperty(Model, 'name', {
+      value: name,
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
     Model.init(attributes, opts, descriptors);
     this.Bone.models[name] = Model;
     return Model;

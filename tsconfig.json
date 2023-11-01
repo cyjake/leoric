@@ -1,21 +1,31 @@
 {
+  "extends": "@tsconfig/node16",
   "compilerOptions": {
-    "target": "es2018",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
     "noUnusedLocals": true,
+    "outDir": "lib",
+    "skipLibCheck": true,
+    "sourceMap": true,
     "strictNullChecks": true,
-    "declaration": false,
-    "downlevelIteration": true,
-    "importHelpers": true,
+    "target": "ES2020",
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "dist",
+    "docs",
+    "lib",
+    "node_modules",
     "Readme.md"
   ]
 }

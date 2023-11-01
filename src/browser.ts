@@ -9,6 +9,8 @@ const Realm = require('./realm/base');
 const AbstractDriver = require('./drivers/abstract');
 const { isBone } = require('./utils');
 
+import { ConnectOptions } from './drivers';
+
 /**
  * @typedef {Object} RawSql
  * @property {boolean} __raw
@@ -25,7 +27,7 @@ const { isBone } = require('./utils');
  * @param {string|Bone[]} opts.models - an array of models
  * @returns {Pool} the connection pool in case we need to perform raw query
  */
-export const connect = async function connect(opts) {
+export const connect = async function connect(opts: ConnectOptions & { Bone?: typeof Bone }): Promise<InstanceType<typeof Realm>> {
   opts = { Bone, ...opts };
   if (opts.Bone.driver) throw new Error('connected already');
   const realm = new Realm(opts);
@@ -33,7 +35,7 @@ export const connect = async function connect(opts) {
   return realm;
 };
 
-export const disconnect = async function disconnect(realm, ...args) {
+export const disconnect = async function disconnect(realm: InstanceType<typeof Realm>, ...args: unknown[]) {
   if (realm instanceof Realm && realm.connected) {
     return await realm.disconnect(...args);
   }

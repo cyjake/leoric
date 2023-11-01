@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 const dayjs = require('dayjs');
 
 const { heresql } = require('../../../../src/utils/string');
-const { default: SqlJSDriver } = require('../../../../src/drivers/sqljs/index.js');
+const { default: SqlJSDriver } = require('../../../../src/drivers/sqljs');
 
 const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqlJSDriver.DataTypes;
 

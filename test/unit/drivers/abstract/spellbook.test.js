@@ -7,7 +7,7 @@ describe('=> Spellbook', function() {
   class User extends Bone {}
   class Attachment extends Bone {}
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
     static initialize() {
       this.belongsTo('author', { className: 'User' });
     }
@@ -30,7 +30,8 @@ describe('=> Spellbook', function() {
         authorId: User.where({ stauts: 1 }),
       }).with('author');
 
-      assert.equal(query.limit(10).toString(), heresql(function() {/*
+      assert.equal(query.limit(10).toString(), heresql(function() {
+        /*
         SELECT `posts`.*, `author`.*
           FROM `articles` AS `posts`
       LEFT JOIN `users` AS `author`
@@ -39,10 +40,12 @@ describe('=> Spellbook', function() {
           AND `posts`.`author_id` IN (SELECT * FROM `users` WHERE `stauts` = 1)
           AND `posts`.`gmt_deleted` IS NULL
           LIMIT 10
-      */}));
+        */
+      }));
 
       assert.doesNotThrow(function() {
-        assert.equal(query.count().toString(), heresql(function() {/*
+        assert.equal(query.count().toString(), heresql(function() {
+          /*
           SELECT COUNT(*) AS `count`
             FROM `articles` AS `posts`
        LEFT JOIN `users` AS `author`
@@ -50,23 +53,28 @@ describe('=> Spellbook', function() {
            WHERE `posts`.`is_private` = true
              AND `posts`.`author_id` IN (SELECT * FROM `users` WHERE `stauts` = 1)
              AND `posts`.`gmt_deleted` IS NULL
-        */}));
+          */
+        }));
       });
     });
 
     it('should format arithmetic operators as is', async function() {
       const query = Attachment.where('width/height > 16/9');
-      assert.equal(query.toString(), heresql(function() {/*
-        SELECT * FROM `attachments` WHERE `width` / `height` > 16 / 9 AND `gmt_deleted` IS NULL
-      */}));
+      assert.equal(query.toString(), heresql(function() {
+        /*
+          SELECT * FROM `attachments` WHERE `width` / `height` > 16 / 9 AND `gmt_deleted` IS NULL
+        */
+      }));
     });
 
     it('aggregate functions should be formatted without star', async function() {
       const query = Post.include('authors')
           .maximum('posts.createdAt');
-      assert.equal(query.toString(), heresql(function() {/*
-        SELECT MAX(`posts`.`gmt_create`) AS `maximum` FROM `articles` AS `posts` LEFT JOIN `users` AS `authors` ON `posts`.`userId` = `authors`.`id` WHERE `posts`.`gmt_deleted` IS NULL
-      */}));
+      assert.equal(query.toString(), heresql(function() {
+        /*
+          SELECT MAX(`posts`.`gmt_create`) AS `maximum` FROM `articles` AS `posts` LEFT JOIN `users` AS `authors` ON `posts`.`userId` = `authors`.`id` WHERE `posts`.`gmt_deleted` IS NULL
+        */
+      }));
     });
   });
 });

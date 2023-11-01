@@ -5,51 +5,52 @@ import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../.
 
 describe('=> sequelize (TypeScript)', function() {
   const { TEXT, STRING, VIRTUAL } = DataTypes;
+
   class Post extends SequelizeBone {
     static table = 'articles';
 
     @Column(DataTypes.BIGINT)
-    id: number;
+    id!: number;
 
     @Column({ name: 'gmt_create' })
-    createdAt: Date;
+    createdAt!: Date;
 
-    @Column({ name: 'gmt_modified'})
-    updatedAt: Date;
+    @Column({ name: 'gmt_modified' })
+    updatedAt!: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt: Date;
+    deletedAt!: Date;
 
     @Column()
-    title: string;
+    title!: string;
 
     @Column(TEXT)
-    content: string;
+    content!: string;
 
     @Column(TEXT)
-    extra: string;
+    extra!: string;
 
     @Column()
-    thumb: string;
+    thumb!: string;
 
     @Column()
-    authorId: bigint;
+    authorId!: bigint;
 
     @Column({
       defaultValue: false,
     })
-    isPrivate: boolean;
+    isPrivate!: boolean;
 
     @Column(TEXT)
-    summary: string;
+    summary!: string;
 
     @Column(TEXT)
-    settings: string;
+    settings!: string;
 
     @Column({
       defaultValue: 0,
     })
-    wordCount: number;
+    wordCount!: number;
 
     @Column(VIRTUAL)
     get virtualField(): string {
@@ -65,27 +66,27 @@ describe('=> sequelize (TypeScript)', function() {
     @Column({
       primaryKey: true,
     })
-    isbn: bigint;
+    isbn!: bigint;
 
     @Column({ name: 'gmt_create' })
-    createdAt: Date;
+    createdAt!: Date;
 
-    @Column({ name: 'gmt_modified'})
-    updatedAt: Date;
+    @Column({ name: 'gmt_modified' })
+    updatedAt!: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt: Date;
+    deletedAt!: Date;
 
     @Column(STRING(1000))
-    name: string;
+    name!: string;
 
     @Column()
-    price: number;
+    price!: number;
   }
 
   class Like extends SequelizeBone {
     @Column()
-    userId: number;
+    userId!: number;
   }
 
   before(async function() {

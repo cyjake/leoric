@@ -8,7 +8,7 @@ export enum LENGTH_VARIANTS {
   empty = '',
   medium = 'medium',
   long = 'long',
-};
+}
 
 export interface AbstractDataType<T> {
   new (dataLength?: LENGTH_VARIANTS | number): DataType & T;
@@ -24,7 +24,7 @@ export interface AbstractDataType<T> {
  */
 
 export abstract class DataType {
-  dataType: string = '';
+  dataType = '';
   dataLength?: string | number;
 
   /**
@@ -59,7 +59,7 @@ function hasDataLength(dataLength: string | number | undefined) {
  * @param {number} dataLength
  */
 class STRING extends DataType {
-  constructor(dataLength: number = 255) {
+  constructor(dataLength = 255) {
     super();
     this.dataType = 'varchar';
     this.dataLength = dataLength;
@@ -90,7 +90,7 @@ class STRING extends DataType {
 }
 
 class CHAR extends STRING {
-  constructor(dataLength: number = 255) {
+  constructor(dataLength = 255) {
     super(dataLength);
     this.dataType = 'char';
   }
@@ -289,7 +289,7 @@ class DATE extends DataType {
   precision?: number | null;
   timezone?: boolean = true;
 
-  constructor(precision?: number | null, timezone: boolean = true) {
+  constructor(precision?: number | null, timezone = true) {
     super();
     this.dataType = 'datetime';
     this.precision = precision;
@@ -305,7 +305,7 @@ class DATE extends DataType {
     return dataType;
   }
 
-  _round(value) {
+  _round(value: Date) {
     const { precision } = this;
     if (precision != null && precision < 3 && value instanceof Date) {
       const divider = 10 ** (3 - precision);
@@ -359,7 +359,7 @@ class DATEONLY extends DATE {
     return this.dataType.toUpperCase();
   }
 
-  _round(value) {
+  _round(value: Date) {
     if (value instanceof Date) {
       return new Date(value.getFullYear(), value.getMonth(), value.getDate());
     }
@@ -377,7 +377,7 @@ class BOOLEAN extends DataType {
     return this.dataType.toUpperCase();
   }
 
-  cast(value) {
+  cast(value: boolean) {
     if (value == null) return value;
     return Boolean(value);
   }
@@ -412,7 +412,7 @@ class BLOB extends DataType {
     return [ this.dataLength, this.dataType ].join('').toUpperCase();
   }
 
-  cast(value) {
+  cast(value: Buffer | string) {
     if (value == null) return value;
     if (Buffer.isBuffer(value)) return value;
     return Buffer.from(value);
@@ -434,7 +434,7 @@ class MYJSON extends DataType {
     return 'TEXT';
   }
 
-  cast(value) {
+  cast(value: null | object | string) {
     if (!value) return value;
     // type === JSONB
     if (typeof value === 'object') return value;
@@ -446,7 +446,7 @@ class MYJSON extends DataType {
     }
   }
 
-  uncast(value) {
+  uncast(value: null | Raw | object) {
     if (value == null || value instanceof Raw) return value;
     return global.JSON.stringify(value);
   }
@@ -471,7 +471,8 @@ class JSONB extends MYJSON {
 }
 
 class VIRTUAL extends DataType {
-  virtual: boolean = true;
+  virtual = true;
+
   constructor() {
     super();
     this.dataType = 'virtual';
@@ -532,15 +533,17 @@ class DataTypes {
   static BOOLEAN: DATA_TYPE<BOOLEAN> = BOOLEAN as any;
 
   static findType(columnType: string): DataTypes {
+    /* eslint-disable @typescript-eslint/no-shadow */
     const {
       CHAR, STRING, TEXT, DATE, DATEONLY,
-      TINYINT, SMALLINT, MEDIUMINT, INTEGER, 
+      TINYINT, SMALLINT, MEDIUMINT, INTEGER,
       BIGINT, DECIMAL, BOOLEAN,
       BINARY, VARBINARY, BLOB,
     } = this;
+    /* eslint-enable @typescript-eslint/no-shadow */
 
     const res = columnType?.match(/(\w+)(?:\((\d+)(?:,(\d+))?\))?/);
-    if(!res) {
+    if (!res) {
       throw new Error(`Unknown columnType ${columnType}`);
     }
     const [ , dataType, ...matches ] = res;
@@ -548,7 +551,7 @@ class DataTypes {
     for (let i = 0; i < matches.length; i++) {
       if (matches[i] != null) params[i] = parseInt(matches[i], 10);
     }
-  
+
     switch (dataType) {
       case 'char':
         return new CHAR(...params);
@@ -608,12 +611,12 @@ class DataTypes {
 
   static get invokable() {
     return new Proxy(this, {
-      get(target, p) {
+      get(target, p: keyof DataTypes) {
         const value = target[p];
         if (AllDataTypes.hasOwnProperty(p)) return invokableFunc(value);
         return value;
       }
-    }); 
+    });
   }
 
   /**

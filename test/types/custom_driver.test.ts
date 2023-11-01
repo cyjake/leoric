@@ -7,7 +7,7 @@ const { findExpr } = require('../../src/expr');
 
 interface FormatResult {
   table?: string;
-  whereArgs?: Array<Literal> 
+  whereArgs?: Array<Literal>
   whereClause?: string,
   values?: Array<Literal> | {
     [key: string]: Literal
@@ -43,6 +43,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     const { Model, sets, whereConditions } = spell;
     const { shardingKey } = Model;
     const { escapeId } = Model.driver!;
+    if (Array.isArray(sets)) throw new Error('multiple sets not allowed in UPDATE command');
     if (shardingKey) {
       if (sets!.hasOwnProperty(shardingKey) && sets![shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL`);
@@ -57,13 +58,13 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
 
     const table = escapeId(spell.table.value);
-    const opValues = {};
-    Object.keys(spell.sets!).reduce((obj, key) => {
-      obj[escapeId(Model.unalias(key))] = spell.sets![key];
+    const opValues: Record<string, Literal> = {};
+    Object.keys(sets!).reduce((obj, key) => {
+      obj[escapeId(Model.unalias(key))] = sets![key];
       return obj;
     }, opValues);
-  
-    let whereArgs = [];
+
+    const whereArgs: Literal[] = [];
     let whereClause = '';
     if (whereConditions.length > 0) {
       for (const condition of whereConditions) collectLiteral(spell, condition, whereArgs);
@@ -81,7 +82,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     const { Model, whereConditions } = spell;
     const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);
-    let whereArgs = [];
+    const whereArgs: Literal[] = [];
     let whereClause = '';
     if (whereConditions.length > 0) {
       for (const condition of whereConditions) collectLiteral(spell, condition, whereArgs);
@@ -98,12 +99,13 @@ class MySpellbook extends SqliteDriver.Spellbook {
     const { Model, sets } = spell;
     const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);
-    let values = {};
+    if (Array.isArray(sets)) throw new Error('multiple sets not supported in INSERT command yet');
 
     const { shardingKey } = Model;
     if (shardingKey && sets![shardingKey] == null) {
       throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
     }
+    const values: Record<string, Literal> = {};
     for (const name in sets) {
       const value = sets[name];
       values[escapeId(Model.unalias(name))] = value instanceof Raw? SqlString.raw(value.value) : value;
@@ -115,11 +117,12 @@ class MySpellbook extends SqliteDriver.Spellbook {
     };
   }
 
-};
+}
 
 class CustomDriver extends SqliteDriver {
   static Spellbook = MySpellbook;
 
+  // @ts-ignore
   async cast(spell) {
     const { command } = spell;
     switch (command) {
@@ -147,7 +150,7 @@ class CustomDriver extends SqliteDriver {
     }
   }
 
-  async update({ table, values, whereClause, whereArgs }, options?: SpellMeta) {
+  async update({ table, values, whereClause, whereArgs }: { table: string, values: Record<string, Literal>, whereClause: string, whereArgs: Literal[] }, options?: SpellMeta) {
     const valueSets: string[] = [];
     const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
@@ -158,7 +161,7 @@ class CustomDriver extends SqliteDriver {
     return await this.query(sql, assignValues.concat(whereArgs), options);
   }
 
-  async delete({ table, whereClause, whereArgs }, options) {
+  async delete({ table, whereClause, whereArgs }: { table: string, whereClause: string, whereArgs: Literal[] }, options?: SpellMeta) {
     const sql = `DELETE FROM ${table} ${whereClause}`;
     return await this.query(sql, whereArgs, options);
   }
@@ -173,7 +176,7 @@ class CustomDriver extends SqliteDriver {
     const sql = `INSERT INTO ${table} (${valueSets.join(',')}) VALUES (${valueSets.map(_ => '?')})`;
     return await this.query(sql, assignValues, options);
   }
-};
+}
 
 describe('=> Realm (TypeScript)', function () {
   let realm: Realm;
@@ -201,13 +204,13 @@ describe('=> Realm (TypeScript)', function () {
       const { STRING } = realm.DataTypes;
       const User = realm.define('TestUser', { name: STRING }, {}, {
         get name() {
-          return this.attribute('name').replace(/^([a-z])/, function(m, chr) {
+          return this.attribute('name').replace(/^([a-z])/, function(m: string, chr: string) {
             return chr.toUpperCase();
           });
         },
         set name(value) {
           if (typeof value !== 'string') throw new Error('unexpected name' + value);
-          this.attribute('name', value);
+          if (this instanceof realm.Bone) this.attribute('name', value);
         }
       });
       // User.findOne should exists
@@ -267,16 +270,16 @@ describe('=> Realm (TypeScript)', function () {
         static table = 'test_user';
 
         @Column()
-        id: bigint;
+        id!: bigint;
 
         @Column()
-        name: string;
+        name!: string;
 
         @Column(TEXT)
-        content: string;
+        content!: string;
 
         @Column(INTEGER.UNSIGNED)
-        rank: number;
+        rank!: number;
       }
 
       // TODO how to avoid calling load() manually
@@ -291,6 +294,6 @@ describe('=> Realm (TypeScript)', function () {
       assert(user.id);
       assert.equal(user.name, 'giant Y');
 
-    })
-  })
+    });
+  });
 });

@@ -3,6 +3,7 @@
 const MysqlDriver = require('./mysql');
 const PostgresDriver = require('./postgres');
 const SqliteDriver = require('./sqlite');
+const { default: SqljsDriver } = require('./sqljs');
 const AbstractDriver = require('./abstract');
 
 function findDriver(dialect) {
@@ -25,5 +26,6 @@ module.exports = {
   MysqlDriver,
   PostgresDriver,
   SqliteDriver,
+  SqljsDriver,
   AbstractDriver,
 };

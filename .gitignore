@@ -3,6 +3,7 @@ coverage
 docs/vendor
 docs/.bundle
 dist
+lib
 logs
 node_modules
 tmp
@@ -11,12 +12,3 @@ tmp
 docs/Gemfile.lock
 package-lock.json
 .DS_Store
-test/types/*.js
-test/types/*.map
-test/integration/suite/sharding.test.js*
-test/models/photo.js*
-src/browser.js*
-src/decorators.js*
-src/data_types.js*
-src/drivers/sqljs/*.js*
-src/raw.js*

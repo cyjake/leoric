@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 args=
 
 function run {
@@ -8,8 +10,8 @@ function run {
     args=("${args[@]:1}");
   fi
   echo "";
-  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha -R dot --exit --timeout 5000 ${file}";
-  printf '"%s" ' "${args[@]}" | DEBUG=leoric NODE_OPTIONS=--enable-source-maps xargs mocha -R dot --exit --timeout 5000 ${file} || exit $?;
+  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file}";
+  printf '"%s" ' "${args[@]}" | DEBUG=leoric xargs mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file} || exit $?;
 }
 
 ##
@@ -17,7 +19,7 @@ function run {
 function unit {
   # recursive glob nor available in bash 3
   # - https://unix.stackexchange.com/questions/49913/recursive-glob
-  run "$(ls test/unit/{,drivers/,drivers/*/,adapters/,utils/}*.test.js)";
+  run "$(ls test/unit/{,drivers/,drivers/*/,adapters/,utils/}*.test.{js,ts})";
 }
 
 ##
@@ -29,28 +31,28 @@ function integration {
 ##
 # definition type tests
 function dts {
-  run "$(ls test/types/*.test.js)";
+  run "$(ls test/types/*.test.{js,ts})";
 }
 
 case $1 in
   unit)
     args=("${@:2}")
-    npx tsc
+    npm run prepack
     unit
     ;;
   integration)
     args=("${@:2}")
-    npx tsc
+    npm run prepack
     integration
     ;;
   dts)
     args=("${@:2}")
-    npx tsc
+    npm run prepack
     dts
     ;;
   *.js)
     args=("${@:1}")
-    npx tsc
+    npm run prepack
     run $1
     ;;
   *)

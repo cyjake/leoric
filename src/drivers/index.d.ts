@@ -63,7 +63,7 @@ export class AbstractDriver {
    * disconnect manually
    * @param callback
    */
-  disconnect(callback?: Function): Promise<boolean | void>;
+  disconnect(callback?: () => Promise<void>): Promise<boolean | void>;
 
   /**
    * query with spell
@@ -183,6 +183,11 @@ export class PostgresDriver extends AbstractDriver {
 }
 
 export class SqliteDriver extends AbstractDriver {
+  type: 'sqlite';
+  dialect: 'sqlite';
+}
+
+export class SqljsDriver extends AbstractDriver {
   type: 'sqlite';
   dialect: 'sqlite';
 }

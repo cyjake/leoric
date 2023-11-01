@@ -13,7 +13,7 @@ interface ColumnOption extends Omit<ColumnBase, 'columnName'| 'columnType'> {
   }
 }
 
-function findType(tsType) {
+function findType(tsType: typeof BigInt | typeof Number | typeof Date | typeof String | typeof Boolean) {
   const {
     BIGINT, INTEGER,
     DATE,
@@ -40,7 +40,7 @@ function findType(tsType) {
 export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = {}) {
   return function(target: Bone, propertyKey: string) {
     // target refers to model prototype, an internal instance of `Bone {}`
-    if (options['prototype'] instanceof DataType || options instanceof DataType) {
+    if (('prototype' in options && options['prototype'] instanceof DataType) || options instanceof DataType) {
       options = { type: options as DATA_TYPE<DataType> };
     }
 
@@ -55,7 +55,7 @@ export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = 
     // target refers to model prototype, an internal instance of `Bone {}`
     const model = target.constructor as any;
     if (!model.hasOwnProperty('attributes') || !model.attributes) {
-      Object.defineProperty(model, 'attributes', { 
+      Object.defineProperty(model, 'attributes', {
         value: { ...model.attributes },
         writable: false,
         enumerable: false,
@@ -77,7 +77,7 @@ export function HasMany(options: AssociateOptions = {}) {
       ...Reflect.getMetadata(hasMany, model),
       [propertyKey]: options,
     }, model);
-  }
+  };
 }
 
 export function HasOne(options: AssociateOptions = {}) {
@@ -91,12 +91,12 @@ export function HasOne(options: AssociateOptions = {}) {
       ...Reflect.getMetadata(hasOne, model),
       [propertyKey]: options,
     }, model);
-  }
+  };
 }
 
 /**
  * design:type will be `Function { [native code] }` in following example
- * 
+ *
  * @example
  * import type Foo from './foo';
  * class Bar extends Bone {
@@ -115,5 +115,5 @@ export function BelongsTo(options: AssociateOptions = {}) {
       ...Reflect.getMetadata(belongsTo, model),
       [propertyKey]: options,
     }, model);
-  }
+  };
 }

@@ -22,12 +22,14 @@ export default class SqljsDriver extends SqliteDriver {
   /**
    * @override
    */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   pool: SqljsConnection;
 
   /**
    * @override
    */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   createPool(opts: DriverOptions) {
     const { database, ...restOpts } = opts;
@@ -54,7 +56,6 @@ export default class SqljsDriver extends SqliteDriver {
       });
     }
 
-    // @ts-ignore
     const { logger } = this;
     const logOpts = { ...spell, query };
     const sql = logger.format(query, values, spell);

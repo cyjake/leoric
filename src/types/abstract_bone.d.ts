@@ -1,5 +1,5 @@
-import DataTypes, { AbstractDataType, DataType } from "../data_types";
-import { 
+import DataTypes, { AbstractDataType, DataType } from '../data_types';
+import {
   Pool, Literal, WhereConditions,
   Collection, ResultSet, OrderOptions,
   QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, BoneCreateValues,
@@ -64,6 +64,11 @@ export class AbstractBone {
   static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
 
   /**
+   * The attribute definitions of the model, referenced by column name.
+   */
+  static attributeMap: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+
+  /**
    * The actual attribute definitions of the model.
    */
   static columnAttributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
@@ -111,12 +116,12 @@ export class AbstractBone {
 
   static alias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
   static alias<T extends typeof AbstractBone>(this: T, data: { [key in BoneColumns<T>]: Literal }): Record<string, Literal>;
-  static unalias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
-
-  // after alias/unalias
   static alias<T extends typeof AbstractBone>(this: T, name: string): string;
   static alias<T extends typeof AbstractBone>(this: T, data: Record<string, Literal>): Record<string, Literal>;
+
+  static unalias<T extends typeof AbstractBone>(this: T, name: BoneColumns<T>): string;
   static unalias<T extends typeof AbstractBone>(this: T, name: string): string;
+
 
   static hasOne(name: string, opts?: AssociateOptions): void;
   static hasMany(name: string, opts?: AssociateOptions): void;
@@ -247,7 +252,7 @@ export class AbstractBone {
    */
   static transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
   static transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
-  
+
   static describe(): Promise<{[key: string]: any[]}>;
 
   /**
@@ -333,8 +338,8 @@ export class AbstractBone {
   previousChanges<T, Key extends keyof Values<T>>(this: T, name: Key): boolean;
   previousChanges<T, Key extends keyof T>(this: T, name: Key): boolean;
 
-  previousChanges<T, Key extends keyof Values<T>>(this: T ): Array<Key>;
-  previousChanges<T, Key extends keyof T>(this: T ): Array<Key>;
+  previousChanges<T, Key extends keyof Values<T>>(this: T): Array<Key>;
+  previousChanges<T, Key extends keyof T>(this: T): Array<Key>;
 
   /**
    * Persist changes of current record to database. If current record has never been saved before, an INSERT query is performed. If the primary key was set and is not changed since, an UPDATE query is performed. If the primary key is changed, an INSERT ... UPDATE query is performed instead.

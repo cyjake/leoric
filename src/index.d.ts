@@ -1,18 +1,18 @@
-import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from './src/data_types';
+import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from './data_types';
 import {
   Hint, IndexHint, HintInterface,
   INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE
-} from './src/hint';
+} from './hint';
 import {
   Literal, Validator,
   Connection, QueryOptions, WhereConditions,
   Raw, ColumnMeta, AttributeMeta,
   BeforeHooksType, AfterHooksType, Collection,
   GeneratorReturnType, Values, BoneCreateValues, BoneInstanceValues,
-} from './src/types/common';
-import { SpellMeta, Spell, SpellBookFormatResult } from './src/spell';
-import Bone from './src/bone';
-import { ConnectOptions, AbstractDriver } from './src/drivers';
+} from './types/common';
+import { SpellMeta, Spell, SpellBookFormatResult } from './spell';
+import Bone from './bone';
+import { ConnectOptions, AbstractDriver } from './drivers';
 
 export {
   LENGTH_VARIANTS as LENGTH_VARIANTS,
@@ -22,9 +22,9 @@ export {
   SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneCreateValues, BoneInstanceValues,
 };
 
-export * from './src/decorators';
-export * from './src/drivers';
-export * from './src/adapters/sequelize';
+export * from './decorators';
+export * from './drivers';
+export * from './adapters/sequelize';
 
 interface InitOptions {
   underscored?: boolean;

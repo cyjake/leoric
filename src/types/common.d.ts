@@ -5,6 +5,7 @@ import { AbstractBone } from './abstract_bone';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string | Array<Literal>;
 
 export type Validator = BaseValidateArgs | {
@@ -159,7 +160,7 @@ export class Raw {
 
 export type SetOptions<T extends typeof AbstractBone> = {
   [Property in BoneColumns<T>]: Literal
-} | { 
+} | {
   [key: string]: Literal
 };
 
@@ -171,7 +172,7 @@ type OrderSortType = 'desc' | 'asc' | Uppercase<'desc' | 'asc'>;
 
 type OrderOptions<T extends typeof AbstractBone> = {
   [Property in Extract<BoneColumns<T>, Literal>]?: OrderSortType
-} | [ BoneColumns<T>, OrderSortType ] 
+} | [ BoneColumns<T>, OrderSortType ]
 | Array<BoneColumns<T> | [ BoneColumns<T>, OrderSortType ] | Raw | string | Array<Raw | string>>
 | string | Raw;
 
@@ -198,6 +199,7 @@ export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in 
 
 export type NullablePartial<T> = { [P in keyof T]?: T[P] | null };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type Values<T> = NullablePartial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
 
 export type BoneColumns<T extends typeof AbstractBone, Key extends keyof InstanceType<T> = keyof Values<InstanceType<T>>> = Key;
@@ -219,4 +221,5 @@ type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R
  * Plain keyMap type object of a Bone's attributes
  * BoneInstanceValues<user> = { id: number, name: string }
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<InstanceType<T>, PickTypeKeys<InstanceType<T>, Function> | 'isNewRecord' | 'Model' | 'dataValues'>;
