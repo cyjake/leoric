@@ -1,3 +1,12 @@
+2.11.5 / 2023-11-05
+===================
+
+## What's Changed
+* refactor: turn on compilerOptions.strict by @cyjake in https://github.com/cyjake/leoric/pull/403
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.4...v2.11.5
+
 2.11.4 / 2023-10-31
 ===================
 
