@@ -1,6 +1,6 @@
 import { strict as assert } from 'assert';
 import sinon, { SinonFakeTimers } from 'sinon';
-import Realm, { Bone, Column, DataTypes, connect, Raw } from '../..';
+import Realm, { Bone, Column, DataTypes, connect, Raw } from '../../src';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;

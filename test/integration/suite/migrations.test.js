@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const dayjs = require('dayjs');
 
-const Realm = require('../../..');
+const Realm = require('../../../src');
 const Logger = require('../../../src/drivers/abstract/logger');
 const { checkDefinitions } = require('../helpers');
 

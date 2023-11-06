@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const { connect, Bone, DataTypes } = require('../..');
+const { connect, Bone, DataTypes } = require('../../src');
 
 describe('connect', function() {
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('connect', function() {
         createdAt: { type: DATE },
         updatedAt: { type: DATE },
         deletedAt: { type: DATE },
-      }
+      };
     }
     await connect({
       port: process.env.MYSQL_PORT,

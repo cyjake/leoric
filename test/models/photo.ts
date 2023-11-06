@@ -1,4 +1,4 @@
-import { BelongsTo, Bone, Column } from '../..';
+import { BelongsTo, Bone, Column } from '../../src';
 import User from './user';
 
 export default class Photo extends Bone {

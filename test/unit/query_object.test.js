@@ -5,11 +5,11 @@ const SqlString = require('sqlstring');
 
 const { parseObject } = require('../../src/query_object');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
-const { Bone, connect } = require('../..');
+const { Bone, connect } = require('../../src');
 
 describe('=> parseObject', function() {
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
   }
 
   let spell;

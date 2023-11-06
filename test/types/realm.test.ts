@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import Realm from '../..';
+import Realm from '../../src';
 
 describe('=> Realm (TypeScript)', function () {
   let realm: Realm;

@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const path = require('path');
 const dayjs = require('dayjs');
 
-const { connect } = require('../..');
+const { connect } = require('../../src');
 
 before(async function() {
   await connect({

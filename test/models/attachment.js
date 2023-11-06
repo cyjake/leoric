@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone } = require('../..');
+const { Bone } = require('../../src');
 
 class Attachment extends Bone {
   static initialize() {

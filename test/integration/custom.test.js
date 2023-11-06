@@ -5,7 +5,7 @@ const path = require('path');
 const sinon = require('sinon');
 const SqlString = require('sqlstring');
 
-const { connect, raw, Bone, disconnect, Raw, SqliteDriver } = require('../..');
+const { connect, raw, Bone, disconnect, Raw, SqliteDriver } = require('../../src');
 const { checkDefinitions } = require('./helpers');
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');

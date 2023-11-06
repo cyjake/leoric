@@ -3,10 +3,10 @@
 const assert = require('assert').strict;
 const sinon = require('sinon');
 
-const { connect, raw, Bone, heresql } = require('../..');
+const { connect, raw, Bone, heresql } = require('../../src');
 
 class Post extends Bone {
-  static table = 'articles'
+  static table = 'articles';
   static initialize() {
     this.hasOne('attachment', { foreignKey: 'articleId' });
     this.hasMany('comments', {

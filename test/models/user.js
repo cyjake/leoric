@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, DataTypes } = require('../..');
+const { Bone, DataTypes } = require('../../src');
 
 const formatter = {
   formatName(value) {

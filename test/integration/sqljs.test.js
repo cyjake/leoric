@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const sinon = require('sinon');
 
-const Realm = require('../..');
+const Realm = require('../../src');
 const { checkDefinitions } = require('./helpers');
 
 const { raw, Bone, SqljsDriver } = Realm;

@@ -2,12 +2,12 @@
 
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
-const { connect, Bone } = require('../..');
+const { connect, Bone } = require('../../src');
 
 describe('=> formatExpr', function() {
 
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
     static initialize() {
       this.attribute('settings', { type: JSON });
     }

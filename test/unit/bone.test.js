@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, DataTypes, connect, default: Realm } = require('../..');
+const { Bone, DataTypes, connect, default: Realm } = require('../../src');
 const expect = require('expect.js');
 
 const {
@@ -95,7 +95,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           iid: { type: BIGINT, primaryKey: true },
-        }
+        };
       };
       await User.load([
         { columnName: 'iid', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -108,7 +108,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           name: STRING,
-        }
+        };
       }
       User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -125,7 +125,7 @@ describe('=> Bone', function() {
           createdAt: DATE,
           updatedAt: DATE,
           deletedAt: DATE,
-        }
+        };
       }
       User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -147,7 +147,7 @@ describe('=> Bone', function() {
           created_at: DATE,
           updated_at: DATE,
           deleted_at: DATE,
-        }
+        };
       }
       User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -167,7 +167,7 @@ describe('=> Bone', function() {
           createdAt: DATE,
           updatedAt: DATE,
           deletedAt: DATE,
-        }
+        };
       }
       User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -182,7 +182,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           ssn: { type: STRING, primaryKey: true },
-        }
+        };
       }
       User.load([
         { columnName: 'ssn', columnType: 'varchar', dataType: 'varchar', primaryKey: true },
@@ -196,7 +196,7 @@ describe('=> Bone', function() {
         static attributes = {
           createdAt: new DATE,
           updatedAt: new DATE(0),
-        }
+        };
       }
       User.load([
         { columnName: 'created_at', columnType: 'timestamp(3)', dataType: 'timestamp', datetimePrecision: 3 },
@@ -211,7 +211,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           createdAt: DATE,
-        }
+        };
       }
       User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
@@ -227,7 +227,7 @@ describe('=> Bone', function() {
         static attributes = {
           createdAt: DATE,
           realName: VIRTUAL,
-        }
+        };
       }
       assert.deepEqual(Object.keys(User.attributes).sort(), [ 'createdAt', 'realName' ]);
       assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'createdAt' ]);
@@ -265,7 +265,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           foo: { type: STRING },
-        }
+        };
       }
       User.load([
         { columnName: 'foo', columnType: 'varchar', dataType: 'varchar' },
@@ -282,7 +282,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {
           foo: { type: STRING },
-        }
+        };
         get bar() {
           return this.attribute('bar');
         }
@@ -330,7 +330,7 @@ describe('=> Bone', function() {
         static attributes = {
           authorId: BIGINT,
           updatedAt: { type: DATE, allowNull: false },
-        }
+        };
       }
       await Note.sync({ force: true });
       const note = await Note.create({ authorId: 4 });
@@ -344,7 +344,7 @@ describe('=> Bone', function() {
           authorId: BIGINT,
           updatedAt: { type: DATE, allowNull: false },
           halo: VIRTUAL,
-        }
+        };
       }
       await Note.sync({ force: true });
       const note = await Note.create({ halo: 'yes' });
@@ -358,7 +358,7 @@ describe('=> Bone', function() {
           authorId: BIGINT,
           updatedAt: { type: DATE, allowNull: false },
           halo: VIRTUAL,
-        }
+        };
         get halo() {
           return this.attribute('halo');
         }
@@ -388,7 +388,7 @@ describe('=> Bone', function() {
         static attributes = {
           isPrivate: TINYINT(1),
           wordCount: MEDIUMINT,
-        }
+        };
       }
       await Note.sync({ force: true });
       const result = await Note.describe();
@@ -403,7 +403,7 @@ describe('=> Bone', function() {
           isPrivate: TINYINT(1),
           wordCount: MEDIUMINT,
           halo: VIRTUAL,
-        }
+        };
       }
       await Note.sync({ force: true });
       const result = await Note.describe();

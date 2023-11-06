@@ -3,7 +3,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const sqlcipher = require('@journeyapps/sqlcipher');
-const Realm = require('../..');
+const Realm = require('../../src');
 
 before(async function() {
   const plaintext = '/tmp/leoric.sqlite3';

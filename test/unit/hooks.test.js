@@ -1,8 +1,8 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { connect } = require('../..');
-const { Bone, DataTypes, sequelize } = require('../..');
+const { connect } = require('../../src');
+const { Bone, DataTypes, sequelize } = require('../../src');
 
 const attributes = {
   id: DataTypes.BIGINT,

@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import Realm, { DataTypes, LENGTH_VARIANTS } from '../..';
+import Realm, { DataTypes, LENGTH_VARIANTS } from '../../src';
 
 describe('=> Data types (TypeScript)', function() {
   const { STRING, TEXT, BLOB, INTEGER, BIGINT, DATE, BOOLEAN, BINARY, VARBINARY, VIRTUAL, JSON, JSONB, DECIMAL } = DataTypes;
@@ -11,7 +11,7 @@ describe('=> Data types (TypeScript)', function() {
     });
     // should be mixed with dialect overrides
     assert.notEqual(realm.Bone.DataTypes, DataTypes);
-  })
+  });
 
   it('STRING', async function() {
     assert.equal(STRING(255).toSqlString(), 'VARCHAR(255)');
@@ -82,7 +82,7 @@ describe('=> Data types (TypeScript)', function() {
   it('BOOLEAN', () => {
     assert.equal(BOOLEAN.toSqlString(), 'BOOLEAN');
     assert.equal((new BOOLEAN).toSqlString(), 'BOOLEAN');
-  })
+  });
 
   it('BINARY', () => {
     // default 255
@@ -127,5 +127,5 @@ describe('=> Data types (TypeScript)', function() {
     assert.equal(DECIMAL.ZEROFILL.toSqlString(), 'DECIMAL ZEROFILL');
     assert.equal(DECIMAL(10).ZEROFILL.toSqlString(), 'DECIMAL(10) ZEROFILL');
     assert.equal(new DECIMAL(10).ZEROFILL.toSqlString(), 'DECIMAL(10) ZEROFILL');
-  })
+  });
 });

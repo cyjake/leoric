@@ -5,7 +5,7 @@ const assert = require('assert').strict;
 const {
   connect, Bone,
   Hint, IndexHint, INDEX_HINT_TYPE, INDEX_HINT_SCOPE,
-} = require('../..');
+} = require('../../src');
 
 describe('Hint', () => {
   it('text= should strip comment syntax', () => {

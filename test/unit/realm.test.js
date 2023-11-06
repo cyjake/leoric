@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const Realm = require('../..');
+const Realm = require('../../src');
 const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver, SequelizeBone } = Realm;
 
 const attributes = {

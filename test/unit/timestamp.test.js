@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { connect, Bone, DataTypes } = require('../..');
+const { connect, Bone, DataTypes } = require('../../src');
 
 describe('connect', function() {
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('connect', function() {
         createdAt: { type: DATE },
         updatedAt: { type: DATE },
         deletedAt: { type: DATE },
-      }
+      };
     }
     await connect({
       port: process.env.MYSQL_PORT,
@@ -62,7 +62,7 @@ describe('connect', function() {
         created_at: { type: DATE },
         updated_at: { type: DATE },
         deleted_at: { type: DATE },
-      }
+      };
     }
     await connect({
       port: process.env.MYSQL_PORT,
@@ -89,7 +89,7 @@ describe('connect', function() {
         created_at: { type: DATE },
         updatedAt: { type: DATE },
         deleted_at: { type: DATE },
-      }
+      };
     }
     await connect({
       port: process.env.MYSQL_PORT,

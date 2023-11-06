@@ -62,6 +62,12 @@
       "eslint --no-ignore --fix"
     ]
   },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "include": [
+      "src"
+    ]
+  },
   "dependencies": {
     "dayjs": "^1.10.3",
     "debug": "^3.1.0",
@@ -101,6 +107,7 @@
     "@babel/core": "^7.14.6",
     "@babel/eslint-parser": "^7.14.7",
     "@cara/minami": "^1.2.3",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@journeyapps/sqlcipher": "^5.2.0",
     "@tsconfig/node16": "^16.1.1",
     "@types/mocha": "^9.0.0",

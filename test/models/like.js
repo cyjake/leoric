@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone } =require('../..');
+const { Bone } =require('../../src');
 
 const TARGET_TYPE = {
   post: 0,
