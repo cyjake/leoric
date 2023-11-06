@@ -157,7 +157,14 @@ class Shop extends Bone {
 }
 ```
 
-A lot of schema settings can be done within the `static initialize()` method. We'll get to that later.
+A lot of schema settings can be done within the `static initialize()` method. We'll get to that later. For TypeScript projects this static method is unnecessary, most of the settings can be tweaked with the equivalent decorators. The example above can be refactored with decorator like below:
+
+```ts
+class Shop extends Bone {
+  @Column({ name: 'removed_at' })
+  deltedAt: Date;
+}
+```
 
 ## Connecting Models to Database
 

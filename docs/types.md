@@ -41,7 +41,8 @@ Here is the list of options supported by `@Column()` that can be used to customi
 | primaryKey = false    | declare class field as the primary key |
 | autoIncrement = false | enable auto increment on corresponding class field, must be numeric type |
 | allowNull = true      | class field can not be null when persisting to database |
-| type = typeof field | override the data type deduced from class field type |
+| type = typeof field   | override the data type deduced from class field type |
+| name = string         | actual name of the table field in database |
 
 If `type` option is omitted, `@Column()` will try to deduce the corresponding one as below:
 
@@ -52,6 +53,18 @@ If `type` option is omitted, `@Column()` will try to deduce the corresponding on
 | Date    | DATE |
 | bigint  | BIGINT |
 | boolean | BOOLEAN / TINYINT(1) |
+
+Here is an example that is a little bit more comprehensive:
+
+```ts
+class User extends Bone {
+  @Column({ name: 'ssn', primaryKey: true, type: VARCHAR(16) })
+  ssn: string;
+
+  @Column({ name: 'gmt_create', allowNull: false })
+  createdAt: Date;
+}
+```
 
 ### BelongsTo
 
