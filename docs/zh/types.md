@@ -41,7 +41,8 @@ class User extends Bone {
 | primaryKey = false    | 声明主键 |
 | autoIncrement = false | 启用自增字段，字段类型必须是数值类型 |
 | allowNull = true      | 允许字段存储空值 NULL |
-| type = typeof field | 自定义字段类型 |
+| type = typeof field   | 自定义字段类型 |
+| name = string         | 原始字段名 |
 
 如果省略 `type` 配置项，`@Column()` 会尝试按照如下映射关系推导当前字段类型：
 
@@ -52,6 +53,18 @@ class User extends Bone {
 | Date    | DATE |
 | bigint  | BIGINT |
 | boolean | BOOLEAN / TINYINT(1) |
+
+一个比较复杂的例子：
+
+```ts
+class User extends Bone {
+  @Column({ name: 'ssn', primaryKey: true, type: VARCHAR(16) })
+  ssn: string;
+
+  @Column({ name: 'gmt_create', allowNull: false })
+  createdAt: Date;
+}
+```
 
 ### BelongsTo
 

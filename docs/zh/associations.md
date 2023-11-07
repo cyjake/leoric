@@ -37,6 +37,22 @@ Leoric 支持四种关联关系：
 
 这些方法需要在 `Model.describe()` 方法中调用。例如，声明店铺属于 `belongsTo()` 它的 `owner` 之后，Leoric 将在执行 `Shop.find().with('owner')` 时自动 JOIN 店铺和用户表，找到所查找的店铺对应的 `owner`，在结果中实例化对应的数据模型并挂载到店铺的 `owner` 属性。
 
+使用 TypeScript 的项目也可以用更直观的装饰器配置方式，上述四种关联关系都有对应的装饰器：
+
+- `@BelongsTo()`
+- `@HasMany()`
+- `@HasMany({ through })`
+- `@HasOne()`
+
+和静态方法的区别主要是第一个参数不需要指定关联关系名称，其余基本一致，例如 `Post.belongsTo('user')` 对应的装饰器是：
+
+```ts
+class Post {
+  @BelongsTo()
+  user: User
+}
+```
+
 ### `belongsTo()`
 
 <figure class="belongs-to-erd">
@@ -53,6 +69,15 @@ class Item extends Bone {
 }
 ```
 
+或者使用对应的装饰器来声明关联关系：
+
+```ts
+class Item extends Bone {
+  @BelongsTo()
+  shop: Shop;
+}
+```
+
 Leoric 会把关联关系的名称 `shop` 转为驼峰、首字母大写，再以转换后的 `Shop` 为数据模型名称寻找对应的数据模型定义。如果实际的数据模型名称并非如此，我们也可以使用 `className` 显式指定：
 
 ```js
@@ -60,6 +85,15 @@ class Item extends Bone {
   static initialize() {
     this.belongsTo('shop', { className: 'Seller' })
   }
+}
+```
+
+使用对应的装饰器：
+
+```ts
+class Item extends Bone {
+  @BelongsTo({ className: 'Seller' })
+  shop: Shop;
 }
 ```
 
@@ -79,6 +113,15 @@ class Item extends Bone {
 }
 ```
 
+使用对应的装饰器：
+
+```ts
+class Item extends Bone {
+  @BelongsTo({ foreignKey: 'sellerId' })
+  shop: Shop;
+}
+```
+
 ### `hasMany()`
 
 <figure class="has-many-erd">
@@ -92,6 +135,15 @@ class Shop extends Bone {
   static initialize() {
     this.hasMany('items')
   }
+}
+```
+
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  @HasMany()
+  items: Item[];
 }
 ```
 
@@ -109,6 +161,16 @@ class Shop extends Bone {
 }
 ```
 
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  // 一般可以通过类型名识别出对应的 className
+  @HasMany({ className: 'Commodity' })
+  items: Commodity[];
+}
+```
+
 如你在实例关系图所见，`hasMany()` 的外键是在目标数据模型对应的表 `items` 中的。要覆盖默认的外键名称，给 `hasMany()` 传 `foreignKey` 即可：
 
 ```js
@@ -116,6 +178,15 @@ class Shop extends Bone {
   static initialize() {
     this.hasMany('items', { foreignKey: 'sellerId' })
   }
+}
+```
+
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  @HasMany({ foreignKey: 'sellerId' })
+  items: Item[];
 }
 ```
 
@@ -145,14 +216,42 @@ class Shop extends Bone {
 }
 ```
 
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  @HasMany({ foreignKey: 'targetId', where: { targetType: 0 } })
+  tagMaps: TagMap[];
+
+  @HasMany({ through: 'tagMaps' })
+  tags: Tag[];
+}
+```
+
 在 `Tag` 这边则是：
 
 ```js
 class Tag extends Bone {
   static initialize() {
-    this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
+    this.hasMany('shopTagMaps', {
+      className: 'TagMap',
+      foreignKey: 'targetId',
+      where: { targetType: 0 },
+    })
     this.hasMany('shops', { through: 'shopTagMaps' })
   }
+}
+```
+
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  @HasMany({ className: 'TagMap', foreignKey: 'targetId', where: { targetType: 0 } })
+  shopTagMaps: TagMap[];
+
+  @HasMany({ through: 'shopTagMaps' })
+  shops: Tag[];
 }
 ```
 
@@ -191,6 +290,15 @@ class User extends Bone {
 }
 ```
 
+使用对应的装饰器：
+
+```ts
+class User extends Bone {
+  @HasOne({ foreignKey: 'ownerId' })
+  shop: Shop;
+}
+```
+
 而店铺与用户也是一对一的关系：
 
 ```js
@@ -198,6 +306,15 @@ class Shop extends Bone {
   static initialize() {
     this.belongsTo('owner', { className: 'User' })
   }
+}
+```
+
+使用对应的装饰器：
+
+```ts
+class Shop extends Bone {
+  @BelongsTo({ className: 'User' })
+  owner: User;
 }
 ```
 

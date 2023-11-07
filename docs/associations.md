@@ -37,6 +37,22 @@ Leoric supports four types of associations:
 
 Associations can be declared within the `Model.describe()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Leoric that when `Shop.find().with('owner')`, Leoric should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
 
+There are four equivalent decorators for projects written in TypeScript
+
+- `@BelongsTo()`
+- `@HasMany()`
+- `@HasMany({ through })`
+- `@HasOne()`
+
+The major difference between static method and decorators for associations is that the first parameter can be omitted in the decorator equivalent. For example, `Post.belongsTo('user')` declared with decorator is like below:
+
+```ts
+class Post {
+  @BelongsTo()
+  user: User
+}
+```
+
 ### `belongsTo()`
 
 <figure class="belongs-to-erd">
@@ -53,6 +69,15 @@ class Item extends Bone {
 }
 ```
 
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Item extends Bone {
+  @BelongsTo()
+  shop: Shop;
+}
+```
+
 Leoric locates the model class `Shop` automatically by capitalizing `shop` as the model name. If that's not the case, we can specify the model name explicitly by passing `className`:
 
 ```js
@@ -60,6 +85,15 @@ class Item extends Bone {
   static initialize() {
     this.belongsTo('shop', { className: 'Seller' })
   }
+}
+```
+
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Item extends Bone {
+  @BelongsTo({ className: 'Seller' })
+  shop: Shop;
 }
 ```
 
@@ -79,6 +113,15 @@ class Item extends Bone {
 }
 ```
 
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Item extends Bone {
+  @BelongsTo({ foreignKey: 'sellerId' })
+  shop: Shop;
+}
+```
+
 ### `hasMany()`
 
 <figure class="has-many-erd">
@@ -92,6 +135,15 @@ class Shop extends Bone {
   static initialize() {
     this.hasMany('items')
   }
+}
+```
+
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  @HasMany()
+  items: Item[];
 }
 ```
 
@@ -109,6 +161,16 @@ class Shop extends Bone {
 }
 ```
 
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  // It might be able to deduce the className from `Commodify[]` type
+  @HasMany({ className: 'Commodity' })
+  items: Commodity[];
+}
+```
+
 As you can tell from the ER diagram, the foreign key used to join two tables is located at the target table, `items`. To override the foreign key, just pass it to the option of `hasMany()`:
 
 ```js
@@ -118,6 +180,16 @@ class Shop extends Bone {
   }
 }
 ```
+
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  @HasMany({ foreignKey: 'sellerId' })
+  items: Item[];
+}
+```
+
 
 ### `hasMany({ through })`
 
@@ -145,6 +217,18 @@ class Shop extends Bone {
 }
 ```
 
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  @HasMany({ foreignKey: 'targetId', where: { targetType: 0 } })
+  tagMaps: TagMap[];
+
+  @HasMany({ through: 'tagMaps' })
+  tags: Tag[];
+}
+```
+
 On `Tag`'s side:
 
 ```js
@@ -153,6 +237,18 @@ class Tag extends Bone {
     this.hasMany('shopTagMaps', { className: 'TagMap', where: { targetType: 0 } })
     this.hasMany('shops', { through: 'shopTagMaps' })
   }
+}
+```
+
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  @HasMany({ className: 'TagMap', foreignKey: 'targetId', where: { targetType: 0 } })
+  shopTagMaps: TagMap[];
+
+  @HasMany({ through: 'shopTagMaps' })
+  shops: Tag[];
 }
 ```
 
@@ -191,6 +287,15 @@ class User extends Bone {
 }
 ```
 
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class User extends Bone {
+  @HasOne({ foreignKey: 'ownerId' })
+  shop: Shop;
+}
+```
+
 And the shop belongs to the user:
 
 ```js
@@ -198,6 +303,15 @@ class Shop extends Bone {
   static initialize() {
     this.belongsTo('owner', { className: 'User' })
   }
+}
+```
+
+The TypeScript equivalent with decorator is like below:
+
+```ts
+class Shop extends Bone {
+  @BelongsTo({ className: 'User' })
+  owner: User;
 }
 ```
 

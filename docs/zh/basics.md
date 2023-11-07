@@ -109,6 +109,24 @@ const realm = new Realm({ host: 'localhost', models: [ Shop ] });
 await realm.sync();
 ```
 
+如果你的项目使用 TypeScript 编写，也可以使用装饰器来声明模型：
+
+```ts
+import { Bone, Realm } from 'leoric';
+const { BIGINT, STRING } = Bone.DataTypes;
+
+// define Shop
+class Shop extends Bone {
+  // 主键声明也可以省略，默认按照如下方式声明
+  @Column({ primaryKey: true })
+  id: bigint;
+
+  // 字符串默认按照 VARCHAR(255) 类型定义
+  @Column()
+  name: string;
+}
+```
+
 然后就可以用 `Shop` 数据模型操作数据了：
 
 ```js
@@ -132,7 +150,7 @@ class Shop extends Bone {
 
 ```js
 class Shop extends Bone {
-  static primaryKey = 'shopId' }
+  static primaryKey = 'shopId'
 }
 ```
 
@@ -156,7 +174,14 @@ class Shop extends Bone {
 }
 ```
 
-`static initialize()` 方法中可配置的项目有很多。我们之后再详细讨论。
+还可以在 `static initialize()` 中配置模型的关联关系，具体方法会在之后详细讨论。TypeScript 项目一般不需要通过这个静态方法，相关配置都有提供对应的装饰器版本，上述示例对应的 TypeScript 声明方式为：
+
+```ts
+class Shop extends Bone {
+  @Column({ name: 'removed_at' })
+  deltedAt: Date;
+}
+```
 
 ## 连接数据模型和数据库
 
@@ -393,6 +418,29 @@ class Shop extends Bone {
     createdAt: DATE,
     updatedAt: DATE,
   }
+  set name(value) {
+    if ([ 'FamilyMart', '7-Eleven' ].includes(value)) {
+      this.attribute('name', value);
+    }
+    throw new Error(`unknown shop name: ${value}`);
+  }
+}
+```
+
+使用装饰器的版本：
+
+```ts
+class Shop extends Bone {
+  @Column()
+  name: STRING;
+
+  @Column()
+  createdAt: DATE;
+
+  @Column()
+  updatedAt: DATE;
+
+  @Column({ type: STRING })
   set name(value) {
     if ([ 'FamilyMart', '7-Eleven' ].includes(value)) {
       this.attribute('name', value);
