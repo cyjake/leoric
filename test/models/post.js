@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone } = require('../..');
+const { Bone } = require('../../src');
 
 class Post extends Bone {
   static table = 'articles';

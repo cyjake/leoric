@@ -1,6 +1,6 @@
 
 import { strict as assert } from 'assert';
-import { heresql } from '../../..';
+import { heresql } from '../../../src';
 
 describe('=> heresql', function() {
   it('should accept function comment', function() {

@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, DataTypes } = require('../..');
+const { Bone, DataTypes } = require('../../src');
 
 const CHARSET = 'abcdefghigklmnopqrstuvwxyz0123456789';
 
@@ -29,7 +29,7 @@ class Tag extends Bone {
       type: DataTypes.STRING,
       unique: true,
     }
-  }
+  };
 
   static beforeCreate(obj) {
     if (!obj.uuid) {

@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const expect = require('expect.js');
 const sinon = require('sinon');
 
-const { raw } = require('../../../');
+const { raw } = require('../../../src');
 
 const Attachment = require('../../models/attachment');
 const Book = require('../../models/book');

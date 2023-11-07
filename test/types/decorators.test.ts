@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { AttributeMeta, Bone, DataTypes, Column, HasMany, BelongsTo, connect } from '../..';
+import { AttributeMeta, Bone, DataTypes, Column, HasMany, BelongsTo, connect } from '../../src';
 
 const { TEXT, STRING, INTEGER } = DataTypes;
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone } = require('../../..');
+const { Bone } = require('../../../src');
 
 async function checkDefinitions(table, definitions) {
   const { database } = Bone.options;

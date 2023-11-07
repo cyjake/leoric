@@ -37,22 +37,18 @@ function dts {
 case $1 in
   unit)
     args=("${@:2}")
-    npm run prepack
     unit
     ;;
   integration)
     args=("${@:2}")
-    npm run prepack
     integration
     ;;
   dts)
     args=("${@:2}")
-    npm run prepack
     dts
     ;;
   *.js)
     args=("${@:1}")
-    npm run prepack
     run $1
     ;;
   *)

@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 const sinon = require('sinon');
 
-import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../..';
+import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../../src';
 
 describe('=> sequelize (TypeScript)', function() {
   const { TEXT, STRING, VIRTUAL } = DataTypes;

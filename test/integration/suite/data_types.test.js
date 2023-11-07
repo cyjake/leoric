@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 
-const { Bone, DataTypes } = require('../../..');
+const { Bone, DataTypes } = require('../../../src');
 const { INTEGER, STRING, DATE, DATEONLY, TEXT, BOOLEAN, JSON, JSONB, BIGINT } = DataTypes;
 
 
@@ -17,7 +17,7 @@ describe('=> Data types', () => {
       createdAt: DATE,
       updatedAt: DATE,
       publishedAt: DATE(6),
-    }
+    };
   };
 
   before(async () => {
@@ -77,7 +77,7 @@ describe('=> Data types - JSON', () => {
       publishedAt: DATE(6),
       meta: JSON,
       metab: JSONB,
-    }
+    };
   }
 
   before(async () => {
@@ -146,7 +146,7 @@ describe('=> Data types - BINARY', () => {
         meta: BINARY,
         metab: VARBINARY,
         metac: BLOB
-      }
+      };
     }
     Note = NoteClass;
   });
@@ -202,7 +202,7 @@ describe('=> Data Types - INTEGER', function() {
     static attributes = {
       word_count: INTEGER,
       createdAt: DATE,
-    }
+    };
   }
 
   before(async function() {
@@ -250,7 +250,7 @@ describe('=> Data types - DATE', function() {
     static attributes = {
       createdAt: DATE(6),
       updatedAt: DATE(6),
-    }
+    };
   }
 
   before(async function() {
@@ -307,7 +307,7 @@ describe('=> Data types - DATEONLY', function() {
   class Note extends Bone {
     static attributes = {
       createdAt: DATEONLY,
-    }
+    };
   }
 
   before(async function() {
@@ -363,7 +363,7 @@ describe('=> Data types - JSON', function() {
   class Note extends Bone {
     static attributes = {
       meta: JSON,
-    }
+    };
   }
 
   before(async () => {
@@ -392,7 +392,7 @@ describe('=> Data types - TEXT', function() {
   class Note extends Bone {
     static attributes = {
       meta: TEXT,
-    }
+    };
   }
 
   before(async () => {
@@ -426,7 +426,7 @@ describe('=> Data types - STRING', function() {
   class Note extends Bone {
     static attributes = {
       meta: STRING,
-    }
+    };
   }
 
   before(async () => {
@@ -461,7 +461,7 @@ describe('=> Data types - complementary', function() {
     static attributes = {
       createdAt: DATE,
       updatedAt: new DATE(3),
-    }
+    };
   }
 
   before(async function() {

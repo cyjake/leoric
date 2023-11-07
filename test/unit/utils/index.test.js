@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, sequelize, isBone } = require('../../..');
+const { Bone, sequelize, isBone } = require('../../../src');
 const { compose, getPropertyNames, logger } = require('../../../src/utils');
 
 describe('=> compose', function() {

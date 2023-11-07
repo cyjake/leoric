@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 
-const { connect, Bone, DataTypes } = require('../..');
+const { connect, Bone, DataTypes } = require('../../src');
 
 describe('validator', () => {
   const attributes = {

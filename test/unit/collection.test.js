@@ -1,11 +1,11 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, Collection, connect, raw } = require('../..');
+const { Bone, Collection, connect, raw } = require('../../src');
 
 describe('=> Collection', function() {
   class Post extends Bone {
-    static table = 'articles'
+    static table = 'articles';
   }
 
   class User extends Bone {

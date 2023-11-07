@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 const SqlString = require('sqlstring');
 
-import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw } from '../..';
+import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw } from '../../src';
 const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
 const { findExpr } = require('../../src/expr');
 

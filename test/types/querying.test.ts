@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../..';
+import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../../src';
 
 describe('=> Querying (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING } = DataTypes;

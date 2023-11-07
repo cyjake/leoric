@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { connect, heresql, Bone } = require('../../../..');
+const { connect, heresql, Bone } = require('../../../../src');
 
 describe('=> Spellbook', function() {
   class User extends Bone {}

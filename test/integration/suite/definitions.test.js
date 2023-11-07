@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const sinon = require('sinon');
-const { Bone, DataTypes } = require('../../..');
+const { Bone, DataTypes } = require('../../../src');
 const { checkDefinitions } = require('../helpers');
 
 const { INTEGER, STRING, TEXT } = DataTypes;

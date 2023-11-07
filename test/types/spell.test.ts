@@ -5,7 +5,7 @@ import {
   Bone, DataTypes, Column, HasOne,
   connect, INDEX_HINT_SCOPE_TYPE,
   INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw, heresql,
-} from '../..';
+} from '../../src';
 
 describe('=> Spell (TypeScript)', function() {
   const { STRING, TEXT, TINYINT } = DataTypes;

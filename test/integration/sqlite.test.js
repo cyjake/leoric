@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const path = require('path');
 const sinon = require('sinon');
 
-const { connect, raw, Bone } = require('../..');
+const { connect, raw, Bone } = require('../../src');
 const { checkDefinitions } = require('./helpers');
 
 before(async function() {

@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
-const { Bone, connect, sequelize, DataTypes, raw, Hint } = require('../../..');
+const { Bone, connect, sequelize, DataTypes, raw, Hint } = require('../../../src');
 
 const userAttributes = {
   id: DataTypes.BIGINT,
