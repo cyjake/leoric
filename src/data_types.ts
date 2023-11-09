@@ -421,9 +421,12 @@ class BLOB extends DataType {
 
 // JSON text type
 class MYJSON extends DataType {
-  constructor() {
+  ignoreError: boolean;
+
+  constructor({ ignoreError = false }: { ignoreError?: boolean } = {}) {
     super();
     this.dataType = 'text';
+    this.ignoreError = ignoreError;
   }
 
   toSqlString() {
@@ -441,7 +444,7 @@ class MYJSON extends DataType {
     try {
       return global.JSON.parse(value);
     } catch (err) {
-      console.error(new Error(`unable to cast ${value} to JSON`));
+      if (!this.ignoreError) console.error(new Error(`unable to cast ${value} to JSON`));
       return value;
     }
   }

@@ -19,7 +19,7 @@
     "prepack": "tsc && npm run copy-dts",
     "prepack:browser": "rm -rf dist && tsc -p tsconfig.browser.json && npm run copy-dts:browser",
     "prepublishOnly": "npm run prepack && npm run prepack:browser",
-    "pretest": "npm run prepack && ./test/prepare.sh",
+    "pretest": "./test/prepare.sh",
     "test": "./test/start.sh",
     "test:local": "./test/start.sh",
     "test:unit": "./test/start.sh unit",
