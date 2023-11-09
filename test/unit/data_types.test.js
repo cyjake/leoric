@@ -2,6 +2,7 @@
 
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
+const sinon = require('sinon');
 const { default: DataTypes } = require('../../src/data_types');
 const Raw = require('../../src/raw').default;
 const Postgres_DataTypes = require('../../src/drivers/postgres/data_types');
@@ -113,6 +114,16 @@ describe('=> Data Types', () => {
     // JSON type is actually stored as TEXT
     assert.equal(new JSON().dataType, 'text');
     assert.equal(new JSON().toSqlString(), 'TEXT');
+    assert.equal(new JSON().cast('invalid json text'), 'invalid json text');
+
+    const sandbox = sinon.createSandbox();
+    sandbox.spy(console, 'error');
+    try {
+      assert.equal(new JSON({ ignoreError: true }).cast('invalid json text'), 'invalid json text');
+      assert.ok(console.error.notCalled);
+    } finally {
+      sandbox.restore();
+    }
   });
 
   it('JSONB', () => {
