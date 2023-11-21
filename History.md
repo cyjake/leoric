@@ -1,3 +1,15 @@
+2.12.0 / 2023-11-21
+===================
+
+## What's Changed
+* chore: export main entry point only by @cyjake in https://github.com/cyjake/leoric/pull/404
+* docs: more examples about typescript support by @cyjake in https://github.com/cyjake/leoric/pull/405
+* chore: improve test coverage after migrating ts project by @cyjake in https://github.com/cyjake/leoric/pull/406
+* feat: ignore json parse error if jsonType.ignoreError is positive by @cyjake in https://github.com/cyjake/leoric/pull/409
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.11.5...v2.11.6
+
 2.11.5 / 2023-11-05
 ===================
 
