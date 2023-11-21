@@ -5,7 +5,15 @@
   "browser": "dist/browser.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "exports": "./lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    },
+    "./lib/*.d.ts": {
+      "default": "./lib/*.d.ts"
+    }
+  },
   "files": [
     "dist",
     "lib"
