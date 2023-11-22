@@ -1,30 +1,20 @@
 import DataTypes, { DataType, AbstractDataType, LENGTH_VARIANTS } from './data_types';
-import {
-  Hint, IndexHint, HintInterface,
-  INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE
-} from './hint';
-import {
-  Literal, Validator,
-  Connection, QueryOptions, WhereConditions,
-  Raw, ColumnMeta, AttributeMeta,
-  BeforeHooksType, AfterHooksType, Collection,
-  GeneratorReturnType, Values, BoneCreateValues, BoneInstanceValues,
-} from './types/common';
-import { SpellMeta, Spell, SpellBookFormatResult } from './spell';
 import Bone from './bone';
 import { ConnectOptions, AbstractDriver } from './drivers';
+import { QueryOptions, GeneratorReturnType, AttributeMeta, Connection, Literal, ColumnMeta, AfterHooksType, BeforeHooksType } from './types/common';
+import Raw from './raw';
 
 export {
   LENGTH_VARIANTS as LENGTH_VARIANTS,
-  DataTypes, Literal, Validator, Connection, WhereConditions,
-  Hint, IndexHint, HintInterface, INDEX_HINT_SCOPE_TYPE, INDEX_HINT_SCOPE, INDEX_HINT_TYPE,
-  Bone, Raw, Collection,
-  SpellMeta, Spell, ColumnMeta, AttributeMeta, SpellBookFormatResult, Values, BoneCreateValues, BoneInstanceValues,
+  DataTypes, Bone
 };
 
 export * from './decorators';
 export * from './drivers';
 export * from './adapters/sequelize';
+export * from './hint';
+export * from './types/common';
+export * from './spell';
 
 interface InitOptions {
   underscored?: boolean;

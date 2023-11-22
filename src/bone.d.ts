@@ -13,7 +13,7 @@ export default class Bone extends AbstractBone {
   static find<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>): Spell<T, Collection<InstanceType<T>>>;
   static find<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, Collection<InstanceType<T>>>;
   static find<T extends typeof Bone>(this: T, primaryKey: number | number[] | bigint): Spell<T, Collection<InstanceType<T>>>;
-  static find<T extends typeof Bone>(this: T, ): Spell<T, Collection<InstanceType<T>>>;
+  static find<T extends typeof Bone>(this: T): Spell<T, Collection<InstanceType<T>>>;
 
   /**
    * SELECT rows LIMIT 1. Besides limiting the results to one rows, the type of the return value is different from {@link Bone.find} too. If no results were found, {@link Bone.findOne} returns null. If results were found, it returns the found record instead of wrapping them as a collection.
@@ -24,7 +24,7 @@ export default class Bone extends AbstractBone {
   static findOne<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, whereConditions: string, ...values: Literal[]): Spell<T, InstanceType<T> | null>;
   static findOne<T extends typeof Bone>(this: T, primaryKey: number | number[] | bigint): Spell<T, InstanceType<T> | null>;
-  static findOne<T extends typeof Bone>(this: T, ): Spell<T, InstanceType<T> | null>;
+  static findOne<T extends typeof Bone>(this: T): Spell<T, InstanceType<T> | null>;
 
   static sum<T extends typeof Bone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static sum<T extends typeof Bone>(this: T, name?: Raw): Spell<T, ResultSet<T> | number>;

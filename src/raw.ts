@@ -2,7 +2,7 @@ export default class Raw {
   value: string;
 
   // consumed in expr_formatter.js
-  type: string = 'raw';
+  type = 'raw';
 
   constructor(value: string) {
     if (typeof value !== 'string') {
@@ -18,4 +18,4 @@ export default class Raw {
   static build(value: string) {
     return new Raw(value);
   }
-};
+}
