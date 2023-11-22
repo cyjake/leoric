@@ -68,7 +68,7 @@ export class IndexHint {
    * })
    */
   static build(hint: string | Array<string> | HintInterface, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE): IndexHint;
-  
+
   /**
    * Creates an instance of IndexHint.
    * @param {Array<string> | string} index
@@ -77,7 +77,7 @@ export class IndexHint {
    * @memberof IndexHint
    */
   constructor(index: string, type?: INDEX_HINT_TYPE, scope?: INDEX_HINT_SCOPE);
-  
+
   set index(values: string | Array<string>);
 
   get index(): Array<string>;
@@ -110,5 +110,5 @@ export class IndexHint {
 }
 
 export type CommonHintsArgs = string | HintInterface | Hint | IndexHint | {
-  [key in INDEX_HINT_SCOPE_TYPE]?: string | Array<string> 
+  [key in INDEX_HINT_SCOPE_TYPE]?: string | Array<string>
 };

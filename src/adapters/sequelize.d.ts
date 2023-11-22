@@ -2,7 +2,7 @@ import {
   Attributes, Literal, WhereConditions,
   BoneOptions, ResultSet, Raw,
   SetOptions, BeforeHooksType, AfterHooksType,
-  QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues,
+  QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues, Collection,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
 import { Spell } from '../spell';
@@ -54,11 +54,6 @@ type ScopeOptions = {
 
 type aggregators = 'count' | 'COUNT' | 'average' | 'AVERAGE' | 'minimum' | 'MINIMUM' | 'maximum' | 'MAXIMUM' | 'sum' | 'SUM';
 
-export class Collection<T extends SequelizeBone> extends Array<T> {
-  save(): Promise<void>;
-  toJSON(): object[];
-  toObject(): object[];
-}
 
 export class SequelizeBone extends AbstractBone {
 
