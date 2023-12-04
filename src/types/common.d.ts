@@ -6,7 +6,7 @@ import { AbstractBone } from './abstract_bone';
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string | Array<Literal>;
+type BaseValidateArgs = boolean | RegExp | Function | Array<Array<Literal>> | string | Array<Literal> | number;
 
 export type Validator = BaseValidateArgs | {
   args?: BaseValidateArgs,
