@@ -189,6 +189,15 @@ describe('=> Decorators (TypeScript)', function() {
           },
         })
         status!: number;
+
+        @Column({
+          type: DataTypes.INTEGER,
+          validate: {
+            min: 0,
+            max: 10,
+          },
+        })
+        count!: number;
       }
       await Note.sync({ force: true });
       let note = new Note({ name: '' });
@@ -204,6 +213,11 @@ describe('=> Decorators (TypeScript)', function() {
       await assert.rejects(async () => {
         await note.save();
       }, /Error status/);
+
+      note = new Note({ name: 'Github', count: 11 });
+      await assert.rejects(async () => {
+        await note.save();
+      }, /Validation max on count failed/);
     });
 
     it('should work with other options', async () => {
