@@ -60,6 +60,7 @@ function nest(rows: Record<string, Literal>[], fields: string[], spell: SpellMet
 }
 
 async function defaultInitSqlJs(options: SqljsConnectionOptions): Promise<Database> {
+  // sql.js don't compatible with nodejs 14
   const { default: initSqlJs } = await import('sql.js');
   const SQL = await initSqlJs();
 
