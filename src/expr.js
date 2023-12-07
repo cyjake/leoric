@@ -96,6 +96,20 @@ const PRECEDENCES = [
   ['or']
 ];
 
+const RETURNING_TYPES = [
+  'float',
+  'double',
+  'decimal',
+  'signed',
+  'unsigned',
+  'date',
+  'time',
+  'datetime',
+  'year', // mysql >= 8.0.22
+  'char',
+  'json',
+];
+
 /**
  * Compare the precedence of two operators. Operators with lower indices have higher priorities.
  * @example
@@ -163,7 +177,58 @@ function parseExprList(str, ...values) {
     return { type: 'literal', value };
   }
 
+  function dataType() {
+    let value = '';
+    while (chr && /[a-z0-9$_.]/i.test(chr)) {
+      value += chr;
+      next();
+    }
+    value = value.toLowerCase();
+    if (!RETURNING_TYPES.includes(value)) {
+      throw new Error(`Unexpected RETURNING type of JSON_VALUE(): ${value}`);
+    }
+    if (chr === '(') {
+      let length = '';
+      next();
+      while (chr && chr !== ')') {
+        length += chr;
+        next();
+      }
+      next();
+      return { type: 'dataType', value, length };
+    }
+    return { type: 'dataType', value };
+  }
+
+  // JSON_VALUE(json_doc, path [RETURNING type] [on_empty] [on_error])\
+  // JSON_VALUE(j, '$.id' RETURNING UNSIGNED)
+  function jsonValue(name) {
+    const args = [];
+    next();
+    args.push(expr());
+    next();
+    space();
+    args.push(string());
+    space();
+    const result = { type: 'func', name, args };
+    while (chr && chr !== ')') {
+      let value = '';
+      while (chr && /[a-z0-9$_.]/i.test(chr)) {
+        value += chr;
+        next();
+      }
+      if (value.toLowerCase() === 'returning') {
+        space();
+        result.dataType = dataType();
+      }
+    }
+    // the trailing ')'
+    next();
+    return result;
+  }
+
   function func(name) {
+    if (name === 'json_value') return jsonValue(name);
     const args = [];
     do {
       next();

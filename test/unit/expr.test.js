@@ -462,10 +462,33 @@ describe('=> parse arithmetic operators', function() {
   });
 });
 
-describe('parse malformed expression', function() {
+describe('=> parse malformed expression', function() {
   it('parse )', function() {
     assert.throws(function() {
       parseExpr(')');
-    });
-  }, /unexpected token/i);
+    }, /unexpected token/i);
+  });
+});
+
+describe('=> parse func with modifiers', function() {
+  it('parse JSON_VALUE()', function() {
+    assertExpr(
+      "JSON_VALUE(extra, '$.foo.bar' RETURNING CHAR(32))",
+      {
+        type: 'func',
+        name: 'json_value',
+        dataType: { length: '32', type: 'dataType', value: 'char' },
+        args: [
+          { type: 'id', value: 'extra' },
+          { type: 'literal', value: '$.foo.bar' },
+        ],
+      }
+    );
+  });
+
+  it('parse JSON_VALUE() with invalid RETURNING type', function() {
+    assert.throws(function() {
+      parseExpr("JSON_VALUE(j, '$.a' RETURNING VARCHAR(255))");
+    }, /unexpected returning type/i);
+  });
 });

@@ -48,4 +48,18 @@ describe('=> formatExpr', function() {
       "SELECT * FROM `articles` WHERE `settings` LIKE '%foo%' AND `gmt_deleted` IS NULL"
     );
   });
+
+  it("should be able to process JSON_VALUE(j, '$.a' RETURNING CHAR(32))", async function() {
+    assert.equal(
+      Post.where({ "JSON_VALUE(extra, '$.a' RETURNING CHAR(32))": 'hello' }).toSqlString(),
+      "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.a' RETURNING CHAR(32)) = 'hello' AND `gmt_deleted` IS NULL"
+    );
+  });
+
+  it("should be able to process JSON_VALUE(j, '$.b' RETURNING DECIMAL)", async function() {
+    assert.equal(
+      Post.where({ "JSON_VALUE(extra, '$.b' RETURNING DECIMAL)": 10 }).toSqlString(),
+      "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.b' RETURNING DECIMAL) = 10 AND `gmt_deleted` IS NULL"
+    );
+  });
 });
