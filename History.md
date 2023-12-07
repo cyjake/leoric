@@ -1,3 +1,18 @@
+2.12.1 / 2023-12-07
+===================
+
+## What's Changed
+* fix: export more ts type definitions by @JimmyDaddy in https://github.com/cyjake/leoric/pull/411
+* Update starter.md by @zhennann in https://github.com/cyjake/leoric/pull/412
+* fix: type error in validate when using min max by @chen201724 in https://github.com/cyjake/leoric/pull/413
+* feat: support JSON_VALUE(j, '$.a' RETURNING CHAR(50)) by @cyjake in https://github.com/cyjake/leoric/pull/414
+
+## New Contributors
+* @zhennann made their first contribution in https://github.com/cyjake/leoric/pull/412
+* @chen201724 made their first contribution in https://github.com/cyjake/leoric/pull/413
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.12.0...v2.12.1
+
 2.12.0 / 2023-11-21
 ===================
 
