@@ -39,15 +39,27 @@ function formatIdentifier(spell, ast) {
   return escapeId(column);
 }
 
+function formatDataType(spell, ast) {
+  const { value, length } = ast;
+  if (length) return `${value.toUpperCase()}(${length})`;
+  return value.toUpperCase();
+}
+
 const extractFieldNames = ['year', 'month', 'day'];
 
 function formatFuncExpr(spell, ast) {
-  const { name, args } = ast;
+  const { name, args, dataType } = ast;
   const { type } = spell.Model.driver;
 
   // https://www.postgresql.org/docs/9.1/static/functions-datetime.html
   if (type === 'postgres' && extractFieldNames.includes(name)) {
     return `EXTRACT(${name.toUpperCase()} FROM ${args.map(arg => formatExpr(spell, arg)).join(', ')})`;
+  }
+
+  // https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html#function_json-value
+  // https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-21.html#mysqld-8-0-21-json
+  if (name === 'json_value' && dataType) {
+    return `${name.toUpperCase()}(${args.map(arg => formatExpr(spell, arg)).join(', ')} RETURNING ${formatDataType(spell, dataType)})`;
   }
 
   return `${name.toUpperCase()}(${args.map(arg => formatExpr(spell, arg)).join(', ')})`;
