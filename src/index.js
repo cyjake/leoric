@@ -15,6 +15,7 @@ const Decorators = require('./decorators');
 const Raw = require('./raw').default;
 const { MysqlDriver, PostgresDriver, SqliteDriver, SqljsDriver, AbstractDriver } = require('./drivers');
 const { isBone } = require('./utils');
+const { hookNames } = require('./setup_hooks');
 
 /**
  * @typedef {Object} RawSql
@@ -68,6 +69,7 @@ Object.assign(Realm, {
   Raw,
   LENGTH_VARIANTS,
   isBone,
+  hookNames,
 });
 
 module.exports = Realm;
