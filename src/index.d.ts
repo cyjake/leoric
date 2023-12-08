@@ -15,6 +15,7 @@ export * from './adapters/sequelize';
 export * from './hint';
 export * from './types/common';
 export * from './spell';
+export { hookNames } from './setup_hooks';
 
 interface InitOptions {
   underscored?: boolean;
