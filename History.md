@@ -1,3 +1,12 @@
+2.12.2 / 2023-12-11
+===================
+
+## What's Changed
+* chore: export { hookNames } by @cyjake in https://github.com/cyjake/leoric/pull/416
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.12.1...v2.12.2
+
 2.12.1 / 2023-12-07
 ===================
 
