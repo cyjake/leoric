@@ -853,7 +853,14 @@ class Spell {
     if (qualifier in joins) {
       throw new Error(`invalid join target. ${qualifier} already defined.`);
     }
-    joins[qualifier] = { Model, on: parseConditions(Model, onConditions, ...values)[0] };
+
+    const association = this.Model.associations[qualifier] || this.Model.associations[pluralize(qualifier, 1)];
+
+    if (!association) {
+      joins[qualifier] = { Model, on: parseConditions(Model, onConditions, ...values)[0] };
+    } else {
+      joinAssociation(this, this.Model, this.Model.tableAlias, qualifier, { onConditions, values });
+    }
     return this;
   }
 

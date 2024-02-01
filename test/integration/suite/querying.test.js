@@ -13,6 +13,7 @@ const Like = require('../../models/like');
 const Post = require('../../models/post');
 const Tag = require('../../models/tag');
 const TagMap = require('../../models/tagMap');
+const User = require('../../models/user');
 const { logger } = require('../../../src/utils');
 
 describe('=> Query', function() {
@@ -502,11 +503,14 @@ describe('=> Count / Group / Having', function() {
 describe('=> Group / Join / Subqueries', function() {
   before(async function() {
     await Post.remove({}, true);
+    await User.remove({}, true);
+    const user = await User.create({ name: 'Tyrael', nickname: 'Tyrael', email: 'tyrael@console.com' });
+    const user1 = await User.create({ name: 'Lazarus', nickname: 'Lazarus', email: 'lazarus@console.com' });
     const posts = await Post.bulkCreate([
-      { id: 1, title: 'New Post' },
-      { id: 2, title: 'Archbishop Lazarus' },
-      { id: 3, title: 'Archangel Tyrael' },
-      { id: 4, title: 'New Post 2' },
+      { id: 1, title: 'New Post', authorId: user.id },
+      { id: 2, title: 'Archbishop Lazarus', authorId: user1.id },
+      { id: 3, title: 'Archangel Tyrael', authorId: user.id },
+      { id: 4, title: 'New Post 2', authorId: user1.id },
     ]);
 
     await Attachment.bulkCreate([
@@ -528,6 +532,47 @@ describe('=> Group / Join / Subqueries', function() {
       Comment.remove({}, true),
       Attachment.remove({}, true)
     ]);
+  });
+
+  it('Bone.find().join() with association', async function() {
+    // https://github.com/cyjake/leoric/issues/417
+    // SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL
+    assert.equal(Post.find().join(Comment, 'comments.articleId = posts.id').toSqlString(), Post.include('comments').toSqlString());
+    const posts = await Post.find().join(Comment, 'comments.articleId = posts.id');
+    assert.equal(posts.length, 4);
+
+    assert.equal(posts[0].comments.length, 0);
+    assert.equal(posts[1].comments.length, 2);
+    assert.equal(posts[2].comments.length, 1);
+    assert.equal(posts[3].comments.length, 0);
+    assert.ok(posts[1].comments[0] instanceof Comment);
+  });
+
+  it('Bone.find().join().limit() with association', async function() {
+    // https://github.com/cyjake/leoric/issues/417
+    const posts = await Post.find().limit(1).join(Comment, 'comments.articleId = posts.id').where({
+      'posts.title': { $like: 'Archb%' },
+    });
+    assert.equal(posts.length, 1);
+    assert.ok(posts[0].comments[0] instanceof Comment);
+  });
+
+  it('Bone.find().join() without association', async function() {
+    // https://github.com/cyjake/leoric/issues/417
+    const posts = await Post.find().join(User, 'posts.authorId = users.id');
+    assert.equal(posts.length, 4);
+
+    assert.ok(posts[0].users);
+    assert.ok(posts[1].users instanceof User);
+  });
+
+  it('Bone.find().join().limit() without association', async function() {
+    // https://github.com/cyjake/leoric/issues/417
+    const posts = await Post.find().limit(1).join(User, 'posts.authorId = users.id').where({
+      'posts.title': { $like: 'Archb%' },
+    });
+    assert.equal(posts.length, 1);
+    assert.ok(posts[0].users instanceof User);
   });
 
   it('Bone.group() subquery', async function() {
