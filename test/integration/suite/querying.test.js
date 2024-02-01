@@ -538,7 +538,7 @@ describe('=> Group / Join / Subqueries', function() {
     // https://github.com/cyjake/leoric/issues/417
     // SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL
     assert.equal(Post.find().join(Comment, 'comments.articleId = posts.id').toSqlString(), Post.include('comments').toSqlString());
-    const posts = await Post.find().join(Comment, 'comments.articleId = posts.id');
+    const posts = await Post.find().join(Comment, 'comments.articleId = posts.id').order('posts.id');
     assert.equal(posts.length, 4);
 
     assert.equal(posts[0].comments.length, 0);
@@ -552,14 +552,14 @@ describe('=> Group / Join / Subqueries', function() {
     // https://github.com/cyjake/leoric/issues/417
     const posts = await Post.find().limit(1).join(Comment, 'comments.articleId = posts.id').where({
       'posts.title': { $like: 'Archb%' },
-    });
+    }).order('posts.id');
     assert.equal(posts.length, 1);
     assert.ok(posts[0].comments[0] instanceof Comment);
   });
 
   it('Bone.find().join() without association', async function() {
     // https://github.com/cyjake/leoric/issues/417
-    const posts = await Post.find().join(User, 'posts.authorId = users.id');
+    const posts = await Post.find().join(User, 'posts.authorId = users.id').order('posts.id');
     assert.equal(posts.length, 4);
 
     assert.ok(posts[0].users);
@@ -570,7 +570,7 @@ describe('=> Group / Join / Subqueries', function() {
     // https://github.com/cyjake/leoric/issues/417
     const posts = await Post.find().limit(1).join(User, 'posts.authorId = users.id').where({
       'posts.title': { $like: 'Archb%' },
-    });
+    }).order('posts.id');
     assert.equal(posts.length, 1);
     assert.ok(posts[0].users instanceof User);
   });
