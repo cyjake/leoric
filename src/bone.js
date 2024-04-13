@@ -1307,7 +1307,8 @@ class Bone {
         instance._setRaw(attribute.name, attribute.cast(value));
         instance._setRawSaved(attribute.name, attribute.cast(value));
       } else {
-        if (!isNaN(value)) instance[columnName] = Number(value);
+        if (value != null && typeof value == 'object') instance[columnName] = value;
+        else if (!isNaN(value)) instance[columnName] = Number(value);
         else if (!isNaN(Date.parse(value))) instance[columnName] = new Date(value);
         else instance[columnName] = value;
       }
