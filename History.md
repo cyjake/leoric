@@ -1,3 +1,13 @@
+2.12.3 / 2024-04-13
+===================
+
+## What's Changed
+* upgrade: mysql2 >= 3.9.4 by @cyjake in https://github.com/cyjake/leoric/pull/420
+* feat: support mysql2 v3 for security update by @fengmk2 in https://github.com/cyjake/leoric/pull/419
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.12.2...v2.12.3
+
 2.12.2 / 2023-12-11
 ===================
 
