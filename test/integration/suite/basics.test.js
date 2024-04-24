@@ -268,12 +268,12 @@ describe('=> Basic', () => {
       }, /unable to use virtual attribute realname as condition in model User/);
 
       await assert.rejects(async () => {
-        Post.hasOne('user', {
+        Post.belongsTo('user', {
           foreignKey: 'realname'
         });
       }, /unable to use virtual attribute realname as foreign key in model User/);
 
-      Post.hasOne('user', {
+      Post.belongsTo('user', {
         foreignKey: 'authorId'
       });
 
