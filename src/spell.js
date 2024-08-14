@@ -108,6 +108,15 @@ function formatValueSet(spell, obj, strict = true) {
 
     // raw sql don't need to uncast
     if (value instanceof Raw) {
+      try {
+        const expr = parseExpr(value.value);
+        if (expr.type === 'func' && ['json_merge_patch', 'json_merge_preserve'].includes(expr.name)) {
+          sets[name] = { ...expr, __expr: true };
+          continue;
+        }
+      } catch {
+        // ignored
+      }
       sets[name] = value;
     } else {
       sets[name] = attribute.uncast(value);
