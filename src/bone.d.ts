@@ -45,6 +45,32 @@ export default class Bone extends AbstractBone {
   static update<T extends typeof Bone>(this: T, whereConditions: WhereConditions<T>, values?: Values<InstanceType<T>> & Partial<Record<BoneColumns<T>, Literal>>, opts?: QueryOptions): Spell<T, number>;
 
   /**
+   * UPDATE JSONB row width JSON_MERGE_PARCH Function
+   * @example
+   * /// before: bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com' }
+   * bone.jsonMergePatch('extra',{ url: 'https://taobao.com' })
+   * /// after: bone.extra equals { name: 'zhangsan', url: 'https://taobao.com' }
+  */
+  jsonMergePatch<Key extends keyof Partial<typeof this>>(name: Key, jsonValue: Record<string, unknown>, opts?: QueryOptions): Promise<number>;
+
+    /**
+   * UPDATE JSONB row width JSON_MERGE_PRESERVE Function
+   * @example
+   * /// before: bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com' }
+   * bone.jsonMergePreServe('extra',{ url: 'https://taobao.com', mock: true })
+   * /// after: bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com', mock: true }
+  */
+  jsonMergePreServe<Key extends keyof Partial<typeof this>>(name: Key, jsonValue: Record<string, unknown>, opts?: QueryOptions): Promise<number>;
+
+  /**
+   * UPDATE JSONB row width JSON_REMOVE Function
+   * @example
+   * /// before bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com', mock: true }
+   * bone.jsonMergePatch('extra', ['name', 'url'])
+   * /// after bone.extra equals { mock: true }
+  */
+  jsonRemove<Key extends keyof Partial<typeof this>>(name: Key, keys: string[], opts?: QueryOptions): Promise<number>;
+  /**
    * Discard all the applied scopes.
    * @example
    * Bone.all.unscoped  // includes soft deleted rows

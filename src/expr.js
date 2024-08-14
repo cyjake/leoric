@@ -1,6 +1,7 @@
 'use strict';
 
 const Raw = require('./raw').default;
+const {parse, show, cstVisitor} = require('sql-parser-cst');
 
 /**
  * This module contains a simple SQL expression parser which parses `select_expr` and `expr` in `WHERE`/`HAVING`/`ON` conditions. Most of {@link Spell}'s functionalities are made possible because of this parser. Currently, it cannot parse a full SQL.
@@ -506,8 +507,47 @@ function copyExpr(ast, fn) {
   return ast;
 }
 
+
+/**
+ * @example
+ * parseFunCall("UPDATE `gens` SET `extra` = JSON_MERGE_PATCH(extra, '{\"url\":\"https://www.wanxiang.art/?foo=\"}') WHERE `id` = 11110896")
+ * newSQL UPDATE `gens` SET `extra` = JSON_MERGE_PATCH(extra, ?) WHERE `id` = 11110896
+ * values = [ '{"url":"https://www.wanxiang.art/?foo="}' ]
+ * @param {String} sql
+ * @returns {{expression:String;values:String[]}}
+*/
+function parseFunCall(sql) {
+  console.log(sql);
+  const cst = parse(sql, {
+    dialect: 'sqlite',
+    includeSpaces: true, // Adds spaces/tabs
+    includeNewlines: true, // Adds newlines
+    includeComments: true, // Adds comments
+    includeRange: true, // Adds source code location data
+  });
+  const values = [];
+  let start = 0;
+  const replaceJson_Fun = cstVisitor({
+   func_call: node => {
+     if (['JSON_MERGE_PATCH','JSON_MERGE_PRESERVE'].includes(node.name.text)) {
+       const items = node.args.expr.args.items;
+       start = node.range[0];
+       for (const item of items) {
+          if (item.type === 'string_literal' && item.value.includes('?')) {
+              values.push(item.value);
+              item.text = item.value = '?';
+          }
+       }
+     }
+   }
+  });
+  replaceJson_Fun(cst);
+  const newSql =  show(cst);
+  return { expression: newSql.slice(start, sql.length), values };
+}
+
 module.exports = {
   parseExpr, parseExprList,
   precedes,
-  walkExpr, findExpr, copyExpr,
+  walkExpr, findExpr, copyExpr, parseFunCall
 };

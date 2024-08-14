@@ -2,7 +2,7 @@
 
 const SqlString = require('sqlstring');
 
-const { findExpr, walkExpr } = require('../../expr');
+const { findExpr, walkExpr, parseFunCall } = require('../../expr');
 const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
 const Raw = require('../../raw').default;
 
@@ -363,13 +363,20 @@ class SpellBook {
     const { escapeId } = Model.driver;
     for (const name in sets) {
       const value = sets[name];
+      const columnName = escapeId(Model.unalias(name));
       if (value && value.__expr) {
-        assigns.push(`${escapeId(Model.unalias(name))} = ${formatExpr(spell, value)}`);
+        assigns.push(`${columnName} = ${formatExpr(spell, value)}`);
         collectLiteral(spell, value, values);
       } else if (value instanceof Raw) {
-        assigns.push(`${escapeId(Model.unalias(name))} = ${value.value}`);
+        let expr = `${columnName} = ${value.value}`;
+        const {values: val, expression} = parseFunCall(`UPDATE ${Model.table} SET ${expr}`);
+        if (val.length) {
+          expr = `${columnName} = ${expression}`;;
+          values.push(...val);
+        }
+        assigns.push(expr);
       } else {
-        assigns.push(`${escapeId(Model.unalias(name))} = ?`);
+        assigns.push(`${columnName} = ?`);
         values.push(sets[name]);
       }
     }
@@ -392,7 +399,6 @@ class SpellBook {
       for (const condition of whereConditions) collectLiteral(spell, condition, values);
       chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
     }
-
     return {
       sql: chunks.join(' '),
       values,

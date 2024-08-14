@@ -75,6 +75,7 @@
     "heredoc": "^1.3.1",
     "pluralize": "^7.0.0",
     "reflect-metadata": "^0.1.13",
+    "sql-parser-cst": "^0.28.1",
     "sqlstring": "^2.3.0",
     "tslib": "^2.5.0",
     "validator": "^13.5.2"

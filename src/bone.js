@@ -674,6 +674,29 @@ class Bone {
   }
 
   /**
+   * @public
+   * @param {String} name
+   * @param {Object} jsonValue
+   * @param {Object?} options
+   * @returns {Promise<number>}
+   * @memberof Bone
+  */
+  async jsonMergePatch(name, jsonValue, options = {}) {
+    const attribute = this.attribute(name);
+    try {
+      const raw = new Raw(`JSON_MERGE_PATCH(${name}, \'${JSON.stringify(jsonValue)}\')`);
+      require('fs').writeFileSync('./JSON_MERGE_PATCH.text',JSON.stringify(raw));
+      const rows = await this.update({ [name]: raw }, options);
+      this[name] = Object.assign({}, attribute, jsonValue);
+      return rows;
+    } catch (error) {
+      this[name] = attribute;
+      throw error;
+    }
+
+  }
+
+  /**
    * Persist changes on current instance back to database with `UPDATE`.
    * @public
    * @param {Object} values
@@ -1158,7 +1181,6 @@ class Bone {
     }
     return name;
   }
-
   /**
    * Load attribute definition to merge default getter/setter and custom descriptor on prototype
    * @param {string} name attribute name
