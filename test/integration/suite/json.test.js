@@ -35,12 +35,14 @@ describe('=> Basic', () => {
       await gen.update({ extra: { a: 1 } });
       assert.equal(gen.extra.a, 1);
       await gen.jsonMerge('extra', { b: 2, a: 3 });
+      await gen.reload();
       assert.equal(gen.extra.a, 3);
       assert.equal(gen.extra.b, 2);
 
       const gen2 = await Gen.create({ name: 'gen2', extra: { test: 1 }});
       assert.equal(gen2.extra.test, 1);
       await gen2.jsonMerge('extra', { url: 'https://www.wanxiang.art/?foo=' });
+      await gen2.reload();
       assert.equal(gen2.extra.url, 'https://www.wanxiang.art/?foo=');
     });
 
@@ -51,6 +53,7 @@ describe('=> Basic', () => {
 
       const sql = new Raw(`JSON_MERGE_PATCH(extra, '${JSON.stringify({ url: 'https://www.taobao.com/?id=1' })}')`);
       await gen.update({extra: sql});
+      await gen.reload();
       assert.equal(gen.extra.url, 'https://www.taobao.com/?id=1');
     });
   });
