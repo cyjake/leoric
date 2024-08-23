@@ -711,9 +711,6 @@ class Bone {
     }
     try {
       const res = await this._update(Object.keys(changes).length? changes : values, options);
-      if (typeof values === 'object' && Object.values(values).some(v => v instanceof Raw)) {
-        await this.reload();
-      }
       return res;
     } catch (error) {
       // revert value in case update failed
