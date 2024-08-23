@@ -16,3 +16,4 @@ before(async function() {
 
 require('./suite/index.test');
 require('./suite/dates.test');
+require('./suite/json.test');

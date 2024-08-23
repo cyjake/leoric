@@ -363,13 +363,14 @@ class SpellBook {
     const { escapeId } = Model.driver;
     for (const name in sets) {
       const value = sets[name];
+      const columnName = escapeId(Model.unalias(name));
       if (value && value.__expr) {
-        assigns.push(`${escapeId(Model.unalias(name))} = ${formatExpr(spell, value)}`);
+        assigns.push(`${columnName} = ${formatExpr(spell, value)}`);
         collectLiteral(spell, value, values);
       } else if (value instanceof Raw) {
-        assigns.push(`${escapeId(Model.unalias(name))} = ${value.value}`);
+        assigns.push(`${columnName} = ${value.value}`);
       } else {
-        assigns.push(`${escapeId(Model.unalias(name))} = ?`);
+        assigns.push(`${columnName} = ?`);
         values.push(sets[name]);
       }
     }

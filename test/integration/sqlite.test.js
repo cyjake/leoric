@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const path = require('path');
 const sinon = require('sinon');
 
-const { connect, raw, Bone } = require('../../src');
+const { connect, raw, Bone, Raw } = require('../../src');
 const { checkDefinitions } = require('./helpers');
 
 before(async function() {
@@ -102,5 +102,17 @@ describe('=> upsert (sqlite)', function () {
       User.upsert({ email: 'dk@souls.com', nickname: 'Yhorm', id: 1 }).toSqlString(),
       `INSERT INTO "users" ("id", "email", "nickname", "status", "level", "gmt_create") VALUES (1, 'dk@souls.com', 'Yhorm', 1, 1, '2017-12-12 00:00:00.000') ON CONFLICT ("id") DO UPDATE SET "id"=EXCLUDED."id", "email"=EXCLUDED."email", "nickname"=EXCLUDED."nickname", "status"=EXCLUDED."status", "level"=EXCLUDED."level"`
     );
+  });
+});
+
+describe('=> update(sqlite) & jsonMerge(sqlite)', () => {
+  const Post = require('../models/post');
+  it('JSON_MERGE_PATCH can not work in sqlite', async () => {
+    const post = await Post.create({ title: 'new post', extra: { uid: 2200 }});
+    assert.equal(post.extra.uid, 2200);
+    await assert.rejects(async () => await post.jsonMerge('extra', { uid: 9527 }));
+    assert.equal(post.extra.uid, 2200);
+    await assert.rejects(async () => await post.update({ extra: new Raw(`JSON_MERGE_PATCH(extra, '${JSON.stringify({ uid: 4396 })}')`)}));
+    assert.equal(post.extra.uid, 2200);
   });
 });

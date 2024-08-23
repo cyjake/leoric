@@ -380,6 +380,15 @@ export class AbstractBone {
   update(changes?: { [key: string]: Literal } | { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: QueryOptions): Promise<number>;
 
   /**
+   * UPDATE JSONB column with JSON_MERGE_PATCH function
+   * @example
+   * /// before: bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com' }
+   * bone.jsonMerge('extra', { url: 'https://taobao.com' })
+   * /// after: bone.extra equals { name: 'zhangsan', url: 'https://taobao.com' }
+  */
+  jsonMerge<Key extends keyof Extract<this, Literal>>(name: Key, jsonValue: Record<string, unknown> | Array<unknown>, opts?: QueryOptions): Promise<number>;
+
+  /**
    * create instance
    * @param opts query options
    */
