@@ -137,6 +137,36 @@ body {
       }
     }
 
+    .search {
+      position: relative;
+
+      & [type="search"] {
+        padding: 0 24px 0 4px;
+        width: 100%;
+        background: var(--bg-color);
+        color: var(--color);
+        border: 1px solid rgb(118, 118, 118);
+        height: 1.6em;
+        border-radius: 0;
+
+        &:focus-visible {
+          border: none;
+        }
+      }
+
+      & [type="submit"] {
+        position: absolute;
+        right: 0;
+        width: 1.6em;
+        height: 1.6em;
+        line-height: 1.7;
+        padding: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+    }
+
     .dropdown-trigger {
       &:after {
         content: '';
@@ -249,12 +279,12 @@ body {
     }
 
     a.logo {
-      background: url(/favicon.ico) no-repeat 32px 8px;
+      background: url(/favicon.ico) no-repeat 0 8px;
       background-size: 40px;
       display: block;
       height: 56px;
       line-height: unset;
-      padding-left: 84px;
+      padding-left: 48px;
       padding-top: 6px;
       margin-bottom: 12px;
       font-size: 2em;
@@ -269,7 +299,6 @@ body {
     a {
       height: 32px;
       line-height: 32px;
-      padding: 0 12px 0 36px;
       background-color: transparent;
       opacity: 0.75;
       transition: all 0.1s ease-in-out;
@@ -281,7 +310,7 @@ body {
     }
 
     .color-scheme {
-      margin: 6px 6px 6px 36px;
+      margin: 6px 0;
     }
 
     nav {
@@ -290,7 +319,10 @@ body {
       .nav-item {
         display: block;
         padding: 0;
+      }
 
+      .search {
+        margin-bottom: 8px;
       }
 
       .dropdown-trigger:after {
@@ -298,7 +330,7 @@ body {
         content: '';
         position: absolute;
         top: 12px;
-        right: 12px;
+        right: 0;
         bottom: initial;
         left: initial;
         background: none;
@@ -322,7 +354,7 @@ body {
           padding-left: 0;
 
           a {
-            padding: 0 12px 0 66px;
+            padding: 0 12px 0 24px;
           }
 
           a.active {

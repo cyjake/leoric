@@ -8,6 +8,12 @@ layout: default
     <nav>
       <ul>
         <li class="nav-item">
+          <form action="/zh/search.html" method="get" class="search">
+            <input type="search" name="q" placeholder="Search the site..." id="search-box">
+            <input type="submit" value="🔍">
+          </form>
+        </li>
+        <li class="nav-item">
           <a href="{{ '/zh/starter' | relative_url }}">快速上手</a>
         </li>
         <li class="nav-item dropdown-trigger">
