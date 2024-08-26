@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "2.12.3",
+  "version": "2.13.0",
   "description": "JavaScript Object-relational mapping alchemy",
   "browser": "dist/browser.js",
   "main": "lib/index.js",

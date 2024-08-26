@@ -1,3 +1,15 @@
+2.13.0 / 2024-08-26
+===================
+
+## What's Changed
+* refactor: move json_merge_patch() handling to the spell prepartion phase by @coinkits in https://github.com/cyjake/leoric/pull/422
+* chore: should not reload by default by @coinkits in https://github.com/cyjake/leoric/pull/423
+
+## New Contributors
+* @coinkits made their first contribution in https://github.com/cyjake/leoric/pull/422
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.12.3...v2.13.0
+
 2.12.3 / 2024-04-13
 ===================
 
