@@ -56,5 +56,20 @@ describe('=> Basic', () => {
       await gen.reload();
       assert.equal(gen.extra.url, 'https://www.taobao.com/?id=1');
     });
+
+    it('bone.jsonMergePreserve(name, values, options) should work', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯' });
+      assert.equal(gen.name, '章3️⃣疯');
+      await gen.update({ extra: { a: 1 } });
+      assert.equal(gen.extra.a, 1);
+      await gen.jsonMergePreserve('extra', { b: 2, a: 3 });
+      await gen.reload();
+      assert.deepEqual(gen.extra.a, [1, 3]);
+
+      await gen.jsonMerge('extra', { url: 'https://wanxiang.art/?foo=' });
+      await gen.jsonMergePreserve('extra', { url: 'https://www.wanxiang.art/?foo=' });
+      await gen.reload();
+      assert.deepEqual(gen.extra.url, ['https://wanxiang.art/?foo=', 'https://www.wanxiang.art/?foo=']);
+    });
   });
 });

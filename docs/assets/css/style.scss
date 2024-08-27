@@ -147,7 +147,7 @@ body {
         color: var(--color);
         border: 1px solid rgb(118, 118, 118);
         height: 1.6em;
-        border-radius: 0;
+        border-radius: 2px;
 
         &:focus-visible {
           border: none;
@@ -338,7 +338,7 @@ body {
         border-style: solid;
         border-color: transparent;
         border-left-color: var(--theme-color);
-        border-radius: 2px
+        border-radius: 2px;
       }
 
       .dropdown-list {
