@@ -683,9 +683,14 @@ class Bone {
   */
   async jsonMerge(name, jsonValue, options = {}) {
     const raw = new Raw(`JSON_MERGE_PATCH(${name}, '${JSON.stringify(jsonValue)}')`);
-    const rows = await this.update({ [name]: raw }, options);
-    return rows;
+    const affectedRows = await this.update({ [name]: raw }, options);
+    return affectedRows;
+  }
 
+  async jsonMergePreserve(name, jsonValue, options = {}) {
+    const raw = new Raw(`JSON_MERGE_PRESERVE(${name}, '${JSON.stringify(jsonValue)}')`);
+    const affectedRows = await this.update({ [name]: raw }, options);
+    return affectedRows;
   }
 
   /**
