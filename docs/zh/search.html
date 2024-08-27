@@ -1,0 +1,34 @@
+---
+layout: zh
+---
+
+<ul id="search-results"></ul>
+
+<script>
+  window.store = {
+    {% for post in site.posts %}
+    {% if post.categories contains "zh" %}
+      "{{ post.url | slugify }}": {
+        "title": {{ post.title | jsonify }},
+        "categories": {{ post.categories | jsonify }},
+        "content": {{ post.content | strip_html | strip_newlines | jsonify }},
+        "url": {{ post.url | jsonify }}
+      }
+      {% unless forloop.last %},{% endunless %}
+    {% endif %}
+    {% endfor %}
+    {% for page in site.pages %}
+    {% if page.url contains "/zh/" %}
+      "{{ page.url | slugify }}": {
+        "title": {{ page.title | jsonify }},
+        "categories": {{ page.categories | jsonify }},
+        "content": {{ page.content | strip_html | strip_newlines | jsonify }},
+        "url": {{ page.url | jsonify }}
+      },
+    {% endif %}
+    {% endfor %}
+  };
+</script>
+
+<script src="https://unpkg.com/lunr/lunr.js"></script>
+<script src="{{ 'assets/javascript/search.mjs' | relative_url }}"></script>

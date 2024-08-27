@@ -5,8 +5,15 @@ layout: default
 <div id="header">
   <div class="container-lg px-3">
     <a class="logo" href="{{ '/' | relative_url }}">Leoric</a>
+
     <nav>
       <ul>
+        <li class="nav-item">
+          <form action="/search.html" method="get" class="search">
+            <input type="search" name="q" placeholder="Search the site..." id="search-box">
+            <input type="submit" value="🔍">
+          </form>
+        </li>
         <li class="nav-item">
           <a href="{{ '/starter' | relative_url }}">Starter</a>
         </li>
