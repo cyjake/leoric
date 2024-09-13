@@ -388,6 +388,16 @@ export class AbstractBone {
   */
   jsonMerge<Key extends keyof Extract<this, Literal>>(name: Key, jsonValue: Record<string, unknown> | Array<unknown>, opts?: QueryOptions): Promise<number>;
 
+
+  /**
+   * UPDATE JSONB column with JSON_MERGE_PRESERVE function
+   * @example
+   * /// before: bone.extra equals { name: 'zhangsan', url: 'https://alibaba.com' }
+   * bone.jsonMergePreserve('extra', { url: 'https://taobao.com' })
+   * /// after: bone.extra equals { name: 'zhangsan', url: ['https://alibaba.com', 'https://taobao.com'] }
+   */
+  jsonMergePreserve<Key extends keyof Extract<this, Literal>>(name: Key, jsonValue: Record<string, unknown> | Array<unknown>, opts?: QueryOptions): Promise<number>;
+
   /**
    * create instance
    * @param opts query options
