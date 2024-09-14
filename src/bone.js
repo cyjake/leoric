@@ -682,15 +682,28 @@ class Bone {
    * @memberof Bone
   */
   async jsonMerge(name, jsonValue, options = {}) {
-    const raw = new Raw(`JSON_MERGE_PATCH(${name}, '${JSON.stringify(jsonValue)}')`);
-    const affectedRows = await this.update({ [name]: raw }, options);
+    const Model = this.constructor;
+    const { primaryKey, shardingKey } = Model;
+    if (this[primaryKey] == null) throw new Error(`unset primary key ${primaryKey}`);
+
+    const { preserve, ...restOptions } = options;
+    const where = { [primaryKey]: this[primaryKey] };
+    if (shardingKey) where[shardingKey] = this[shardingKey];
+
+    const affectedRows = await Model.jsonMerge(where, { [name]: jsonValue }, options);
+    // reload only the updated attribute, incase overwriting others
+    if (affectedRows > 0) {
+      const spell = Model._find(where, restOptions).$select(name).$get(0);
+      spell.scopes = [];
+      const instance = await spell;
+      if (instance) this.attribute(name, instance.attribute(name));
+    }
+
     return affectedRows;
   }
 
   async jsonMergePreserve(name, jsonValue, options = {}) {
-    const raw = new Raw(`JSON_MERGE_PRESERVE(${name}, '${JSON.stringify(jsonValue)}')`);
-    const affectedRows = await this.update({ [name]: raw }, options);
-    return affectedRows;
+    return await this.jsonMerge(name, jsonValue, { ...options, preserve: true });
   }
 
   /**
@@ -707,9 +720,10 @@ class Bone {
     const { fields = [] } = options;
     if (typeof values === 'object') {
       for (const name in values) {
-        if (values[name] !== undefined && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
+        const value = values[name];
+        if (value !== undefined && !(value instanceof Raw) && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
           // exec custom setters in case it exist
-          this[name] = values[name];
+          this[name] = value;
           changes[name] = this.attribute(name);
         }
       }
@@ -767,7 +781,8 @@ class Bone {
     return await spell.later(result => {
       // sync changes (changes has been formatted by custom setters, use this.attribute(name, value) directly)
       for (const key in changes) {
-        this.attribute(key, changes[key]);
+        const value = changes[key];
+        if (!(value instanceof Raw)) this.attribute(key, value);
       }
       this.syncRaw();
       return result.affectedRows;
@@ -1558,6 +1573,20 @@ class Bone {
     return spell.later(result => {
       return result.affectedRows;
     });
+  }
+
+  static jsonMerge(conditions, values = {}, options = {}) {
+    const { preserve, ...restOptions } = options;
+    const method = preserve ? 'JSON_MERGE_PRESERVE' : 'JSON_MERGE_PATCH';
+    const data = { ...values };
+    for (const [name, value] of Object.entries(values)) {
+      data[name] = new Raw(`${method}(${name}, '${JSON.stringify(value)}')`);
+    }
+    return this.update(conditions, data, restOptions);
+  }
+
+  static jsonMergePreserve(conditions, values = {}, options = {}) {
+    return this.jsonMerge(conditions, values, { ...options, preserve: true });
   }
 
   /**
