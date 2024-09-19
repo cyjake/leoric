@@ -1,3 +1,14 @@
+2.13.1 / 2024-09-19
+===================
+
+## What's Changed
+* docs: add search box by @cyjake in https://github.com/cyjake/leoric/pull/424
+* feat: bone.jsonMerge() & bone.jsonMergePreserve() by @cyjake in https://github.com/cyjake/leoric/pull/425
+* fix: reload attribute if instance updated with jsonMerge by @cyjake in https://github.com/cyjake/leoric/pull/426
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.0...v2.13.1
+
 2.13.0 / 2024-08-26
 ===================
 
