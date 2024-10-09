@@ -587,7 +587,7 @@ describe('=> Spell', function() {
   it('arbitrary join', function() {
     assert.equal(
       Post.join(Comment, 'comments.articleId = posts.id').toString(),
-      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL WHERE `posts`.`gmt_deleted` IS NULL'
     );
 
     assert.equal(Post.include('comments').limit(1).toSqlString(), heresql(function () {
@@ -615,7 +615,7 @@ describe('=> Spell', function() {
 
     assert.equal(
       Post.join(Comment, 'comments.articleId = posts.id').limit(1).toString(),
-      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
     );
 
   });

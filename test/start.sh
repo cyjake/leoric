@@ -10,8 +10,8 @@ function run {
     args=("${args[@]:1}");
   fi
   echo "";
-  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file}";
-  printf '"%s" ' "${args[@]}" | DEBUG=leoric xargs mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file} || exit $?;
+  printf '"%s" ' "${args[@]}" | xargs echo "> mocha --node-option require=ts-node/register,enable-source-maps -R spec --exit --timeout 5000 ${file}";
+  printf '"%s" ' "${args[@]}" | xargs mocha --node-option require=ts-node/register,enable-source-maps -R spec --exit --timeout 5000 ${file} || exit $?;
 }
 
 ##
