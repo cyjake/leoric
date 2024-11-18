@@ -1,3 +1,12 @@
+2.13.2 / 2024-11-18
+===================
+
+## What's Changed
+* fix: meta attributes should still be available if subclass-ed by @cyjake in https://github.com/cyjake/leoric/pull/427
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.1...v2.13.2
+
 2.13.1 / 2024-09-19
 ===================
 
