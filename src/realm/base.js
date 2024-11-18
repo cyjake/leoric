@@ -46,26 +46,6 @@ function initAttributes(model, columns) {
   model.init(attributes, { timestamps: false });
 }
 
-async function loadModels(Spine, models, opts) {
-  const { database } = opts;
-  const tables = models.map(model => model.physicTable);
-  const schemaInfo = await Spine.driver.querySchemaInfo(database, tables);
-
-  for (const model of models) {
-    // assign driver if model's driver not exist
-    if (!model.driver) model.driver = Spine.driver;
-    // assign options if model's options not exist
-    if (!model.options) model.options = Spine.options;
-    const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
-    if (!model.attributes) initAttributes(model, columns);
-    model.load(columns);
-  }
-
-  for (const model of models) {
-    model.initialize();
-  }
-}
-
 function createSpine(opts) {
   let Model = Bone;
   if (opts.Bone && opts.Bone.prototype instanceof Bone) {
@@ -142,6 +122,25 @@ class BaseRealm {
     return Object.values(this.models);
   }
 
+  async loadModels(models, opts) {
+    const { database } = opts;
+    const tables = models.map(model => model.physicTable);
+    const schemaInfo = await this.driver.querySchemaInfo(database, tables);
+
+    for (const model of models) {
+      if (!model.driver) model.driver = this.driver;
+      if (!model.options) model.options = this.options;
+      if (!model.models) model.models = this.models;
+      const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
+      if (!model.attributes) initAttributes(model, columns);
+      model.load(columns);
+    }
+
+    for (const model of models) {
+      model.initialize();
+    }
+  }
+
   async connect() {
     let models = await this.getModels();
 
@@ -150,7 +149,7 @@ class BaseRealm {
     models = models.filter(model => model.synchronized == null);
 
     if (models.length > 0) {
-      await loadModels(this.Bone, models, this.options);
+      await this.loadModels(models, this.options);
     }
     this.connected = true;
     return this.Bone;
