@@ -181,6 +181,30 @@ describe('=> Realm', () => {
     });
   });
 
+  describe('realm.connect', async () => {
+    class Post extends Bone {
+      static table = 'articles';
+    }
+
+    afterEach(async () => {
+      await Post.truncate();
+    });
+
+    it('realm.connect should set necessary static attributes on models', async () => {
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [ Post ],
+        subclass: true,
+      });
+      await realm.connect();
+      assert.ok(Post.driver);
+      assert.ok(Post.models);
+      assert.ok(Post.options);
+    });
+  });
+
   describe('realm.query', async () => {
 
     class Post extends Bone {
