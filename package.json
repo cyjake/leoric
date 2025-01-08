@@ -1,6 +1,6 @@
 {
   "name": "leoric",
-  "version": "2.13.2",
+  "version": "2.13.3",
   "description": "yet another JavaScript object-relational mapping library",
   "browser": "dist/browser.js",
   "main": "lib/index.js",

@@ -1,3 +1,13 @@
+2.13.3 / 2025-01-08
+===================
+
+## What's Changed
+* docs: elaborate on midway leoric component usage by @cyjake in https://github.com/cyjake/leoric/pull/428
+* fix: escape single quotation mark in json merge values by @cyjake in https://github.com/cyjake/leoric/pull/430
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.2...v2.13.3
+
 2.13.2 / 2024-11-18
 ===================
 
