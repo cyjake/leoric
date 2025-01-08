@@ -76,6 +76,12 @@ describe('=> Basic', () => {
       assert.equal(gen.extra.a, 3);
     });
 
+    it('Bone.jsonMerge(conditions, values, options) should escape values', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });
+      await Gen.jsonMerge({ id: gen.id }, { extra: { a: "foo\'bar" } });
+      await gen.reload();
+      assert.equal(gen.extra.a, 'foo\'bar');
+    });
 
     it('Bone.jsonMergePreserve(conditions, values, options) should work', async () => {
       const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });

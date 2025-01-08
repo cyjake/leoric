@@ -1580,7 +1580,7 @@ class Bone {
     const method = preserve ? 'JSON_MERGE_PRESERVE' : 'JSON_MERGE_PATCH';
     const data = { ...values };
     for (const [name, value] of Object.entries(values)) {
-      data[name] = new Raw(`${method}(${name}, '${JSON.stringify(value)}')`);
+      data[name] = new Raw(`${method}(${name}, '${JSON.stringify(value).replace(/'/g, "\\'")}')`);
     }
     return this.update(conditions, data, restOptions);
   }
