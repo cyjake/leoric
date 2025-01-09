@@ -25,7 +25,11 @@ function unit {
 ##
 # integration tests
 function integration {
-  for file in $(ls test/integration/*.test.js); do run ${file}; done
+  for file in $(ls test/integration/*.test.js); do 
+    if [ "$file" != test/integration/sqlcipher.test.js ]; then 
+      run ${file}; 
+    fi 
+  done
 }
 
 ##

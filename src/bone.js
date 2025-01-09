@@ -687,17 +687,32 @@ class Bone {
     const { primaryKey, shardingKey } = Model;
     if (this[primaryKey] == null) throw new Error(`unset primary key ${primaryKey}`);
 
+    let values;
+    if (typeof name === 'string') {
+      // bone.jsonMerge('extra', { a: 1 })
+      values = { [name]: jsonValue };
+    } else {
+      // bone.jsonMerge({ extra: { a: 1 }, ... })
+      values = name;
+      options = jsonValue || options;
+    }
+
     const { preserve, ...restOptions } = options;
     const where = { [primaryKey]: this[primaryKey] };
     if (shardingKey) where[shardingKey] = this[shardingKey];
 
-    const affectedRows = await Model.jsonMerge(where, { [name]: jsonValue }, options);
+    const affectedRows = await Model.jsonMerge(where, values, options);
     // reload only the updated attribute, incase overwriting others
     if (affectedRows > 0) {
-      const spell = Model._find(where, restOptions).$select(name).$get(0);
+      const keys = Object.keys(values);
+      const spell = Model._find(where, restOptions).$select(keys).$get(0);
       spell.scopes = [];
       const instance = await spell;
-      if (instance) this.attribute(name, instance.attribute(name));
+      if (instance) {
+        for (const key of keys) {
+          this.attribute(key, instance.attribute(key));
+        }
+      }
     }
 
     return affectedRows;
@@ -722,7 +737,9 @@ class Bone {
     if (typeof values === 'object') {
       for (const name in values) {
         const value = values[name];
-        if (value !== undefined && !(value instanceof Raw) && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
+        if (value instanceof Raw) {
+          changes[name] = value;
+        } else if (value !== undefined && this.hasAttribute(name) && (!fields.length || fields.includes(name))) {
           // exec custom setters in case it exist
           this[name] = value;
           changes[name] = this.attribute(name);
@@ -1581,7 +1598,11 @@ class Bone {
     const method = preserve ? 'JSON_MERGE_PRESERVE' : 'JSON_MERGE_PATCH';
     const data = { ...values };
     for (const [name, value] of Object.entries(values)) {
-      data[name] = new Raw(`${method}(${name}, ${SqlString.escape(JSON.stringify(value))})`);
+      if (value != null && typeof value === 'object') {
+        data[name] = new Raw(`${method}(${name}, ${SqlString.escape(JSON.stringify(value))})`);
+      } else {
+        data[name] = value;
+      }
     }
     return this.update(conditions, data, restOptions);
   }
