@@ -44,6 +44,12 @@ describe('=> Basic', () => {
       assert.equal(gen2.extra.url, 'https://www.wanxiang.art/?foo=');
     });
 
+    it('bone.jsonMerge(name, values, options) should escape double quotations', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });
+      await gen.jsonMerge('extra', { a: `fo'o"quote"bar` });
+      assert.equal(gen.extra.a, `fo'o"quote"bar`);
+    });
+
     it('bone.update(values, options) with JSON_MERGE_PATCH func should work', async () => {
       const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
       assert.equal(gen.extra.test, 'gen');
@@ -81,6 +87,13 @@ describe('=> Basic', () => {
       await Gen.jsonMerge({ id: gen.id }, { extra: { a: "foo\'bar" } });
       await gen.reload();
       assert.equal(gen.extra.a, 'foo\'bar');
+    });
+
+    it('Bone.jsonMerge(conditions, values, options) should escape double quotations', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });
+      await Gen.jsonMerge({ id: gen.id }, { extra: { a: 'foo"quote"bar' } });
+      await gen.reload();
+      assert.equal(gen.extra.a, 'foo"quote"bar');
     });
 
     it('Bone.jsonMergePreserve(conditions, values, options) should work', async () => {

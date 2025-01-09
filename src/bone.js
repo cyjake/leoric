@@ -9,6 +9,7 @@ const deepEqual = require('deep-equal');
 const debug = require('debug')('leoric');
 const pluralize = require('pluralize');
 const { executeValidator, LeoricValidateError } = require('./validator');
+const SqlString = require('sqlstring');
 require('reflect-metadata');
 
 const { default: DataTypes } = require('./data_types');
@@ -1580,7 +1581,7 @@ class Bone {
     const method = preserve ? 'JSON_MERGE_PRESERVE' : 'JSON_MERGE_PATCH';
     const data = { ...values };
     for (const [name, value] of Object.entries(values)) {
-      data[name] = new Raw(`${method}(${name}, '${JSON.stringify(value).replace(/'/g, "\\'")}')`);
+      data[name] = new Raw(`${method}(${name}, ${SqlString.escape(JSON.stringify(value))})`);
     }
     return this.update(conditions, data, restOptions);
   }
