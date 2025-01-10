@@ -1,3 +1,12 @@
+2.13.4 / 2025-01-10
+===================
+
+## What's Changed
+* fix: jsonMerge with complex json literals by @cyjake in https://github.com/cyjake/leoric/pull/431
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.3...v2.13.4
+
 2.13.3 / 2025-01-08
 ===================
 
