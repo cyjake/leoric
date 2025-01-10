@@ -164,10 +164,16 @@ function parseExprList(str, ...values) {
 
   function string() {
     let value = '';
+    let escaped = false;
     const quote = chr;
     next();
-    while (chr && chr !== quote) {
-      value += chr;
+    while (chr && (chr !== quote || escaped)) {
+      if (chr === '\\' && !escaped) {
+        escaped = true;
+      } else {
+        value += chr;
+        escaped = false;
+      }
       next();
     }
     if (chr !== quote) {

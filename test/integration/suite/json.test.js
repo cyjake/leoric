@@ -1,5 +1,6 @@
 'use strict';
 
+const SqlString = require('sqlstring');
 const assert = require('assert').strict;
 
 const { Bone, Raw } = require('../../../src');
@@ -29,7 +30,7 @@ describe('=> Basic', () => {
       await Gen.remove({}, true);
     });
 
-    it('bone.jsonMerge(name, values, options) should work', async () => {
+    it('bone.jsonMerge(name, value, options) should work', async () => {
       const gen = await Gen.create({ name: '章3️⃣疯' });
       assert.equal(gen.name, '章3️⃣疯');
       await gen.update({ extra: { a: 1 } });
@@ -44,16 +45,49 @@ describe('=> Basic', () => {
       assert.equal(gen2.extra.url, 'https://www.wanxiang.art/?foo=');
     });
 
+    it('bone.jsonMerge(name, value, options) should escape double quotations', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });
+      await gen.jsonMerge('extra', { a: `fo'o"quote"bar` });
+      assert.equal(gen.extra.a, `fo'o"quote"bar`);
+    });
+
     it('bone.update(values, options) with JSON_MERGE_PATCH func should work', async () => {
       const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
       assert.equal(gen.extra.test, 'gen');
       assert.equal(gen.name, 'testUpdateGen');
 
-      const sql = new Raw(`JSON_MERGE_PATCH(extra, '${JSON.stringify({ url: 'https://www.taobao.com/?id=1' })}')`);
-      await gen.update({extra: sql});
+      await gen.update({
+        extra: new Raw(`JSON_MERGE_PATCH(extra, ${SqlString.escape(JSON.stringify({ url: 'https://www.taobao.com/?id=1' }))})`),
+      });
       assert.ok(!(gen.extra instanceof Raw));
       await gen.reload();
       assert.equal(gen.extra.url, 'https://www.taobao.com/?id=1');
+    });
+
+    it('bone.update(values, options) with Raw and literal values mixed should work', async () => {
+      const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
+      await gen.update({
+        extra: new Raw(`JSON_MERGE_PATCH(extra, ${SqlString.escape(JSON.stringify({ url: 'https://www.taobao.com/?id=2' }))})`),
+        name: 'gen2',
+      });
+      assert.ok(!(gen.extra instanceof Raw));
+      await gen.reload();
+      assert.equal(gen.extra.test, 'gen');
+      assert.equal(gen.extra.url, 'https://www.taobao.com/?id=2');
+      assert.equal(gen.name, 'gen2');
+    });
+
+    it('bone.jsonMerge(values, options) with object and primitive values mixed should work', async () => {
+      const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
+      await gen.jsonMerge({
+        extra: { url: 'https://www.taobao.com/?id=2' },
+        name: 'gen2',
+      });
+      assert.ok(!(gen.extra instanceof Raw));
+      await gen.reload();
+      assert.equal(gen.extra.test, 'gen');
+      assert.equal(gen.extra.url, 'https://www.taobao.com/?id=2');
+      assert.equal(gen.name, 'gen2');
     });
 
     it('bone.jsonMergePreserve(name, values, options) should work', async () => {
@@ -81,6 +115,13 @@ describe('=> Basic', () => {
       await Gen.jsonMerge({ id: gen.id }, { extra: { a: "foo\'bar" } });
       await gen.reload();
       assert.equal(gen.extra.a, 'foo\'bar');
+    });
+
+    it('Bone.jsonMerge(conditions, values, options) should escape double quotations', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯', extra: {} });
+      await Gen.jsonMerge({ id: gen.id }, { extra: { a: 'foo"quote"bar' } });
+      await gen.reload();
+      assert.equal(gen.extra.a, 'foo"quote"bar');
     });
 
     it('Bone.jsonMergePreserve(conditions, values, options) should work', async () => {
