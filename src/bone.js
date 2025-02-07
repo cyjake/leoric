@@ -1599,7 +1599,7 @@ class Bone {
     const data = { ...values };
     for (const [name, value] of Object.entries(values)) {
       if (value != null && typeof value === 'object') {
-        data[name] = new Raw(`${method}(${name}, ${SqlString.escape(JSON.stringify(value))})`);
+        data[name] = new Raw(`${method}(COALESCE(${name}, '{}'), ${SqlString.escape(JSON.stringify(value))})`);
       } else {
         data[name] = value;
       }

@@ -30,6 +30,13 @@ describe('=> Basic', () => {
       await Gen.remove({}, true);
     });
 
+    it('bone.jsonMerge(name, value, options) should still update if currently NULL', async () => {
+      const gen = await Gen.create({ name: '章3️⃣疯' });
+      assert.equal(gen.name, '章3️⃣疯');
+      await gen.jsonMerge('extra', { a: 1 });
+      assert.equal(gen.extra.a, 1);
+    });
+
     it('bone.jsonMerge(name, value, options) should work', async () => {
       const gen = await Gen.create({ name: '章3️⃣疯' });
       assert.equal(gen.name, '章3️⃣疯');
