@@ -1,3 +1,12 @@
+2.13.5 / 2025-02-07
+===================
+
+## What's Changed
+* fix: should still be able to jsonMerge() even if currently null by @cyjake in https://github.com/cyjake/leoric/pull/432
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.4...v2.13.5
+
 2.13.4 / 2025-01-10
 ===================
 
