@@ -7,29 +7,28 @@ const { Bone, Raw } = require('../../../src');
 
 describe('=> Basic', () => {
 
-  describe('=> JSON Functions', ()=>{
+  class Gen extends Bone { }
+  Gen.init({
+    id: { type: Bone.DataTypes.INTEGER, primaryKey: true },
+    name: Bone.DataTypes.STRING,
+    extra: Bone.DataTypes.JSONB,
+    deletedAt: Bone.DataTypes.DATE,
+  });
 
-    class Gen extends Bone { }
-    Gen.init({
-      id: { type: Bone.DataTypes.INTEGER, primaryKey: true },
-      name: Bone.DataTypes.STRING,
-      extra: Bone.DataTypes.JSONB,
-      deletedAt: Bone.DataTypes.DATE,
-    });
+  before(async () => {
+    await Bone.driver.dropTable('gens');
+    await Gen.sync();
+  });
 
-    before(async () => {
-      await Bone.driver.dropTable('gens');
-      await Gen.sync();
-    });
+  after(async () => {
+    await Bone.driver.dropTable('gens');
+  });
 
-    after(async () => {
-      await Bone.driver.dropTable('gens');
-    });
+  beforeEach(async () => {
+    await Gen.remove({}, true);
+  });
 
-    beforeEach(async () => {
-      await Gen.remove({}, true);
-    });
-
+  describe('=> JSON Functions', () => {
     it('bone.jsonMerge(name, value, options) should still update if currently NULL', async () => {
       const gen = await Gen.create({ name: '章3️⃣疯' });
       assert.equal(gen.name, '章3️⃣疯');
@@ -137,6 +136,16 @@ describe('=> Basic', () => {
       await Gen.jsonMergePreserve({ id: gen.id }, { extra: { a: 4 } });
       await gen.reload();
       assert.deepEqual(gen.extra.a, [3, 4]);
+    });
+  });
+
+  describe('=> JSONB value handling', () => {
+    it('should still be able to return JSON object if named column exists', async () => {
+      await Gen.create({ name: '章3️⃣疯', extra: { a: 1 } });
+      const [result] = await Gen.select("JSON_EXTRACT(extra, '$.a') as a", 'extra');
+      // extracted prop returns string in mysql but number in mysql2
+      assert.equal(Number(result.a), 1);
+      assert.deepEqual(result.extra, { a: 1 });
     });
   });
 });
