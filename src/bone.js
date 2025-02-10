@@ -1194,7 +1194,11 @@ class Bone {
     for (const key in data) {
       const value = data[key];
       const attribute = attributeMap[key];
-      result[attribute ? attribute.name : key] = value;
+      if (attribute) {
+        result[attribute.name] = attribute.cast(value);
+      } else {
+        result[key] = value;
+      }
     }
     return result;
   }
