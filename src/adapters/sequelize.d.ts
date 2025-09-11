@@ -28,6 +28,10 @@ interface SequelizeInstanceUpdateOptions<T extends SequelizeBone> extends QueryO
   fields?: Array<[keyof Extract<CommonValues<T>, Literal>] | string | Raw> | [keyof Extract<CommonValues<T>, Literal>];
 }
 
+interface CountSequelizeOptions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
+  col?: BoneColumns<T> | Raw | '*';
+}
+
 interface SequelizeConditions<T extends typeof SequelizeBone> extends BaseSequelizeConditions<T> {
   group?: BoneColumns<T> | BoneColumns<T>[] | Raw | string;
   having?: WhereConditions<T> | string | { [key:string]: Literal | Literal[] } | Raw;
@@ -117,7 +121,7 @@ export class SequelizeBone extends AbstractBone {
    */
   static bulkBuild<T extends typeof SequelizeBone>(this:T, valueSets: Array<BoneCreateValues<T>>, options?: BoneOptions): Array<InstanceType<T>>;
 
-  static count<T extends typeof SequelizeBone>(this: T, conditions?: SequelizeConditions<T>): Spell<T, ResultSet<T> | number>;
+  static count<T extends typeof SequelizeBone>(this: T, conditions?: CountSequelizeOptions<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, name?: BoneColumns<T>): Spell<T, ResultSet<T> | number>;
   static count<T extends typeof SequelizeBone>(this: T, name?: Raw | '*'): Spell<T, ResultSet<T> | number>;
 
