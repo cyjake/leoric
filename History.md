@@ -1,3 +1,14 @@
+2.13.6 / 2025-09-11
+===================
+
+## What's Changed
+* fix: object results should have attribute values casted as well by @cyjake in https://github.com/cyjake/leoric/pull/433
+* fix: numbers that exceeds max safe integer should not be used by @cyjake in https://github.com/cyjake/leoric/pull/436
+* fix: sequelize count options should contains col by @JimmyDaddy in https://github.com/cyjake/leoric/pull/437
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.5...v2.13.6
+
 2.13.5 / 2025-02-07
 ===================
 
