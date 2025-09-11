@@ -48,9 +48,17 @@ class MysqlDriver extends AbstractDriver {
     const database = opts.appName || opts.database;
     const client = opts.client || 'mysql';
     const {
-      host, port, user, password,
-      connectTimeout, connectionLimit, charset, stringifyObjects = true,
+      host,
+      port,
+      user,
+      password,
+      connectTimeout,
+      connectionLimit,
+      charset,
+      stringifyObjects = true,
       decimalNumbers = true,
+      supportBigNumbers = true,
+      bigNumberStrings,
     } = opts;
 
     if (client !== 'mysql' && client !== 'mysql2') {
@@ -68,6 +76,8 @@ class MysqlDriver extends AbstractDriver {
       charset,
       stringifyObjects,
       decimalNumbers,
+      supportBigNumbers,
+      bigNumberStrings,
     });
   }
 

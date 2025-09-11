@@ -169,7 +169,7 @@ class INTEGER extends DataType {
 
   cast(value: number): number {
     const result = Number(value);
-    if (value == null || Number.isNaN(result)) return value;
+    if (value == null || Number.isNaN(result) || result > Number.MAX_SAFE_INTEGER) return value;
     return result;
   }
 
