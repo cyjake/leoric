@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node16",
+  "extends": "@tsconfig/node18",
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -16,7 +16,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "ES2020",
+    "target": "ES2020"
   },
   "include": [
     "src/**/*"

@@ -57,7 +57,6 @@ describe('=> Data Types', () => {
     assert.equal(new TINYINT().UNSIGNED.toSqlString(), 'TINYINT UNSIGNED');
     assert.equal(new TINYINT().UNSIGNED.ZEROFILL.toSqlString(), 'TINYINT UNSIGNED ZEROFILL');
     assert.equal(new TINYINT(1, true, true).toSqlString(), 'TINYINT(1) UNSIGNED ZEROFILL');
-
   });
 
   it('SMALLINT', () => {
@@ -66,7 +65,6 @@ describe('=> Data Types', () => {
     assert.equal(new SMALLINT().UNSIGNED.toSqlString(), 'SMALLINT UNSIGNED');
     assert.equal(new SMALLINT().UNSIGNED.ZEROFILL.toSqlString(), 'SMALLINT UNSIGNED ZEROFILL');
     assert.equal(new SMALLINT(1, true, true).toSqlString(), 'SMALLINT(1) UNSIGNED ZEROFILL');
-
   });
 
   it('MEDIUMINT', () => {
@@ -83,6 +81,8 @@ describe('=> Data Types', () => {
     assert.equal(new INTEGER().UNSIGNED.toSqlString(), 'INTEGER UNSIGNED');
     assert.equal(new INTEGER().UNSIGNED.ZEROFILL.toSqlString(), 'INTEGER UNSIGNED ZEROFILL');
     assert.equal(new INTEGER(1, true, true).toSqlString(), 'INTEGER(1) UNSIGNED ZEROFILL');
+    const value = Number.MAX_SAFE_INTEGER.toString() + '1234';
+    assert.equal(new INTEGER().cast(value), value);
   });
 
   it('BIGINT', () => {
