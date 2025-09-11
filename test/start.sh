@@ -10,8 +10,8 @@ function run {
     args=("${args[@]:1}");
   fi
   echo "";
-  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file}";
-  printf '"%s" ' "${args[@]}" | DEBUG=leoric xargs mocha --node-option require=ts-node/register,enable-source-maps -R dot --exit --timeout 5000 ${file} || exit $?;
+  printf '"%s" ' "${args[@]}" | xargs echo "> DEBUG=leoric mocha --node-option require=ts-node/register,enable-source-maps,loader=ts-node/esm -R dot --exit --timeout 5000 ${file}";
+  printf '"%s" ' "${args[@]}" | DEBUG=leoric xargs mocha --node-option require=ts-node/register,enable-source-maps,loader=ts-node/esm -R dot --exit --timeout 5000 ${file} || exit $?;
 }
 
 ##
@@ -25,10 +25,10 @@ function unit {
 ##
 # integration tests
 function integration {
-  for file in $(ls test/integration/*.test.js); do 
-    if [ "$file" != test/integration/sqlcipher.test.js ]; then 
-      run ${file}; 
-    fi 
+  for file in $(ls test/integration/*.test.js); do
+    if [ "$file" != test/integration/sqlcipher.test.js ]; then
+      run ${file};
+    fi
   done
 }
 
