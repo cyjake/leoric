@@ -1139,6 +1139,45 @@ describe('=> sequelize (TypeScript)', function() {
       });
       assert.equal(result3, 0);
     });
+
+    it('Model.count({ where, paranoid: false }) with col', async () => {
+      const books = await Promise.all([
+        Post.create({ title: 'By three they come' }),
+        Post.create({ title: 'By three thy way opens' }),
+      ]);
+
+      assert.equal(Post.count({
+        where: { title: 'By three they come' },
+        col: 'title',
+      }).toSqlString(), "SELECT COUNT(`title`) AS `count` FROM `articles` WHERE `title` = 'By three they come' AND `gmt_deleted` IS NULL");
+
+      const result = await Post.count({
+        where: { title: 'By three they come' },
+        col: 'title',
+      });
+
+      assert.equal(result, 1);
+      await books[0].destroy();
+      const result1 = await Post.count({
+        where: { title: 'By three they come' },
+        col: 'title',
+      });
+      assert.equal(result1, 0);
+      const result2 = await Post.count({
+        where: { title: 'By three they come' },
+        paranoid: false,
+        col: 'title',
+      });
+      assert.equal(result2, 1);
+
+      await books[0].destroy({ force: true });
+      const result3 = await Post.count({
+        where: { title: 'By three they come' },
+        paranoid: false,
+        col: 'title',
+      });
+      assert.equal(result3, 0);
+    });
   });
 
   describe('=> Model.find({ hint })', () => {
