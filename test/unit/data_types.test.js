@@ -156,6 +156,8 @@ describe('=> DataTypes type casting', function() {
     assert.equal(new INTEGER().uncast(undefined), undefined);
     assert.equal(new INTEGER().uncast('1'), 1);
     assert.equal(new INTEGER().uncast(1), 1);
+    const value = Number.MAX_SAFE_INTEGER.toString() + 1234;
+    assert.equal(new INTEGER().uncast(value), value);
 
     await assert.rejects(async () => {
       new Postgres_DataTypes.INTEGER().uncast('yes?');
@@ -168,7 +170,6 @@ describe('=> DataTypes type casting', function() {
     }, /Error: invalid integer: yes?/);
 
     assert.equal(new INTEGER().uncast('yes?', false), 'yes?');
-
   });
 
   it('STRING', async function() {
