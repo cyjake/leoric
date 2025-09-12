@@ -1,3 +1,12 @@
+2.13.7 / 2025-09-12
+===================
+
+## What's Changed
+* fix: should not lose precision when uncasting string to number by @cyjake in https://github.com/cyjake/leoric/pull/438
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.6...v2.13.7
+
 2.13.6 / 2025-09-11
 ===================
 
