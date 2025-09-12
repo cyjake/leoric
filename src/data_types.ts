@@ -177,6 +177,7 @@ class INTEGER extends DataType {
     const originValue = value;
     if (value == null || value instanceof Raw) return value;
     if (typeof value === 'string') value = parseInt(value, 10);
+    if (value > Number.MAX_SAFE_INTEGER) return originValue;
     if (Number.isNaN(value)) {
       if (strict) throw new Error(util.format('invalid integer: %s', originValue));
       return originValue;
