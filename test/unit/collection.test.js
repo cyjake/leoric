@@ -182,4 +182,10 @@ describe('=> Collection', function() {
       return await result.save();
     }, /cannot be saved/);
   });
+
+  it('should not throw error if contains null or undefined', async function() {
+    const result = new Collection(null, undefined);
+    assert.deepEqual(result.toJSON(), [ null, undefined ]);
+    assert.deepEqual(result.toObject(), [ null, undefined ]);
+  });
 });
