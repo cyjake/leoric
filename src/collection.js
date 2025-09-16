@@ -148,7 +148,9 @@ function dispatchJoins(current, spell, row, fields) {
           current[qualifier].push(instance);
         }
       }
-      if (!id || current[qualifier].some(item => item[Model.primaryKey] === id)) continue;
+      // TODO: add a test case to cover the loose equality check
+      // bigint primary key in cartesian product will be string if mysql supportBigNumbers is true
+      if (!id || current[qualifier].some(item => item[Model.primaryKey] == id)) continue;
       current[qualifier].push(Model.instantiate(values));
     } else {
       current[qualifier] = Object.values(values).some(value => value != null)
