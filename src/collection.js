@@ -22,6 +22,7 @@ class Collection extends Array {
    */
   toJSON() {
     return Array.from(this, function(element) {
+      if (element == null) return element;
       if (typeof element.toJSON === 'function') return element.toJSON();
       return element;
     });
@@ -32,6 +33,7 @@ class Collection extends Array {
    */
   toObject() {
     return Array.from(this, function(element) {
+      if (element == null) return element;
       if (typeof element.toObject === 'function') return element.toObject();
       return element;
     });
