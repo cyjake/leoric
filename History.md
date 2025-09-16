@@ -1,3 +1,13 @@
+2.13.8 / 2025-09-16
+===================
+
+## What's Changed
+* fix: Collection[null].toJSON() by @cyjake in https://github.com/cyjake/leoric/pull/439
+* fix: values of bigint columns in cartesian product might be string by @cyjake in https://github.com/cyjake/leoric/pull/440
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.7...v2.13.8
+
 2.13.7 / 2025-09-12
 ===================
 
