@@ -147,5 +147,21 @@ describe('=> Basic', () => {
       assert.equal(Number(result.a), 1);
       assert.deepEqual(result.extra, { a: 1 });
     });
+
+    it('should check changes correctly', async () => {
+      const gen = await Gen.create({ name: 'testGen', extra: { a: 1 } });
+      assert.equal(gen.extra.a, 1);
+      assert.deepEqual(gen.changes(), {});
+
+      gen.extra.a = 2;
+      assert.equal(gen.extra.a, 2);
+      assert.deepEqual(gen.changes(), { extra: [ { a: 1 }, { a: 2 } ] });
+
+      await gen.save();
+      assert.deepEqual(gen.changes(), {});
+
+      const found = await Gen.findOne(gen.id);
+      assert.equal(found.extra.a, 2);
+    });
   });
 });
