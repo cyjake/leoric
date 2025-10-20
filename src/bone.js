@@ -116,6 +116,14 @@ function valuesValidate(values, attributes, ctx) {
 }
 
 /**
+ * clone values returned from database, for model change tracking
+ */
+function cloneValue(value) {
+  if (value instanceof Date && isNaN(value)) return value;
+  return structuredClone(value);
+}
+
+/**
  * The base class that provides Object-relational mapping. This class is never intended to be used directly. We need to create models that extends from Bone. Most of the query features of Bone is implemented by {@link Spell} such as {@link Spell#$group} and {@link Spell#$join}. With Bone, you can create models like this:
  *
  *     class Post extends Bone {
@@ -551,7 +559,7 @@ class Bone {
   /**
    * Save the changes to database. If the instance isn't persisted to database before, an INSERT query will be executed. Otherwise, an upsert-like query is chosen to make sure only one instance of the specified primaryKey is created. If the primaryKey is positive but unchanged, an UPDATE will be executed.
    * @public
-   * @returns {Bone} saved model itself
+   * @returns {Promise<Bone>} saved model itself
    * @memberof Bone
    * @example
    * new Post({ title: 'Leah' }).save()
@@ -567,7 +575,7 @@ class Bone {
 
   /**
    * @private
-   * @return {Bone} current instance
+   * @return {Promise<Bone>} current instance
    */
   async _save(opts = {}) { // hooks maybe false
     const { primaryKey } = this.constructor;
@@ -625,7 +633,7 @@ class Bone {
    *
    * Returns number of affectedRows.
    * @public
-   * @returns {number}
+   * @returns {Promise<number>}
    * @memberof Bone
    */
   upsert(opts = {}) {
@@ -633,7 +641,7 @@ class Bone {
   }
   /**
    * @private
-   * @return {number}
+   * @return {Promise<number>}
    */
   _upsert(opts = {}) {
     const data = {};
@@ -809,7 +817,7 @@ class Bone {
 
   /**
    * @public
-   * @returns {Bone} created instance
+   * @returns {Promise<Bone>} created instance
    * @memberof Bone
    */
   create(opts = {}) {
@@ -819,7 +827,7 @@ class Bone {
   /**
    * Insert current instance into database. Unlike {@link Bone#upsert}, this method use `INSERT` no matter primary key presents or not.
    * @private
-   * @returns {Bone} created instance
+   * @returns {Promise<Bone>} created instance
    */
   _create(opts = {}) {
     const Model = this.constructor;
@@ -882,7 +890,7 @@ class Bone {
    * @public
    * @param {boolean} forceDelete
    * @param {Object?} opts
-   * @returns {number} effected rows
+   * @returns {Promise<number>} effected rows
    * @memberof Bone
    */
   async remove(forceDelete, opts = {}) {
@@ -893,7 +901,7 @@ class Bone {
    * Delete current instance. If `deletedAt` attribute exists, calling {@link Bone#remove} does not actually delete the record from the database. Instead, it updates the value of `deletedAt` attribute to current date. This is called [soft delete](../querying#scopes). To force a regular `DELETE`, use `.remove(true)`.
    * @private
    * @param {boolean} forceDelete
-   * @returns {number} affected rows
+   * @returns {Promise<number>} affected rows
    * @example
    * const post = await Post.first
    * post.remove()      // update the `deletedAt`
@@ -969,7 +977,7 @@ class Bone {
    * @static
    * @param {object} values
    * @param {object} options
-   * @returns number of affectedRows.
+   * @returns {Promise<number>} number of affectedRows.
    */
   static upsert(values, options = {}) {
     const data = {};
@@ -1360,8 +1368,9 @@ class Bone {
       const attribute = attributeMap[columnName];
       if (attribute) {
         // to make sure raw and rawSaved hold two different objects
-        instance._setRaw(attribute.name, attribute.cast(value));
-        instance._setRawSaved(attribute.name, attribute.cast(value));
+        const castedValue = attribute.cast(value);
+        instance._setRaw(attribute.name, castedValue);
+        instance._setRawSaved(attribute.name, cloneValue(castedValue));
       } else {
         if (value != null && typeof value == 'object') instance[columnName] = value;
         else if (!isNaN(value)) instance[columnName] = Number(value);
