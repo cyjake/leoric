@@ -1,3 +1,12 @@
+2.13.9 / 2025-10-21
+===================
+
+## What's Changed
+* fix: mysql2 returns vanilla objects on JSONB columns by @cyjake in https://github.com/cyjake/leoric/pull/441
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.8...v2.13.9
+
 2.13.8 / 2025-09-16
 ===================
 
