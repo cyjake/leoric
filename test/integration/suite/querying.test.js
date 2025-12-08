@@ -847,3 +847,23 @@ describe('=> Arithmetic Operators', function() {
     assert.deepEqual(oddPosts.concat(evenPosts).sort((a, b) => a.id - b.id), (await Post.all).sort((a, b) => a.id - b .id));
   });
 });
+
+describe('=> Raw Query', function() {
+  before(async function() {
+    await Promise.all([
+      Post.create({ title: 'New Post' }),
+      Post.create({ title: 'Archbishop Lazarus' }),
+      Post.create({ title: 'Leah' })
+    ]);
+  });
+
+  after(async function() {
+    await Post.remove({}, true);
+  });
+
+  it('should support raw query', async function() {
+    const { rows } = await Post.query('SELECT * FROM articles WHERE title = ?', ['Leah']);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].title, 'Leah');
+  });
+});

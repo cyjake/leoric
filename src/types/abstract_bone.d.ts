@@ -7,6 +7,7 @@ import {
 } from './common';
 import { AbstractDriver } from '../drivers';
 import { Spell } from '../spell';
+import { instantiate } from '../bone';
 
 interface SyncOptions {
   force?: boolean;
@@ -268,6 +269,8 @@ export class AbstractBone {
   static sync(options?: SyncOptions): Promise<void>;
 
   static initialize(): void;
+
+  static instantiate<T extends typeof AbstractBone>(this: T, values: Values<InstanceType<T>>, opts?: { isNewRecord?: boolean }): InstanceType<T>;
 
   static from<T extends typeof AbstractBone>(table: string | Spell<T>): Spell<T>;
 
