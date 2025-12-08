@@ -1362,6 +1362,7 @@ class Bone {
   static instantiate(row) {
     const { attributes, attributeMap } = this;
     const instance = new this();
+    const skipCloneValue = this.options.skipCloneValue === true;
 
     for (const columnName in row) {
       const value = row[columnName];
@@ -1370,7 +1371,7 @@ class Bone {
         // to make sure raw and rawSaved hold two different objects
         const castedValue = attribute.cast(value);
         instance._setRaw(attribute.name, castedValue);
-        instance._setRawSaved(attribute.name, cloneValue(castedValue));
+        instance._setRawSaved(attribute.name, skipCloneValue ? attribute.cast(value) : cloneValue(castedValue));
       } else {
         if (value != null && typeof value == 'object') instance[columnName] = value;
         else if (!isNaN(value)) instance[columnName] = Number(value);

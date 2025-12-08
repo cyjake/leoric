@@ -163,5 +163,29 @@ describe('=> Basic', () => {
       const found = await Gen.findOne(gen.id);
       assert.equal(found.extra.a, 2);
     });
+
+    it('should be able to skip clone value for JSONB columns', async () => {
+      const { skipCloneValue } = Gen.options;
+      Gen.options.skipCloneValue = true;
+      try {
+        const { id } = await Gen.create({ name: 'testGen', extra: { a: 1, b: { c: 2 } } });
+        const gen = await Gen.findOne(id);
+        assert.equal(gen.extra.a, 1);
+        assert.equal(gen.extra.b.c, 2);
+
+        // modify the retrieved JSON object
+        gen.extra.a = 3;
+        gen.extra.b.c = 4;
+
+        if (Gen.options.client === 'mysql2') {
+          // the changes won't be detected
+          assert.deepEqual(gen.changes(), {});
+        } else {
+          assert.deepEqual(gen.changes(), { extra: [ { a: 1, b: { c: 2 } }, { a: 3, b: { c: 4 } } ] });
+        }
+      } finally {
+        Gen.options.skipCloneValue = skipCloneValue;
+      }
+    });
   });
 });
