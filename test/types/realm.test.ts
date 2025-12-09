@@ -13,6 +13,23 @@ describe('=> Realm (TypeScript)', function () {
     });
   });
 
+  describe('new Realm(options)', async function() {
+    it('should allow options.skipCloneValue', async function() {
+      assert.doesNotReject(async function() {
+        const realm = new Realm({
+          host: 'localhost',
+          port: process.env.MYSQL_PORT,
+          database: 'leoric',
+          skipCloneValue: true,
+        });
+        assert.equal(realm.options.skipCloneValue, true);
+        await realm.connect();
+        const results = await realm.query('SELECT 1 + 1 AS value');
+        assert.equal(results.rows[0].value, 2);
+      });
+    });
+  });
+
   describe('realm.define(name, attributes, options, descriptors)', async function() {
     it('options and descriptors should be optional', async function() {
       assert.doesNotThrow(function() {

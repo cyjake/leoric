@@ -1,3 +1,14 @@
+2.14.0 / 2025-12-09
+===================
+
+## What's Changed
+* build: switch to trusted publishing for npm packages by @cyjake in https://github.com/cyjake/leoric/pull/443
+* feat: support Model.query(sql, values) by @cyjake in https://github.com/cyjake/leoric/pull/445
+* feat: options.skipCloneValue by @cyjake in https://github.com/cyjake/leoric/pull/446
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.13.9...v2.14.0
+
 2.13.9 / 2025-10-21
 ===================
 
