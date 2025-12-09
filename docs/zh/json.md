@@ -82,3 +82,40 @@ await post.jsonMergePreserve('extra', { foo: 1 });
 ```
 
 由于 JSON_MERGE_PRESERVE() 会改变值的类型，如果原始属性值并不是数组，更新的时候就需要谨慎。
+
+## 变更检查
+
+Leoric 默认会在查询结果返回的时候拷贝一份模型的属性值，从而实现以下特性：
+
+```typescript
+const post = await Post.first;
+post.extra.foo = 2;
+post.changes();
+// -> { extra: [ { foo: 1 }, { foo: 2 } ] }
+await post.save();
+// -> UPDATE posts SET extra = JSON_MERGE_PATCH('extra', '{"foo":1}');
+```
+
+JavaScript 中的对象深拷贝操作非常重，原生的 `structuredClone(value)` 比 `JSON.parse(JSON.stringify(value))` 还要慢。如果使用的是 mysql2，查询结果返回的时候已经是对象了，这也进一步导致这里可以优化的空间非常有限。
+
+如果数据库中有比较大或者多的 JSON 数据，并且并不依赖上面这种自动标记更新的特性，可以考虑跳过对象深拷贝：
+
+```typescript
+new Realm({
+  skipCloneValue: true,
+});
+```
+
+然后在需要保存对象的地方手动处理：
+
+```typescript
+const post = await Post.first;
+post.extra.foo = 2;
+post.changes();
+// -> {}
+post.extra = { ...post.extra, foo, 2 };
+post.changes();
+// -> { extra: [ { foo: 1 }, { foo: 2 } ] }
+await post.save();
+// -> UPDATE posts SET extra = JSON_MERGE_PATCH('extra', '{"foo":1}');
+```
