@@ -25,6 +25,7 @@ const {
   TIMESTAMP_ATTRIBUTE_NAMES,
   IS_LEORIC_BONE,
 } = require('./constants');
+const { rawQuery } = require('./raw');
 
 const columnAttributesKey = Symbol('leoric#columnAttributes');
 const synchronizedKey = Symbol('leoric#synchronized');
@@ -1670,8 +1671,8 @@ class Bone {
     });
   }
 
-  static query(spell) {
-    return this.driver.cast(spell);
+  static async query(sql, values, opts) {
+    return await rawQuery(this.driver, sql, values, { model: this, ...opts });
   }
 
   static async transaction(callback) {

@@ -51,4 +51,11 @@ export default class Bone extends AbstractBone {
    */
   static unscoped: Spell<typeof Bone>;
 
+  /**
+   * Execute a raw query
+   * @example
+   * Bone.query('SELECT * FROM posts WHERE id = ?', [1])
+   * Bone.query('SELECT * FROM posts WHERE id = :id', { replacements: { id: 1 } })
+   */
+  static query<T extends typeof Bone>(this: T, sql: string, values?: Literal[] | QueryOptions, opts?: QueryOptions): Promise<{ rows?: any[]; fields?: { table: string; name: string }[] }>;
 }

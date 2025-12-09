@@ -3,19 +3,12 @@
 const Bone = require('../bone');
 const AbstractDriver = require('../drivers/abstract');
 const { camelCase } = require('../utils/string');
-const { isBone } = require('../utils');
 const sequelize = require('../adapters/sequelize');
 const Raw = require('../raw').default;
 const { LEGACY_TIMESTAMP_MAP } = require('../constants');
+const { rawQuery } = require('../raw');
 
 const SequelizeBone = sequelize(Bone);
-
-/**
- *
- * @typedef {Object} QueryResult
- * @property {Array} rows
- * @property {Array} fields
- */
 
 /**
  * construct model attributes entirely from column definitions
@@ -56,7 +49,6 @@ function createSpine(opts) {
   return opts.subclass === true ? class Spine extends Model {} : Model;
 }
 
-const rReplacementKey = /\s:(\w+)\b/g;
 
 class BaseRealm {
   constructor(opts = {}) {
@@ -170,56 +162,8 @@ class BaseRealm {
     }
   }
 
-  /**
-   * raw query
-   * @param {string} query
-   * @param {Array<any>} values
-   * @param {Connection} opts.connection specific connection of this query, may used in a transaction
-   * @param {Bone} opts.model target model to inject values
-   * @returns {QueryResult}
-   * @memberof Realm
-   */
-  async query(query, values, opts = {}) {
-    if (values && typeof values === 'object' && !Array.isArray(values)) {
-      if ('replacements' in values) {
-        const { model, connection } = values;
-        opts.replacements = values.replacements;
-        if (model) opts.model = model;
-        if (connection) opts.connection = connection;
-      } else {
-        opts.replacements = values;
-      }
-      values = [];
-    }
-
-    const replacements = opts.replacements || {};
-    query = query.replace(rReplacementKey, function replacer(m, key) {
-      if (!replacements.hasOwnProperty(key)) {
-        throw new Error(`unable to replace: ${key}`);
-      }
-      values.push(replacements[key]);
-      return ' ?';
-    });
-
-    const { rows, ...restRes } = await this.driver.query(query, values, opts);
-    const results = [];
-
-    if (rows && rows.length && opts.model && isBone(opts.model)) {
-      const { attributeMap } = opts.model;
-
-      for (const data of rows) {
-        const instance = opts.model.instantiate(data);
-        for (const key in data) {
-          if (!attributeMap.hasOwnProperty(key)) instance[key] = data[key];
-        }
-        results.push(instance);
-      }
-    }
-
-    return {
-      ...restRes,
-      rows: results.length > 0 ? results : rows,
-    };
+  async query(sql, values, opts = {}) {
+    return await rawQuery(this.driver, sql, values, opts);
   }
 
   async transaction(callback) {
