@@ -206,4 +206,4 @@ export class SequelizeBone extends AbstractBone {
 
 }
 
-export const sequelize: (Bone: AbstractBone) => typeof SequelizeBone;
+export default function sequelize(Bone: typeof AbstractBone): typeof SequelizeBone;

@@ -1,12 +1,9 @@
-'use strict';
-
-const heredoc = require('heredoc');
 
 /**
  * Convert the first charactor of the string from lowercase to uppercase.
  * @param {string} str
  */
-function capitalize(str) {
+export function capitalize(str: string): string {
   return str.replace(/^([a-z])/, (m, chr) => chr.toUpperCase());
 }
 
@@ -14,7 +11,7 @@ function capitalize(str) {
  * Convert the first charactor of the string from uppercase to lowercase
  * @param {string} str
  */
-function uncapitalize(str) {
+export function uncapitalize(str: string): string {
   return str.replace(/^([A-Z])/, (m, chr) => chr.toLowerCase());
 }
 
@@ -27,7 +24,7 @@ function uncapitalize(str) {
  * @param {string} str
  * @returns {string}
  */
-function camelCase(str) {
+export function camelCase(str: string): string {
   return uncapitalize(str).replace(/[-_]([a-z])/g, (m, chr) => chr.toUpperCase());
 }
 
@@ -39,7 +36,7 @@ function camelCase(str) {
  * @param {string} str
  * @returns {string}
  */
-function snakeCase(str) {
+export function snakeCase(str: string): string {
   return uncapitalize(str).replace(/([A-Z])/g, (m, chr) => `_${chr.toLowerCase()}`);
 }
 
@@ -47,15 +44,13 @@ function snakeCase(str) {
  * Convert multiline SQL into single line for better logging
  * @param {string|Function} text
  * @returns {string}
+ * @example
+ * heresql(`
+ *   SELECT *
+ *     FROM users
+ *    WHERE age >= 35
+ * `)
  */
-function heresql(text) {
-  if (typeof text === 'function') text = heredoc(text);
+export function heresql(text: string): string {
   return text.trim().split('\n').map(line => line.trim()).join(' ');
 }
-
-module.exports = {
-  capitalize,
-  camelCase,
-  snakeCase,
-  heresql,
-};

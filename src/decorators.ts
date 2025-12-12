@@ -38,7 +38,7 @@ function findType(tsType: typeof BigInt | typeof Number | typeof Date | typeof S
 }
 
 export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = {}) {
-  return function(target: Bone, propertyKey: string) {
+  return function(target: any, propertyKey: string) {
     // target refers to model prototype, an internal instance of `Bone {}`
     if (('prototype' in options && options['prototype'] instanceof DataType) || options instanceof DataType) {
       options = { type: options as DATA_TYPE<DataType> };

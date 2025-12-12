@@ -1,6 +1,6 @@
-import { AbstractDriver } from './drivers';
+import type { AbstractDriver } from './drivers';
 import { AbstractBone } from './types/abstract_bone';
-import { Literal } from './types/common';
+import { Connection, Literal } from './types/common';
 import { isBone } from './utils';
 
 export default class Raw {
@@ -25,15 +25,30 @@ export default class Raw {
   }
 }
 
-const rReplacementKey = /\s:(\w+)\b/g;
-
-interface QueryOptions {
-  model?: typeof AbstractBone;
-  replacements?: { [key: string]: any };
-  connection?: any;
+/**
+ * raw sql object
+ * @static
+ * @param {string} sql
+ * @returns {RawSql}
+ * @memberof Realm
+ */
+export function raw(sql: string): Raw {
+  if (typeof sql !== 'string') {
+    throw new TypeError('sql must be a string');
+  }
+  return new Raw(sql);
 }
 
-export interface QueryResult {
+const rReplacementKey = /\s:(\w+)\b/g;
+
+
+export interface RawQueryOptions {
+  model?: typeof AbstractBone;
+  replacements?: { [key:string]: Literal | Literal[] };
+  connection?: Connection;
+}
+
+export interface RawQueryResult {
   fields?: { table: string; name: string }[];
   rows?: any[];
   affectedRows?: number;
@@ -46,14 +61,14 @@ export interface QueryResult {
 export async function rawQuery(
   driver: AbstractDriver,
   sql: string,
-  values: Literal[] | QueryOptions,
-  opts: QueryOptions = {},
-): Promise<QueryResult & { rows?: any[] }> {
+  values?: Literal[] | RawQueryOptions,
+  opts: RawQueryOptions = {},
+): Promise<RawQueryResult & { rows?: any[] }> {
   if (values && typeof values === 'object' && !Array.isArray(values)) {
     if ('replacements' in values) {
       opts.replacements = values.replacements;
     } else {
-      opts.replacements = values;
+      opts.replacements = values as Record<string, Literal | Literal[]>;
     }
     const { model, connection } = values;
     if (model) opts.model = model;
@@ -66,7 +81,7 @@ export async function rawQuery(
     if (!replacements.hasOwnProperty(key)) {
       throw new Error(`unable to replace: ${key}`);
     }
-    values.push(replacements[key]);
+    (values as Literal[]).push(replacements[key]);
     return ' ?';
   });
 

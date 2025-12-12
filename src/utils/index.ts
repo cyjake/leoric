@@ -1,20 +1,17 @@
-'use strict';
+import { performance } from 'perf_hooks';
+import { IS_LEORIC_BONE } from '../constants';
 
-const { performance } = require('perf_hooks');
-const { IS_LEORIC_BONE } = require('../constants');
-
-function isPlainObject(value) {
+export function isPlainObject(value: unknown): boolean {
   return Object.prototype.toString.call(value) === '[object Object]';
 }
 
-function compose() {
-  const funcs = Array.from(arguments);
-  if (funcs.length === 0) return arg => arg;
+export function compose(...funcs: ((...args: unknown[]) => unknown)[]) {
+  if (funcs.length === 0) return (arg: unknown) => arg;
   if (funcs.length === 1) return funcs[0];
-  return funcs.reverse().reduce((a, b) => (...arg) => b(a(...arg)));
+  return funcs.reverse().reduce((a, b) => (...args) => b(a(...args)));
 }
 
-function getPropertyNames(obj) {
+export function getPropertyNames(obj: unknown): string[] {
   if (obj == null) return [];
   const propertyNames = [];
   // avoid to deep clone obj
@@ -32,34 +29,26 @@ function getPropertyNames(obj) {
 }
 
 // microseconds to millisecond, 10.456
-function calculateDuration(starttime) {
+export function calculateDuration(starttime: number): number {
   return Math.floor((performance.now() - starttime) * 1000) / 1000;
 }
 
-const logger = {};
-
-[ 'log', 'warn', 'debug', 'info', 'error' ].forEach(key => {
-  logger[key] = function() {
-    console[key]('[leoric]', ...arguments);
+export const logger = ['log', 'warn', 'debug', 'info', 'error'].reduce((
+  result: Record<string, (...args: unknown[]) => void>,
+  key
+) => {
+  result[key] = function(...args: unknown[]) {
+    console[key as 'log' | 'warn' | 'debug' | 'info' | 'error']('[leoric]', ...args);
   };
-});
+  return result;
+}, {});
 
-function isBone(bone) {
+/**
+ * Check if cls is subclass of Bone
+ * @param cls
+ */
+export function isBone(bone: unknown): boolean {
   if (!bone || (typeof bone !== 'object' && typeof bone !== 'function')) return false;
   const metaValue = Reflect.getMetadata(IS_LEORIC_BONE, bone);
   return metaValue === true;
 }
-
-const deepClone = typeof structuredClone === 'function'
-  ? structuredClone
-  : (value) => JSON.parse(JSON.stringify(value));
-
-module.exports = {
-  isPlainObject,
-  compose,
-  getPropertyNames,
-  calculateDuration,
-  logger,
-  isBone,
-  deepClone,
-};

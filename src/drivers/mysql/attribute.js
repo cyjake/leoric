@@ -2,7 +2,7 @@
 
 const { escape, escapeId } = require('sqlstring');
 
-const Attribute = require('../abstract/attribute');
+const Attribute = require('../abstract/attribute').default;
 const DataTypes = require('./data_types');
 
 class MysqlAttribute extends Attribute {

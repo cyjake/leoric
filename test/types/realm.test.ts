@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import Realm from '../../src';
+import Realm, { Bone } from '../../src';
 
 describe('=> Realm (TypeScript)', function () {
   let realm: Realm;
@@ -50,7 +50,7 @@ describe('=> Realm (TypeScript)', function () {
           if (typeof value !== 'string') throw new Error('unexpected name' + value);
           if (this instanceof realm.Bone) this.attribute('name', value);
         }
-      });
+      }) as typeof Bone;
       // User.findOne should exists
       assert(User.findOne);
     });

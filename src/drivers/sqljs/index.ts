@@ -7,6 +7,7 @@ import { SqljsConnection } from './sqljs-connection';
 
 import { calculateDuration } from '../../utils';
 import { SpellMeta } from '../../spell';
+import Logger from '../abstract/logger';
 
 interface DriverOptions extends Omit<SqljsConnectionOptions, 'name'> {
   database: string;
@@ -19,6 +20,11 @@ export default class SqljsDriver extends SqliteDriver {
   }
 
   type: string;
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  logger: Logger;
+
   /**
    * @override
    */

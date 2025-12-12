@@ -9,7 +9,7 @@ const Realm = require('./realm/base');
 const AbstractDriver = require('./drivers/abstract');
 const { isBone } = require('./utils');
 
-import { ConnectOptions } from './drivers';
+import { ConnectOptions } from './drivers/abstract';
 
 /**
  * @typedef {Object} RawSql
