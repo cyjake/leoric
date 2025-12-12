@@ -2,7 +2,7 @@
 
 const { performance } = require('perf_hooks');
 
-const AbstractDriver = require('../abstract');
+const AbstractDriver = require('../abstract').default;
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const Spellbook = require('./spellbook');

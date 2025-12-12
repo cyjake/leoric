@@ -2,7 +2,7 @@
 
 const { performance } = require('perf_hooks');
 
-const AbstractDriver = require('../abstract');
+const AbstractDriver = require('../abstract').default;
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const {
@@ -118,7 +118,7 @@ class PostgresDriver extends AbstractDriver {
    LEFT JOIN information_schema.table_constraints AS constraints
           ON usage.constraint_name = constraints.constraint_name
        WHERE columns.table_catalog = $1 AND columns.table_name = ANY($2)
-    ORDER BY columns.ordinal_position ASC   
+    ORDER BY columns.ordinal_position ASC
     `);
 
     const { pool } = this;

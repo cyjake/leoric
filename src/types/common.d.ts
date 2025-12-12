@@ -2,6 +2,7 @@
 import { CommonHintsArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from './abstract_bone';
+import Raw from '../raw';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
@@ -150,12 +151,6 @@ export declare class Attribute {
   equals(columnInfo: ColumnMeta): boolean;
   cast(value: Literal): Literal;
   uncast(value: Literal): Literal;
-}
-
-export class Raw {
-  constructor(value: string);
-  value: string;
-  type: 'raw';
 }
 
 export type SetOptions<T extends typeof AbstractBone> = {

@@ -1,12 +1,11 @@
-'use strict';
+import fs from 'fs/promises';
+import path from 'path';
 
-const fs = require('fs').promises;
-const path = require('path');
+import { findDriver, AbstractDriver } from '../drivers';
+import { isBone } from '../utils';
 
-const { findDriver, AbstractDriver } = require('../drivers');
-const { isBone } = require('../utils');
-
-const BaseRealm = require('./base');
+import BaseRealm from './base';
+import { AbstractBone } from '../types/abstract_bone';
 
 /**
  *
@@ -20,7 +19,7 @@ const BaseRealm = require('./base');
  * @param {string} dir
  * @returns {Array.<Bone>}
  */
-async function findModels(dir) {
+async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
   if (!dir || typeof dir !== 'string') {
     throw new Error(`Unexpected models dir (${dir})`);
   }
@@ -42,7 +41,7 @@ class Realm extends BaseRealm {
   /**
    * @override
    */
-  getDriverClass(CustomDriver, dialect) {
+  getDriverClass(CustomDriver: typeof AbstractDriver | undefined, dialect: string) {
     return CustomDriver && CustomDriver.prototype instanceof AbstractDriver
       ? CustomDriver
       : findDriver(dialect);
@@ -64,4 +63,4 @@ class Realm extends BaseRealm {
   }
 }
 
-module.exports = Realm;
+export default Realm;

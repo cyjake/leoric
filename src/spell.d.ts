@@ -8,7 +8,7 @@ import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
 
 interface SpellBookFormatStandardResult {
-  sql?: string;
+  sql: string;
   values?: Array<Literal> | {
     [key: string]: Literal
   };

@@ -3,7 +3,7 @@
 const dayjs = require('dayjs');
 const { performance } = require('perf_hooks');
 
-const AbstractDriver = require('../abstract');
+const AbstractDriver = require('../abstract').default;
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const { escapeId, escape, alterTableWithChangeColumn, parseDefaultValue } = require('./sqlstring');

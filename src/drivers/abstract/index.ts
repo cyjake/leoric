@@ -1,13 +1,38 @@
-'use strict';
+import SqlString from 'sqlstring';
+import Debug from 'debug';
 
-const SqlString = require('sqlstring');
-const debug = require('debug')('leoric');
+import Logger from './logger';
+import Attribute from './attribute';
+import DataTypes from '../../data_types';
+import Spellbook from './spellbook';
+import { heresql, camelCase } from '../../utils/string';
+import { AbstractBone } from '../../types/abstract_bone';
+import { Connection, Literal, Pool, QueryOptions, QueryResult, ResultSet } from '../../types/common';
+import { Spell } from '../../spell';
 
-const Logger = require('./logger');
-const Attribute = require('./attribute');
-const DataTypes = require('../../data_types');
-const Spellbook = require('./spellbook');
-const { heresql, camelCase } = require('../../utils/string');
+const debug = Debug('leoric');
+
+export interface ConnectOptions {
+  client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher' | string;
+  dialect?: 'mysql' | 'postgres' | 'sqlite' | string;
+  dialectModulePath?: string;
+  host?: string;
+  port?: number | string;
+  user?: string;
+  password?: string;
+  database?: string;
+  db?: string;
+  storage?: string;
+  charset?: string;
+  models?: (typeof AbstractBone)[] | string;
+  subclass?: boolean;
+  driver?: typeof AbstractDriver;
+  skipCloneValue?: boolean;
+  define?: { underscored?: boolean; tableName?: string; hooks?: any  };
+  logger?: Logger | object | boolean;
+  idleTimeout?: number;
+}
+
 
 /**
  * Migration methods
@@ -15,21 +40,53 @@ const { heresql, camelCase } = require('../../utils/string');
  * - https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
  */
 
-class AbstractDriver {
+/**
+ * Abstract Driver Class
+ */
+export default class AbstractDriver {
 
   // define static properties as this way IDE will prompt
   static Spellbook = Spellbook;
   static Attribute = Attribute;
   static DataTypes = DataTypes;
 
-  constructor(opts = {}) {
+  idleTimeout: number;
+  options: ConnectOptions;
+
+  /**
+   * The type of driver, currently there are mysql, sqlite, and postgres
+   */
+  type: 'mysql' | 'sqlite' | 'postgres' | string = 'mysql';
+
+  /**
+   * The database current driver is using.
+   */
+  database = '';
+
+  /**
+   * The connection pool of the driver.
+   */
+  pool: Pool = {} as Pool;
+
+  spellbook: Spellbook;
+
+  logger: Logger;
+
+  DataTypes: typeof DataTypes;
+
+  Attribute: typeof Attribute;
+
+  escape: (v: string) => string;
+  escapeId: (v: string) => string;
+
+  constructor(opts: ConnectOptions = {}) {
     const { logger } = opts;
     this.logger = logger instanceof Logger ? logger : new Logger(logger);
     this.idleTimeout = opts.idleTimeout || 60;
     this.options = opts;
-    this.Attribute = this.constructor.Attribute;
-    this.DataTypes = this.constructor.DataTypes;
-    this.spellbook = new this.constructor.Spellbook();
+    this.Attribute = (this.constructor as typeof AbstractDriver).Attribute;
+    this.DataTypes = (this.constructor as typeof AbstractDriver).DataTypes;
+    this.spellbook = new (this.constructor as typeof AbstractDriver).Spellbook();
     this.escape = SqlString.escape;
     this.escapeId = SqlString.escapeId;
   }
@@ -39,7 +96,7 @@ class AbstractDriver {
    * @param {Spell} spell
    * @returns
    */
-  async cast(spell) {
+  async cast<T extends typeof AbstractBone>(spell: Spell<T, ResultSet<T> | number | null>): Promise<QueryResult> {
     const { sql, values } = this.format(spell);
     const query = { sql, nestTables: spell.command === 'select' };
     return await this.query(query, values, spell);
@@ -47,11 +104,17 @@ class AbstractDriver {
 
   /**
    * raw query
-   * @param {object|string} query
-   * @param {object | array} values
-   * @param {object} opts
    */
-  async query(query, values, opts) {
+  async query(
+    query: string | { sql: string, nestTables?: boolean},
+    values?: Literal[] | { [key: string]: Literal },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    opts: QueryOptions & { command?: string } = {},
+  ): Promise<QueryResult> {
+    throw new Error('unimplemented!');
+  }
+
+  async getConnection(): Promise<Connection> {
     throw new Error('unimplemented!');
   }
 
@@ -59,11 +122,12 @@ class AbstractDriver {
    * disconnect manually
    * @param {Function} callback
    */
-  async disconnect(callback) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async disconnect(callback?: () => Promise<void>): Promise<boolean | void> {
     debug('[disconnect] called');
   }
 
-  get dialect() {
+  get dialect(): 'mysql' | 'sqlite' | 'postgres' | string {
     return camelCase(this.constructor.name.replace('Driver', ''));
   }
 
@@ -72,11 +136,16 @@ class AbstractDriver {
    * @param {Spell} spell
    * @returns
    */
-  format(spell) {
+  format<T extends typeof AbstractBone>(spell: Spell<T, ResultSet<T> | number | null>) {
     return this.spellbook.format(spell);
   }
 
-  async createTable(table, attributes) {
+  /**
+   * create table
+   * @param tabe table name
+   * @param attributes attributes
+   */
+  async createTable(table: string, attributes: Record<string, any>) {
     const { escapeId } = this;
     const chunks = [ `CREATE TABLE ${escapeId(table)}` ];
     const columns = Object.keys(attributes).map(name => {
@@ -87,7 +156,12 @@ class AbstractDriver {
     await this.query(chunks.join(' '));
   }
 
-  async alterTable(table, attributes) {
+  /**
+   * alter table
+   * @param tabe table name
+   * @param attributes alter attributes
+   */
+  async alterTable(table: string, attributes: Record<string, any>) {
     const { escapeId } = this;
     const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
 
@@ -105,16 +179,31 @@ class AbstractDriver {
     await this.query(chunks.join(' '));
   }
 
-  async describeTable(table) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  querySchemaInfo(database: string, table: string | string[]): Promise<Record<string, any>> {
+    throw new Error('unimplemented!');
+  }
+
+  /**
+   * describe table
+   * @param table table name
+   */
+  async describeTable(table: string) {
     const { database } = this.options;
-    const schemaInfo = await this.querySchemaInfo(database, table);
-    return schemaInfo[table].reduce(function(result, column) {
+    const schemaInfo = await this.querySchemaInfo(database || '', table);
+    return schemaInfo[table].reduce(function(result: Record<string, any>, column: { columnName: string }) {
       result[column.columnName] = column;
       return result;
     }, {});
   }
 
-  async addColumn(table, name, params) {
+  /**
+   * add column to table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  async addColumn(table: string, name: string, params: any) {
     const { escapeId } = this;
     const attribute = new this.Attribute(name, params);
     const sql = heresql(`
@@ -124,7 +213,13 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async changeColumn(table, name, params) {
+  /**
+   * change column meta in table
+   * @param table table name
+   * @param name column name
+   * @param params column meta info
+   */
+  async changeColumn(table: string, name: string, params: any) {
     const { escapeId } = this;
     const attribute = new this.Attribute(name, params);
     const sql = heresql(`
@@ -134,7 +229,12 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async removeColumn(table, name) {
+  /**
+   * remove column in table
+   * @param table table name
+   * @param name column name
+   */
+  async removeColumn(table: string, name: string) {
     const { escapeId } = this;
     const { columnName } = new this.Attribute(name);
     const sql = heresql(`
@@ -143,7 +243,13 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async renameColumn(table, name, newName) {
+  /**
+   * rename column in table
+   * @param table table name
+   * @param name column name
+   * @param newName new column name
+   */
+  async renameColumn(table: string, name: string, newName: string) {
     const { escapeId } = this;
     const { columnName } = new this.Attribute(name);
     const attribute = new this.Attribute(newName);
@@ -154,7 +260,12 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async renameTable(table, newTable) {
+  /**
+   * rename table
+   * @param table table name
+   * @param newTable new table name
+   */
+  async renameTable(table: string, newTable: string) {
     const { escapeId } = this;
     const sql = heresql(`
       ALTER TABLE ${escapeId(table)} RENAME TO ${escapeId(newTable)}
@@ -162,17 +273,31 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async dropTable(table) {
+  /**
+   * drop table
+   * @param table table name
+   */
+  async dropTable(table: string) {
     const { escapeId } = this;
     await this.query(`DROP TABLE IF EXISTS ${escapeId(table)}`);
   }
 
-  async truncateTable(table) {
+  /**
+   * truncate table
+   * @param table table name
+   */
+  async truncateTable(table: string) {
     const { escapeId } = this;
     await this.query(`TRUNCATE TABLE ${escapeId(table)}`);
   }
 
-  async addIndex(table, attributes, opts = {}) {
+  /**
+   * add index in table
+   * @param table table name
+   * @param attributes attributes name
+   * @param opts
+   */
+  async addIndex(table: string, attributes: string[], opts: { unique?: boolean; name?: string; type?: string } = {}) {
     const { escapeId } = this;
     const columns = attributes.map(name => new this.Attribute(name).columnName);
     const type = opts.unique ? 'UNIQUE' : opts.type;
@@ -193,7 +318,13 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async removeIndex(table, attributes, opts = {}) {
+  /**
+   * remove index in table
+   * @param table string
+   * @param attributes attributes name
+   * @param opts
+   */
+  async removeIndex(table: string, attributes: string | string[], opts: { unique?: boolean; name?: string; type?: string } = {}) {
     const { escapeId } = this;
     let name;
     if (Array.isArray(attributes)) {
@@ -213,22 +344,19 @@ class AbstractDriver {
     await this.query(sql);
   }
 
-  async rollback(opts) {
+  async rollback(opts: { connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
     return await this.query('ROLLBACK', [], { command: 'ROLLBACK', ...opts, connection });
   }
 
-  async commit(opts) {
+  async commit(opts: { connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
 
     return await this.query('COMMIT', [], { command: 'COMMIT', ...opts, connection });
   }
 
-  async begin(opts) {
+  async begin(opts: { connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
     return await this.query('BEGIN', [], { command: 'BEGIN', ...opts, connection });
   }
-
-};
-
-module.exports = AbstractDriver;
+}

@@ -302,12 +302,11 @@ describe('=> Spell (TypeScript)', function() {
         title: {
           $like: '%yoxi%',
         }
-      })).limit(1).toSqlString(), heresql(function () {
-      /*
+      })).limit(1).toSqlString(), heresql(`
         SELECT *
-          FROM (SELECT * FROM `articles` WHERE `title` LIKE '%yoxi%' AND `gmt_deleted` IS NULL) AS `posts`
+          FROM (SELECT * FROM "articles" WHERE "title" LIKE '%yoxi%' AND "gmt_deleted" IS NULL) AS "posts"
         LIMIT 1
-      */}));
+      `).replaceAll('"', '`'));
     });
   });
 });

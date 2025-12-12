@@ -1,13 +1,13 @@
-'use strict';
 
-const { snakeCase } = require('../../utils/string');
-const { LENGTH_VARIANTS } = require('../../data_types');
+import { snakeCase } from '../../utils/string';
+import AbstractDataTypes, { DataType as AbstractDataType, LENGTH_VARIANTS } from '../../data_types';
+import { Literal, PickTypeKeys } from '../../types/common';
 
 /**
  * Find the corresponding JavaScript type of the type in database.
  * @param {string} dataType
  */
-function findJsType(DataTypes, type, dataType) {
+function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
   if (type instanceof DataTypes.VIRTUAL) return '';
   if (type instanceof DataTypes.BOOLEAN) return Boolean;
   if (type instanceof DataTypes.JSON) return JSON;
@@ -43,6 +43,8 @@ function findJsType(DataTypes, type, dataType) {
   }
 }
 
+type DataTypeKey = PickTypeKeys<typeof AbstractDataTypes, AbstractDataType>;
+
 /**
  * Find and instantiate the database specific data type
  * @param {Function} DataTypes
@@ -50,16 +52,16 @@ function findJsType(DataTypes, type, dataType) {
  * @param {Function} params.type
  * @param {string} params.dataType
  */
-function createType(DataTypes, params) {
+function createType(DataTypes: typeof AbstractDataTypes, params: { dataType?: string; type?: any }) {
   const { dataType, type } = params;
-  if (!type) return DataTypes.findType(dataType);
+  if (!type && dataType) return DataTypes.findType(dataType);
 
   if (type && typeof type === 'function') {
-    const DataType = DataTypes[type.name] || type;
+    const DataType = DataTypes[type.name as DataTypeKey] || type;
     return new DataType();
   }
 
-  const DataType = DataTypes[type.constructor.name];
+  const DataType = DataTypes[type.constructor.name as DataTypeKey];
   if (!DataType) return type;
 
   switch (type.constructor.name) {
@@ -85,7 +87,29 @@ function createType(DataTypes, params) {
   }
 }
 
-class Attribute {
+interface AttributeParams {
+  type?: AbstractDataType;
+  defaultValue?: Literal;
+  primaryKey?: boolean;
+  allowNull?: boolean;
+  columnName?: string;
+  columnType?: string;
+  dataType?: string;
+  virtual?: boolean;
+}
+
+export default class Attribute {
+  static DataTypes = AbstractDataTypes;
+
+  type!: AbstractDataType;
+  defaultValue?: Literal;
+  primaryKey?: boolean;
+  allowNull!: boolean;
+  columnName!: string;
+  columnType!: string;
+  dataType?: string;
+  jsType?: Literal;
+
   /**
    * Attribute name and definition
    * @param {string} name attribute name
@@ -93,8 +117,8 @@ class Attribute {
    * @param {Object} opts
    * @param {boolean} opts.underscored
    */
-  constructor(name, params, { underscored } = {}) {
-    const { DataTypes } = this.constructor;
+  constructor(name: string, params?: AttributeParams, { underscored }: { underscored?: boolean } = {}) {
+    const { DataTypes } = this.constructor as typeof Attribute;
     if (params instanceof Attribute) return params;
     const columnName = underscored === false ? name : snakeCase(name);
     if (params == null) return Object.assign(this, { name, columnName });
@@ -102,7 +126,7 @@ class Attribute {
     // { foo: STRING }
     // { foo: STRING(255) }
     if (typeof params === 'function' || DataTypes.is(params)) {
-      params = { type: params };
+      params = { type: params } as AttributeParams;
     }
     const type = createType(DataTypes, params);
     const dataType = params.dataType || type.dataType;
@@ -129,16 +153,17 @@ class Attribute {
     });
   }
 
-  equals(columnInfo) {
+  equals(columnInfo: { allowNull?: boolean; dataType?: string; defaultValue?: Literal; primaryKey?: boolean } | null) {
     if (!columnInfo) return false;
-    const props = [ 'allowNull', 'dataType', 'defaultValue', 'primaryKey' ];
+    const props: (keyof typeof columnInfo)[] = [ 'allowNull', 'dataType', 'defaultValue', 'primaryKey' ];
     for (const prop of props) {
       let source = this[prop];
       const target = columnInfo[prop];
       if (prop === 'dataType') {
+        const { dataLength } = this.type;
         if (source === 'integer' && target === 'int') continue;
-        if (source !== target && Object.values(LENGTH_VARIANTS).includes(this.type.dataLength)) {
-          source = `${this.type.dataLength}${source}`;
+        if (source !== target && Object.values(LENGTH_VARIANTS).includes(dataLength as LENGTH_VARIANTS)) {
+          source = `${dataLength}${source}`;
         }
       } else if (prop === 'defaultValue') {
         if (source === null && target === 'CURRENT_TIMESTAMP') continue;
@@ -149,17 +174,24 @@ class Attribute {
     return true;
   }
 
-  cast(value) {
+  cast(value: Literal) {
     const castedValue = this.type.cast(value);
     return castedValue == null? null : castedValue;
   }
 
-  uncast(value, strict = true) {
+  uncast(value: Literal, strict = true) {
     if (Array.isArray(value) && this.jsType !== JSON) {
       return value.map(entry => this.type.uncast(entry, strict));
     }
     return this.type.uncast(value, strict);
   }
+
+  /**
+   * @abstract
+   * @returns {string} SQL string representation of this attribute
+   */
+  toSqlString(): string {
+    throw new Error('unimplemented!');
+  }
 }
 
-module.exports = Attribute;

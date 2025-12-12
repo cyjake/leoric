@@ -338,6 +338,7 @@ class SpellBook {
   /**
    * Format a spell into UPDATE query
    * @param {Spell} spell
+   * @returns {{ sql: string, values?: Literal[] | { [key: string]: Literal } }} SQL and values
    */
   formatUpdate(spell) {
     const { Model, sets, whereConditions } = spell;
@@ -403,6 +404,7 @@ class SpellBook {
   /**
    * Format the spell into a DELETE query.
    * @param {Spell} spell
+   * @returns {{ sql: string, values?: Literal[] | { [key: string]: Literal } }} SQL and values
    */
   formatDelete(spell) {
     const { Model, whereConditions } = spell;
