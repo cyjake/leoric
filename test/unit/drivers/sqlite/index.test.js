@@ -149,6 +149,20 @@ describe('=> SQLite driver', () => {
     const result = await driver.query('SELECT * FROM notes');
     assert.equal(result.rows.length, 1);
   });
+
+  it('driver.alterTable(table, changes) remove column', async function() {
+    await driver.dropTable('notes');
+    await driver.createTable('notes', {
+      id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+      title: { type: STRING },
+      content: { type: STRING },
+    });
+    await driver.alterTable('notes', {
+      content: { remove: true },
+    });
+    const tableInfo = await driver.describeTable('notes');
+    assert.equal(tableInfo.content, undefined);
+  });
 });
 
 describe('=> SQLite driver.query()', () => {

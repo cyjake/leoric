@@ -21,14 +21,10 @@ interface SyncOptions {
  * @param {Array<string, Object>} columns column definitions
  */
 function initAttributes(
-  model: typeof AbstractBone,
+  model: typeof AbstractBone & { driver: AbstractDriver },
   columns: Array<ColumnMeta>,
 ) {
   const attributes: Record<string, AbstractDataType<DataType> | AttributeMeta> = {};
-
-  if (model.driver == null) {
-    throw new Error('Model.driver is required to init attributes');
-  }
 
   for (const columnInfo of columns) {
     const { columnName, columnType, ...restInfo } = columnInfo as ColumnMeta & Required<Pick<ColumnMeta, 'columnName' | 'columnType'>>;
@@ -138,16 +134,21 @@ export default class BaseRealm {
   }
 
   async loadModels(models: Array<typeof AbstractBone>, opts: ConnectOptions) {
-    const { database = '' } = opts;
+    if (this.driver == null) {
+      throw new Error('Driver is not initialized');
+    }
+    const { database } = opts;
     const tables = models.map(model => model.physicTable);
-    const schemaInfo = await this.driver.querySchemaInfo(database, tables);
+    const schemaInfo = await this.driver.querySchemaInfo(database as string, tables);
 
     for (const model of models) {
       if (!model.driver) model.driver = this.driver;
       if (!model.options) model.options = this.options;
       if (!model.models) model.models = this.models;
       const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
-      if (!model.attributes) initAttributes(model, columns);
+      if (!model.attributes) {
+        initAttributes(model as typeof AbstractBone & { driver: AbstractDriver }, columns);
+      }
       model.load(columns);
     }
 

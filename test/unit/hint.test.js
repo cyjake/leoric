@@ -8,9 +8,29 @@ const {
 } = require('../../src');
 
 describe('Hint', () => {
+  it('.build() should throw if unknown hint', () => {
+    assert.throws(() => {
+      Hint.build(123);
+    }, /unknown hint/i);
+
+    assert.throws(() => {
+      Hint.build({});
+    }, /unknown hint/i);
+
+    assert.throws(() => {
+      Hint.build(null);
+    }, /unknown hint/i);
+  });
+
   it('text= should strip comment syntax', () => {
     const hint = new Hint('/*+ SET_VAR(foreign_key_checks=OFF) */');
     assert.equal(hint.text, 'SET_VAR(foreign_key_checks=OFF)');
+  });
+
+  it('text= should throw when value is not valid', () => {
+    assert.throws(() => {
+      new Hint(123);
+    }, /unknown optimizer hint/i);
   });
 
   it('isEqual() should compare with actual hint text', () => {
@@ -22,9 +42,54 @@ describe('Hint', () => {
 });
 
 describe('IndexHint', () => {
+  it('.build() should throw if unknown index hint', () => {
+    assert.throws(() => {
+      IndexHint.build({ orderBy: null });
+    }, /unknown index hint/i);
+
+    assert.throws(() => {
+      IndexHint.build(456);
+    }, /unknown index hint/i);
+
+    assert.throws(() => {
+      IndexHint.build({});
+    }, /unknown index hint/i);
+  });
+
+  it('.build() should create IndexHint from plain object', () => {
+    const obj = { index: 'idx_name', type: INDEX_HINT_TYPE.force, scope: INDEX_HINT_SCOPE.groupBy };
+    const hint = IndexHint.build(obj);
+    assert.ok(hint instanceof IndexHint);
+    assert.deepEqual(hint.index, ['idx_name']);
+    assert.equal(hint.type, INDEX_HINT_TYPE.force);
+    assert.equal(hint.scope, INDEX_HINT_SCOPE.groupBy);
+  });
+
+  it('.build() should return as is if input is IndexHint', () => {
+    const hint = new IndexHint('idx_name');
+    assert.strictEqual(IndexHint.build(hint), hint);
+  });
+
+  it('.merge() should return as is if input is not IndexHint array', () => {
+    assert.equal(IndexHint.merge(null), null);
+    assert.deepEqual(IndexHint.merge([]), []);
+  });
+
   it('index= should convert value to string[]', () => {
     const hint = new IndexHint('idx_name');
     assert.deepEqual(hint.index, ['idx_name']);
+  });
+
+  it('index= should throw when value is not valid', () => {
+    assert.throws(() => {
+      const hint = new IndexHint('idx_name');
+      hint.index = '';
+    }, /unknown index hint/i);
+
+    assert.throws(() => {
+      const hint = new IndexHint('idx_name');
+      hint.index = 123;
+    }, /unknown index hint/i);
   });
 
   it('type= should throw when value is not valid', () => {

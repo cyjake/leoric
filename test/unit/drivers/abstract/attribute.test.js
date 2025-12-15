@@ -33,4 +33,15 @@ describe('=> Attribute', function() {
      }));
     });
   });
+
+  describe('.toSqlString()', function() {
+    it('should throw unimplemented error', async function() {
+      const attribute = new Attribute('price', {
+        type: INTEGER,
+      });
+      assert.throws(() => {
+        attribute.toSqlString();
+      }, /unimplemented/);
+    });
+  });
 });

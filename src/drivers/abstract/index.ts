@@ -12,6 +12,23 @@ import { Spell } from '../../spell';
 
 const debug = Debug('leoric');
 
+export function getIndexName(
+  table: string,
+  attributes: string | string[],
+  opts: { unique?: boolean; name?: string; type?: string, Attribute: typeof Attribute },
+) {
+  if (Array.isArray(attributes)) {
+    const columns = attributes.map(entry => new opts.Attribute(entry).columnName);
+    const type = opts.unique ? 'UNIQUE' : opts.type;
+    const prefix = type === 'UNIQUE' ? 'uk' : 'idx';
+    return [ prefix, table ].concat(columns.map(columnName => columnName.replace(/_/g, ''))).join('_');
+  }
+  if (typeof attributes === 'string') {
+    return attributes;
+  }
+  throw new Error(`Unexpected index name: ${attributes}`);
+}
+
 export interface ConnectOptions {
   client?: 'mysql' | 'mysql2' | 'pg' | 'sqlite3' | '@journeyapps/sqlcipher' | string;
   dialect?: 'mysql' | 'postgres' | 'sqlite' | string;
@@ -123,7 +140,7 @@ export default class AbstractDriver {
    * @param {Function} callback
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async disconnect(callback?: () => Promise<void>): Promise<boolean | void> {
+  async disconnect(callback?: () => Promise<void>): Promise<void> {
     debug('[disconnect] called');
   }
 
@@ -292,6 +309,39 @@ export default class AbstractDriver {
   }
 
   /**
+   * show indexes in table
+   * @param table table name
+   */
+  async showIndexes(
+    table: string,
+    attributes?: string | string[],
+    opts: { unique?: boolean; name?: string; type?: string } = {},
+  ) {
+    const { escape, escapeId } = this;
+    const chunks = [`SHOW INDEX FROM ${escapeId(table)}`];
+    if (attributes) {
+      const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
+      chunks.push(`WHERE Key_name = ${escape(name)}`);
+    }
+    const { rows } = await this.query(chunks.join(' '));
+    if (!rows) return [];
+    const indexes: { name: string; columns: string[]; unique: boolean; }[] = [];
+    for (const row of rows) {
+      const idx = indexes.find(entry => entry.name === row.Key_name);
+      if (idx) {
+        idx.columns.push(row.Column_name as string);
+      } else {
+        indexes.push({
+          name: row.Key_name as string,
+          columns: [ row.Column_name as string ],
+          unique: row.Non_unique === 0,
+        });
+      }
+    }
+    return indexes;
+  }
+
+  /**
    * add index in table
    * @param table table name
    * @param attributes attributes name
@@ -301,11 +351,7 @@ export default class AbstractDriver {
     const { escapeId } = this;
     const columns = attributes.map(name => new this.Attribute(name).columnName);
     const type = opts.unique ? 'UNIQUE' : opts.type;
-    const prefix = type === 'UNIQUE' ? 'uk' : 'idx';
-    const { name } = {
-      name: [ prefix, table ].concat(columns).join('_'),
-      ...opts,
-    };
+    const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
 
     if (type != null && ![ 'UNIQUE', 'FULLTEXT', 'SPATIAL' ].includes(type)) {
       throw new Error(`Unexpected index type: ${type}`);
@@ -313,7 +359,7 @@ export default class AbstractDriver {
 
     const sql = heresql(`
       CREATE ${type ? `${type} INDEX` : 'INDEX'} ${escapeId(name)}
-      ON ${escapeId(table)} (${columns.map(escapeId).join(', ')})
+      ON ${escapeId(table)} (${columns.map(columnName => escapeId(columnName)).join(', ')})
     `);
     await this.query(sql);
   }
@@ -326,18 +372,7 @@ export default class AbstractDriver {
    */
   async removeIndex(table: string, attributes: string | string[], opts: { unique?: boolean; name?: string; type?: string } = {}) {
     const { escapeId } = this;
-    let name;
-    if (Array.isArray(attributes)) {
-      const columns = attributes.map(entry => new this.Attribute(entry).columnName);
-      const type = opts.unique ? 'UNIQUE' : opts.type;
-      const prefix = type === 'UNIQUE' ? 'uk' : 'idx';
-      name = [ prefix, table ].concat(columns).join('_');
-    } else if (typeof attributes === 'string') {
-      name = attributes;
-    } else {
-      throw new Error(`Unexpected index name: ${attributes}`);
-    }
-
+    const name = getIndexName(table, attributes, { Attribute: this.Attribute, ...opts });
     const sql = this.type === 'mysql'
       ? `DROP INDEX ${escapeId(name)} ON ${escapeId(table)}`
       : `DROP INDEX IF EXISTS ${escapeId(name)}`;

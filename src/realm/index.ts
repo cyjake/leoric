@@ -42,9 +42,8 @@ class Realm extends BaseRealm {
    * @override
    */
   getDriverClass(CustomDriver: typeof AbstractDriver | undefined, dialect: string) {
-    return CustomDriver && CustomDriver.prototype instanceof AbstractDriver
-      ? CustomDriver
-      : findDriver(dialect);
+    if (CustomDriver) return super.getDriverClass(CustomDriver, dialect);
+    return findDriver(dialect);
   }
 
   /**

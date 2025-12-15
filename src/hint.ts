@@ -102,6 +102,8 @@ export class IndexHint {
       return new IndexHint(hint, type, scope);
     }
 
+    if (hint instanceof IndexHint) return hint;
+
     if (isPlainObject(hint)) {
       if ('index' in hint) {
         return new IndexHint(hint.index, hint.type || type, hint.scope || scope);
@@ -115,7 +117,6 @@ export class IndexHint {
       }
     }
 
-    if (hint instanceof IndexHint) return hint;
 
     throw new SyntaxError(format('Unknown index hint %s', hint));
   }

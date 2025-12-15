@@ -353,3 +353,63 @@ describe('=> Bone.describe()', function() {
     assert.deepEqual(Object.keys(result), [ 'id', 'foo', 'created_at', 'updated_at' ]);
   });
 });
+
+describe('=> Table indexes', function() {
+  let driver;
+  before(async function() {
+    driver = Bone.driver;
+    await driver.removeIndex('articles', 'idx_articles_authorid').catch(() => {});
+    await driver.removeIndex('articles', [ 'author_id', 'gmt_create' ]).catch(() => {});
+    await driver.removeIndex('users', `uk_users_email`).catch(() => {});
+  });
+
+  it('driver.addIndex()', async function() {
+    await driver.addIndex('articles', ['author_id']);
+    const results = await driver.showIndexes('articles', 'idx_articles_authorid');
+    assert.equal(results.length, 1);
+    assert.equal(results[0].name, 'idx_articles_authorid');
+    assert.deepEqual(results[0].columns, ['author_id']);
+  });
+
+  it('driver.addIndeex(table, attributes, { unique: true })', async function() {
+    await driver.addIndex('users', ['email'], { unique: true });
+    try {
+      const results = await driver.showIndexes('users', 'uk_users_email');
+    console.log(results);
+      assert.equal(results.length, 1);
+      assert.equal(results[0].name, 'uk_users_email');
+      assert.equal(results[0].unique, true);
+      assert.deepEqual(results[0].columns, ['email']);
+    } finally {
+      await driver.removeIndex('users', 'uk_users_email').catch(() => {});
+    }
+  });
+
+  it('driver.addIndeex(table, attributes, { type: "UNIQUE" })', async function() {
+    await driver.addIndex('users', ['email'], { type: 'UNIQUE' });
+    try {
+      const results = await driver.showIndexes('users', 'uk_users_email');
+      assert.equal(results.length, 1);
+      assert.equal(results[0].name, 'uk_users_email');
+      assert.equal(results[0].unique, true);
+      assert.deepEqual(results[0].columns, ['email']);
+    } finally {
+      await driver.removeIndex('users', 'uk_users_email').catch(() => {});
+    }
+  });
+  it('driver.removeIndex()', async function() {
+    await driver.removeIndex('articles', 'idx_articles_authorid');
+  });
+
+  it('driver.removeIndex("table", ["column1", "column2"])', async function() {
+    await driver.addIndex('articles', ['author_id', 'gmt_create']);
+    let results = await driver.showIndexes('articles', ['author_id', 'gmt_create']);
+    assert.equal(results.length, 1);
+    assert.equal(results[0].name, 'idx_articles_authorid_gmtcreate');
+    assert.deepEqual(results[0].columns, ['author_id', 'gmt_create']);
+    await driver.removeIndex('articles', ['author_id', 'gmt_create']);
+    results = await driver.showIndexes('articles', ['author_id', 'gmt_create']);
+    assert.equal(results.length, 0);
+  });
+});
+

@@ -160,6 +160,19 @@ describe('=> Realm', () => {
       assert.equal(realm.models.User, User);
       assert.equal(realm.models.Post, Post);
     });
+
+    it('should throw if CustomDriver invalid', async function() {
+      class CustomDriver {}
+      assert.throws(() => {
+        new Realm({ driver: CustomDriver, storage: '/tmp/leoric.sqlite3' });
+      }, /DriverClass must be a subclass of AbstractDriver/i);
+    });
+
+    it('should throw if dialect not supported', async function() {
+      assert.throws(() => {
+        new Realm({ dialect: 'unsupported' });
+      }, /unsupported database/i);
+    });
   });
 
   describe('DataTypes', () => {
@@ -1253,6 +1266,20 @@ describe('=> Realm', () => {
       assert.deepEqual(Post.options, realm.options);
       assert.deepEqual(User.driver, realm.Bone.driver);
       assert.deepEqual(User.options, realm.options);
+    });
+
+    it('should throw if driver not exist', async function() {
+      class User extends Bone {}
+      const realm = new Realm({
+        port: process.env.MYSQL_PORT,
+        user: 'root',
+        database: 'leoric',
+        models: [User],
+      });
+      realm.driver = realm.Bone.driver = null;
+      await assert.rejects(async () => {
+        await realm.connect();
+      }, /Error: Driver is not initialized/);
     });
   });
 

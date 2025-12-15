@@ -21,6 +21,22 @@ before(async function() {
 require('./suite/index.test');
 require('./suite/dates.test');
 
+describe('=> Realm(dialect: postgres)', function() {
+  it('should accept pg as well', async function() {
+    assert.doesNotReject(async function() {
+      await connect({
+        dialect: 'pg',
+        host: process.env.POSTGRES_HOST || '127.0.0.1',
+        port: process.env.POSTGRES_PORT,
+        user: process.env.POSTGRES_USER || '',
+        password: process.env.POSTGRES_PASSWORD || '',
+        database: 'leoric',
+        models: path.resolve(__dirname, '../models'),
+      });
+    });
+  });
+});
+
 describe('=> Date functions (postgres)', function() {
   const Post = require('../models/post');
 
