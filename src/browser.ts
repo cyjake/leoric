@@ -35,7 +35,7 @@ export async function connect(opts: ConnectOptions & { Bone?: typeof Bone }): Pr
   return realm;
 }
 
-export  async function disconnect(realm: InstanceType<typeof Realm>, callback: () => Promise<void>): Promise<void> {
+export  async function disconnect(realm: InstanceType<typeof Realm>, callback?: () => Promise<void>): Promise<void> {
   if (realm instanceof Realm && realm.connected) {
     return await realm.disconnect(callback);
   }
