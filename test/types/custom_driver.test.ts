@@ -1,17 +1,16 @@
 import { strict as assert } from 'assert';
-const SqlString = require('sqlstring');
+import SqlString from 'sqlstring';
 
-import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw } from '../../src';
-const { formatConditions, collectLiteral } = require('../../src/expr_formatter');
-const { findExpr } = require('../../src/expr');
+import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver } from '../../src';
+import { formatConditions, collectLiteral } from '../../src/expr_formatter';
+import { findExpr } from '../../src/expr';
 
 interface FormatResult {
-  table?: string;
+  sql: string;
+  table: string;
   whereArgs?: Array<Literal>
   whereClause?: string,
-  values?: Array<Literal> | {
-    [key: string]: Literal
-  };
+  values?: { [key: string]: Literal };
   [key: string]: Literal
 }
 
@@ -58,11 +57,11 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
 
     const table = escapeId(spell.table.value);
-    const opValues: Record<string, Literal> = {};
+    const values: Record<string, Literal> = {};
     Object.keys(sets!).reduce((obj, key) => {
       obj[escapeId(Model.unalias(key))] = sets![key];
       return obj;
-    }, opValues);
+    }, values);
 
     const whereArgs: Literal[] = [];
     let whereClause = '';
@@ -71,10 +70,11 @@ class MySpellbook extends SqliteDriver.Spellbook {
       whereClause += `WHERE ${formatConditions(spell, whereConditions)}`;
     }
     return {
+      sql: '',
       table,
       whereArgs,
       whereClause,
-      opValues,
+      values,
     };
   }
 
@@ -89,6 +89,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
       whereClause += `WHERE ${formatConditions(spell, whereConditions)}`;
     }
     return {
+      sql: '',
       table,
       whereArgs,
       whereClause,
@@ -112,6 +113,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
 
     return {
+      sql: '',
       table,
       values,
     };
@@ -127,15 +129,15 @@ class CustomDriver extends SqliteDriver {
     const { command } = spell;
     switch (command) {
       case 'update': {
-        const updateParams = this.format(spell);
+        const updateParams = this.format(spell) as unknown as FormatResult;
         return await this.update(updateParams, spell);
       }
       case 'delete': {
-        const deleteParams = this.format(spell);
+        const deleteParams = this.format(spell) as unknown as FormatResult;
         return await this.delete(deleteParams, spell);
       }
       case 'insert': {
-        const insertParams = this.format(spell);
+        const insertParams = this.format(spell) as unknown as FormatResult;
         return await this.insert(insertParams, spell);
       }
       case 'upsert':
@@ -150,7 +152,7 @@ class CustomDriver extends SqliteDriver {
     }
   }
 
-  async update({ table, values, whereClause, whereArgs }: { table: string, values: Record<string, Literal>, whereClause: string, whereArgs: Literal[] }, options?: SpellMeta) {
+  async update({ table, values = {}, whereClause, whereArgs }: FormatResult, options?: SpellMeta) {
     const valueSets: string[] = [];
     const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
@@ -161,12 +163,12 @@ class CustomDriver extends SqliteDriver {
     return await this.query(sql, assignValues.concat(whereArgs), options);
   }
 
-  async delete({ table, whereClause, whereArgs }: { table: string, whereClause: string, whereArgs: Literal[] }, options?: SpellMeta) {
+  async delete({ table, whereClause, whereArgs }: FormatResult, options?: SpellMeta) {
     const sql = `DELETE FROM ${table} ${whereClause}`;
     return await this.query(sql, whereArgs, options);
   }
 
-  async insert({ table, values }: { table: string, values: {[key: string]: Literal}}, options?: SpellMeta) {
+  async insert({ table, values = {} }: FormatResult, options?: SpellMeta) {
     const valueSets: string[] = [];
     const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
@@ -182,7 +184,7 @@ describe('=> Realm (TypeScript)', function () {
   let realm: Realm;
   before(function() {
     realm = new Realm({
-      driver: CustomDriver,
+      driver: CustomDriver as unknown as typeof AbstractDriver,
       database: '/tmp/leoric.sqlite3',
       subclass: true,
     });
@@ -212,7 +214,7 @@ describe('=> Realm (TypeScript)', function () {
           if (typeof value !== 'string') throw new Error('unexpected name' + value);
           if (this instanceof realm.Bone) this.attribute('name', value);
         }
-      });
+      }) as typeof Bone;
       // User.findOne should exists
       assert(User.findOne);
     });

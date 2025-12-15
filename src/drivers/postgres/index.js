@@ -2,7 +2,7 @@
 
 const { performance } = require('perf_hooks');
 
-const AbstractDriver = require('../abstract');
+const { default: AbstractDriver, getIndexName } = require('../abstract');
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const {
@@ -118,7 +118,7 @@ class PostgresDriver extends AbstractDriver {
    LEFT JOIN information_schema.table_constraints AS constraints
           ON usage.constraint_name = constraints.constraint_name
        WHERE columns.table_catalog = $1 AND columns.table_name = ANY($2)
-    ORDER BY columns.ordinal_position ASC   
+    ORDER BY columns.ordinal_position ASC
     `);
 
     const { pool } = this;
@@ -190,6 +190,28 @@ class PostgresDriver extends AbstractDriver {
     const chunks = [ `TRUNCATE TABLE ${escapeId(table)}` ];
     if (opts.restartIdentity) chunks.push('RESTART IDENTITY');
     await this.query(chunks.join(' '));
+  }
+
+  async showIndexes(table, attributes, opts = {}) {
+    const chunks = [`SELECT * FROM pg_indexes WHERE tablename = ${escape(table)}`];
+    if (attributes) {
+      const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
+      chunks.push(`AND indexname = ${escape(name)}`);
+    }
+    const { rows } = await this.query(chunks.join(' '));
+    if (!rows) return [];
+    const indexes = [];
+    for (const row of rows) {
+      const match = row.indexdef.match(/\((.+)\)/);
+      const columns = match ? match[1].split(',').map(s => s.trim().replace(/"/g, '')) : [];
+      const unique = /UNIQUE/.test(row.indexdef);
+      indexes.push({
+        name: row.indexname,
+        columns,
+        unique,
+      });
+    }
+    return indexes;
   }
 };
 

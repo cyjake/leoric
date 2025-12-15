@@ -17,6 +17,18 @@ before(async function() {
 
 require('./suite/index.test');
 
+describe('=> Realm(dialect: sqlite)', function() {
+  it('should accept sqlite3 as well', async function() {
+    assert.doesNotReject(async function() {
+      await connect({
+        dialect: 'sqlite3',
+        database: ':memory:',
+        models: path.resolve(__dirname, '../models'),
+      });
+    });
+  });
+});
+
 describe('=> Table definitions (sqlite)', () => {
   beforeEach(async () => {
     await Bone.driver.dropTable('notes');

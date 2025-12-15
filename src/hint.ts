@@ -1,40 +1,46 @@
-'use strict';
 
-const { format } = require('util');
-const isDeepStrictEqual = require('deep-equal');
-const { isPlainObject } = require('./utils');
+import { format, isDeepStrictEqual } from 'util';
+import { isPlainObject } from './utils';
 
-/**
- * @enum
- */
-const INDEX_HINT_TYPE = {
-  use: 'use',
-  force: 'force',
-  ignore: 'ignore',
-};
+export enum INDEX_HINT_TYPE {
+  use = 'use',
+  force = 'force',
+  ignore = 'ignore'
+}
 
-/**
- * @enum
- */
-const INDEX_HINT_SCOPE = {
-  join: 'join',
-  orderBy: 'order by',
-  groupBy: 'group by',
-};
+export enum INDEX_HINT_SCOPE {
+  join = 'join',
+  orderBy = 'order by',
+  groupBy = 'group by',
+}
 
-class Hint {
+export enum INDEX_HINT_SCOPE_TYPE {
+  join = 'join',
+  orderBy = 'orderBy',
+  groupBy = 'groupBy',
+}
+
+export interface BaseHintInterface {
+  index: string;
+}
+
+export interface HintInterface extends BaseHintInterface {
+  type?: INDEX_HINT_TYPE;
+  scope?: INDEX_HINT_SCOPE;
+}
+
+export class Hint {
 
   #text = '';
 
-  static build(hint) {
-    // eslint-disable-next-line no-use-before-define
+  static build(hint: string | Hint | BaseHintInterface): Hint | IndexHint {
     if (hint instanceof Hint || hint instanceof IndexHint) return hint;
-    // eslint-disable-next-line no-use-before-define
+    if (typeof hint === 'string') return new Hint(hint);
     if (isPlainObject(hint) && hint.index) return IndexHint.build(hint);
-    return new Hint(hint);
+    throw new SyntaxError(format('Unknown hint %s', hint));
   }
 
-  constructor(text) {
+  constructor(text: string) {
     this.text = text;
   }
 
@@ -55,7 +61,7 @@ class Hint {
    * @returns {boolean}
    * @memberof Hint
    */
-  isEqual(hint) {
+  isEqual(hint: Hint): boolean {
     return hint instanceof Hint && this.text === hint.text;
   }
 
@@ -65,18 +71,18 @@ class Hint {
 }
 
 // MySQL only
-class IndexHint {
+export class IndexHint {
 
   #type = INDEX_HINT_TYPE.use;
-  #scope = '';
-  #index = [];
+  #scope: INDEX_HINT_SCOPE | '' = '';
+  #index: string[] = [];
 
   /**
    * build index hint
    *
    * @static
-   * @param {object | string} obj
-   * @param {string} indexHintType
+   * @param {string | IndexHint} hint
+   * @param {string} type index hint type
    * @returns {IndexHint}
    * @example
    * build('idx_title')
@@ -87,25 +93,30 @@ class IndexHint {
    *   scope: INDEX_HINT_SCOPE.groupBy,
    * })
    */
-  static build(hint, type, scope) {
+  static build(
+    hint: string | IndexHint | HintInterface | { [key in INDEX_HINT_SCOPE_TYPE]?: string | string[] },
+    type?: INDEX_HINT_TYPE,
+    scope?: INDEX_HINT_SCOPE,
+  ): IndexHint {
     if (typeof hint === 'string' || Array.isArray(hint)) {
       return new IndexHint(hint, type, scope);
     }
 
+    if (hint instanceof IndexHint) return hint;
+
     if (isPlainObject(hint)) {
-      if (hint.index != null) {
+      if ('index' in hint) {
         return new IndexHint(hint.index, hint.type || type, hint.scope || scope);
       }
 
-      for (const key in INDEX_HINT_SCOPE) {
+      for (const [key, value] of Object.entries(INDEX_HINT_SCOPE)) {
         if (hint.hasOwnProperty(key)) {
-          const index = hint[key];
-          return new IndexHint(index, type, INDEX_HINT_SCOPE[key]);
+          const index = hint[key as INDEX_HINT_SCOPE_TYPE];
+          if (index != null) return new IndexHint(index, type, value);
         }
       }
     }
 
-    if (hint instanceof IndexHint) return hint;
 
     throw new SyntaxError(format('Unknown index hint %s', hint));
   }
@@ -117,25 +128,25 @@ class IndexHint {
    * @param {INDEX_HINT_SCOPE?} scope
    * @memberof IndexHint
    */
-  constructor(index, type = INDEX_HINT_TYPE.use, scope = '') {
+  constructor(index: string | string[], type: INDEX_HINT_TYPE = INDEX_HINT_TYPE.use, scope: INDEX_HINT_SCOPE | '' = '') {
     this.index = index;
     this.type = type;
     this.scope = scope;
   }
 
-  set index(values) {
-    values = [].concat(values);
+  set index(values: string | string[]) {
+    const indices = ([] as string[]).concat(values);
 
-    for (const value of values) {
-      if (typeof value !== 'string' || !value.trim()) {
-        throw new SyntaxError(format('Unknown index hint %s', value));
+    for (const index of indices) {
+      if (typeof index !== 'string' || !index.trim()) {
+        throw new SyntaxError(format('Unknown index hint %s', index));
       }
     }
 
-    this.#index = values;
+    this.#index = indices;
   }
 
-  get index() {
+  get index(): string[] {
     return this.#index;
   }
 
@@ -150,7 +161,7 @@ class IndexHint {
     return this.#type;
   }
 
-  set scope(value) {
+  set scope(value: INDEX_HINT_SCOPE | '') {
     if (value && !Object.values(INDEX_HINT_SCOPE).includes(value)) {
       throw new SyntaxError(format('Unknown index hint scope %s', value));
     }
@@ -179,7 +190,7 @@ class IndexHint {
    * @returns {boolean}
    * @memberof IndexHint
    */
-  isEqual(hint) {
+  isEqual(hint: IndexHint): boolean {
     return hint instanceof IndexHint
       && this.type === hint.type
       && this.scope === hint.scope
@@ -192,10 +203,10 @@ class IndexHint {
    * @returns {Array<IndexHint>}
    * @memberof IndexHint
    */
-  static merge(hints) {
+  static merge(hints: IndexHint[]): IndexHint[] {
     if (!hints || !hints.length) return hints;
 
-    const grouped = {};
+    const grouped: Record<string, string[]> = {};
     for (const hint of hints) {
       const key = `${hint.type}_${hint.scope}`;
       grouped[key] = (grouped[key] || []).concat(hint.index);
@@ -203,25 +214,18 @@ class IndexHint {
 
     const result = [];
     for (const key in grouped) {
-      const indices = grouped[key].reduce((arr, index) => {
+      const indices = grouped[key].reduce((arr: string[], index) => {
         if (!arr.includes(index)) arr.push(index);
         return arr;
       }, []);
       const [type, scope] = key.split('_');
-      result.push(new IndexHint(indices, type, scope));
+      result.push(new IndexHint(indices, type as INDEX_HINT_TYPE, scope as INDEX_HINT_SCOPE));
     }
 
     return result;
   }
 }
 
-module.exports = {
-  Hint,
-  IndexHint,
-  INDEX_HINT_TYPE,
-  INDEX_HINT_SCOPE,
-  INDEX_HINT_SCOPE_TYPE: Object.keys(INDEX_HINT_SCOPE).reduce((result, entry) => {
-    result[entry] = entry;
-    return result;
-  }, {}),
+export type CommonHintsArgs = string | HintInterface | Hint | IndexHint | {
+  [key in INDEX_HINT_SCOPE_TYPE]?: string | Array<string>
 };

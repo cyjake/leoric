@@ -1,35 +1,42 @@
-'use strict';
-
-const Bone = require('../bone');
-const AbstractDriver = require('../drivers/abstract');
-const { camelCase } = require('../utils/string');
-const sequelize = require('../adapters/sequelize');
-const Raw = require('../raw').default;
-const { LEGACY_TIMESTAMP_MAP } = require('../constants');
-const { rawQuery } = require('../raw');
+import Bone from '../bone';
+import AbstractDriver, { ConnectOptions } from '../drivers/abstract';
+import { camelCase } from '../utils/string';
+import sequelize from '../adapters/sequelize';
+import Raw, { rawQuery, raw, RawQueryOptions } from '../raw';
+import { LEGACY_TIMESTAMP_MAP } from '../constants';
+import { AttributeMeta, ColumnMeta, Connection, Literal } from '../types/common';
+import { invokable as DataTypes, AbstractDataType, DataType } from '../data_types';
+import { AbstractBone, InitOptions } from '../types/abstract_bone';
 
 const SequelizeBone = sequelize(Bone);
+
+interface SyncOptions {
+  force?: boolean;
+  alter?: boolean;
+}
 
 /**
  * construct model attributes entirely from column definitions
  * @param {Bone} model
  * @param {Array<string, Object>} columns column definitions
  */
-function initAttributes(model, columns) {
-  const attributes = {};
+function initAttributes(
+  model: typeof AbstractBone & { driver: AbstractDriver },
+  columns: Array<ColumnMeta>,
+) {
+  const attributes: Record<string, AbstractDataType<DataType> | AttributeMeta> = {};
 
   for (const columnInfo of columns) {
-    const { columnName, columnType, ...restInfo } = columnInfo;
+    const { columnName, columnType, ...restInfo } = columnInfo as ColumnMeta & Required<Pick<ColumnMeta, 'columnName' | 'columnType'>>;
     const name = columnName === '_id' ? columnName : camelCase(columnName);
     attributes[name] = {
       ...restInfo,
       columnName,
-      type: model.driver.DataTypes.findType(columnType),
+      type: model.driver.DataTypes.findType(columnType) as AbstractDataType<DataType>,
     };
   }
 
-  for (const name in LEGACY_TIMESTAMP_MAP) {
-    const newName = LEGACY_TIMESTAMP_MAP[name];
+  for (const [name, newName] of Object.entries(LEGACY_TIMESTAMP_MAP)) {
     if (attributes.hasOwnProperty(name) && !attributes.hasOwnProperty(newName)) {
       attributes[newName] = attributes[name];
       delete attributes[name];
@@ -39,8 +46,8 @@ function initAttributes(model, columns) {
   model.init(attributes, { timestamps: false });
 }
 
-function createSpine(opts) {
-  let Model = Bone;
+function createSpine(opts: { Bone?: typeof AbstractBone; sequelize?: boolean; subclass?: boolean; }) {
+  let Model: typeof AbstractBone = Bone;
   if (opts.Bone && opts.Bone.prototype instanceof Bone) {
     Model = opts.Bone;
   } else if (opts.sequelize) {
@@ -49,19 +56,25 @@ function createSpine(opts) {
   return opts.subclass === true ? class Spine extends Model {} : Model;
 }
 
+export default class BaseRealm {
+  Bone: typeof AbstractBone;
+  DataTypes = DataTypes;
+  driver: AbstractDriver;
+  models: Record<string, typeof AbstractBone>;
+  connected?: boolean;
+  options: ConnectOptions;
 
-class BaseRealm {
-  constructor(opts = {}) {
+  constructor(opts: ConnectOptions = {}) {
     const {
       dialect = 'mysql',
       dialectModulePath,
       client = dialectModulePath,
-      database = opts.db || opts.storage,
+      database = opts.db || opts.storage || '',
       driver: CustomDriver,
       ...restOpts
     } = opts;
     const Spine = createSpine(opts);
-    const models = {};
+    const models: Record<string, typeof AbstractBone> = {};
 
     if (Array.isArray(opts.models)) {
       for (const model of opts.models) models[model.name] = model;
@@ -70,7 +83,7 @@ class BaseRealm {
     const DriverClass = this.getDriverClass(CustomDriver, dialect);
 
     const driver = new DriverClass({
-      client,
+      client: client,
       database,
       ...restOpts,
     });
@@ -90,14 +103,20 @@ class BaseRealm {
     this.options = Spine.options = options;
   }
 
-  getDriverClass(CustomDriver, dialect) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getDriverClass(CustomDriver: typeof AbstractDriver | undefined, dialect: string) {
     if (CustomDriver && CustomDriver.prototype instanceof AbstractDriver) {
       return CustomDriver;
     }
     throw new Error('DriverClass must be a subclass of AbstractDriver');
   }
 
-  define(name, attributes, opts = {}, descriptors = {}) {
+  define(
+    name: string,
+    attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>,
+    options?: InitOptions,
+    descriptors?: Record<string, PropertyDescriptor>,
+  ): typeof AbstractBone {
     const Model = class extends this.Bone {};
     Object.defineProperty(Model, 'name', {
       value: name,
@@ -105,7 +124,7 @@ class BaseRealm {
       enumerable: false,
       configurable: true,
     });
-    Model.init(attributes, opts, descriptors);
+    Model.init(attributes, options, descriptors);
     this.Bone.models[name] = Model;
     return Model;
   }
@@ -114,17 +133,22 @@ class BaseRealm {
     return Object.values(this.models);
   }
 
-  async loadModels(models, opts) {
+  async loadModels(models: Array<typeof AbstractBone>, opts: ConnectOptions) {
+    if (this.driver == null) {
+      throw new Error('Driver is not initialized');
+    }
     const { database } = opts;
     const tables = models.map(model => model.physicTable);
-    const schemaInfo = await this.driver.querySchemaInfo(database, tables);
+    const schemaInfo = await this.driver.querySchemaInfo(database as string, tables);
 
     for (const model of models) {
       if (!model.driver) model.driver = this.driver;
       if (!model.options) model.options = this.options;
       if (!model.models) model.models = this.models;
       const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
-      if (!model.attributes) initAttributes(model, columns);
+      if (!model.attributes) {
+        initAttributes(model as typeof AbstractBone & { driver: AbstractDriver }, columns);
+      }
       model.load(columns);
     }
 
@@ -147,13 +171,13 @@ class BaseRealm {
     return this.Bone;
   }
 
-  async disconnect(callback) {
+  async disconnect(callback?: (() => Promise<void>)) {
     if (this.connected && this.driver) {
       return await this.driver.disconnect(callback);
     }
   }
 
-  async sync(options) {
+  async sync(options: SyncOptions = {}) {
     if (!this.connected) await this.connect();
     const { models } = this;
 
@@ -162,31 +186,17 @@ class BaseRealm {
     }
   }
 
-  async query(sql, values, opts = {}) {
+  async query(sql: string, values?: Literal[], opts: RawQueryOptions = {}): Promise<any> {
     return await rawQuery(this.driver, sql, values, opts);
   }
 
-  async transaction(callback) {
+  async transaction<T extends (options: { connection: Connection }) => Promise<any> | Generator>(callback: T): Promise<ReturnType<T>> {
     return await this.Bone.transaction(callback);
   }
 
-  /**
-   * raw sql object
-   * @static
-   * @param {string} sql
-   * @returns {RawSql}
-   * @memberof Realm
-   */
-  static raw(sql) {
-    if (typeof sql !== 'string') {
-      throw new TypeError('sql must be a string');
-    }
-    return new Raw(sql);
-  }
-
   // instance.raw
-  raw(sql) {
-    return BaseRealm.raw(sql);
+  raw(sql: string): Raw {
+    return raw(sql);
   }
 
   /**
@@ -195,11 +205,9 @@ class BaseRealm {
    * @returns {string} escaped value
    * @memberof Realm
    */
-  escape(value) {
+  escape(value: string): string {
     return this.driver.escape(value);
   }
 
   static SequelizeBone = SequelizeBone;
 }
-
-module.exports = BaseRealm;

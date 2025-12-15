@@ -4,8 +4,10 @@ import {
   Collection, ResultSet, OrderOptions,
   QueryOptions, AttributeMeta, AssociateOptions, Values, Connection, BulkCreateOptions, BoneCreateValues,
   GeneratorReturnType, BoneColumns, InstanceColumns, Raw, OnConditions,
+  ColumnMeta,
+  BeforeHooksType, AfterHooksType, QueryOptions,
 } from './common';
-import { AbstractDriver } from '../drivers';
+import { AbstractDriver, ConnectOptions } from '../drivers';
 import { Spell } from '../spell';
 import { instantiate } from '../bone';
 
@@ -16,6 +18,17 @@ interface SyncOptions {
 
 interface TransactionOptions {
   connection: Connection;
+}
+
+interface InitOptions {
+  underscored?: boolean;
+  tableName?: string;
+  hooks?: {
+    [key in BeforeHooksType ]: (options: QueryOptions) => Promise<void>
+  } | {
+    [key in AfterHooksType ]: (instance: AbstractBone, result: object) => Promise<void>
+  };
+  timestamps?: boolean;
 }
 
 type V<T, Key extends keyof T> = Record<Key, T[Key]>;
@@ -88,6 +101,13 @@ export class AbstractBone {
    * If the table name is just an alias and the schema info can only be fetched by one of its partition table names, physic tables should be specified.
    */
   static physicTables: string[];
+
+  static physicTable: string;
+
+  static synchronized: boolean;
+
+  static options: ConnectOptions;
+
 
   isNewRecord: boolean;
 
@@ -251,8 +271,7 @@ export class AbstractBone {
    *   yield Muscle.create({ boneId: bone.id, bar: 1 })
    * });
    */
-  static transaction<T extends (options: { connection: Connection }) => Generator>(callback: T): Promise<GeneratorReturnType<ReturnType<T>>>;
-  static transaction<T extends (options: { connection: Connection }) => Promise<any>>(callback: T): Promise<ReturnType<T>>;
+  static transaction<T extends (options: { connection: Connection }) => Promise<any> | Generator>(callback: T): Promise<ReturnType<T>>;
 
   static describe(): Promise<{[key: string]: any[]}>;
 
@@ -271,6 +290,10 @@ export class AbstractBone {
   static initialize(): void;
 
   static instantiate<T extends typeof AbstractBone>(this: T, values: Values<InstanceType<T>>, opts?: { isNewRecord?: boolean }): InstanceType<T>;
+
+  static init(attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>, options?: InitOptions, descriptors?: Record<string, PropertyDescriptor>): void;
+
+  static load(columns: Array<ColumnMeta>): void;
 
   static from<T extends typeof AbstractBone>(table: string | Spell<T>): Spell<T>;
 

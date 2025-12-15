@@ -31,3 +31,30 @@ describe('=> AbstractDriver#logger', function() {
     assert.doesNotThrow(() => driver.logger.tryLogQuery('xx'));
   });
 });
+
+describe('=> AbstractDriver#query', function() {
+  it('should throw error when calling query method', async function() {
+    const driver = new AbstractDriver();
+    await assert.rejects(async () => {
+      await driver.query('SELECT 1');
+    }, /unimplemented/i);
+  });
+});
+
+describe('=> AbstractDriver#getConnection', function() {
+  it('should throw error when calling getConnection method', async function() {
+    const driver = new AbstractDriver();
+    await assert.rejects(async () => {
+      await driver.getConnection();
+    }, /unimplemented/i);
+  });
+});
+
+describe('=> AbstractDriver#querySchemaInfo', function() {
+  it('should throw error when calling querySchemaInfo method', async function() {
+    const driver = new AbstractDriver();
+    await assert.rejects(async () => {
+      await driver.querySchemaInfo('users');
+    }, /unimplemented/i);
+  });
+});

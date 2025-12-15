@@ -7,7 +7,7 @@
 const pluralize = require('pluralize');
 const SqlString = require('sqlstring');
 const { parseExprList, parseExpr, walkExpr } = require('./expr');
-const { isPlainObject, deepClone } = require('./utils');
+const { isPlainObject } = require('./utils');
 const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
 const { parseObject } = require('./query_object');
 const Raw = require('./raw').default;
@@ -401,14 +401,14 @@ class Spell {
       for (const condition of this.whereConditions) {
         const [arg] = condition.args;
         if (arg.type === 'id' && arg.value === shardingKey) {
-          whereConditions.push(deepClone(condition));
+          whereConditions.push(structuredClone(condition));
         }
       }
     }
     Object.assign(this, {
       whereConditions,
       groups: [],
-      orders: deepClone(this.orders),
+      orders: structuredClone(this.orders),
       havingConditions: [],
       joins: {},
       subqueryIndex: 0,
@@ -788,7 +788,7 @@ class Spell {
         const { value } = condition.args[0];
         for (const column of this.columns) {
           if (column.value === value && column.type === 'alias') {
-            condition.args[0] = deepClone(column.args[0]);
+            condition.args[0] = structuredClone(column.args[0]);
             break;
           }
         }

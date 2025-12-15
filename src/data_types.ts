@@ -12,6 +12,9 @@ export enum LENGTH_VARIANTS {
 
 export interface AbstractDataType<T> {
   new (dataLength?: LENGTH_VARIANTS | number): DataType & T;
+  new (dataLength?: number, unsigned?: boolean, zerofill?: boolean): DataType & T;
+  new (precision?: number, timezone?: boolean): DataType & T;
+  new (precision?: number, scale?: number): DataType & T;
   (dataLength?: LENGTH_VARIANTS | number): DataType & T;
 }
 
@@ -37,7 +40,8 @@ export abstract class DataType {
   /**
    * uncast js value into database type with precision
    */
-  uncast(value: any): any {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  uncast(value: any, strict?: boolean): any {
     return value;
   }
 

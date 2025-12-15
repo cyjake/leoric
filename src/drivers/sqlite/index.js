@@ -3,7 +3,7 @@
 const dayjs = require('dayjs');
 const { performance } = require('perf_hooks');
 
-const AbstractDriver = require('../abstract');
+const AbstractDriver = require('../abstract').default;
 const Attribute = require('./attribute');
 const DataTypes = require('./data_types');
 const { escapeId, escape, alterTableWithChangeColumn, parseDefaultValue } = require('./sqlstring');
@@ -11,6 +11,7 @@ const Spellbook = require('./spellbook');
 const Pool = require('./pool');
 const { calculateDuration } = require('../../utils');
 const { heresql } = require('../../utils/string');
+const { getIndexName } = require('../abstract');
 
 class SqliteDriver extends AbstractDriver {
 
@@ -180,6 +181,24 @@ class SqliteDriver extends AbstractDriver {
    */
   async truncateTable(table) {
     await this.query(`DELETE FROM ${escapeId(table)}`);
+  }
+
+  async showIndexes(table, attributes, opts) {
+    const { rows } = await this.query(`PRAGMA index_list(${this.escapeId(table)})`);
+    if (!rows || rows.length === 0) return [];
+    const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
+    const indexes = [];
+    for (const row of rows) {
+      if (row.name !== name) continue;
+      const indexInfo = await this.query(`PRAGMA index_info(${this.escapeId(name)})`);
+      const columns = indexInfo.rows.map(entry => entry.name);
+      indexes.push({
+        name,
+        unique: row.unique === 1,
+        columns,
+      });
+    }
+    return indexes;
   }
 };
 

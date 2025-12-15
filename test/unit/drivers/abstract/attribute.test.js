@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const { default: DataTypes, LENGTH_VARIANTS } = require('../../../../src/data_types');
-const AbstractAttribute = require('../../../../src/drivers/abstract/attribute');
+const { default: AbstractAttribute } = require('../../../../src/drivers/abstract/attribute');
 const { INTEGER, TEXT } = DataTypes;
 
 class Attribute extends AbstractAttribute {
@@ -31,6 +31,17 @@ describe('=> Attribute', function() {
         allowNull: true,
         primaryKey: false,
      }));
+    });
+  });
+
+  describe('.toSqlString()', function() {
+    it('should throw unimplemented error', async function() {
+      const attribute = new Attribute('price', {
+        type: INTEGER,
+      });
+      assert.throws(() => {
+        attribute.toSqlString();
+      }, /unimplemented/);
     });
   });
 });
