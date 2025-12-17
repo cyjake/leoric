@@ -1,7 +1,23 @@
-'use strict';
 
-const { precedes, walkExpr } = require('./expr');
-const { AGGREGATORS } = require('./constants');
+import {
+  precedes,
+  walkExpr,
+  Identifier,
+  ExprDataType,
+  Func,
+  JsonValueFunc,
+  Operator,
+  TernaryOperator,
+  ExprLiteral,
+  Expr,
+  Alias,
+  Subquery,
+  RawExpr,
+} from './expr';
+import { AGGREGATORS } from './constants';
+import Spell from './spell';
+import { AbstractBone } from './types/abstract_bone';
+import { Literal } from './types/common';
 
 /**
  * Find model by qualifiers.
@@ -12,7 +28,7 @@ const { AGGREGATORS } = require('./constants');
  * @param {Spell} spell
  * @param {string[]} qualifiers
  */
-function findModel(spell, qualifiers) {
+function findModel<T extends typeof AbstractBone>(spell: Spell<T>, qualifiers?: string[]) {
   const qualifier = qualifiers && qualifiers[0];
   const Model = qualifier && qualifier != spell.Model.tableAlias
     ? (spell.joins.hasOwnProperty(qualifier) ? spell.joins[qualifier].Model : null)
@@ -26,8 +42,9 @@ function findModel(spell, qualifiers) {
  * @param {Spell}  spell
  * @param {Object} ast
  */
-function formatIdentifier(spell, ast) {
-  const { value, qualifiers } = ast;
+function formatIdentifier<T extends typeof AbstractBone>(spell: Spell<T>, ast: Identifier | Alias) {
+  const { value } = ast;
+  const qualifiers = 'qualifiers' in ast ? ast.qualifiers : undefined;
   const Model = findModel(spell, qualifiers);
   const column = Model.unalias(value);
   const { escapeId } = spell.Model.driver;
@@ -39,7 +56,7 @@ function formatIdentifier(spell, ast) {
   return escapeId(column);
 }
 
-function formatDataType(spell, ast) {
+function formatDataType<T extends typeof AbstractBone>(spell: Spell<T>, ast: ExprDataType) {
   const { value, length } = ast;
   if (length) return `${value.toUpperCase()}(${length})`;
   return value.toUpperCase();
@@ -47,8 +64,8 @@ function formatDataType(spell, ast) {
 
 const extractFieldNames = ['year', 'month', 'day'];
 
-function formatFuncExpr(spell, ast) {
-  const { name, args, dataType } = ast;
+function formatFuncExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Func | JsonValueFunc) {
+  const { name, args } = ast;
   const { type } = spell.Model.driver;
 
   // https://www.postgresql.org/docs/9.1/static/functions-datetime.html
@@ -58,14 +75,14 @@ function formatFuncExpr(spell, ast) {
 
   // https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html#function_json-value
   // https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-21.html#mysqld-8-0-21-json
-  if (name === 'json_value' && dataType) {
-    return `${name.toUpperCase()}(${args.map(arg => formatExpr(spell, arg)).join(', ')} RETURNING ${formatDataType(spell, dataType)})`;
+  if (name === 'json_value' && 'dataType' in ast && ast.dataType) {
+    return `${name.toUpperCase()}(${args.map(arg => formatExpr(spell, arg)).join(', ')} RETURNING ${formatDataType(spell, ast.dataType)})`;
   }
 
   return `${name.toUpperCase()}(${args.map(arg => formatExpr(spell, arg)).join(', ')})`;
 }
 
-function formatLiteral(spell, ast) {
+function formatLiteral<T extends typeof AbstractBone>(spell: Spell<T>, ast: ExprLiteral) {
   const { value } = ast;
 
   if (value == null) return 'NULL';
@@ -80,11 +97,9 @@ function formatLiteral(spell, ast) {
 
 /**
  * Format the abstract syntax tree of an expression into escaped string.
- * @param {Spell}  spell
- * @param {Object} ast
  */
-function isAggregatorExpr(spell, ast) {
-  const { type, name, args } = ast;
+function isAggregatorExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Expr | Subquery<T> | RawExpr) {
+  const { type } = ast;
   switch (type) {
     case 'literal':
     case 'subquery':
@@ -95,11 +110,11 @@ function isAggregatorExpr(spell, ast) {
     case 'op':
       return false;
     case 'alias':
-      return isAggregatorExpr(spell, args[0]);
+      return isAggregatorExpr(spell, ast.args[0]);
     case 'func':
-      return AGGREGATORS.includes(name);
+      return AGGREGATORS.includes(ast.name);
     default:
-      throw new Error(`Unexpected type ${type}`);
+      throw new Error(`Unexpected type: ${type}`);
   }
 }
 
@@ -108,19 +123,22 @@ function isAggregatorExpr(spell, ast) {
  * @param {Spell}  spell
  * @param {Object} ast
  */
-function formatExpr(spell, ast) {
-  const { type, name, value, args } = ast;
+function formatExpr<T extends typeof AbstractBone>(
+  spell: Spell<T>,
+  ast: Expr | Subquery<T> | RawExpr,
+): string {
+  const { type } = ast;
   switch (type) {
     case 'literal':
       return formatLiteral(spell, ast);
     case 'subquery':
-      return `(${value.toSqlString()})`;
+      return `(${ast.value.toSqlString()})`;
     case 'wildcard':
       return '*';
     case 'alias':
-      return `${formatExpr(spell, args[0])} AS ${formatIdentifier(spell, ast)}`;
+      return `${formatExpr(spell, ast.args[0])} AS ${formatIdentifier(spell, ast)}`;
     case 'mod':
-      return `${name.toUpperCase()} ${formatExpr(spell, args[0])}`;
+      return `${ast.name.toUpperCase()} ${formatExpr(spell, ast.args[0])}`;
     case 'id':
       return formatIdentifier(spell, ast);
     case 'op':
@@ -129,18 +147,17 @@ function formatExpr(spell, ast) {
       return formatFuncExpr(spell, ast);
     case 'raw':
       // return value directly
-      return value;
+      return ast.value;
     default:
-      throw new Error(`Unexpected type ${type}`);
+      throw new Error(`Unexpected type: ${type}`);
   }
 }
 
 /**
  * Check if current token is logical operator or not, e.g. `AND`/`NOT`/`OR`.
- * @param {Object} ast
  */
-function isLogicalOp({ type, name }) {
-  return type == 'op' && ['and', 'not', 'or'].includes(name);
+function isLogicalOp(expr: Expr): boolean {
+  return expr.type == 'op' && ['and', 'not', 'or'].includes(expr.name);
 }
 
 /**
@@ -148,10 +165,10 @@ function isLogicalOp({ type, name }) {
  * @param {Spell}  spell
  * @param {Object} ast
  */
-function formatOpExpr(spell, ast) {
+function formatOpExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Operator | TernaryOperator) {
   const { name, args } = ast;
   const params = args.map(arg => {
-    return isLogicalOp(ast) && isLogicalOp(arg) && precedes(name, arg.name) < 0
+    return isLogicalOp(ast) && isLogicalOp(arg) && precedes(name, (arg as Operator).name) < 0
       ? `(${formatExpr(spell, arg)})`
       : formatExpr(spell, arg);
   });
@@ -173,7 +190,9 @@ function formatOpExpr(spell, ast) {
 
   // IN (1, 2, 3)
   // IN (SELECT user_id FROM group_users)
-  if ((args[1].type == 'literal' && Array.isArray(args[1].value)) || args[1].type == 'subquery') {
+  if ((args[1].type == 'literal' && Array.isArray(args[1].value)) ||
+    (args[1] as unknown as Subquery<T>).type == 'subquery'
+  ) {
     let op = name;
     if (name == '=') {
       op = 'in';
@@ -181,24 +200,22 @@ function formatOpExpr(spell, ast) {
       op = 'not in';
     }
     if (!['in', 'not in'].includes(op)) {
-      throw new Error(`Invalid operator ${name} against ${args[1].value}`);
+      throw new Error(`Invalid operator ${name} against ${args[1]}`);
     }
     return `${params[0]} ${op.toUpperCase()} ${params[1]}`;
   }
 
-  if (params[1] !== '') {
-    return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
-  }
+  return `${params[0]} ${name.toUpperCase()} ${params[1]}`;
 }
 
 /**
  * Format an array of conditions into an expression. Conditions will be joined with `AND`.
  * @param {Object[]} conditions - An array of parsed where/having/on conditions
  */
-function formatConditions(spell, conditions) {
+function formatConditions<T extends typeof AbstractBone>(spell: Spell<T>, conditions: Expr[]): string {
   return conditions
     .map(condition => {
-      return isLogicalOp(condition) && condition.name == 'or' && conditions.length > 1
+      return isLogicalOp(condition) && (condition as Operator).name == 'or' && conditions.length > 1
         ? `(${formatExpr(spell, condition)})`
         : formatExpr(spell, condition);
     })
@@ -212,15 +229,14 @@ function formatConditions(spell, conditions) {
  * - https://github.com/brianc/node-postgres/issues/1751
  * @param {Array} values the collected values
  * @param {Object} ast the abstract syntax tree
- * @returns {Array} values
  */
-function collectLiteral(spell, ast, values) {
+function collectLiteral<T extends typeof AbstractBone>(spell: Spell<T>, ast: Expr, values: Literal[] = []) {
   walkExpr(ast, function(itr) {
-    const { type, value } = itr;
-
+    const { type } = itr;
     if (type === 'op' && !isLogicalOp(itr)) {
       coerceLiteral(spell, itr);
-    } else if (type == 'literal' && value != null) {
+    } else if (type == 'literal' && itr.value != null) {
+      const { value } = itr;
       if (Array.isArray(value)) {
         values.push(...value);
       } else {
@@ -231,7 +247,7 @@ function collectLiteral(spell, ast, values) {
   return values;
 }
 
-function coerceLiteral(spell, ast) {
+function coerceLiteral<T extends typeof AbstractBone>(spell: Spell<T>, ast: Operator) {
   const { args } = ast;
   const firstArg = args[0];
 
@@ -254,4 +270,4 @@ function coerceLiteral(spell, ast) {
   }
 }
 
-module.exports = { formatExpr, formatConditions, collectLiteral, isAggregatorExpr };
+export { formatExpr, formatConditions, collectLiteral, isAggregatorExpr };

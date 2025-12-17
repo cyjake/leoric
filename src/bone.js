@@ -13,7 +13,7 @@ const SqlString = require('sqlstring');
 require('reflect-metadata');
 
 const { default: DataTypes } = require('./data_types');
-const Collection = require('./collection');
+const Collection = require('./collection').default;
 const Spell = require('./spell');
 const Raw = require('./raw').default;
 const { capitalize, camelCase, snakeCase } = require('./utils/string');

@@ -6,6 +6,8 @@ import {
 } from './types/common';
 import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
+import { Identifier, Func, Operator, TernaryOperator } from './expr';
+import { AbstractDriver } from './drivers';
 
 interface SpellBookFormatStandardResult {
   sql: string;
@@ -18,51 +20,23 @@ interface SpellBookFormatStandardResult {
 interface Join {
   [key: string]: {
     Model: typeof AbstractBone;
-    on: ExprBinaryOperator
+    on: ExprOperator;
+    hasMany?: boolean;
   }
 }
 
-interface ExprIdentifier {
-  type: 'id';
-  value: string;
-  qualifiers?: string[]
-}
+type ExprOperator = Operator | TernaryOperator;
+type SpellColumn = Identifier | Raw;
 
-interface ExprFunc {
-  type: 'func';
-  name: string;
-  args: (ExprLiteral | ExprIdentifier)[];
-}
-
-interface ExprLiteral {
-  type: 'literal';
-  value: Literal;
-}
-
-interface ExprBinaryOperator {
-  type: 'op';
-  name: string;
-  args: [ExprIdentifier, ExprLiteral, ExprLiteral];
-}
-
-interface ExprTernaryOperator {
-  type: 'op';
-  name: 'between' | 'not between';
-  args: [ExprIdentifier, ExprLiteral, ExprLiteral];
-}
-
-type ExprOperator = ExprBinaryOperator | ExprTernaryOperator;
-type SpellColumn = ExprIdentifier | Raw;
-
-type ScopeFunction = (spell: SpellMeta) => void;
+type ScopeFunction = (spell: Spell) => void;
 
 interface SpellOptions {
   command?: command;
   columns: SpellColumn[];
-  table: ExprIdentifier;
+  table: Identifier;
   whereConditions: ExprOperator[];
-  groups: (ExprIdentifier | ExprFunc)[];
-  orders: (ExprIdentifier | ExprFunc)[];
+  groups: (Identifier | Func)[];
+  orders: (Identifier | Func)[];
   havingCondtions: ExprOperator[];
   joins: Join;
   skip: number;
@@ -82,23 +56,30 @@ export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
 
 export class Spellbook {
 
-  format(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  format(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
 
-  formatInsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
-  formatSelect(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
-  formatUpdate(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
-  formatDelete(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
-  formatUpsert(spell: SpellMeta): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatInsert(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatSelect(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpdate(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatDelete(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
+  formatUpsert(spell: Spell): SpellBookFormatResult<SpellBookFormatStandardResult>;
 }
 
-export class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
+export default class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
   constructor(Model: T, opts: SpellOptions);
 
-  Model: T;
+  Model: T & { driver: AbstractDriver };
   connection: Connection;
 
   command: string;
   scopes: Array<ScopeFunction>;
+  joins: Join;
+  sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
+  table: Identifier;
+  columns: SpellColumn[];
+  groups: (Identifier | Func)[];
+  whereConditions: ExprOperator[];
+  havingCondtions: ExprOperator[];
 
   select(...names: Array<string | Raw> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions<T>): Spell<T, QueryResult>;

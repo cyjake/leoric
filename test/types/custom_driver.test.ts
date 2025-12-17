@@ -4,6 +4,8 @@ import SqlString from 'sqlstring';
 import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver } from '../../src';
 import { formatConditions, collectLiteral } from '../../src/expr_formatter';
 import { findExpr } from '../../src/expr';
+import Spell from '../../src/spell';
+import { AbstractBone } from '../../src/types/abstract_bone';
 
 interface FormatResult {
   sql: string;
@@ -16,7 +18,7 @@ interface FormatResult {
 
 class MySpellbook extends SqliteDriver.Spellbook {
 
-  format(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
+  format<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     for (const scope of spell.scopes) scope(spell);
     switch (spell.command) {
       case 'insert':
@@ -36,7 +38,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     }
   }
 
-  formatUpdate(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
+  formatUpdate<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     // const a = super.formatDelete(spell);
 
     const { Model, sets, whereConditions } = spell;
@@ -78,7 +80,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     };
   }
 
-  formatDelete(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
+  formatDelete<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     const { Model, whereConditions } = spell;
     const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);
@@ -96,7 +98,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
     };
   }
 
-  formatMyInsert(spell: SpellMeta): SpellBookFormatResult<FormatResult> {
+  formatMyInsert<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     const { Model, sets } = spell;
     const { escapeId } = Model.driver!;
     const table = escapeId(spell.table.value);

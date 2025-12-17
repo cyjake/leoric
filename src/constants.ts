@@ -1,5 +1,3 @@
-'use strict';
-
 const AGGREGATOR_MAP = {
   count: 'count',
   average: 'avg',
@@ -38,7 +36,7 @@ const ASSOCIATE_METADATA_MAP = {
 
 const IS_LEORIC_BONE = Symbol('leoric#bone');
 
-module.exports = {
+export {
   AGGREGATOR_MAP,
   LEGACY_TIMESTAMP_MAP,
   TIMESTAMP_NAMES,

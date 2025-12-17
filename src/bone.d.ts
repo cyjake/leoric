@@ -1,4 +1,4 @@
-import { Spell } from './spell';
+import Spell from './spell';
 import { AbstractBone } from './types/abstract_bone';
 import { BoneColumns, Collection, Literal, QueryOptions, Raw, ResultSet, Values, WhereConditions } from './types/common';
 

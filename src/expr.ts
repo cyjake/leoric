@@ -1,6 +1,99 @@
-'use strict';
 
-const Raw = require('./raw').default;
+import Raw from './raw';
+import Spell from './spell';
+import { AbstractBone } from './types/abstract_bone';
+import { Literal } from './types/common';
+
+export interface Identifier {
+  type: 'id';
+  value: string;
+  qualifiers?: string[];
+}
+
+export interface ExprLiteral {
+  type: 'literal';
+  value: Literal | Literal[];
+}
+
+export interface ExprDataType {
+  type: 'dataType';
+  value: string;
+  length?: string;
+}
+
+export interface JsonValueFunc {
+  type: 'func';
+  name: 'json_value';
+  args: any[];
+  dataType?: {
+    type: 'dataType';
+    value: string;
+    length?: string;
+  };
+}
+
+export interface Func {
+  type: 'func';
+  name: string;
+  args: Expr[];
+}
+
+export interface Operator {
+  type: 'op';
+  name: string;
+  args: Expr[];
+}
+
+export interface LogicalOperator {
+  type: 'op';
+  name: typeof LOGICAL_OPERATORS[number];
+  args: Expr[];
+}
+
+export interface TernaryOperator {
+  type: 'op';
+  name: 'between' | 'not between';
+  args: [Expr, Expr, Expr];
+}
+
+export interface Alias {
+  type: 'alias';
+  value: string;
+  args: Expr[];
+}
+
+export interface Modifier {
+  type: 'mod';
+  name: string;
+  args: Expr[];
+}
+
+export interface Wildcard {
+  type: 'wildcard';
+}
+
+export type Token =
+  | Identifier
+  | ExprLiteral
+  | ExprDataType
+  | Operator
+  | Modifier
+  | Alias
+  | Wildcard
+  | Func;
+
+export type Expr =
+  | Token;
+
+export interface Subquery<T extends typeof AbstractBone> {
+  type: 'subquery';
+  value: Spell<T>;
+}
+
+export interface RawExpr {
+  type: 'raw';
+  value: string;
+}
 
 /**
  * This module contains a simple SQL expression parser which parses `select_expr` and `expr` in `WHERE`/`HAVING`/`ON` conditions. Most of {@link Spell}'s functionalities are made possible because of this parser. Currently, it cannot parse a full SQL.
@@ -119,7 +212,7 @@ const RETURNING_TYPES = [
  * @param {string} left  - name of the left operator
  * @param {string} right - name of the right operator
  */
-function precedes(left, right) {
+function precedes(left: string, right: string): number {
   if (left == right) return 0;
 
   let leftIndex = -1;
@@ -134,7 +227,7 @@ function precedes(left, right) {
   return leftIndex < rightIndex ? -1 : (leftIndex == rightIndex ? 0 : 1);
 }
 
-function parseValue(value) {
+function parseValue(value: Literal | Literal[] | Set<Literal>): Literal | Literal[] {
   if (value instanceof Set) {
     return Array.from(value);
   } else {
@@ -148,7 +241,7 @@ function parseValue(value) {
  * @param {...*}   values
  * @returns {Object[]}
  */
-function parseExprList(str, ...values) {
+function parseExprList(str: any, ...values: Literal[]) {
   if (str instanceof Raw) return [ str ];
   let i = 0;
   let chr = str[i];
@@ -162,7 +255,7 @@ function parseExprList(str, ...values) {
     while (/\s/.test(chr)) next();
   }
 
-  function string() {
+  function string(): ExprLiteral {
     let value = '';
     let escaped = false;
     const quote = chr;
@@ -183,7 +276,7 @@ function parseExprList(str, ...values) {
     return { type: 'literal', value };
   }
 
-  function dataType() {
+  function dataType(): ExprDataType {
     let value = '';
     while (chr && /[a-z0-9$_.]/i.test(chr)) {
       value += chr;
@@ -208,7 +301,7 @@ function parseExprList(str, ...values) {
 
   // JSON_VALUE(json_doc, path [RETURNING type] [on_empty] [on_error])\
   // JSON_VALUE(j, '$.id' RETURNING UNSIGNED)
-  function jsonValue(name) {
+  function jsonValue(name: 'json_value') {
     const args = [];
     next();
     args.push(expr());
@@ -216,7 +309,7 @@ function parseExprList(str, ...values) {
     space();
     args.push(string());
     space();
-    const result = { type: 'func', name, args };
+    const result: JsonValueFunc = { type: 'func', name, args };
     while (chr && chr !== ')') {
       let value = '';
       while (chr && /[a-z0-9$_.]/i.test(chr)) {
@@ -233,7 +326,7 @@ function parseExprList(str, ...values) {
     return result;
   }
 
-  function func(name) {
+  function func(name: string): Func | JsonValueFunc {
     if (name === 'json_value') return jsonValue(name);
     const args = [];
     do {
@@ -246,12 +339,12 @@ function parseExprList(str, ...values) {
     return { type: 'func', name, args };
   }
 
-  function wildcard() {
+  function wildcard(): Wildcard {
     next();
     return { type: 'wildcard' };
   }
 
-  function placeholder() {
+  function placeholder(): ExprLiteral {
     next();
     if (valueIndex >= values.length) {
       throw new Error('Unexpected placeholder');
@@ -259,7 +352,7 @@ function parseExprList(str, ...values) {
     return { type: 'literal', value: parseValue(values[valueIndex++]) };
   }
 
-  function array() {
+  function array(): ExprLiteral {
     const items = [];
     next();
     while (chr && chr !== ')') {
@@ -275,14 +368,14 @@ function parseExprList(str, ...values) {
     return { type: 'literal', value: items };
   }
 
-  function identifier(value) {
+  function identifier(value: string): Identifier {
     const parts = value.split('.');
     return parts.length > 1
-      ? { type: 'id', value: parts.pop(), qualifiers: parts }
+      ? { type: 'id', value: parts.pop() as string, qualifiers: parts }
       : { type: 'id', value: value };
   }
 
-  function token() {
+  function token(): Token {
     if (/['"]/.test(chr)) return string();
     if (chr === '?') return placeholder();
     if (chr === '(') return array();
@@ -293,7 +386,11 @@ function parseExprList(str, ...values) {
       if (chunk.toLowerCase() === name && (str[j] === ' ' || !/[a-z]$/.test(name))) {
         i += name.length;
         chr = str[i];
-        return { type: 'op', name: OPERATOR_ALIAS_MAP[name] || name, args: [] };
+        return {
+          type: 'op',
+          name: OPERATOR_ALIAS_MAP[name as keyof typeof OPERATOR_ALIAS_MAP] || name,
+          args: [],
+        };
       }
     }
 
@@ -324,43 +421,45 @@ function parseExprList(str, ...values) {
     }
   }
 
-  function between(op, t) {
+  function between(op: TernaryOperator, t: Expr): TernaryOperator {
     space();
     const start = token();
     space();
     const conj = token();
-    if (conj.name !== 'and') throw new Error(`Unexpected conj ${conj}`);
+    if (!('name' in conj && conj.name === 'and')) throw new Error(`Unexpected conj ${conj}`);
     space();
     const end = token();
     return { ...op, args: [ t, start, end ] };
   }
 
-  function alias(t) {
+  function alias(t: Expr): Alias {
     space();
-    return { type: 'alias', value: token().value, args: [ t ]};
+    return { type: 'alias', value: (token() as Identifier).value, args: [ t ]};
   }
 
-  function unary(op) {
+  function unary(op: Operator | Modifier | Func): Expr {
     const arg = chr === '(' ? expr() : token();
+    if (!arg) throw new Error(`Unexpected end of expression after unary operator ${op.name}`);
     if (op.name === '-' && arg.type === 'literal' && Number.isFinite(arg.value)) {
-      return { type: 'literal', value: -arg.value };
+      return { type: 'literal', value: -(arg.value as number) };
     } else {
       return { ...op, args: [arg] };
     }
   }
 
-  function operator(t) {
-    const op = token();
+  function operator(t: Token): Operator | Alias {
+    const op = token() as Operator;
     if (op.name === 'as') return alias(t);
     if (['between', 'not between'].includes(op.name)) {
-      return between(op, t);
+      return between(op as TernaryOperator, t);
     }
     if (BINARY_OPERATORS.includes(op.name)) {
       space();
       const isLower = chr === '(';
       const operand = LOGICAL_OPERATORS.includes(op.name) ? expr() : token();
+      if (!operand) throw new Error(`Unexpected end of expression after operator ${op.name}`);
       // parseExpr('1 > -1')
-      if (UNARY_OPERATORS.includes(operand.name) && operand.args.length == 0) {
+      if ('name' in operand && UNARY_OPERATORS.includes(operand.name) && operand.args.length == 0) {
         return { ...op, args: [t, unary(operand)] };
       }
       else if (operand.type === 'op' && operand.args.length < 2) {
@@ -386,16 +485,16 @@ function parseExprList(str, ...values) {
     }
   }
 
-  function expr() {
+  function expr(): Expr | undefined {
     let node;
     while (chr && chr !== ',' && chr !== ')') {
       space();
       if (node) {
         // check arguments length to differentiate unary minus and binary minus
-        if (UNARY_OPERATORS.includes(node.name) && node.args.length === 0) {
+        if ('name' in node && UNARY_OPERATORS.includes(node.name) && node.args.length === 0) {
           node = unary(node);
         }
-        else if (MODIFIERS.includes(node.name)) {
+        else if ('name' in node && MODIFIERS.includes(node.name as typeof MODIFIERS[number])) {
           node.args[0] = token();
         }
         else {
@@ -457,11 +556,8 @@ function parseExprList(str, ...values) {
  *                  args: [ { type: 'id', value: 'createdAt' } ] },
  *                { type: 'literal', value: 4 },
  *                { type: 'literal', value: 9 } ] } ] }
- * @param {string} str
- * @param {...*}   values
- * @returns {Object}
  */
-function parseExpr(str, ...values) {
+function parseExpr(str: string, ...values: any[]) {
   return parseExprList(str, ...values)[0];
 }
 
@@ -470,11 +566,11 @@ function parseExpr(str, ...values) {
  * @param {Spell} spell
  * @param {Object} opts
  */
-function findExpr(ast, opts) {
+function findExpr(ast: Expr, opts: Partial<Expr>): Expr | undefined {
   let found;
   walkExpr(ast, node => {
-    for (const prop in opts) {
-      if (node[prop] !== opts[prop]) return;
+    for (const [prop, value] of Object.entries(opts)) {
+      if (node[prop as keyof Expr] !== value) return;
     }
     found = node;
   });
@@ -486,9 +582,9 @@ function findExpr(ast, opts) {
  * @param {Object}   ast
  * @param {Function} fn
  */
-function walkExpr(ast, fn) {
+function walkExpr(ast: Expr, fn: (ast: Expr) => void): Expr {
   fn(ast);
-  if (ast.args) {
+  if ('args' in ast) {
     for (const arg of ast.args) walkExpr(arg, fn);
   }
   return ast;
@@ -504,16 +600,19 @@ function walkExpr(ast, fn) {
  * @param {Object}   ast
  * @param {function} fn
  */
-function copyExpr(ast, fn) {
+function copyExpr(ast: Expr, fn: (ast: Expr) => Expr | undefined): Expr {
   ast = fn(ast) || ast;
-  if (ast.args) {
+  if ('args' in ast) {
     ast.args = ast.args.map(arg => copyExpr(arg, fn));
   }
   return ast;
 }
 
-module.exports = {
-  parseExpr, parseExprList,
+export {
+  parseExpr,
+  parseExprList,
   precedes,
-  walkExpr, findExpr, copyExpr,
+  walkExpr,
+  findExpr,
+  copyExpr,
 };

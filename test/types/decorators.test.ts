@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { AttributeMeta, Bone, DataTypes, Column, HasMany, BelongsTo, connect } from '../../src';
+import { Bone, DataTypes, Column, HasMany, BelongsTo, connect, HasOne } from '../../src';
 
 const { TEXT, STRING, INTEGER } = DataTypes;
 
@@ -38,10 +38,10 @@ describe('=> Decorators (TypeScript)', function() {
         'id', 'name', 'isPrivate', 'createdAt', 'updatedAt',
       ]);
       const { id, name, isPrivate, createdAt } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((name as AttributeMeta).toSqlString!(), '`name` VARCHAR(255) NOT NULL');
-      assert.equal((isPrivate as AttributeMeta).toSqlString!(), '`is_private` TINYINT(1) DEFAULT true');
-      assert.equal((createdAt as AttributeMeta).toSqlString!(), '`created_at` DATETIME');
+      assert.equal(id.toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(name.toSqlString!(), '`name` VARCHAR(255) NOT NULL');
+      assert.equal(isPrivate.toSqlString!(), '`is_private` TINYINT(1) DEFAULT true');
+      assert.equal(createdAt.toSqlString!(), '`created_at` DATETIME');
     });
 
     it('should be able to override column type', async function() {
@@ -55,8 +55,8 @@ describe('=> Decorators (TypeScript)', function() {
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'content' ]);
       const { id, content } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((content as AttributeMeta).toSqlString!(), '`content` TEXT');
+      assert.equal(id.toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(content.toSqlString!(), '`content` TEXT');
     });
 
     it('should be able to override column name', async function() {
@@ -73,9 +73,9 @@ describe('=> Decorators (TypeScript)', function() {
       await Note.sync({ force: true });
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'createdAt', 'updatedAt' ]);
       const { id, createdAt, updatedAt } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((createdAt as AttributeMeta).columnName, 'gmt_create');
-      assert.equal((updatedAt as AttributeMeta).columnName, 'gmt_modified');
+      assert.equal(id.toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(createdAt.columnName, 'gmt_create');
+      assert.equal(updatedAt.columnName, 'gmt_modified');
     });
 
     it('should work with setter', async () => {
@@ -245,10 +245,10 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
 
       const { id, body, description, status } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((body as AttributeMeta).toSqlString!(), '`body` VARCHAR(255)');
-      assert.equal((description as AttributeMeta).toSqlString!(), '`description` VARCHAR(64)');
-      assert.equal((status as AttributeMeta).toSqlString!(), '`status` INTEGER(2) UNSIGNED');
+      assert.equal(id.toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(body.toSqlString!(), '`body` VARCHAR(255)');
+      assert.equal(description.toSqlString!(), '`description` VARCHAR(64)');
+      assert.equal(status.toSqlString!(), '`status` INTEGER(2) UNSIGNED');
 
     });
 
@@ -270,8 +270,8 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'noteId', 'noteIndex' ]);
 
       const { noteId, noteIndex } = Note.attributes;
-      assert.equal((noteId as AttributeMeta).toSqlString!(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((noteIndex as AttributeMeta).toSqlString!(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
+      assert.equal(noteId.toSqlString!(), '`note_id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(noteIndex.toSqlString!(), '`note_index` INTEGER UNIQUE COMMENT \'note index\'');
     });
 
     it('should work with invokable data types', async () => {
@@ -293,10 +293,10 @@ describe('=> Decorators (TypeScript)', function() {
       assert.deepEqual(Object.keys(Note.attributes), [ 'id', 'body', 'description', 'status' ]);
 
       const { id, body, description, status } = Note.attributes;
-      assert.equal((id as AttributeMeta).toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
-      assert.equal((body as AttributeMeta).toSqlString!(), '`body` VARCHAR(255)');
-      assert.equal((description as AttributeMeta).toSqlString!(), '`description` VARCHAR(64)');
-      assert.equal((status as AttributeMeta).toSqlString!(), '`status` INTEGER(2) UNSIGNED');
+      assert.equal(id.toSqlString!(), '`id` BIGINT PRIMARY KEY AUTO_INCREMENT');
+      assert.equal(body.toSqlString!(), '`body` VARCHAR(255)');
+      assert.equal(description.toSqlString!(), '`description` VARCHAR(64)');
+      assert.equal(status.toSqlString!(), '`status` INTEGER(2) UNSIGNED');
     });
 
     it('should not override attributes of parent class', async function() {
@@ -578,6 +578,52 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('HasOne()', function() {
+    class Profile extends Bone {
+      @Column()
+      id!: bigint;
+
+      @Column()
+      bio!: string;
+
+      @Column()
+      userId!: bigint;
+    }
+
+    class User extends Bone {
+      @Column()
+      id!: bigint;
+
+      @Column()
+      username!: string;
+
+      @HasOne()
+      profile?: Profile;
+    }
+
+    before(async function() {
+      Object.assign(Bone.models, { User, Profile });
+      await Profile.sync({ force: true });
+      await User.sync({ force: true });
+      User.initialize();
+    });
+
+    beforeEach(async function() {
+      await Promise.all([
+        User.truncate(),
+        Profile.truncate(),
+      ]);
+    });
+
+    it('should be able to declare 1:1 association', async function() {
+      const user = await User.create({ username: 'alice' });
+      await Profile.create({ bio: 'Hello, I am Alice.', userId: user.id });
+      const result = await User.findOne().with('profile');
+      assert.ok(result!.profile);
+      assert.equal(result!.profile!.bio, 'Hello, I am Alice.');
+    });
+  });
+
+  describe('BelongsTo()', function() {
     class Member extends Bone {
       @Column()
       id!: bigint;
@@ -596,7 +642,7 @@ describe('=> Decorators (TypeScript)', function() {
       @Column()
       authorId!: bigint;
 
-      @BelongsTo({ foreignKey: 'authorId' })
+      @BelongsTo({ foreignKey: 'authorId', className: 'Member' })
       author?: Member;
     }
 

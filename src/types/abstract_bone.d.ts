@@ -6,9 +6,10 @@ import {
   GeneratorReturnType, BoneColumns, InstanceColumns, Raw, OnConditions,
   ColumnMeta,
   BeforeHooksType, AfterHooksType, QueryOptions,
+  Attribute,
 } from './common';
 import { AbstractDriver, ConnectOptions } from '../drivers';
-import { Spell } from '../spell';
+import Spell from '../spell';
 import { instantiate } from '../bone';
 
 interface SyncOptions {
@@ -75,17 +76,17 @@ export class AbstractBone {
   /**
    * The attribute definitions of the model.
    */
-  static attributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+  static attributes: { [key: string]: Attribute };
 
   /**
    * The attribute definitions of the model, referenced by column name.
    */
-  static attributeMap: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+  static attributeMap: { [key: string]: Attribute };
 
   /**
    * The actual attribute definitions of the model.
    */
-  static columnAttributes: { [key: string]: AbstractDataType<DataType> | AttributeMeta };
+  static columnAttributes: { [key: string]: Attribute };
 
   /**
    * The schema info of current model.

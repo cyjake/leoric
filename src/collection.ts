@@ -1,27 +1,28 @@
-'use strict';
+import { AbstractBone } from './types/abstract_bone';
+import Spell from './spell';
+import { Literal, Values } from './types/common';
+import { Alias } from './expr';
 
 /**
  * An extended Array to represent collections of models.
  */
-class Collection extends Array {
+class Collection<T extends object> extends Array<T> {
   /**
    * Convert results by determining whether the result is instantiable or not.
-   * @param {Spell} spell
-   * @param {Array} rows
-   * @param {Array} fields
-   * @returns {Collection|Array}
    */
-  static init({ spell, rows, fields, insertId, affectedRows}) {
+  static init<T extends typeof AbstractBone>(
+    { spell, rows, fields, insertId, affectedRows }:
+    { spell: Spell<T>; rows: any[]; fields: any[]; insertId?: number; affectedRows?: number },
+  ) {
     if (spell.command !== 'select') return { insertId, affectedRows };
     return dispatch(spell, rows, fields);
   }
 
   /**
    * Override JSON.stringify behavior
-   * @returns {Object[]}
    */
   toJSON() {
-    return Array.from(this, function(element) {
+    return Array.from(this, function(element: any) {
       if (element == null) return element;
       if (typeof element.toJSON === 'function') return element.toJSON();
       return element;
@@ -29,10 +30,10 @@ class Collection extends Array {
   }
 
   /**
-   * @returns {Object[]}
+   * Convert the collection to a plain object array
    */
   toObject() {
-    return Array.from(this, function(element) {
+    return Array.from(this, function(element: any) {
       if (element == null) return element;
       if (typeof element.toObject === 'function') return element.toObject();
       return element;
@@ -41,16 +42,17 @@ class Collection extends Array {
 
   /**
    * Save the collection. Currently the changes are made concurrently but NOT in a transaction.
-   * @returns {Bone[]}
    */
   async save() {
     if (this.length === 0) return this;
 
-    if (this.some(element => !element.save)) {
+    if (!this.every((element: any) => element && typeof element.save === 'function')) {
       throw new Error('Collection contains element that cannot be saved.');
     }
 
-    return await Promise.all(this.map(element => element.save()));
+    return await Promise.all(this.map(element => {
+      return (element as { save: () => Promise<any> }).save();
+    }));
   }
 }
 
@@ -58,9 +60,8 @@ class Collection extends Array {
  * Check if the query result of spell is instantiatable by examining the query structure.
  * - https://www.yuque.com/leoric/blog/ciiard#XoI4O (zh-CN)
  * @param {Spell} spell
- * @returns {boolean}
  */
-function instantiatable(spell) {
+function instantiatable<T extends typeof AbstractBone>(spell: Spell<T>) {
   const { columns, groups, Model } = spell;
   const { columnAttributes, tableAlias } = Model;
 
@@ -72,21 +73,26 @@ function instantiatable(spell) {
     .every(({ value }) => columnAttributes[value]);
 }
 
+type CollectionItem<U extends typeof AbstractBone> = Record<string, InstanceType<U> | Collection<InstanceType<U>> | Literal>
+
 /**
  * Convert the results to collection that consists of models with their associations set up according to `spell.joins`.
  * @private
  * @param {Spell} spell
  * @param {Object[]} rows
  * @param {Object[]} fields
- * @returns {Collection}
  */
-function dispatch(spell, rows, fields) {
+function dispatch<T extends typeof AbstractBone, U extends typeof AbstractBone>(
+  spell: Spell<T>,
+  rows: Record<string, Record<string, Literal>>[],
+  fields: Record<string, any>[],
+) {
   const { groups, joins, columns, Model } = spell;
   const { tableAlias, table, primaryKey, primaryColumn, attributeMap } = Model;
 
   // await Post.count()
   if (rows.length <= 1 && columns.length === 1 && groups.length === 0) {
-    const { type, value, args } = columns[0];
+    const { type, value, args } = columns[0] as Alias;
     if (type === 'alias' && args && args[0].type === 'func') {
       const row = rows[0];
       const record = row && (row[''] || row[table]);
@@ -98,9 +104,9 @@ function dispatch(spell, rows, fields) {
   const joined = Object.keys(joins).length > 0;
   const canInstantiate = instantiatable(spell);
 
-  const results = new Collection();
+  const results: Collection<InstanceType<T> | Record<string, Literal>> = new Collection();
   for (const row of rows) {
-    const result = Object.keys(row).reduce((res, prop) => {
+    const result = Object.keys(row).reduce((res: Record<string, Literal>, prop) => {
       const data = row[prop];
       const qualifier = prop === table ? tableAlias : prop;
       if (qualifier === '' || qualifier === tableAlias) {
@@ -112,25 +118,32 @@ function dispatch(spell, rows, fields) {
       }
       return res;
     }, {});
-    let current;
+    let current: InstanceType<T> | Record<string, Literal> | undefined;
     if (joined && result[primaryColumn] != null) {
-      current = results.find(r => r[primaryKey] == result[primaryColumn]);
+      current = results.find(r => r[primaryKey as keyof typeof r] == result[primaryColumn]);
     }
     if (!current) {
       current = canInstantiate || (groups.length === 0 && Object.keys(result).every(key => attributeMap[key]))
-        ? Model.instantiate(result)
+        ? Model.instantiate(result as Values<InstanceType<T>>)
         : Model.alias(result);
       results.push(current);
     }
     if (joined) {
-      dispatchJoins(current, spell, row, fields);
+      dispatchJoins<T, U>(current as CollectionItem<U>, spell, row, fields);
     }
   }
 
   return results;
 }
 
-function dispatchJoins(current, spell, row, fields) {
+function dispatchJoins<T extends typeof AbstractBone, U extends typeof AbstractBone>(
+  // actully mixed with InstanceType<T>
+  current: CollectionItem<U>,
+  spell: Spell<T>,
+  row: Record<string, Record<string, Literal>>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fields: Record<string, any>[],
+) {
   for (const qualifier in spell.joins) {
     const join = spell.joins[qualifier];
     const { Model, hasMany } = join;
@@ -143,21 +156,23 @@ function dispatchJoins(current, spell, row, fields) {
       if (!current[qualifier]) current[qualifier] = new Collection();
       if (!Array.isArray(current[qualifier])) {
         const instance = Model.instantiate(current[qualifier]);
-        current[qualifier] = new Collection();
+        current[qualifier] = new Collection<InstanceType<U>>();
         if (Object.values(values).some(value => value != null)) {
-          current[qualifier].push(instance);
+          current[qualifier].push(instance as InstanceType<T>);
         }
       }
       // TODO: add a test case to cover the loose equality check
       // bigint primary key in cartesian product will be string if mysql supportBigNumbers is true
-      if (!id || current[qualifier].some(item => item[Model.primaryKey] == id)) continue;
-      current[qualifier].push(Model.instantiate(values));
+      if (!id || current[qualifier].some((item: InstanceType<U>) => item[Model.primaryKey as keyof typeof item] == id)) {
+        continue;
+      }
+      current[qualifier].push(Model.instantiate(values) as InstanceType<T>);
     } else {
       current[qualifier] = Object.values(values).some(value => value != null)
-        ? Model.instantiate(values)
+        ? Model.instantiate(values) as InstanceType<T>
         : null;
     }
   }
 }
 
-module.exports = Collection;
+export default Collection;

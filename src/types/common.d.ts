@@ -150,7 +150,9 @@ export declare class Attribute {
 
   equals(columnInfo: ColumnMeta): boolean;
   cast(value: Literal): Literal;
-  uncast(value: Literal): Literal;
+  uncast(value: Literal, strict?: boolean): Literal;
+
+  toSqlString(): string;
 }
 
 export type SetOptions<T extends typeof AbstractBone> = {
