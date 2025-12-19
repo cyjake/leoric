@@ -5,7 +5,7 @@ import {
   QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues, Collection,
 } from '../types/common';
 import { AbstractBone } from '../types/abstract_bone';
-import { Spell } from '../spell';
+import Spell from '../spell';
 
 interface SequelizeDestroyOptions extends QueryOptions {
   force?: boolean;

@@ -8,7 +8,7 @@ import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
 import { AbstractBone } from '../../types/abstract_bone';
 import { Connection, Literal, Pool, QueryOptions, QueryResult, ResultSet } from '../../types/common';
-import { Spell } from '../../spell';
+import Spell from '../../spell';
 
 const debug = Debug('leoric');
 

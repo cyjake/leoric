@@ -1,7 +1,7 @@
 import Raw from './raw';
 import util from 'util';
 import dayjs from 'dayjs';
-const invokableFunc = require('./utils/invokable');
+import invokableFunc from './utils/invokable';
 
 export enum LENGTH_VARIANTS {
   tiny = 'tiny',

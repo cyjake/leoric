@@ -13,7 +13,7 @@ Leoric is an object-relational mapping library for Node.js, which is heavily inf
 Assume the tables of posts, users, and comments were setup already. We may declare the models as classes by extending from the base class `Bone` of Leoric. After the models are connected to the database, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
 
 ```js
-const { Bone, connect } = require('leoric')
+import { Bone, connect } from 'leoric'
 
 // define model
 class Post extends Bone {
@@ -45,7 +45,8 @@ async function main() {
 If table structures were intended to be maintained in the models, Leoric can be used as a table migration tool as well. We can just define attributes in the models, and call `realm.sync()` whenever we are ready.
 
 ```js
-const { BIGINT, STRING } = Bone.DataTypes;
+import Realm, { Bone, DataTypes } from 'leoric';
+const { BIGINT, STRING } = DataTypes;
 class Post extends Bone {
   static attributes = {
     id: { type: BIGINT, primaryKey: true },

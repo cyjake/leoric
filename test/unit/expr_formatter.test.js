@@ -3,8 +3,9 @@
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
 const { connect, Bone } = require('../../src');
+const { formatExpr, isAggregatorExpr, collectLiteral } = require('../../src/expr_formatter');
 
-describe('=> formatExpr', function() {
+describe('=> ExprFormatter', function() {
 
   class Post extends Bone {
     static table = 'articles';
@@ -25,41 +26,85 @@ describe('=> formatExpr', function() {
     });
   });
 
-  it('should cast string into integer', async function() {
-    assert.equal(
-      Post.where({ id: '1' }).toSqlString(),
-      'SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL'
-    );
+  describe('formatExpr()', function() {
+
+    it('should cast string into integer', async function() {
+      assert.equal(
+        Post.where({ id: '1' }).toSqlString(),
+        'SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL'
+      );
+    });
+
+    it('should cast date with precision set in database', async function() {
+      // users.birthday stores DATE without specific hours or so
+      const today = new Date();
+      const formatted = dayjs(today).format('YYYY-MM-DD');
+      assert.equal(
+        User.where({ birthday: today }).toSqlString(),
+        "SELECT * FROM `users` WHERE `birthday` = '" + formatted + " 00:00:00.000'"
+      );
+    });
+
+    it('should not double escape string in queries on JSON attribute', async function() {
+      assert.equal(
+        Post.where({ settings: { $like: '%foo%' } }).toString(),
+        "SELECT * FROM `articles` WHERE `settings` LIKE '%foo%' AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it("should be able to process JSON_VALUE(j, '$.a' RETURNING CHAR(32))", async function() {
+      assert.equal(
+        Post.where({ "JSON_VALUE(extra, '$.a' RETURNING CHAR(32))": 'hello' }).toSqlString(),
+        "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.a' RETURNING CHAR(32)) = 'hello' AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it("should be able to process JSON_VALUE(j, '$.b' RETURNING DECIMAL)", async function() {
+      assert.equal(
+        Post.where({ "JSON_VALUE(extra, '$.b' RETURNING DECIMAL)": 10 }).toSqlString(),
+        "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.b' RETURNING DECIMAL) = 10 AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it('should throw error when formatting invalid expression', async function() {
+      assert.throws(() => {
+        formatExpr(Post.findOne(), { type: 'invalid' });
+      }, /unexpected type: invalid/i);
+    });
+
+    it('should throw error when dealing null with invalid operator', async function() {
+      assert.throws(() => {
+        Post.where({ deletedAt: { $gt: null } }).toSqlString();
+      }, /invalid operator/i);
+    });
+
+    it('should throw error when dealing array with invalid operator', async function() {
+      assert.throws(() => {
+        Post.where({ id: { $gt: [1, 2, 3] } }).toSqlString();
+      }, /invalid operator/i);
+    });
   });
 
-  it('should cast date with precision set in database', async function() {
-    // users.birthday stores DATE without specific hours or so
-    const today = new Date();
-    const formatted = dayjs(today).format('YYYY-MM-DD');
-    assert.equal(
-      User.where({ birthday: today }).toSqlString(),
-      "SELECT * FROM `users` WHERE `birthday` = '" + formatted + " 00:00:00.000'"
-    );
+  describe('=> isAggregatorExpr()', function() {
+    it('should throw error when checking invalid expression', function() {
+      assert.throws(() => {
+        isAggregatorExpr(Post.findOne(), { type: 'invalid' });
+      }, /unexpected type: invalid/i);
+    });
   });
 
-  it('should not double escape string in queries on JSON attribute', async function() {
-    assert.equal(
-      Post.where({ settings: { $like: '%foo%' } }).toString(),
-      "SELECT * FROM `articles` WHERE `settings` LIKE '%foo%' AND `gmt_deleted` IS NULL"
-    );
-  });
-
-  it("should be able to process JSON_VALUE(j, '$.a' RETURNING CHAR(32))", async function() {
-    assert.equal(
-      Post.where({ "JSON_VALUE(extra, '$.a' RETURNING CHAR(32))": 'hello' }).toSqlString(),
-      "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.a' RETURNING CHAR(32)) = 'hello' AND `gmt_deleted` IS NULL"
-    );
-  });
-
-  it("should be able to process JSON_VALUE(j, '$.b' RETURNING DECIMAL)", async function() {
-    assert.equal(
-      Post.where({ "JSON_VALUE(extra, '$.b' RETURNING DECIMAL)": 10 }).toSqlString(),
-      "SELECT * FROM `articles` WHERE JSON_VALUE(`extra`, '$.b' RETURNING DECIMAL) = 10 AND `gmt_deleted` IS NULL"
-    );
+  describe('=> collectLiteral()', function() {
+    it('should collect literals from expression', function() {
+      const values = collectLiteral(Post.findOne(),
+        { type: 'op', name: '+', args:
+          [ { type: 'literal', value: 1 },
+            { type: 'op', name: '*', args:
+              [ { type: 'literal', value: 2 },
+                { type: 'op', name: '-', args:
+                  [ { type: 'literal', value: 3 },
+                    { type: 'literal', value: 4 } ] } ] } ] }
+      );
+      assert.deepEqual(values, [1, 2, 3, 4]);
+    });
   });
 });

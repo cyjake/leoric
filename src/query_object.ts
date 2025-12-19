@@ -1,11 +1,18 @@
-'use strict';
 
-const util = require('util');
-const { isPlainObject } = require('./utils');
-const { parseExpr } = require('./expr');
-const Raw = require('./raw').default;
+import { isPlainObject } from './utils';
+import { Expr, Identifier, Operator, parseExpr, RawExpr, Subquery } from './expr';
+import Raw from './raw';
+import { AbstractBone } from './types/abstract_bone';
+import { Literal } from './types/common';
+import Spell from './spell';
 // deferred to break cyclic dependencies
-let Spell;
+let SpellClass: any;
+
+const LOGICAL_OPERATOR_MAP = {
+  $and: 'and',
+  $or: 'or',
+  $not: 'not',
+};
 
 const OPERATOR_MAP = {
   $between: 'between',
@@ -23,23 +30,32 @@ const OPERATOR_MAP = {
   $notIn: 'not in'
 };
 
+type LogicalOperator = keyof typeof LOGICAL_OPERATOR_MAP;
+
+type ObjectCondition =
+  | Record<string, Literal | Literal[] | Record<keyof typeof OPERATOR_MAP, Literal | Literal[]>>;
+
+type LogicalObjectCondition =
+  | Record<LogicalOperator, ObjectCondition | ObjectCondition[]>;
+
+type MixedObjectCondition =
+  | ObjectCondition | LogicalObjectCondition;
+
+type QueryExpr = Expr | RawExpr | Subquery<typeof AbstractBone>;
+
 /**
  * Parse object values as literal or subquery
- * @param {Object} value
- * @returns {Array<Object>}
  */
-function parseValue(value) {
-  if (value instanceof Spell) return { type: 'subquery', value };
+function parseValue<T extends typeof AbstractBone>(value: Spell<T> | Raw | Literal): Expr | RawExpr | Subquery<T> {
+  if (value instanceof SpellClass) return { type: 'subquery', value: value as Spell<T> };
   if (value instanceof Raw) return { type: 'raw', value: value.value };
-  return parseExpr('?', value);
+  return parseExpr('?', value) as Expr;
 }
 
 /**
  * Check if object condition is an operator condition, such as `{ $gte: 100, $lt: 200 }`.
- * @param {Object} condition
- * @returns {boolean}
  */
-function isOperatorCondition(condition) {
+function isOperatorCondition(condition: ObjectCondition) {
   if (!isPlainObject(condition)) return false;
   for (const $op in condition) {
     if (OPERATOR_MAP.hasOwnProperty($op)) return true;
@@ -47,11 +63,12 @@ function isOperatorCondition(condition) {
   return false;
 }
 
-function merge(conditions, operator = 'and') {
-  return conditions.reduce((res, condition) => {
+function merge(conditions: QueryExpr[], operator = 'and') {
+  const result = conditions.reduce((res: QueryExpr | null, condition: QueryExpr) => {
     if (!res) return condition;
-    return { type: 'op', name: operator, args: [ res, condition ] };
+    return { type: 'op', name: operator, args: [ res, condition ] } as Operator;
   }, null);
+  return result as QueryExpr;
 }
 
 /**
@@ -60,53 +77,39 @@ function merge(conditions, operator = 'and') {
  * parseOperator('id', { $gt: 0, $lt: 999999 });
  * // => { type: 'op', name: 'and', args: [ ... ]}
  * @param {string} name
- * @param {Object} condition
- * @returns {Object}
  */
-function parseOperator(name, condition) {
-  const result = [];
+function parseOperator(name: string, condition: ObjectCondition) {
+  const result: Array<Operator> = [];
 
-  for (const $op in condition) {
-    const operator = $op === '$not' ? OPERATOR_MAP.$ne : OPERATOR_MAP[$op];
-    if (!operator) {
-      throw new Error(util.format('unexpected operator in condition %j', condition));
-    }
-    const args = [ parseExpr(name) ];
-    const val = condition[$op];
+  for (const [$op, val] of Object.entries(condition)) {
+    const operator = $op === '$not' ? OPERATOR_MAP.$ne : OPERATOR_MAP[$op as keyof typeof OPERATOR_MAP];
+    const args: QueryExpr[] = [ parseExpr(name) as Identifier ];
 
-    if (operator == 'between' || operator == 'not between') {
+    if (Array.isArray(val) && (operator == 'between' || operator == 'not between')) {
       args.push(parseValue(val[0]), parseValue(val[1]));
     } else {
       args.push(parseValue(val));
     }
 
-    result.push({ type: 'op', name: operator, args });
+    result.push({ type: 'op', name: operator, args: args as Expr[] });
   }
 
   return merge(result);
 }
 
-const LOGICAL_OPERATOR_MAP = {
-  $and: 'and',
-  $or: 'or',
-  $not: 'not',
-};
-
 /**
  * determin if operator is logical operator
  * @param {string} operator lowercased operator
- * @returns {boolean}
  */
-function isLogicalOperator(operator) {
+function isLogicalOperator(operator: string) {
   return LOGICAL_OPERATOR_MAP.hasOwnProperty(operator);
 }
 
 /**
  * determine if query object is logical condition
  * @param {Object} condition query object
- * @returns {boolean}
  */
-function isLogicalCondition(condition) {
+function isLogicalCondition(condition: Record<string, any>) {
   for (const name in condition) {
     if (LOGICAL_OPERATOR_MAP.hasOwnProperty(name)) return true;
   }
@@ -122,13 +125,13 @@ function isLogicalCondition(condition) {
  * @param {string} $op logical operators, such as `$or`, `$and`, and `$not`.
  * @param {Object|Object[]} value logical operands
  */
-function parseLogicalOperator($op, value) {
+function parseLogicalOperator($op: LogicalOperator, value: ObjectCondition | ObjectCondition[]) {
   const operator = LOGICAL_OPERATOR_MAP[$op];
 
   if (isPlainObject(value)) {
     value = Object.keys(value).reduce((res, key) => {
-      return res.concat({ [key]: value[key] });
-    }, []);
+      return res.concat({ [key]: (value as ObjectCondition)[key] });
+    }, [] as ObjectCondition[]);
   }
 
   if (!Array.isArray(value) || value.length === 0) {
@@ -137,12 +140,12 @@ function parseLogicalOperator($op, value) {
 
   // { title: { $not: [ { $like: '%foo%' }, { $like: '%bar%' } ] } }
   if (operator === 'not') {
-    const args = merge(value.map(entry => merge(parseObject(entry))));
+    const args = merge(value.map(entry => merge(parseObject(entry) as QueryExpr[])));
     return { type: 'op', name: operator, args: [ args ] };
   }
 
-  const result = merge(value.map(entry => merge(parseObject(entry))), operator);
-  const { args } = result;
+  const result = merge(value.map(entry => merge(parseObject(entry) as QueryExpr[])), operator);
+  const { args } = result as Operator;
 
   // { title: { $or: [ 'Leah' ] } }
   // { title: { $and: { $ne: 'Leah' } } }
@@ -159,17 +162,16 @@ function parseLogicalOperator($op, value) {
  * { foo: { $not: [ 'Leah', 'Nephalem' ] } }
  * @param {string} name column name
  * @param {Object} condition logical query objects
- * @returns {Object}
  */
-function parseNamedLogicalOperator(name, condition) {
-  for (const $op of Object.keys(condition)) {
+function parseNamedLogicalOperator(name: string, condition: LogicalObjectCondition) {
+  for (const $op of Object.keys(condition) as LogicalOperator[]) {
     const operator = LOGICAL_OPERATOR_MAP[$op];
     const value = condition[$op];
     // { $not: [ 1, 2, 3 ] }
     if (operator === 'not' && Array.isArray(value) && !value.some(isPlainObject)) {
       return parseOperator(name, { $notIn: value });
     }
-    const args = [].concat(value).map(entry => ({ [name]: entry }));
+    const args = ([] as ObjectCondition[]).concat(value).map(entry => ({ [name]: entry }));
     return parseLogicalOperator($op, args);
   }
 }
@@ -187,16 +189,13 @@ function parseNamedLogicalOperator(name, condition) {
  * { foo: { $not: [ 'Leah', 'Nephalem' ] } }
  * { $or: { title: 'Leah', content: 'Diablo' } }
  * { $or: [ { title: 'Leah', content: 'Diablo' }, { title: 'Stranger' } ] }
- * @param {Object} conditions
  */
-function parseObject(conditions) {
-  if (!Spell) Spell = require('./spell');
+export function parseObject(conditions: MixedObjectCondition) {
+  if (!SpellClass) SpellClass = require('./spell');
   const result = [];
 
-  for (const name of Object.keys(conditions)) {
-    const value = conditions[name];
-
-    if (value instanceof Spell) {
+  for (const [name, value] of Object.entries(conditions)) {
+    if (value instanceof SpellClass) {
       // { tagId: Tag.where({ deletedAt: null }).select('id') }
       result.push({
         type: 'op',
@@ -206,14 +205,14 @@ function parseObject(conditions) {
     } else if (isLogicalOperator(name)) {
       // { $and: [ { title: 'Leah' }, { content: { $ne: 'Diablo' } } ] }
       // { $or: { title: 'Leah', content: { $like: '%Leah%' } } }
-      result.push(parseLogicalOperator(name, value));
-    } else if (isOperatorCondition(value)) {
+      result.push(parseLogicalOperator(name as LogicalOperator, value as ObjectCondition | ObjectCondition[]));
+    } else if (isOperatorCondition(value as ObjectCondition)) {
       // { title: [ 'Nephalem', 'Stranger' ] }
       // { title: { $ne: 'Leah', $like: 'L%h' } }
-      result.push(parseOperator(name, value));
-    } else if (isLogicalCondition(value)) {
+      result.push(parseOperator(name, value as ObjectCondition));
+    } else if (isLogicalCondition(value as LogicalObjectCondition)) {
       // { title: { $or: [ 'Leah', { $ne: 'Diablo' } ] } }
-      result.push(parseNamedLogicalOperator(name, value));
+      result.push(parseNamedLogicalOperator(name, value as LogicalObjectCondition));
     } else {
       // { title: 'Leah' }
       result.push({
@@ -226,5 +225,3 @@ function parseObject(conditions) {
 
   return result;
 }
-
-module.exports = { parseObject };

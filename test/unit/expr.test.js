@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { parseExpr, parseExprList } = require('../../src/expr');
+const { parseExpr, parseExprList, copyExpr } = require('../../src/expr');
 
 function assertExpr(str, ast) {
   assert.deepEqual(parseExpr(str), ast);
@@ -42,6 +42,11 @@ describe('=> parse literals', function() {
         [ { type: 'id', value: 'a' },
           { type: 'literal', value: ['foo', 'bar'] } ] }
     );
+  });
+
+  it('parse literal[] with unexpected token', function() {
+    assert.throws(() => parseExpr('a in (1, "foo", )'), /unexpected token/i);
+    assert.throws(() => parseExpr('a in (1, b)'), /unexpected token/i);
   });
 });
 
@@ -185,6 +190,12 @@ describe('=> parse unary operators', function() {
               { type: 'literal', value: 1 } ] } ] }
     );
   });
+
+  it('parse unary operator with missing operand', function() {
+    assert.throws(() => parseExpr('! ('), /unexpected end of expression/i);
+    assert.throws(() => parseExpr('- ('), /unexpected end of expression/i);
+    assert.throws(() => parseExpr('~ ('), /unexpected end of expression/i);
+  });
 });
 
 describe('=> parse binary operators', function() {
@@ -204,6 +215,28 @@ describe('=> parse binary operators', function() {
         [ { type: 'id', value: 'a' },
           { type: 'literal', value: 1 } ] }
     );
+  });
+
+  it('parse *', function() {
+    assertExpr(
+      'a * 1',
+      { type: 'op', name: '*', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    );
+  });
+
+  it('parse /', function() {
+    assertExpr(
+      'a / 1',
+      { type: 'op', name: '/', args:
+        [ { type: 'id', value: 'a' },
+          { type: 'literal', value: 1 } ] }
+    );
+  });
+
+  it('parse AND should throw if unexpected token', function() {
+    assert.throws(() => parseExpr('a AND ('), /unexpected end of expression/i);
   });
 });
 
@@ -287,6 +320,10 @@ describe('=> parse comparison operators', function() {
           { type: 'literal', value: 10 } ] }
     );
   });
+
+  it('parse BETWEEN with invalid syntax', function() {
+    assert.throws(() => parseExpr('a BETWEEN 1 10'), /unexpected conj/i);
+  });
 });
 
 describe('=> parse logical operators', function() {
@@ -332,6 +369,23 @@ describe('=> parse placeholder', function() {
   it('parse placeholder of boolean', function() {
     assert.deepEqual(parseExpr('?', true), { type: 'literal', value: true });
     assert.deepEqual(parseExpr('?', false), { type: 'literal', value: false });
+  });
+
+  it('parse multiple placeholders', function() {
+    assert.deepEqual(
+      parseExpr('a = ? AND b IN ?', 10, [1, 2, 3]),
+      { type: 'op', name: 'and', args:
+        [ { type: 'op', name: '=', args:
+            [ { type: 'id', value: 'a' },
+              { type: 'literal', value: 10 } ] },
+          { type: 'op', name: 'in', args:
+            [ { type: 'id', value: 'b' },
+              { type: 'literal', value: [1, 2, 3] } ] } ] }
+    );
+  });
+
+  it('should throw error when placeholder is missing', function() {
+    assert.throws(() => parseExpr('a = ? AND b = ?', 10), /unexpected placeholder/i);
   });
 });
 
@@ -491,5 +545,15 @@ describe('=> parse func with modifiers', function() {
     assert.throws(function() {
       parseExpr("JSON_VALUE(j, '$.a' RETURNING VARCHAR(255))");
     }, /unexpected returning type/i);
+  });
+});
+
+describe('=> copyExpr()', function() {
+  it('should deep copy expression AST', function() {
+    const ast = parseExpr('a + b * c');
+    const copy = copyExpr(ast, node => ({ ...node }));
+    assert.deepEqual(copy, ast);
+    assert.notStrictEqual(copy, ast);
+    assert.notStrictEqual(copy.args[1], ast.args[1]);
   });
 });

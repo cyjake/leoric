@@ -75,6 +75,14 @@ describe('=> parseObject', function() {
     );
   });
 
+  it('{ field: { $op: Subquery } }', function() {
+    const subquery = Post.where({ wordCount: { $lt: 500 } }).select('id');
+    assert.equal(
+      query({ id: { $in: subquery } }),
+      '`id` IN (SELECT `id` FROM `articles` WHERE `word_count` < 500 AND `gmt_deleted` IS NULL)'
+    );
+  });
+
   it('{ field: { $logical: [ Literal, { $op: Literal }, ... ] } }', function() {
     assert.equal(
       query({ title: { $or: [ 'Leah', { $like: '%Leah%' } ] } }),

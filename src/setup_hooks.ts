@@ -1,4 +1,3 @@
-'use strict';
 
 /**
  * @typedef {Object} FormatResult
@@ -6,19 +5,20 @@
  * @property {Array} args
  */
 
+import { Attribute } from './types/common';
+
 /**
  *
  * @param {boolean} isInstance class or instance
  * @param {string} fnName
  * @param {array} args
  * @param {Bone} target class or instance
- * @returns {FormatResult} result
  * }
  */
-function formatArgs(isInstance, fnName, args, target) {
+function formatArgs(isInstance: boolean, fnName: string, args: any[], target: any) {
   let useHooks = true;
   let opts;
-  let argsRes;
+  let argsRes: any[] = [];
   switch (fnName) {
     case 'create': {
       if (isInstance) {
@@ -94,7 +94,7 @@ function formatArgs(isInstance, fnName, args, target) {
   };
 }
 
-function getFnType(hookName) {
+function getFnType(hookName: string) {
   const res = hookName.split(/([A-Z]\w+$)/);
   return {
     type: res[0],
@@ -116,23 +116,23 @@ const hookNames = hookableMethods.reduce(function(result, method) {
     result.push(prefix + method[0].toUpperCase() + method.slice(1));
   }
   return result;
-}, []);
+}, [] as string[]);
 
-function addHook(target, hookName, func) {
+function addHook(target: any, hookName: string, func: (...args: any[]) => Promise<void>) {
   const { type, method } = getFnType(hookName);
   const sequelize = target.sequelize;
   if (hookableMethods.includes(method)) {
     // instance func
     const instanceOriginFunc = target.prototype[method];
-    target.prototype[method] = async function() {
-      const { useHooks, args } = formatArgs(true, method, arguments, this);
+    target.prototype[method] = async function(...$args: any[]) {
+      const { useHooks, args } = formatArgs(true, method, $args, this);
       if (useHooks && type === hookType.BEFORE) {
         // this.change(key) or this.attributeChanged(key) should work at before update
-        if (method === 'update' && typeof arguments[0] === 'object' && !arguments[0] != null) {
-          const values = arguments[0];
-          const fields = arguments[1] && arguments[1].fields && arguments[1].fields.length? arguments[1].fields : [];
-          const originalRaw = {};
-          const changeRaw = {};
+        if (method === 'update' && typeof $args[0] === 'object' && !$args[0] != null) {
+          const values = $args[0];
+          const fields = $args[1] && $args[1].fields && $args[1].fields.length? $args[1].fields : [];
+          const originalRaw: Record<string, Attribute> = {};
+          const changeRaw: Record<string, Attribute> = {};
           for (const name in values) {
             if ((!fields.length || fields.includes(name)) && this.hasAttribute(name)) {
               originalRaw[name] = this.attribute(name);
@@ -152,7 +152,7 @@ function addHook(target, hookName, func) {
           await func.apply(this, args);
         }
       }
-      const res = await instanceOriginFunc.call(this, ...arguments);
+      const res = await instanceOriginFunc.call(this, ...$args);
       if (useHooks && type === hookType.AFTER) {
         await func.call(this, this, res);
       }
@@ -167,12 +167,12 @@ function addHook(target, hookName, func) {
      */
     if (method === 'create' || method === 'destroy' || (sequelize && method === 'update')) return;
     const classOriginMethod = target[method];
-    target[method] = async function() {
-      const { useHooks, args } = formatArgs(false, method, arguments, this);
+    target[method] = async function(...$args: any[]) {
+      const { useHooks, args } = formatArgs(false, method, $args, this);
       if (useHooks && type === hookType.BEFORE) {
         await func.apply(this, args);
       }
-      const res = await classOriginMethod.call(this, ...arguments);
+      const res = await classOriginMethod.call(this, ...$args);
       if (useHooks && type === hookType.AFTER) {
         await func.call(this, res, this);
       }
@@ -187,14 +187,14 @@ function addHook(target, hookName, func) {
  * @param {string} hookName
  * @param {function} func
  */
-function setupSingleHook(target, hookName, func) {
+function setupSingleHook(target: any, hookName: string, func: (...args: any[]) => Promise<void>) {
   const { method } = getFnType(hookName);
   if (hookableMethods.includes(method)) {
     addHook(target, hookName, func);
   }
 }
 
-module.exports = {
+export {
   setupSingleHook,
   hookNames,
 };
