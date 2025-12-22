@@ -6,7 +6,7 @@ import {
 } from './types/common';
 import { AbstractBone } from './types/abstract_bone';
 import { Hint, IndexHint, CommonHintsArgs, HintInterface } from './hint';
-import { Identifier, Func, Operator, TernaryOperator } from './expr';
+import { Identifier, Func, Operator, TernaryOperator, Subquery } from './expr';
 import { AbstractDriver } from './drivers';
 
 interface SpellBookFormatStandardResult {
@@ -75,11 +75,21 @@ export default class Spell<T extends typeof AbstractBone, U = InstanceType<T> | 
   scopes: Array<ScopeFunction>;
   joins: Join;
   sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
-  table: Identifier;
+  table: Identifier | Subquery;
   columns: SpellColumn[];
   groups: (Identifier | Func)[];
   whereConditions: ExprOperator[];
-  havingCondtions: ExprOperator[];
+  havingConditions: ExprOperator[];
+  updateOnDuplicate?: string[] | true;
+  orders: [Identifier | Func, 'asc' | 'desc'][];
+  skip: number;
+  rowCount?: number;
+  hints: Array<Hint | IndexHint>;
+  subqueryIndex: number;
+  returning: boolean | string[];
+  uniqueKeys?: string[];
+
+  get dup(): Spell<T, U>;
 
   select(...names: Array<string | Raw> | Array<(name: string) => boolean>): Spell<T, U>;
   insert(opts: SetOptions<T>): Spell<T, QueryResult>;

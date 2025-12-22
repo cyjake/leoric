@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 import SqlString from 'sqlstring';
 
-import Realm, { SqliteDriver, SpellMeta, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver } from '../../src';
+import Realm, { SqliteDriver, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver } from '../../src';
 import { formatConditions, collectLiteral } from '../../src/expr_formatter';
 import { findExpr } from '../../src/expr';
 import Spell from '../../src/spell';
@@ -39,8 +39,6 @@ class MySpellbook extends SqliteDriver.Spellbook {
   }
 
   formatUpdate<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
-    // const a = super.formatDelete(spell);
-
     const { Model, sets, whereConditions } = spell;
     const { shardingKey } = Model;
     const { escapeId } = Model.driver!;
@@ -131,15 +129,15 @@ class CustomDriver extends SqliteDriver {
     const { command } = spell;
     switch (command) {
       case 'update': {
-        const updateParams = this.format(spell) as unknown as FormatResult;
+        const updateParams = this.format(spell) as FormatResult;
         return await this.update(updateParams, spell);
       }
       case 'delete': {
-        const deleteParams = this.format(spell) as unknown as FormatResult;
+        const deleteParams = this.format(spell) as FormatResult;
         return await this.delete(deleteParams, spell);
       }
       case 'insert': {
-        const insertParams = this.format(spell) as unknown as FormatResult;
+        const insertParams = this.format(spell) as FormatResult;
         return await this.insert(insertParams, spell);
       }
       case 'upsert':
@@ -147,14 +145,14 @@ class CustomDriver extends SqliteDriver {
       case 'select': {
         const { sql, values } = this.format(spell);
         const query = { sql, nestTables: command === 'select' };
-        return await this.query(query, values, spell);
+        return await this.query(query, values as Literal[], spell);
       }
       default:
         throw new Error('unspported sql command');
     }
   }
 
-  async update({ table, values = {}, whereClause, whereArgs }: FormatResult, options?: SpellMeta) {
+  async update<T extends typeof AbstractBone>({ table, values = {}, whereClause, whereArgs }: FormatResult, options?: Spell<T>) {
     const valueSets: string[] = [];
     const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {
@@ -165,12 +163,12 @@ class CustomDriver extends SqliteDriver {
     return await this.query(sql, assignValues.concat(whereArgs), options);
   }
 
-  async delete({ table, whereClause, whereArgs }: FormatResult, options?: SpellMeta) {
+  async delete<T extends typeof AbstractBone>({ table, whereClause, whereArgs }: FormatResult, options?: Spell<T>) {
     const sql = `DELETE FROM ${table} ${whereClause}`;
     return await this.query(sql, whereArgs, options);
   }
 
-  async insert({ table, values = {} }: FormatResult, options?: SpellMeta) {
+  async insert<T extends typeof AbstractBone>({ table, values = {} }: FormatResult, options?: Spell<T>) {
     const valueSets: string[] = [];
     const assignValues: Literal[] = [];
     Object.keys(values).map((key) => {

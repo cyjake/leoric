@@ -1,68 +1,65 @@
-'use strict';
+import { performance } from 'perf_hooks';
 
-const { performance } = require('perf_hooks');
-
-const { default: AbstractDriver, getIndexName } = require('../abstract');
-const Attribute = require('./attribute');
-const DataTypes = require('./data_types');
-const {
+import AbstractDriver, { getIndexName, ConnectOptions } from '../abstract';
+import Attribute from './attribute';
+import DataTypes from './data_types';
+import {
   escape, escapeId, formatAddColumn,
   formatAlterColumns, formatDropColumn,
   cast, nest, parameterize,
-} = require('./sqlstring');
+} from './sqlstring';
 
-const Spellbook = require('./spellbook');
-const { calculateDuration } = require('../../utils');
-const { heresql } = require('../../utils/string');
+import Spellbook from './spellbook';
+import { calculateDuration } from '../../utils';
+import { heresql } from '../../utils/string';
+// import type Spell from '../../spell';
 
 class PostgresDriver extends AbstractDriver {
-
-  // define static properties as this way IDE will prompt
   static Spellbook = Spellbook;
   static Attribute = Attribute;
   static DataTypes = DataTypes;
 
-  constructor(opts = {}) {
+  constructor(opts: ConnectOptions) {
     super(opts);
     this.type = 'postgres';
     this.pool = this.createPool(opts);
-    this.Attribute = this.constructor.Attribute;
-    this.DataTypes = this.constructor.DataTypes;
-    this.spellbook = new this.constructor.Spellbook();
+    this.Attribute = (this.constructor as typeof PostgresDriver).Attribute;
+    this.DataTypes = (this.constructor as typeof PostgresDriver).DataTypes;
+    this.spellbook = new (this.constructor as typeof PostgresDriver).Spellbook();
 
     this.escape = escape;
     this.escapeId = escapeId;
   }
 
-  createPool(opts) {
+  createPool(opts: any) {
     const { host, port, user, password, database } = opts;
-    // dynamic require pg type parse
-    // if not use pg, pg-types may not exits
     require('./type_parser');
-    return new (require('pg')).Pool({ host, port, user, password, database });
+    const { Pool } = require('pg');
+    return new Pool({ host, port, user, password, database });
   }
 
   async getConnection() {
-    return await this.pool.connect();
+    // pg Pool supports connect() with callback or promise; cast to any for TS
+    return await (this.pool as any).connect();
   }
 
-  async query(query, values, spell = {}) {
+  async query(query: any, values?: any, spell: any = {}) {
     const { sql, nestTables } = typeof query === 'string' ? { sql: query } : query;
     const { text } = parameterize(sql, values);
     const { logger } = this;
     const connection = spell.connection || await this.getConnection();
     const command = sql.slice(0, sql.indexOf(' ')).toLowerCase();
 
-    async function tryQuery(...args) {
+    const tryQuery = async (...args: any[]): Promise<any> => {
       const logOpts = { ...spell, query: sql };
       const formatted = logger.format(sql, values, spell);
       const start = performance.now();
-      let result;
+      let result: any;
 
       try {
-        result = await connection.query(...args);
+        result = await (connection as any).query(...args);
       } catch (err) {
-        logger.logQueryError(err, formatted, calculateDuration(start), logOpts);
+        logger.logQueryError(err as Error, formatted, calculateDuration(start), logOpts);
         throw err;
       } finally {
         if (!spell.connection) connection.release();
@@ -70,7 +67,7 @@ class PostgresDriver extends AbstractDriver {
 
       logger.tryLogQuery(formatted, calculateDuration(start), logOpts, result);
       return result;
-    }
+    };
 
     switch (command) {
       case 'select': {
@@ -83,14 +80,14 @@ class PostgresDriver extends AbstractDriver {
       case 'insert': {
         const result = await tryQuery({ text, values });
         const { rowCount, fields } = result;
-        const rows = result.rows.map(entry => {
-          const row = {};
+        const rows = result.rows.map((entry: any) => {
+          const row: any = {};
           for (const field of fields) {
             row[field.name] = cast(entry[field.name], field);
           }
           return row;
         });
-        let insertId;
+        let insertId: any;
         const { primaryColumn } = spell.Model || {};
         if (primaryColumn) insertId = rows[0][primaryColumn];
         return { ...result, insertId, affectedRows: rowCount, rows };
@@ -105,8 +102,8 @@ class PostgresDriver extends AbstractDriver {
     }
   }
 
-  async querySchemaInfo(database, tables) {
-    tables = [].concat(tables);
+  async querySchemaInfo(database: string, tables: string | string[]) {
+    const tableList = ([] as string[]).concat(tables);
     const text = heresql(`
       SELECT columns.*,
              constraints.constraint_type
@@ -121,11 +118,11 @@ class PostgresDriver extends AbstractDriver {
     ORDER BY columns.ordinal_position ASC
     `);
 
-    const { pool } = this;
-    const { rows } = await pool.query(text, [database, tables]);
-    const schemaInfo = {};
+    const { pool } = this as any;
+    const { rows } = await pool.query(text, [database, tableList]);
+    const schemaInfo: any = {};
 
-    for (const row of rows) {
+    for (const row of rows as any[]) {
       const tableName = row.table_name;
       const columns = schemaInfo[tableName] || (schemaInfo[tableName] = []);
       const { character_maximum_length: length } = row;
@@ -147,7 +144,6 @@ class PostgresDriver extends AbstractDriver {
         defaultValue: primaryKey ? null : columnDefault,
         dataType,
         allowNull: row.is_nullable !== 'NO',
-        // https://www.postgresql.org/docs/9.5/infoschema-table-constraints.html
         primaryKey,
         unique: row.constraint_type === 'UNIQUE',
         datetimePrecision: precision === 6 ? null : precision,
@@ -157,13 +153,13 @@ class PostgresDriver extends AbstractDriver {
     return schemaInfo;
   }
 
-  async alterTable(table, changes) {
+  async alterTable(table: string, changes: Record<string, any>) {
     const chunks = [ `ALTER TABLE ${escapeId(table)}` ];
     const actions = Object.keys(changes).map(name => {
-      const options = changes[name];
+      const options = (changes as any)[name];
       if (options.remove) return formatDropColumn(this, name);
-      const attribute = new this.Attribute(name, options);
-      const { columnName } = attribute;;
+      const attribute = new (this as any).Attribute(name, options);
+      const { columnName } = attribute;
       return attribute.modify
         ? formatAlterColumns(this, columnName, attribute).join(', ')
         : formatAddColumn(this, columnName, attribute);
@@ -172,38 +168,32 @@ class PostgresDriver extends AbstractDriver {
     await this.query(chunks.join(' '));
   }
 
-  async changeColumn(table, column, params) {
-    const attribute = new this.Attribute(column, params);
+  async changeColumn(table: string, column: string, params: any) {
+    const attribute = new (this as any).Attribute(column, params);
     const { columnName } = attribute;
     const alterColumns = formatAlterColumns(this, columnName, attribute);
     const sql = heresql(`ALTER TABLE ${escapeId(table)} ${alterColumns.join(', ')}`);
     await this.query(sql);
   }
 
-  /**
-   * Truncate table
-   * @param {string} table the name of the table to truncate
-   * @param {Object} [opts={}] extra truncation options
-   * @param {object} [opts.restartIdentity] restart sequences owned by the table
-   */
-  async truncateTable(table, opts = {}) {
+  async truncateTable(table: string, opts: { restartIdentity?: boolean } = {}) {
     const chunks = [ `TRUNCATE TABLE ${escapeId(table)}` ];
     if (opts.restartIdentity) chunks.push('RESTART IDENTITY');
     await this.query(chunks.join(' '));
   }
 
-  async showIndexes(table, attributes, opts = {}) {
+  async showIndexes(table: string, attributes?: string[] | string, opts: any = {}) {
     const chunks = [`SELECT * FROM pg_indexes WHERE tablename = ${escape(table)}`];
     if (attributes) {
-      const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
+      const name = getIndexName(table, attributes as any, { ...opts, Attribute: (this as any).Attribute });
       chunks.push(`AND indexname = ${escape(name)}`);
     }
-    const { rows } = await this.query(chunks.join(' '));
-    if (!rows) return [];
-    const indexes = [];
+    const { rows } = await this.query(chunks.join(' ')) as any;
+    if (!rows) return [] as any[];
+    const indexes: any[] = [];
     for (const row of rows) {
       const match = row.indexdef.match(/\((.+)\)/);
-      const columns = match ? match[1].split(',').map(s => s.trim().replace(/"/g, '')) : [];
+      const columns = match ? match[1].split(',').map((s: string) => s.trim().replace(/"/g, '')) : [];
       const unique = /UNIQUE/.test(row.indexdef);
       indexes.push({
         name: row.indexname,
@@ -213,6 +203,6 @@ class PostgresDriver extends AbstractDriver {
     }
     return indexes;
   }
-};
+}
 
-module.exports = PostgresDriver;
+export default PostgresDriver;

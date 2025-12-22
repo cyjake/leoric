@@ -375,7 +375,6 @@ describe('=> Table indexes', function() {
     await driver.addIndex('users', ['email'], { unique: true });
     try {
       const results = await driver.showIndexes('users', 'uk_users_email');
-    console.log(results);
       assert.equal(results.length, 1);
       assert.equal(results[0].name, 'uk_users_email');
       assert.equal(results[0].unique, true);

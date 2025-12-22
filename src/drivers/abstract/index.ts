@@ -2,12 +2,12 @@ import SqlString from 'sqlstring';
 import Debug from 'debug';
 
 import Logger from './logger';
-import Attribute from './attribute';
+import Attribute, { AttributeParams } from './attribute';
 import DataTypes from '../../data_types';
 import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
 import { AbstractBone } from '../../types/abstract_bone';
-import { Connection, Literal, Pool, QueryOptions, QueryResult, ResultSet } from '../../types/common';
+import { ColumnMeta, Connection, Literal, Pool, QueryOptions, QueryResult, ResultSet } from '../../types/common';
 import Spell from '../../spell';
 
 const debug = Debug('leoric');
@@ -46,7 +46,11 @@ export interface ConnectOptions {
   driver?: typeof AbstractDriver;
   skipCloneValue?: boolean;
   define?: { underscored?: boolean; tableName?: string; hooks?: any  };
-  logger?: Logger | object | boolean;
+  logger?: Logger | {
+    logQuery: (sql: string, duration?: string | number) => void,
+    logQueryError: (err: Error, sql: string, duration?: string | number) => void,
+    logMigration: (name: string) => void
+  };
   idleTimeout?: number;
 }
 
@@ -162,7 +166,7 @@ export default class AbstractDriver {
    * @param tabe table name
    * @param attributes attributes
    */
-  async createTable(table: string, attributes: Record<string, any>) {
+  async createTable(table: string, attributes: Record<string, AttributeParams>) {
     const { escapeId } = this;
     const chunks = [ `CREATE TABLE ${escapeId(table)}` ];
     const columns = Object.keys(attributes).map(name => {
@@ -197,7 +201,7 @@ export default class AbstractDriver {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  querySchemaInfo(database: string, table: string | string[]): Promise<Record<string, any>> {
+  querySchemaInfo(database: string, table: string | string[]): Promise<Record<string, Array<ColumnMeta & { columnName: string }>>> {
     throw new Error('unimplemented!');
   }
 
@@ -208,7 +212,7 @@ export default class AbstractDriver {
   async describeTable(table: string) {
     const { database } = this.options;
     const schemaInfo = await this.querySchemaInfo(database || '', table);
-    return schemaInfo[table].reduce(function(result: Record<string, any>, column: { columnName: string }) {
+    return schemaInfo[table].reduce(function(result: Record<string, ColumnMeta>, column: { columnName: string }) {
       result[column.columnName] = column;
       return result;
     }, {});
@@ -220,7 +224,7 @@ export default class AbstractDriver {
    * @param name column name
    * @param params column meta info
    */
-  async addColumn(table: string, name: string, params: any) {
+  async addColumn(table: string, name: string, params: ColumnMeta) {
     const { escapeId } = this;
     const attribute = new this.Attribute(name, params);
     const sql = heresql(`
@@ -236,7 +240,7 @@ export default class AbstractDriver {
    * @param name column name
    * @param params column meta info
    */
-  async changeColumn(table: string, name: string, params: any) {
+  async changeColumn(table: string, name: string, params: ColumnMeta) {
     const { escapeId } = this;
     const attribute = new this.Attribute(name, params);
     const sql = heresql(`

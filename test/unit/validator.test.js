@@ -3,6 +3,7 @@
 const assert = require('assert').strict;
 
 const { connect, Bone, DataTypes } = require('../../src');
+const { executeValidator } = require('../../src/validator');
 
 describe('validator', () => {
   const attributes = {
@@ -547,6 +548,15 @@ describe('validator', () => {
       });
 
       assert(user.getRawPrevious('desc') === '231hjjj');
+    });
+
+    it('should skip revert if not instance', async () => {
+      assert.doesNotThrow(() => {
+        return executeValidator({}, 'isEmail', User.attributes.email, 'a@example.net');
+      }, /LeoricValidateError/i);
+      assert.throws(() => {
+        return executeValidator({}, 'isEmail', User.attributes.email, 'a@e');
+      }, /LeoricValidateError/i);
     });
   });
 });

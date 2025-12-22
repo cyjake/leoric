@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Attribute = require('../../../../src/drivers/mysql/attribute');
+const Attribute = require('../../../../src/drivers/mysql/attribute').default;
 const { BOOLEAN, DATE, JSONB, STRING, INTEGER } = Attribute.DataTypes;
 
 describe('=> Attribute (mysql)', function() {

@@ -1,20 +1,20 @@
-'use strict';
-
-const SqlString = require('sqlstring');
-
-const { findExpr, walkExpr } = require('../../expr');
-const { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } = require('../../expr_formatter');
-const Raw = require('../../raw').default;
+import SqlString from 'sqlstring';
+import { Expr, findExpr, walkExpr } from '../../expr';
+import { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } from '../../expr_formatter';
+import Raw from '../../raw';
+import type Spell from '../../spell';
+import { AbstractBone } from '../../types/abstract_bone';
+import { Literal } from '../..';
 
 /**
  * Make sure columns are qualified
  */
-function qualify(spell) {
+function qualify<T extends typeof AbstractBone>(spell: Spell<T>) {
   const { Model, columns, groups, whereConditions, havingConditions, orders } = spell;
   const baseName = Model.tableAlias;
-  const clarify = node => {
+  const clarify = (node: any) => {
     if (node.type === 'id' && !node.qualifiers) {
-      if (Model.columnAttributes[node.value]) node.qualifiers = [baseName];
+      if (Model.columnAttributes[node.value]) node.qualifiers = [ baseName ];
     }
   };
 
@@ -22,21 +22,20 @@ function qualify(spell) {
     walkExpr(ast, clarify);
   }
 
-  for (const [ast] of orders) {
+  for (const [ ast ] of orders) {
     walkExpr(ast, clarify);
   }
 }
 
 /**
  * Format select list that indicates which columns to retrieve
- * @param {Spell} spell
  */
-function formatSelectExpr(spell, values) {
+function formatSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>, values: any[]) {
   const { Model, columns, joins, groups } = spell;
   const { escapeId } = Model.driver;
   const baseName = Model.tableAlias;
-  const selects = new Set();
-  const map = {};
+  const selects = new Set<string>();
+  const map: Record<string, string[]> = {};
   let isAggregate = false;
 
   for (const token of columns) {
@@ -48,11 +47,11 @@ function formatSelectExpr(spell, values) {
     list.push(selectExpr);
   }
 
-  for (const qualifier of [baseName].concat(Object.keys(joins))) {
+  for (const qualifier of [ baseName ].concat(Object.keys(joins))) {
     const list = map[qualifier];
     if (list) {
       for (const selectExpr of list) selects.add(selectExpr);
-    } else if (groups.length === 0 && !['sqlite', 'sqljs'].includes(Model.driver.type) && !isAggregate) {
+    } else if (groups.length === 0 && ![ 'sqlite', 'sqljs' ].includes(Model.driver.type) && !isAggregate) {
       selects.add(`${escapeId(qualifier)}.*`);
     }
   }
@@ -64,8 +63,8 @@ function formatSelectExpr(spell, values) {
   return Array.from(selects);
 }
 
-class SpellBook {
-  format(spell) {
+export default class SpellBook {
+  format<T extends typeof AbstractBone>(spell: Spell<T>) {
     for (const scope of spell.scopes) scope(spell);
     switch (spell.command) {
       case 'insert':
@@ -85,49 +84,43 @@ class SpellBook {
   }
 
   /**
-   * @abstract
-   * @returns {string} optimizer hints
+   * @returns optimizer hints
    */
-  formatOptimizerHints() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  formatOptimizerHints<T extends typeof AbstractBone>(spell?: Spell<T>): string {
     return '';
   }
 
   /**
-   * @abstract
-   * @returns {string} index hints
+   * @returns index hints
    */
-  formatIndexHints() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  formatIndexHints<T extends typeof AbstractBone>(spell?: Spell<T>): string {
     return '';
   }
 
   /**
   * Format a spell into INSERT query.
-  * @param {Spell} spell
   */
-  formatInsert(spell) {
-    const { Model, sets, columnAttributes: optAttrs, updateOnDuplicate } = spell;
+  formatInsert<T extends typeof AbstractBone>(spell: Spell<T>) {
+    const { Model, sets, updateOnDuplicate } = spell;
     const { shardingKey } = Model;
     const { createdAt } = Model.timestamps;
     const { escapeId } = Model.driver;
-    const columns = [];
-    const updateOnDuplicateColumns = [];
+    const columns: string[] = [];
+    const updateOnDuplicateColumns: string[] = [];
 
-    const values = [];
-    const placeholders = [];
+    const values: any[] = [];
+    const placeholders: string[] = [];
     if (Array.isArray(sets)) {
       // merge records to get the big picture of involved columnAttributes
-      const involved = sets.reduce((result, entry) => {
+      const involved = sets.reduce((result: any, entry: any) => {
         return Object.assign(result, entry);
-      }, {});
-      const columnAttributes = [];
-      if (optAttrs) {
-        for (const name in optAttrs) {
-          if (involved.hasOwnProperty(name)) columnAttributes.push(columnAttributes[name]);
-        }
-      } else {
-        for (const name in involved) {
-          columnAttributes.push(Model.columnAttributes[name]);
-        }
+      }, {} as Record<string, any>);
+      const columnAttributes: any[] = [];
+
+      for (const name in involved) {
+        columnAttributes.push(Model.columnAttributes[name]);
       }
 
       for (const entry of columnAttributes) {
@@ -149,7 +142,8 @@ class SpellBook {
       }
 
     } else {
-      if (shardingKey && sets[shardingKey] == null) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (shardingKey && sets![shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL.`);
       }
       for (const name in sets) {
@@ -166,18 +160,18 @@ class SpellBook {
     }
 
 
-    const chunks = ['INSERT'];
+    const chunks: string[] = [ 'INSERT' ];
 
     // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
     if (hintStr) {
       chunks.push(hintStr);
     }
-    chunks.push(`INTO ${escapeId(Model.table)} (${columns.map(column => escapeId(column)).join(', ')})`);
+    chunks.push(`INTO ${escapeId(Model.table)} (${columns.map((column: string) => escapeId(column)).join(', ')})`);
     if (placeholders.length) {
       chunks.push(`VALUES ${placeholders.join(', ')}`);
     } else {
-      chunks.push(`VALUES (${columns.map(_ => '?').join(', ')})`);
+      chunks.push(`VALUES (${columns.map(() => '?').join(', ')})`);
     }
     chunks.push(this.formatUpdateOnDuplicate(spell, updateOnDuplicateColumns));
     chunks.push(this.formatReturning(spell));
@@ -188,14 +182,13 @@ class SpellBook {
   }
 
   /**
-   * Format a spell without joins into a full SELECT query. This function is also used to format the subquery which is then used as a drived table in a SELECT with joins.
-   * @param {Spell} spell
+   * Format a spell without joins into a full SELECT query.
    */
-  formatSelectWithoutJoin(spell) {
+  formatSelectWithoutJoin<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { columns, whereConditions, groups, havingConditions, orders, rowCount, skip, Model } = spell;
     const { escapeId } = Model.driver;
-    const chunks = ['SELECT'];
-    const values = [];
+    const chunks: string[] = [ 'SELECT' ];
+    const values: any[] = [];
 
     // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
@@ -206,7 +199,7 @@ class SpellBook {
 
     if (columns.length > 0) {
       for (const column of columns) collectLiteral(spell, column, values);
-      const selects = [];
+      const selects: string[] = [];
       for (const token of columns) {
         const column = formatExpr(spell, token);
         if (!selects.includes(column)) selects.push(column);
@@ -220,7 +213,7 @@ class SpellBook {
     chunks.push(`FROM ${table}`);
     if (spell.table.value instanceof spell.constructor) {
       const subTableAlias = spell.table.value.Model && spell.table.value.Model.tableAlias;
-      chunks.push(`AS ${subTableAlias? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
+      chunks.push(`AS ${subTableAlias ? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
     }
 
     // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
@@ -235,7 +228,7 @@ class SpellBook {
     }
 
     if (groups.length > 0) {
-      const groupColumns = groups.map(group => formatExpr(spell, group));
+      const groupColumns = groups.map((group: any) => formatExpr(spell, group));
       chunks.push(`GROUP BY ${groupColumns.join(', ')}`);
     }
 
@@ -245,11 +238,10 @@ class SpellBook {
     }
 
     if (orders.length > 0) {
-      // ORDER BY FIND_IN_SET(`id`, '1,2,3')
       for (const [ expr ] of orders) collectLiteral(spell, expr, values);
       chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
     }
-    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
+    if (Number(rowCount) > 0) chunks.push(`LIMIT ${rowCount}`);
     if (skip > 0) chunks.push(`OFFSET ${skip}`);
 
     return { sql: chunks.join(' '), values };
@@ -257,11 +249,8 @@ class SpellBook {
 
   /**
    * INSERT ... ON CONFLICT ... UPDATE SET
-   * - https://www.postgresql.org/docs/9.5/sql-insert.html
-   * - https://www.sqlite.org/lang_UPSERT.html
-   * @param {Spell} spell
    */
-  formatUpsert(spell) {
+  formatUpsert<T extends typeof AbstractBone>(spell: Spell<T>) {
     if (!spell.updateOnDuplicate) {
       spell.updateOnDuplicate = true;
     }
@@ -274,45 +263,41 @@ class SpellBook {
   }
 
   /**
-   * @param {Spell} spell
    * @returns returning sql string
    */
-  formatReturning(spell) {
+  formatReturning<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { Model, returning } = spell;
     const { primaryColumn } = Model;
     const { escapeId } = Model.driver;
 
-    let returnings;
+    let returnings: string[] | undefined;
     if (returning === true) returnings = [ escapeId(primaryColumn) ];
     if (Array.isArray(returning)) {
-      returnings = returning.map(escapeId);
+      returnings = (returning as string[]).map(escapeId);
     }
-    return returnings && returnings.length? `RETURNING ${returnings.join(', ')}` : '';
+    return returnings && returnings.length ? `RETURNING ${returnings.join(', ')}` : '';
   }
 
   /**
-   * @param {Spell} spell
-   * @param {Array} columns columns for value set
+   * @param columns columns for value set
    */
-  formatUpdateOnDuplicate(spell, columns) {
+  formatUpdateOnDuplicate<T extends typeof AbstractBone>(spell: Spell<T>, columns: string[]) {
     const { updateOnDuplicate, uniqueKeys, Model, sets } = spell;
     if (!updateOnDuplicate) return '';
     const { columnAttributes, primaryColumn } = Model;
     const { escapeId } = Model.driver;
-    const actualUniqueKeys = [];
+    const actualUniqueKeys: string[] = [];
 
     if (uniqueKeys) {
-      for (const field of [].concat(uniqueKeys)) {
+      for (const field of ([] as string[]).concat(uniqueKeys)) {
         actualUniqueKeys.push(escapeId(field));
       }
     } else {
-      const setFields = Object.keys(sets);
-      // conflict_target must be unique
-      // get all unique keys
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const setFields = Object.keys(sets!);
       if (columnAttributes) {
         for (const key in columnAttributes) {
           const att = columnAttributes[key];
-          // use the first unique key
           if (att.unique || (att.primaryKey && setFields.includes(att.name))) {
             actualUniqueKeys.push(escapeId(att.columnName));
             break;
@@ -321,34 +306,33 @@ class SpellBook {
       }
 
       if (!actualUniqueKeys.length) actualUniqueKeys.push(escapeId(primaryColumn));
-      // default use id as primary key
       if (!actualUniqueKeys.length) actualUniqueKeys.push(escapeId('id'));
     }
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map(column => (columnAttributes[column] && columnAttributes[column].columnName)|| column);
+      columns = updateOnDuplicate.map((column: string) => (columnAttributes[column] && columnAttributes[column].columnName) || column);
     } else if (!columns.length) {
       columns = Object.values(columnAttributes).map(({ columnName }) => columnName);
     }
-    const updateKeys = columns.map((column) => `${escapeId(column)}=EXCLUDED.${escapeId(column)}`);
+    const updateKeys = columns.map((column: string) => `${escapeId(column)}=EXCLUDED.${escapeId(column)}`);
 
     return `ON CONFLICT (${actualUniqueKeys.join(', ')}) DO UPDATE SET ${updateKeys.join(', ')}`;
   }
 
   /**
    * Format a spell into UPDATE query
-   * @param {Spell} spell
-   * @returns {{ sql: string, values?: Literal[] | { [key: string]: Literal } }} SQL and values
    */
-  formatUpdate(spell) {
-    const { Model, sets, whereConditions } = spell;
+  formatUpdate<T extends typeof AbstractBone>(spell: Spell<T>): { sql: string; values?: Literal[] | Record<string, Literal> } {
+    const { Model, sets, whereConditions } = spell as Spell<T> & {
+      sets: Record<string, Literal | (Expr & { __expr: true })>;
+    };
     const { shardingKey } = Model;
 
     if (shardingKey) {
-      if (sets.hasOwnProperty(shardingKey) && sets[shardingKey] == null) {
+      if (Object.prototype.hasOwnProperty.call(sets, shardingKey) && sets[shardingKey] == null) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} cannot be NULL`);
       }
-      if (!whereConditions.some(condition => findExpr(condition, { type: 'id', value: shardingKey }))) {
+      if (!whereConditions.some((condition: any) => findExpr(condition, { type: 'id', value: shardingKey }))) {
         throw new Error(`Sharding key ${Model.table}.${shardingKey} is required.`);
       }
     }
@@ -357,17 +341,17 @@ class SpellBook {
       throw new Error('Unable to update with empty set');
     }
 
-    const chunks = ['UPDATE'];
+    const chunks: string[] = [ 'UPDATE' ];
 
-    const values = [];
-    const assigns = [];
+    const values: any[] = [];
+    const assigns: string[] = [];
     const { escapeId } = Model.driver;
     for (const name in sets) {
       const value = sets[name];
       const columnName = escapeId(Model.unalias(name));
-      if (value && value.__expr) {
-        assigns.push(`${columnName} = ${formatExpr(spell, value)}`);
-        collectLiteral(spell, value, values);
+      if (value && (value as { __expr: true }).__expr) {
+        assigns.push(`${columnName} = ${formatExpr(spell, value as Expr)}`);
+        collectLiteral(spell, value as Expr, values);
       } else if (value instanceof Raw) {
         assigns.push(`${columnName} = ${value.value}`);
       } else {
@@ -376,9 +360,7 @@ class SpellBook {
       }
     }
 
-    // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
-    // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
     const indexHintStr = this.formatIndexHints(spell);
 
     if (hintStr) {
@@ -403,22 +385,19 @@ class SpellBook {
 
   /**
    * Format the spell into a DELETE query.
-   * @param {Spell} spell
-   * @returns {{ sql: string, values?: Literal[] | { [key: string]: Literal } }} SQL and values
    */
-  formatDelete(spell) {
+  formatDelete<T extends typeof AbstractBone>(spell: Spell<T>): { sql: string; values?: Literal[] | Record<string, Literal> } {
     const { Model, whereConditions } = spell;
     const { shardingKey } = Model;
     const { escapeId } = Model.driver;
     const table = escapeId(Model.table);
 
-    if (shardingKey && !whereConditions.some(condition => findExpr(condition, { type: 'id', value: shardingKey }))) {
+    if (shardingKey && !whereConditions.some((condition: any) => findExpr(condition, { type: 'id', value: shardingKey }))) {
       throw new Error(`Sharding key ${Model.table}.${shardingKey} is required.`);
     }
 
-    const chunks = ['DELETE'];
+    const chunks: string[] = [ 'DELETE' ];
 
-    // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
     if (hintStr) {
       chunks.push(hintStr);
@@ -427,12 +406,12 @@ class SpellBook {
     chunks.push(`FROM ${table}`);
 
     if (whereConditions.length > 0) {
-      const values = [];
+      const values: Literal[] = [];
       for (const condition of whereConditions) collectLiteral(spell, condition, values);
       chunks.push(`WHERE ${formatConditions(spell, whereConditions)}`);
       return {
         sql: chunks.join(' '),
-        values
+        values,
       };
     } else {
       return { sql: chunks.join(' ') };
@@ -441,30 +420,28 @@ class SpellBook {
 
   /**
    * To help choosing the right function when formatting a spell into SELECT query.
-   * @param {Spell} spell
    */
-  formatSelect(spell) {
+  formatSelect<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { whereConditions } = spell;
-    const { shardingKey, table } = spell.Model;
+    const { shardingKey, table } = (spell).Model;
 
-    if (shardingKey && !whereConditions.some(condition => findExpr(condition, { type: 'id', value: shardingKey }))) {
+    if (shardingKey && !whereConditions.some((condition: any) => findExpr(condition, { type: 'id', value: shardingKey }))) {
       throw new Error(`Sharding key ${table}.${shardingKey} is required.`);
     }
 
-    if (spell.skip > 0 && spell.rowCount == null) {
+    if ((spell).skip > 0 && (spell).rowCount == null) {
       throw new Error('Unable to query with OFFSET yet without LIMIT');
     }
 
-    return Object.keys(spell.joins).length > 0
+    return Object.keys((spell).joins).length > 0
       ? this.formatSelectWithJoin(spell)
       : this.formatSelectWithoutJoin(spell);
   }
 
   /**
    * Format a spell with joins into a full SELECT query.
-   * @param {Spell} spell
    */
-  formatSelectWithJoin(spell) {
+  formatSelectWithJoin<T extends typeof AbstractBone>(spell: Spell<T>) {
     // Since it is a JOIN query, make sure columns are always qualified.
     qualify(spell);
 
@@ -472,11 +449,10 @@ class SpellBook {
     const { escapeId } = Model.driver;
     const baseName = Model.tableAlias;
 
-    const chunks = ['SELECT'];
-    const values = [];
+    const chunks: string[] = [ 'SELECT' ];
+    const values: any[] = [];
     const selects = formatSelectExpr(spell, values);
 
-    // see https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
     const hintStr = this.formatOptimizerHints(spell);
 
     if (hintStr) {
@@ -484,11 +460,11 @@ class SpellBook {
     }
     chunks.push(selects.join(', '));
 
-    const table = formatExpr(spell, spell.table);
+    const table = formatExpr(spell, (spell).table);
     chunks.push(`FROM ${table}`);
-    if (spell.table.value instanceof spell.constructor) {
-      const subTableAlias = spell.table.value.Model && spell.table.value.Model.tableAlias;
-      chunks.push(`AS ${subTableAlias? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
+    if ((spell).table.value instanceof (spell).constructor) {
+      const subTableAlias = (spell).table.value.Model && (spell).table.value.Model.tableAlias;
+      chunks.push(`AS ${subTableAlias ? escapeId(subTableAlias) : `t${(spell).subqueryIndex++}`}`);
     } else {
       chunks.push(`AS ${escapeId(baseName)}`);
     }
@@ -499,7 +475,6 @@ class SpellBook {
       chunks.push(`LEFT JOIN ${escapeId(RefModel.table)} AS ${escapeId(qualifier)} ON ${formatExpr(spell, on)}`);
     }
 
-    // see https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
     const indexHintStr = this.formatIndexHints(spell);
     if (indexHintStr) {
       chunks.push(indexHintStr);
@@ -511,7 +486,7 @@ class SpellBook {
     }
 
     if (groups.length > 0) {
-      chunks.push(`GROUP BY ${groups.map(group => formatExpr(spell, group)).join(', ')}`);
+      chunks.push(`GROUP BY ${groups.map((group: any) => formatExpr(spell, group)).join(', ')}`);
     }
 
     if (havingConditions.length > 0) {
@@ -520,23 +495,19 @@ class SpellBook {
     }
 
     if (orders.length > 0) chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
-    if (rowCount > 0) chunks.push(`LIMIT ${rowCount}`);
-    if (skip > 0) chunks.push(`OFFSET ${skip}`);
+    if (Number(rowCount) > 0) chunks.push(`LIMIT ${Number(rowCount)}`);
+    if (Number(skip) > 0) chunks.push(`OFFSET ${Number(skip)}`);
     return { sql: chunks.join(' '), values };
   }
 
   /**
    * Format orders into ORDER BY clause in SQL
-   * @param {Spell}    spell
-   * @param {Object[]} orders
    */
-  formatOrders(spell, orders) {
-    return orders.map(([token, order]) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  formatOrders<T extends typeof AbstractBone>(spell: Spell<T>, orders: any[]) {
+    return orders.map(([ token, order ]) => {
       const column = formatExpr(spell, token);
       return order == 'desc' ? `${column} DESC` : column;
     });
   }
-
-};
-
-module.exports = SpellBook;
+}

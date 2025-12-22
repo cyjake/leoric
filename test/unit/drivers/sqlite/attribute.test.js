@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Attribute = require('../../../../src/drivers/sqlite/attribute');
+const Attribute = require('../../../../src/drivers/sqlite/attribute').default;
 const { BIGINT, DATE, STRING, INTEGER } = Attribute.DataTypes;
 
 describe('=> Attribute (sqlite)', function() {

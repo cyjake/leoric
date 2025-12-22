@@ -87,7 +87,7 @@ function createType(DataTypes: typeof AbstractDataTypes, params: { dataType?: st
   }
 }
 
-interface AttributeParams {
+export interface AttributeParams {
   type?: AbstractDataType;
   defaultValue?: Literal;
   primaryKey?: boolean;
@@ -109,6 +109,9 @@ export default class Attribute {
   columnType!: string;
   dataType?: string;
   jsType?: Literal;
+  autoIncrement?: boolean;
+  comment?: string;
+  unique?: boolean;
 
   /**
    * Attribute name and definition

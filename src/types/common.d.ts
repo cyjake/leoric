@@ -3,6 +3,7 @@ import { CommonHintsArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from './abstract_bone';
 import Raw from '../raw';
+import { Spell } from '../spell';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
@@ -45,22 +46,15 @@ export interface Connection {
     values?: Array<Literal | Literal[]>,
   ): Promise<QueryResult>;
 
-  query(
-    query: string,
+  query<T extends typeof AbstractBone>(
+    query: string | { sql: string; nestTables?: boolean },
     values?: Array<Literal | Literal[]>,
-    callback?: (err: Error, result: QueryResult) => void,
-  ): void
-
-  begin(opts: TransactionMethodOptions): Promise<void>;
-
-  commit(opts: TransactionMethodOptions): Promise<void>;
-
-  rollback(opts: TransactionMethodOptions): Promise<void>;
-
+    opts: Spell<T> | QueryOptions & { connection?: Connection },
+  ): Promise<QueryResult>;
 }
 
 export declare class Pool {
-  getConnection(): Connection;
+  async getConnection(): Promise<Connection>;
 }
 
 export interface QueryOptions {
@@ -96,7 +90,7 @@ export type ResultSet<T extends typeof AbstractBone> = Array<Values<InstanceType
 
 export interface ColumnMeta extends ColumnBase {
   dataType?: string;
-  datetimePrecision?: string;
+  datetimePrecision?: string | number | null;
 }
 
 export interface AttributeMeta extends ColumnMeta {
@@ -147,6 +141,7 @@ export declare class Attribute {
   dataType: string;
   jsType: Literal;
   virtual: boolean;
+  unique?: boolean;
 
   equals(columnInfo: ColumnMeta): boolean;
   cast(value: Literal): Literal;

@@ -6,7 +6,7 @@ const path = require('path');
 const dayjs = require('dayjs');
 
 const Realm = require('../../../src');
-const Logger = require('../../../src/drivers/abstract/logger');
+const Logger = require('../../../src/drivers/abstract/logger').default;
 const { checkDefinitions } = require('../helpers');
 
 const { Bone } = Realm;
@@ -96,6 +96,18 @@ describe('=> Migrations', async () => {
     await checkDefinitions('topics', null);
     const { rows: result } = await realm.driver.query('SELECT name FROM leoric_meta');
     assert.equal(result.length, 0);
+  });
+
+  it('should not rollback if invalid steps', async () => {
+    await createTopics();
+    await realm.migrate();
+    await realm.rollback(0);
+    await checkDefinitions('topics', {
+      title: { dataType: 'varchar', allowNull: false },
+      body: { dataType: 'text' },
+    });
+    const { rows: result } = await realm.driver.query('SELECT name FROM leoric_meta');
+    assert.equal(result.length, 1);
   });
 
   it('should log migration', async () => {

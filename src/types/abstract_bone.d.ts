@@ -109,6 +109,8 @@ export class AbstractBone {
 
   static options: ConnectOptions;
 
+  static timestamps: { createdAt: string; updatedAt: string; deletedAt: string | null };
+
 
   isNewRecord: boolean;
 

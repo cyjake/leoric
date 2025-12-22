@@ -1,15 +1,30 @@
-'use strict';
+import dayjs from 'dayjs';
+import { promises as fs } from 'fs';
+import path from 'path';
+import AbstractDriver from './drivers/abstract';
+import DataTypesModule from './data_types';
 
-const dayjs = require('dayjs');
-const fs = require('fs').promises;
-const path = require('path');
+interface Migration {
+  name: string;
+  up: (driver: AbstractDriver, DataTypes: typeof DataTypesModule) => Promise<void>;
+  down: (driver: AbstractDriver, DataTypes: typeof DataTypesModule) => Promise<void>;
+}
 
-async function loadTasks(dir) {
+interface RealmContext {
+  options: {
+    migrations: string;
+    [key: string]: any;
+  };
+  driver: AbstractDriver;
+  DataTypes: typeof DataTypesModule;
+}
+
+async function loadTasks(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  const result = [];
+  const result: string[] = [];
 
   for (const entry of entries) {
-    if (entry.isFile() && ['.js', '.mjs'].includes(path.extname(entry.name))) {
+    if (entry.isFile() && ['.js', '.mjs', '.ts'].includes(path.extname(entry.name))) {
       result.push(entry.name);
     }
   }
@@ -17,18 +32,20 @@ async function loadTasks(dir) {
   return result;
 }
 
-function loadMigration(dir, name) {
+function loadMigration(dir: string, name: string): Migration {
   return { ...require(path.join(dir, name)), name };
 }
 
-async function migrate(steps = Infinity) {
+async function migrate(this: RealmContext, steps = Infinity): Promise<void> {
   const { migrations: dir } = this.options;
-  const { driver, DataTypes } = this;
+  const { driver } = this;
+  const DataTypes = this.DataTypes;
   const { logger } = driver;
 
   await driver.query('CREATE TABLE IF NOT EXISTS leoric_meta (name VARCHAR(255) NOT NULL)');
   const { rows } = await driver.query('SELECT * FROM leoric_meta ORDER BY name');
-  const finishedTasks = rows.map(row => row.name);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const finishedTasks = rows!.map(row => row.name);
   const tasks = await loadTasks(dir);
 
   if (steps > 0) {
@@ -45,7 +62,7 @@ async function migrate(steps = Infinity) {
   } else if (steps < 0) {
     const migrations = finishedTasks
       .slice(steps)
-      .map(entry => loadMigration(dir, entry));
+      .map(entry => loadMigration(dir, entry as string));
 
     for (const migration of migrations.reverse()) {
       logger.logMigration(migration.name, 'down');
@@ -55,11 +72,11 @@ async function migrate(steps = Infinity) {
   }
 }
 
-async function rollback(step = 1) {
-  if (step > 0) await this.migrate(-step);
+async function rollback(this: RealmContext, step = 1): Promise<void> {
+  if (step > 0) await migrate.call(this, -step);
 }
 
-async function createMigrationFile(name) {
+async function createMigrationFile(this: RealmContext, name: string): Promise<void> {
   const { migrations: dir } = this.options;
   const timestamp = dayjs().format('YYYYMMDDHHmmss');
   const fpath = path.join(dir, `${timestamp}-${name}.js`);
@@ -78,4 +95,4 @@ module.exports = {
   );
 }
 
-module.exports = { migrate, rollback, createMigrationFile };
+export { migrate, rollback, createMigrationFile };

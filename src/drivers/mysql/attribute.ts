@@ -1,24 +1,24 @@
-'use strict';
+import { escape, escapeId } from 'sqlstring';
 
-const { escape, escapeId } = require('sqlstring');
-
-const Attribute = require('../abstract/attribute').default;
-const DataTypes = require('./data_types');
+import Attribute from '../abstract/attribute';
+import DataTypes from './data_types';
 
 class MysqlAttribute extends Attribute {
-  constructor(name, params, opts) {
+  constructor(name: string, params?: any, opts?: any) {
     super(name, params, opts);
   }
 
   static get DataTypes() {
-    return DataTypes;
+    return DataTypes as any;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     const {
       columnName,
-      type, columnType,
-      allowNull, defaultValue,
+      type,
+      columnType,
+      allowNull,
+      defaultValue,
       primaryKey,
       comment,
       unique,
@@ -51,4 +51,4 @@ class MysqlAttribute extends Attribute {
   }
 }
 
-module.exports = MysqlAttribute;
+export default MysqlAttribute;
