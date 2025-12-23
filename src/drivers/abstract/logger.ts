@@ -10,7 +10,7 @@ export interface LoggerOptions {
   hideKeys?: string[];
   logQuery?: (sql: string, duration?: number | string, opts?: Spell<typeof AbstractBone> | QueryOptions) => void;
   logQueryError?: (err: Error, sql: string, duration?: number | string, opts?: Spell<typeof AbstractBone> | QueryOptions) => void;
-  logMigration?: (name: string) => void;
+  logMigration?: (name: string, direction: 'up' | 'down') => void;
 }
 
 export default class Logger {
