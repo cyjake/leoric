@@ -57,7 +57,6 @@ describe('=> SQLite driver.pool', function() {
         mode: OPEN_READWRITE,
       });
       const connection = await pool.getConnection();
-      console.log(2, connection.database);
       await connection.query('SELECT 1 + 1 AS result');
     }, /SQLITE_CANTOPEN/i);
   });
