@@ -43,8 +43,8 @@ function renameSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>): void 
 
 class SQLiteSpellBook extends Spellbook {
   formatSelect<T extends typeof AbstractBone>(spell: Spell<T>): { sql: string; values: Literal[]} {
-    if (Object.keys((spell).joins).length > 0) {
-      spell = (spell).dup;
+    if (Object.keys(spell.joins).length > 0) {
+      spell = spell.dup;
       renameSelectExpr(spell);
     }
     return super.formatSelect(spell);

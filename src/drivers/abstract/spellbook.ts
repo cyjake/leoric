@@ -423,17 +423,17 @@ export default class SpellBook {
    */
   formatSelect<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { whereConditions } = spell;
-    const { shardingKey, table } = (spell).Model;
+    const { shardingKey, table } = spell.Model;
 
     if (shardingKey && !whereConditions.some((condition: any) => findExpr(condition, { type: 'id', value: shardingKey }))) {
       throw new Error(`Sharding key ${table}.${shardingKey} is required.`);
     }
 
-    if ((spell).skip > 0 && (spell).rowCount == null) {
+    if (spell.skip > 0 && spell.rowCount == null) {
       throw new Error('Unable to query with OFFSET yet without LIMIT');
     }
 
-    return Object.keys((spell).joins).length > 0
+    return Object.keys(spell.joins).length > 0
       ? this.formatSelectWithJoin(spell)
       : this.formatSelectWithoutJoin(spell);
   }
@@ -460,11 +460,11 @@ export default class SpellBook {
     }
     chunks.push(selects.join(', '));
 
-    const table = formatExpr(spell, (spell).table);
+    const table = formatExpr(spell, spell.table);
     chunks.push(`FROM ${table}`);
-    if ((spell).table.value instanceof (spell).constructor) {
-      const subTableAlias = (spell).table.value.Model && (spell).table.value.Model.tableAlias;
-      chunks.push(`AS ${subTableAlias ? escapeId(subTableAlias) : `t${(spell).subqueryIndex++}`}`);
+    if (spell.table.value instanceof spell.constructor) {
+      const subTableAlias = spell.table.value.Model && spell.table.value.Model.tableAlias;
+      chunks.push(`AS ${subTableAlias ? escapeId(subTableAlias) : `t${spell.subqueryIndex++}`}`);
     } else {
       chunks.push(`AS ${escapeId(baseName)}`);
     }
