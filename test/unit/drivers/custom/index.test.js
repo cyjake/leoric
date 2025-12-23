@@ -68,8 +68,8 @@ describe('custom driver', () => {
     const driver2 = new CustomDriver({
       ...options,
       logger: {
-        logQueryError(sql, err) {
-          result.push([ sql, err ]);
+        logQueryError(err, sql, duration, opts) {
+          result.push([ err, sql, duration, opts ]);
         },
       },
     });
