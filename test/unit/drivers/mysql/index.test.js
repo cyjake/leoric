@@ -95,4 +95,10 @@ describe('=> MySQL driver', () => {
     assert.ok(insertId);
     assert.equal(affectedRows, 1);
   });
+
+  it('driver.renameColumn()', async () => {
+    await assert.rejects(async () => {
+      await driver.renameColumn('articles', 'undefined', 'headline');
+    }, /unable to find column/i);
+  });
 });

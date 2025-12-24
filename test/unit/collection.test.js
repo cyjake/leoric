@@ -107,7 +107,7 @@ describe('=> Collection', function() {
       ],
       fields: [],
     });
-    assert.ok(result.every(r => !(r instanceof Post)));
+    result.every(r => assert.equal(r instanceof Post, false));
     assert.deepEqual(result.toJSON(), [
       { authorId: 1 },
       { authorId: 2 },

@@ -557,6 +557,9 @@ describe('validator', () => {
       assert.throws(() => {
         return executeValidator({}, 'isEmail', User.attributes.email, 'a@e');
       }, /LeoricValidateError/i);
+      assert.throws(() => {
+        return executeValidator({ getRaw() {} }, 'isEmail', User.attributes.email, 'b@e');
+      }, /LeoricValidateError/i);
     });
   });
 });

@@ -109,7 +109,11 @@ export class AbstractBone {
 
   static options: ConnectOptions;
 
-  static timestamps: { createdAt: string; updatedAt: string; deletedAt: string | null };
+  static timestamps: { createdAt: string; updatedAt: string; deletedAt: string };
+
+  static _scope: (spell: Spell<typeof AbstractBone>) => void;
+
+  static associations: { [key: string]: any };
 
 
   isNewRecord: boolean;

@@ -1,7 +1,7 @@
 import { AbstractBone } from './types/abstract_bone';
 import Spell from './spell';
 import { Literal, Values } from './types/common';
-import { Alias } from './expr';
+import { Alias, Identifier } from './expr';
 
 /**
  * An extended Array to represent collections of models.
@@ -68,7 +68,7 @@ function instantiatable<T extends typeof AbstractBone>(spell: Spell<T>) {
   if (groups.length > 0) return false;
   if (columns.length === 0) return true;
 
-  return columns
+  return (columns as Identifier[])
     .filter(({ qualifiers }) => (!qualifiers || qualifiers.includes(tableAlias)))
     .every(({ value }) => columnAttributes[value]);
 }

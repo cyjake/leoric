@@ -7,7 +7,7 @@ import DataTypes from '../../data_types';
 import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
 import { AbstractBone } from '../../types/abstract_bone';
-import { ColumnMeta, Connection, Literal, Pool, QueryOptions, QueryResult, ResultSet } from '../../types/common';
+import { ColumnMeta, Connection, Literal, Pool, QueryOptions, QueryResult } from '../../types/common';
 import Spell from '../../spell';
 
 const debug = Debug('leoric');
@@ -117,7 +117,7 @@ export default class AbstractDriver {
    * @param {Spell} spell
    * @returns
    */
-  async cast<T extends typeof AbstractBone>(spell: Spell<T, ResultSet<T> | number | null>): Promise<QueryResult> {
+  async cast<T extends typeof AbstractBone>(spell: Spell<T>): Promise<QueryResult> {
     const { sql, values } = this.format(spell);
     const query = { sql, nestTables: spell.command === 'select' };
     return await this.query(query, values, spell);
@@ -157,7 +157,7 @@ export default class AbstractDriver {
    * @param {Spell} spell
    * @returns
    */
-  format<T extends typeof AbstractBone>(spell: Spell<T, ResultSet<T> | number | null>) {
+  format<T extends typeof AbstractBone>(spell: Spell<T>) {
     return this.spellbook.format(spell);
   }
 

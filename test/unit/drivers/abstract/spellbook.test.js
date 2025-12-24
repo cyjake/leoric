@@ -107,7 +107,7 @@ describe('=> Spellbook', function() {
 
   describe('formatDelete()', function() {
     it('should throw error when deleting rows without sharding key', function() {
-      const query = Comment.remove({ id: 1 });
+      const query = Comment.remove({ id: 1 }, true);
       assert.throws(function() {
         query.toString();
       }, /Sharding key comments.articleId is required/i);

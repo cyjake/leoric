@@ -47,7 +47,8 @@ function formatIdentifier<T extends typeof AbstractBone>(spell: Spell<T>, ast: I
   const qualifiers = 'qualifiers' in ast ? ast.qualifiers : undefined;
   const Model = findModel(spell, qualifiers);
   const column = Model.unalias(value);
-  const { escapeId } = spell.Model.driver;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const { escapeId } = spell.Model.driver!;
 
   if (qualifiers && qualifiers.length > 0) {
     return `${qualifiers.map(escapeId).join('.')}.${escapeId(column)}`;
@@ -66,7 +67,8 @@ const extractFieldNames = ['year', 'month', 'day'];
 
 function formatFuncExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Func | JsonValueFunc) {
   const { name, args } = ast;
-  const { type } = spell.Model.driver;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const { type } = spell.Model.driver!;
 
   // https://www.postgresql.org/docs/9.1/static/functions-datetime.html
   if (type === 'postgres' && extractFieldNames.includes(name)) {

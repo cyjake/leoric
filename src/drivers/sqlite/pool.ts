@@ -18,11 +18,11 @@ class Pool extends EventEmitter {
   client: any;
   connections: PoolConnection[];
   queue: Array<() => void>;
+  connectionLimit: number;
 
   constructor(opts: ConnectOptions) {
     super();
     const options: PoolOptions = {
-      connectionLimit: 10,
       trace: true,
       busyTimeout: 30000,
       ...opts,
@@ -39,10 +39,11 @@ class Pool extends EventEmitter {
     this.client = client;
     this.connections = [];
     this.queue = [];
+    this.connectionLimit = options.connectionLimit || 10;
   }
 
   async getConnection(): Promise<PoolConnection> {
-    const { connections, queue, client, options } = this;
+    const { connections, queue, client, connectionLimit } = this;
     for (const connection of connections) {
       if (connection.idle) {
         connection.idle = false;
@@ -50,7 +51,7 @@ class Pool extends EventEmitter {
         return connection;
       }
     }
-    if (connections.length < (options.connectionLimit || 10)) {
+    if (connections.length < connectionLimit) {
       const connection = new Connection({ ...this.options, client, pool: this } as any);
       connections.push(connection as PoolConnection);
       this.emit('connection', connection);

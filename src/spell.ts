@@ -1,33 +1,102 @@
-'use strict';
 
 /**
  * The {@link Spell} class.
  * @module
  */
-const pluralize = require('pluralize');
-const SqlString = require('sqlstring');
-const { parseExprList, parseExpr, walkExpr } = require('./expr');
-const { isPlainObject } = require('./utils');
-const { IndexHint, INDEX_HINT_TYPE, Hint } = require('./hint');
-const { parseObject } = require('./query_object');
-const Raw = require('./raw').default;
-const { AGGREGATOR_MAP } = require('./constants');
+import pluralize from 'pluralize';
+import SqlString from 'sqlstring';
+import { parseExprList, parseExpr, walkExpr, Expr, Token, Alias } from './expr';
+import { isPlainObject } from './utils';
+import { IndexHint, INDEX_HINT_TYPE, Hint, HintInterface, HintScopeObject } from './hint';
+import { parseObject } from './query_object';
+import Raw from './raw';
+import { AGGREGATOR_MAP } from './constants';
+
+import {
+  Literal, command, Connection,
+  BoneColumns,
+  Collection,
+  ResultSet,
+  QueryResult,
+  QueryOptions,
+  OnConditions,
+  WithOptions,
+  WhereConditions,
+} from './types/common';
+import { AbstractBone } from './types/abstract_bone';
+import { Identifier, Func, Operator, TernaryOperator, Subquery } from './expr';
+
+// Polyfill for structuredClone
+declare global {
+  function structuredClone<T>(value: T, options?: any): T;
+}
+
+interface SpellBookFormatStandardResult {
+  sql: string;
+  values?: Array<Literal> | {
+    [key: string]: Literal
+  };
+  [key: string]: Literal
+}
+
+interface Join {
+  [key: string]: {
+    Model: typeof AbstractBone;
+    on: ExprOperator;
+    hasMany?: boolean;
+  }
+}
+
+type ExprOperator = Operator | TernaryOperator;
+// Columns in a SELECT can be any parsed expression token (identifier, func, alias, etc.),
+// or Raw (when passed directly), and parser may yield undefined entries.
+type SpellColumn = Token | Raw;
+
+type ScopeFunction = (spell: Spell<any>) => void;
+
+interface SpellOptions {
+  command?: command;
+  columns: SpellColumn[];
+  // allow subquery as table source in dup and with()
+  table: Identifier | Subquery<any>;
+  whereConditions: any[];
+  groups: (Identifier | Func | Alias | Raw)[];
+  orders: [Identifier | Func | Raw, 'asc' | 'desc'][];
+  havingConditions: any[];
+  joins: Join;
+  skip: number;
+  scopes: ScopeFunction[];
+  subqueryIndex: number;
+  rowCount?: number;
+  connection?: Connection;
+  sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
+  hints?: Array<Hint | IndexHint>;
+  hint?: Hint | IndexHint;
+  paranoid?: boolean;
+  transaction?: any;
+  laters?: Array<(result: any) => any>;
+}
+
+export interface SpellMeta extends SpellOptions {
+  Model: typeof AbstractBone;
+}
+
+export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
+
 
 /**
  * check condition to avoid use virtual fields as where conditions
  * @param {Bone} Model
  * @param {Array<Object>} conds
  */
-function checkCond(Model, conds) {
-  if (Array.isArray(conds)) {
-    for (const cond of conds) {
-      if (cond.type === 'id' && cond.value != null) {
-        if (Model.attributes[cond.value] && Model.attributes[cond.value].virtual) {
-          throw new Error(`unable to use virtual attribute ${cond.value} as condition in model ${Model.name}`);
-        }
-      } else if (cond.type === 'op' && cond.args && cond.args.length) {
-        checkCond(Model, cond.args);
+function checkCond(Model: typeof AbstractBone, conds: any[]): void {
+  for (const cond of conds) {
+    if (cond && cond.type === 'id' && cond.value != null) {
+      if (Model.attributes[cond.value] && Model.attributes[cond.value].virtual) {
+        throw new Error(`unable to use virtual attribute ${cond.value} as condition in model ${Model.name}`);
       }
+    } else if (cond && cond.type === 'op' && cond.args && cond.args.length) {
+      checkCond(Model, cond.args);
     }
   }
 }
@@ -42,9 +111,9 @@ function checkCond(Model, conds) {
  * @param {...*} values
  * @returns {Array}
  */
-function parseConditions(Model, conditions, ...values) {
+function parseConditions(Model: typeof AbstractBone, conditions: any, ...values: Literal[]): any[] {
   if (conditions instanceof Raw) return [ conditions ];
-  let conds;
+  let conds: any[];
   if (isPlainObject(conditions)) {
     conds = parseObject(conditions);
   } else if (typeof conditions == 'string') {
@@ -56,26 +125,30 @@ function parseConditions(Model, conditions, ...values) {
   return conds;
 }
 
-function parseSelect(spell, ...names) {
+function parseSelect<T extends typeof AbstractBone>(spell: Spell<T>, ...names: Array<BoneColumns<T>> | Array<string | Raw>) {
   const { joins, Model } = spell;
   if (typeof names[0] === 'function') {
     names = Object.keys(Model.columnAttributes).filter(names[0]);
   } else {
-    names = names.reduce((result, name) => result.concat(name), []);
+    names = names.flat() as Array<string | Raw>;
   }
 
-  const columns = [];
+  const columns: SpellColumn[] = [];
   for (const name of names) {
-    if (name instanceof Raw) columns.push(name);
-    else columns.push(...parseExprList(name));
+    if (name instanceof Raw) {
+      columns.push(name);
+    } else {
+      columns.push(...parseExprList(name) as SpellColumn[]);
+    }
   }
 
   for (const ast of columns) {
-    walkExpr(ast, token => {
-      const { type, qualifiers, value } = token;
-      if (type != 'id') return;
+    walkExpr(ast as Token, token => {
+      if (token.type !== 'id') return;
+      const { qualifiers, value } = token;
       const qualifier = qualifiers && qualifiers[0];
       const model = qualifier && joins && (qualifier in joins) ? joins[qualifier].Model : Model;
+
       if (!model.columnAttributes[value]) {
         if (model.attributes[value]) {
           throw new Error(`unable to use virtual attribute ${value} as field in model ${model.name}`);
@@ -95,9 +168,9 @@ function parseSelect(spell, ...names) {
  * @param {boolean} strict - check attribute exist or not
  * @returns {Object}
  */
-function formatValueSet(spell, obj, strict = true) {
+function formatValueSet(spell: Spell<any>, obj: Record<string, any>): Record<string, any> {
   const { Model } = spell;
-  const sets = {};
+  const sets: Record<string, any> = {};
   for (const name in obj) {
     const attribute = Model.columnAttributes[name];
     const value = obj[name];
@@ -110,7 +183,7 @@ function formatValueSet(spell, obj, strict = true) {
     if (value instanceof Raw) {
       try {
         const expr = parseExpr(value.value);
-        if (expr.type === 'func' && ['json_merge_patch', 'json_merge_preserve'].includes(expr.name)) {
+        if (expr && expr.type === 'func' && ['json_merge_patch', 'json_merge_preserve'].includes((expr as Func).name)) {
           sets[name] = { ...expr, __expr: true };
           continue;
         }
@@ -130,13 +203,12 @@ function formatValueSet(spell, obj, strict = true) {
  * @param {Spell}  spell
  * @param {Object|Array} obj   - key-value pairs of columnAttributes
  */
-function parseSet(spell, obj) {
-  let sets;
+function parseSet(spell: Spell<any>, obj: any): Record<string, any> | Record<string, any>[] {
+  let sets: Record<string, any> | Record<string, any>[];
   if (Array.isArray(obj)) {
     sets = [];
     for (const o of obj) {
-      // bulk write should not check attribute existence strictly
-      sets.push(formatValueSet(spell, o, false));
+      (sets as Record<string, any>[]).push(formatValueSet(spell, o));
     }
   } else {
     sets = formatValueSet(spell, obj);
@@ -159,29 +231,36 @@ function parseSet(spell, obj) {
  * @param {Object} opts.association - the association between BaseModel and RefModel
  * @param {Object} opts.where    - used to override association.where when processing `{ through }` associations
  */
-function joinOnConditions(spell, BaseModel, baseName, refName, { where, association } = {}) {
+function joinOnConditions(
+  spell: Spell<typeof AbstractBone>,
+  BaseModel: typeof AbstractBone,
+  baseName: string,
+  refName: string,
+  opts: any,
+): ExprOperator {
+  const { where, association } = opts;
   const { Model: RefModel, foreignKey, belongsTo } = association;
   const [baseKey, refKey] = belongsTo
     ? [foreignKey, RefModel.primaryKey]
     : [BaseModel.primaryKey, foreignKey];
 
-  const onConditions = {
+  const onConditions: ExprOperator = {
     type: 'op', name: '=',
     args: [
       { type: 'id', value: baseKey, qualifiers: [baseName] },
       { type: 'id', value: refKey, qualifiers: [refName] }
-    ]
+    ],
   };
-  if (!where) where = association.where;
-  if (where) {
-    const whereConditions = parseConditions(BaseModel, where).reduce((result, condition) => {
+  const finalWhere = where || association.where;
+  if (finalWhere) {
+    const whereConditions = parseConditions(BaseModel, finalWhere).reduce((result: any, condition: any) => {
       if (!result) return condition;
       return { type: 'op', name: 'and', args: [ result, condition ] };
     });
-    walkExpr(whereConditions, node => {
+    walkExpr(whereConditions, (node: any) => {
       if (node.type == 'id' && !node.qualifiers) node.qualifiers = [refName];
     });
-    return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] };
+    return { type: 'op', name: 'and', args: [ onConditions, whereConditions ] } as ExprOperator;
   } else {
     return onConditions;
   }
@@ -194,7 +273,7 @@ function joinOnConditions(spell, BaseModel, baseName, refName, { where, associat
  * @param {Object} associations - Model associations
  * @param {Object} opts      - Search criteria, e.g. { Model }
  */
-function findAssociation(associations, opts) {
+function findAssociation(associations: Record<string, any>, opts: Record<string, any>): any {
   for (const qualifier in associations) {
     const association = associations[qualifier];
     let found = true;
@@ -217,13 +296,14 @@ function findAssociation(associations, opts) {
  * @param {string} refName   - The name of the join target
  * @param {Object} opts      - Extra options such as { select, throughAssociation }
  */
-function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
+function joinAssociation(spell: Spell<any>, BaseModel: typeof AbstractBone, baseName: string, refName: string, opts: Record<string, any> = {}): void {
   const { joins } = spell;
-  let association = BaseModel.associations[refName] || BaseModel.associations[pluralize(refName, 1)];
+  const { associations } = BaseModel;
+  let association = associations[refName] || associations[pluralize(refName, 1)];
 
   if (refName in joins) throw new Error(`duplicated ${refName} in join tables`);
   if (!association && opts.targetAssociation) {
-    association = findAssociation(BaseModel.associations, { Model: opts.targetAssociation.Model });
+    association = findAssociation(associations, { Model: opts.targetAssociation.Model });
   }
   if (!association) {
     throw new Error(`unable to find association ${refName} on ${BaseModel.name}`);
@@ -232,7 +312,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
   const { through, Model: RefModel, includes } = association;
 
   if (through) {
-    const throughAssociation = BaseModel.associations[through];
+    const throughAssociation = associations[through];
     // multiple associations might be mounted through the same intermediate association.
     // such as tagMaps => colorTags, tagMaps => styleTags
     // in this case, the intermediate association shall be mounted only once.
@@ -244,13 +324,13 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
   }
 
   const { throughAssociation, targetAssociation } = opts;
-  const where = targetAssociation ? targetAssociation.where : null;
+  const whereOpts = targetAssociation ? targetAssociation.where : null;
   const select = opts.select || association.select;
 
   if (select) {
-    const columns = parseSelect({ Model: RefModel }, select);
+    const columns = parseSelect({ Model: RefModel } as Spell<typeof RefModel>, select);
     for (const token of columns) {
-      walkExpr(token, node => {
+      walkExpr(token as Expr, (node: any) => {
         if (node.type === 'id' && !node.qualifiers && RefModel.columnAttributes[node.value]) {
           node.qualifiers = [refName];
         }
@@ -261,7 +341,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
 
   spell.joins[refName] = {
     Model: RefModel,
-    on: joinOnConditions(spell, BaseModel, baseName, refName, { where, association }),
+    on: joinOnConditions(spell, BaseModel, baseName, refName, { where: whereOpts, association }),
     hasMany: association.hasMany || (throughAssociation ? throughAssociation.hasMany : false),
   };
 
@@ -271,7 +351,7 @@ function joinAssociation(spell, BaseModel, baseName, refName, opts = {}) {
 /**
  * If Model supports soft delete, and deletedAt isn't specified in whereConditions yet, and the table isn't a subquery, append a default where({ deletedAt: null }).
  */
-function scopeDeletedAt(spell) {
+function scopeDeletedAt(spell: Spell<any>): void {
   const { table, sets, whereConditions, Model } = spell;
 
   const { deletedAt } = Model.timestamps;
@@ -280,12 +360,12 @@ function scopeDeletedAt(spell) {
   if (table.type !== 'id') return;
 
   // UPDATE users SET deleted_at = NULL WHERE id = 42;
-  if (sets && sets[deletedAt] === null) return;
+  if (sets && !Array.isArray(sets) && (sets as Record<string, any>)[deletedAt] === null) return;
 
   // deletedAt already specified
   for (const condition of whereConditions) {
     let found = false;
-    walkExpr(condition, ({ type, value }) => {
+    walkExpr(condition, ({ type, value }: any) => {
       if (type === 'id' && value == deletedAt) {
         found = true;
       }
@@ -322,18 +402,42 @@ scopeDeletedAt.__paranoid = true;
  * For performance reason, {@link Bone} use the prefixed with `$` ones mostly.
  * @alias Spell
  */
-class Spell {
+class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
+  Model: T;
+  connection?: Connection;
+
+  command: command = 'select';
+  scopes: Array<ScopeFunction>;
+  joins: Join = {};
+  sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
+  declare table: Identifier | Subquery<T>;
+  columns: SpellColumn[] = [];
+  groups: (Identifier | Func | Alias | Raw)[] = [];
+  whereConditions: ExprOperator[] = [];
+  havingConditions: ExprOperator[] = [];
+  updateOnDuplicate?: string[] | true;
+  orders: [Identifier | Func | Raw, 'asc' | 'desc'][] = [];
+  skip = 0;
+  rowCount?: number;
+  hints: Array<Hint | IndexHint>;
+  subqueryIndex = 0;
+  returning?: boolean | string[];
+  uniqueKeys?: string[];
+  laters: Array<(result: any) => any> = [];
+
   /**
    * Create a spell.
    * @param {Model}          Model    - A sub class of {@link Bone}.
    * @param {Object}         opts     - Extra columnAttributes to be set.
    */
-  constructor(Model, opts = {}) {
+  constructor(Model: T, opts: Partial<SpellOptions> = {}) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    super(() => {});
     if (Model.synchronized == null) {
       throw new Error(`model ${Model.name} is not connected yet`);
     }
 
-    const scopes = [];
+    const scopes: Array<ScopeFunction> = [];
 
     if (Model._scope) {
       scopes.push(Model._scope);
@@ -372,7 +476,7 @@ class Spell {
       subqueryIndex: 0
     }, opts.transaction, opts);
 
-    const hints = [];
+    const hints: (Hint | IndexHint)[] = [];
 
     if (opts.hints && opts.hints.length) {
       hints.push(...opts.hints.map(hint => Hint.build(hint)));
@@ -382,16 +486,12 @@ class Spell {
       hints.push(Hint.build(opts.hint));
     }
 
-    this.hints = hints.reduce((result, hint) => {
-      if (!result.some(entry => entry.isEqual(hint))) {
+    this.hints = hints.reduce((result: (Hint | IndexHint)[], hint: Hint | IndexHint) => {
+      if (!result.some((entry: any) => entry.isEqual(hint))) {
         result.push(hint);
       }
       return result;
     }, []);
-  }
-
-  static expr(text) {
-    return { ...parseExpr(text), __expr: true };
   }
 
   #emptySpell() {
@@ -426,28 +526,27 @@ class Spell {
   // remove `deleted is NULL`
   get unparanoid() {
     const spell = this.dup;
-    spell.scopes = spell.scopes.filter((scope) => !scope.__paranoid);
+    spell.scopes = spell.scopes.filter((scope: any) => !scope.__paranoid);
     return spell;
   }
 
   get all() {
-    return this;
+    return this as Spell<T, Collection<InstanceType<T>>>;
   }
 
   get first() {
-    return this.order(this.Model.primaryKey).$get(0);
+    return this.order(this.Model.primaryKey).$get(0) as Spell<T, InstanceType<T> | null>;
   }
 
-  get last() {
-    return this.order(this.Model.primaryKey, 'desc').$get(0);
+  get last(): Spell<T, InstanceType<T> | null> {
+    return this.order(this.Model.primaryKey, 'desc').$get(0) as Spell<T, InstanceType<T> | null>;
   }
 
   /**
    * Get a duplicate of current spell.
-   * @returns {Spell}
    */
-  get dup() {
-    return new Spell(this.Model, {
+  get dup(): Spell<T> {
+    return new Spell<T>(this.Model, {
       command: this.command,
       columns: [...this.columns],
       sets: this.sets,
@@ -472,25 +571,27 @@ class Spell {
    * @param {number} index
    * @returns {Bone}
    */
-  $get(index) {
+  $get(index: number): this {
     this.$limit(1);
     if (index > 0) this.$offset(index);
 
-    return this.later(results => {
+    return this.later((results: any[]) => {
       const { Model } = this;
       const result = results[0];
       return result instanceof Model ? result : null;
     });
   }
+  get!: (index: number) => Spell<T, InstanceType<T> | null>;
 
-  later(resolve) {
+  later(resolve: (result: any) => any): this {
     this.laters.push(resolve);
     return this;
   }
 
   async ignite() {
     const { Model, laters } = this;
-    let result = await Model.driver.cast(this);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    let result: any = await Model.driver!.cast(this as any);
     result = { ...result, spell: this };
     for (const later of laters) {
       result = await later(result);
@@ -506,21 +607,21 @@ class Spell {
    * @param {Function} resolve
    * @param {Function} reject
    */
-  then(resolve = null, reject) {
-    return this.ignite().then(resolve, reject);
+  then<V, W>(resolve?: ((value: U) => V | Promise<V>) | null, reject?: ((reason: any) => W | Promise<W>) | null): Promise<V | W> {
+    return Promise.resolve(this.ignite()).then(resolve, reject);
   }
 
   /**
    * @param {Function} reject
    */
-  catch(reject) {
+  catch<V>(reject?: ((reason: any) => V | Promise<V>) | null): Promise<any | V> {
     return this.then(null, reject);
   }
 
   /**
    * @param {Function} onFinally
    */
-  finally(onFinally) {
+  finally(onFinally?: (() => void) | null): Promise<any> {
     return this.then().finally(onFinally);
   }
 
@@ -528,10 +629,10 @@ class Spell {
    * - https://nodejs.org/en/knowledge/errors/what-are-the-error-conventions/
    * @param {Function} callback
    */
-  nodeify(callback) {
-    return this.then(function resolve(result) {
+  nodeify(callback: (err: any, result?: any) => void): void {
+    this.then(function resolve(result: any) {
       callback(null, result);
-    }, function reject(err) {
+    }, function reject(err: any) {
       callback(err);
     });
   }
@@ -541,28 +642,31 @@ class Spell {
    * @private
    * @param {Object} obj - key-values pairs
    */
-  $insert(obj) {
+  $insert(obj: Record<string, any>): this {
     this.command = 'insert';
     this.sets = parseSet(this, obj);
     return this;
   }
+  insert!: (obj: Record<string, any>) => Spell<T, QueryResult>;
 
   /**
    * Generate a upsert-like query which takes advantage of ON DUPLICATE KEY UPDATE.
    * @private
    * @param {Object} obj - key-value pairs to SET
    */
-  $upsert(obj) {
+  $upsert(obj: Record<string, any>): this {
     this.command = 'upsert';
     this.sets = parseSet(this, obj);
     return this;
   }
+  upsert!: (obj: Record<string, any>) => Spell<T, QueryResult>;
 
-  $bulkInsert(records) {
+  $bulkInsert(records: Record<string, any>[]): this {
     this.command = 'bulkInsert';
     this.sets = parseSet(this, records);
     return this;
   }
+  bulkInsert!: (records: Record<string, any>[]) => Spell<T, U>;
 
   /**
    * Whitelist columnAttributes to select. Can be called repeatedly to select more columnAttributes.
@@ -572,23 +676,25 @@ class Spell {
    * .select('title', 'createdAt');
    * .select('IFNULL(title, "Untitled")');
    */
-  $select(...names) {
-    this.columns.push(...parseSelect(this, ...names));
+  $select(...names: any[]): this {
+    this.columns.push(...parseSelect(this as any, ...names));
     return this;
   }
+  select!: (...names: (string | Raw | ((name: string) => boolean))[]) => Spell<T, U>;
 
   /**
    * Make a UPDATE query with values updated by generating SET key=value from obj.
    * @private
    * @param {Object} obj - key-value pairs to SET
    */
-  $update(obj) {
+  $update(obj: Record<string, any>): this {
     this.command = 'update';
     this.sets = parseSet(this, obj);
     return this;
   }
+  update!: (obj: Record<string, any>) => Spell<T, QueryResult>;
 
-  $increment(name, by = 1, opts = {}) {
+  $increment(name: string, by = 1, opts: Record<string, any> = {}): this {
     const { Model } = this;
     const silent = opts.silent;
     const { timestamps } = Model;
@@ -598,50 +704,51 @@ class Spell {
       throw new Error(`undefined attribute "${name}"`);
     }
 
-    this.sets = {
-      ...this.sets,
-      [name]: {
-        type: 'op',
-        name: by > 0 ? '+' : '-',
-        args: [
-          { type: 'id', value: name, },
-          { type: 'literal', value: Math.abs(by) },
-        ],
-        __expr: true,
-      },
+    const sets = this.sets as Record<string, any> || {};
+    sets[name] = {
+      type: 'op',
+      name: by > 0 ? '+' : '-',
+      args: [
+        { type: 'id', value: name, },
+        { type: 'literal', value: Math.abs(by) },
+      ],
+      __expr: true,
     };
+    this.sets = sets;
 
-    if (timestamps.updatedAt && !this.sets[timestamps.updatedAt] && !silent) {
-      this.sets[timestamps.updatedAt] = new Date();
+    if (timestamps.updatedAt && !sets[timestamps.updatedAt] && !silent) {
+      sets[timestamps.updatedAt] = new Date();
     }
 
     return this;
   }
+  increment!: (name: string | BoneColumns<T>, by?: number, opts?: QueryOptions) => Spell<T, QueryResult>;
 
-  $decrement(name, by = 1,  opts = {}) {
+  $decrement(name: string, by = 1, opts: QueryOptions = {}): this {
     return this.$increment(name, -by, opts);
   }
+  decrement!: (name: string | BoneColumns<T>, by?: number, opts?: QueryOptions) => Spell<T, QueryResult>;
 
   /**
    * Set query command to DELETE.
-   * @returns {Spell}
    */
   $delete() {
     this.command = 'delete';
     return this;
   }
+  delete!: () => Spell<T, QueryResult>;
 
   /**
    * Set the table of the spell. If an instance of {@link Spell} is passed, it will be used as a derived table.
    * @param {string|Spell} table
-   * @returns {Spell}
    */
-  $from(table) {
+  $from(table: string | Spell<any>): this {
     this.table = table instanceof Spell
       ? { type: 'subquery', value: table }
-      : parseExpr(table);
+      : (parseExpr(table) as Identifier);
     return this;
   }
+  from!: (table: string | Spell<any>) => Spell<T, U>;
 
   /**
    * Set WHERE conditions. Both string conditions and object conditions are supported.
@@ -650,18 +757,18 @@ class Spell {
    * .where('foo = ? and bar >= ?', null, 42);
    * @param {string|Object} conditions
    * @param {...*}          values     - only necessary when using templated string conditions
-   * @returns {Spell}
    */
-  $where(conditions, ...values) {
+  $where(conditions: any, ...values: Literal[]): this {
     const Model = this.Model;
     this.whereConditions.push(...parseConditions(Model, conditions, ...values));
     return this;
   }
+  where!: (conditions: any, ...values: Literal[]) => Spell<T, U>;
 
-  $orWhere(conditions, ...values) {
+  $orWhere(conditions: any, ...values: Literal[]): this {
     const { whereConditions } = this;
     if (whereConditions.length == 0) return this.$where(conditions, ...values);
-    const combined = whereConditions.slice(1).reduce((result, condition) => {
+    const combined = whereConditions.slice(1).reduce((result: any, condition: any) => {
       return { type: 'op', name: 'and', args: [result, condition] };
     }, whereConditions[0]);
     const Model = this.Model;
@@ -671,6 +778,7 @@ class Spell {
     ];
     return this;
   }
+  orWhere!: (conditions: any, ...values: Literal[]) => Spell<T, U>;
 
   /**
    * Set GROUP BY columnAttributes. `select_expr` with `AS` is supported, hence following expressions have the same effect:
@@ -681,27 +789,27 @@ class Spell {
    * .group('city');
    * .group('YEAR(createdAt)');
    * @param {...string} names
-   * @returns {Spell}
    */
-  $group(...names) {
+  $group(...names: string[]): this {
     const { columns, groups, Model } = this;
 
     for (const name of names) {
       if (Model.attributes[name] && Model.attributes[name].virtual) {
         throw new Error(`unable to use virtual attribute ${name} as group column in model ${Model.name}`);
       }
-      const token = parseExpr(name);
+      const token = parseExpr(name) as Alias | Identifier;
       if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
       } else {
-        groups.push(token);
+        groups.push(token as Identifier);
       }
-      if (!columns.some(entry => entry.value === token.value)) {
-        columns.push(token);
+      if (!columns.some(entry => (entry as Identifier).value === token.value)) {
+        columns.push(token as SpellColumn);
       }
     }
     return this;
   }
+  group!: (...names: string[]) => Spell<T, U>;
 
   /**
    * Set the ORDER of the query
@@ -712,61 +820,77 @@ class Spell {
    * .order('id asc, gmt_created desc')
    * @param {string|Object} name
    * @param {string} direction
-   * @returns {Spell}
    */
-  $order(name, direction) {
+  $order(name: string | Raw | Record<string, 'asc' | 'desc'>, direction?: string): this {
     if (isPlainObject(name)) {
       if (name instanceof Raw) {
         this.orders.push([
           name,
+          'asc'
         ]);
       } else {
-        for (const prop in name) {
-          this.$order(prop, name[prop]);
+        for (const [prop, dir] of Object.entries(name)) {
+          this.$order(prop, dir);
         }
       }
-    }
-    else if (/^(.+?)\s+(asc|desc)$/i.test(name)) {
-      const conditions = name.split(',');
-      conditions.map(cond => {
-        [, name, direction] = cond.match(/^(.+?)\s+(asc|desc)$/i);
-        this.$order(name, direction);
-      });
-    }
-    else {
-      const order = [
-        parseExpr(name),
-        direction && direction.toLowerCase() == 'desc' ? 'desc' : 'asc'
-      ];
-      checkCond(this.Model, order);
-      this.orders.push(order);
+    } else if (name instanceof Raw) {
+      this.orders.push([
+        name,
+        (direction && direction.toLowerCase() === 'desc') ? 'desc' : 'asc'
+      ]);
+    } else {
+      let orders: any[] = [];
+      try {
+        const results = parseExprList(name as string);
+        orders = results.map(expr => {
+          return [
+            expr,
+            (direction && direction.toLowerCase() === 'desc') ? 'desc' : 'asc'
+          ];
+        });
+      } catch {
+        orders = (name as string).split(',').map((cond: string) => {
+          cond = cond.trim();
+          const match = cond.match(/^(.+?)\s+(asc|desc)$/i);
+          const [, field, dir] = match || [ '', cond, direction ];
+          return [
+            parseExpr(field),
+            dir && dir.toLowerCase() == 'desc' ? 'desc' : 'asc'
+          ];
+        });
+      }
+      for (const order of orders) {
+        checkCond(this.Model, [order[0]]);
+        this.orders.push(order);
+      }
     }
     return this;
   }
+  order!: (name: any, direction?: string) => Spell<T, U>;
 
   /**
    * Set the OFFSET of the query.
    * @param {number} skip
-   * @returns {Spell}
    */
-  $offset(skip) {
+  $offset(skip: number) {
     skip = +skip;
     if (Number.isNaN(skip)) throw new Error(`invalid offset ${skip}`);
     this.skip = skip;
     return this;
   }
+  offset!: (skip: number) => Spell<T, U>;
 
   /**
    * Set the LIMIT of the query.
    * @param {number} rowCount
-   * @returns {Spell}
    */
-  $limit(rowCount) {
+  $limit(rowCount: number) {
     rowCount = +rowCount;
     if (Number.isNaN(rowCount)) throw new Error(`invalid limit ${rowCount}`);
     this.rowCount = rowCount;
     return this;
   }
+  limit!: (rowCount: number) => Spell<T, U>;
 
   /**
    * Set the HAVING conditions, which usually appears in GROUP queries only.
@@ -777,16 +901,15 @@ class Spell {
    *
    * @param {string|Object} conditions
    * @param {...*}          values
-   * @returns {Spell}
    */
-  $having(conditions, ...values) {
+  $having(conditions: string | WhereConditions<T>, ...values: Literal[]): this {
     const Model = this.Model;
     for (const condition of parseConditions(Model, conditions, ...values)) {
       // Postgres can't have alias in HAVING clause
       // https://stackoverflow.com/questions/32730296/referring-to-a-select-aggregate-column-alias-in-the-having-clause-in-postgres
-      if (Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
+      if (Model.driver && Model.driver.type === 'postgres' && !(condition instanceof Raw)) {
         const { value } = condition.args[0];
-        for (const column of this.columns) {
+        for (const column of this.columns as (Identifier | Alias)[]) {
           if (column.value === value && column.type === 'alias') {
             condition.args[0] = structuredClone(column.args[0]);
             break;
@@ -797,12 +920,13 @@ class Spell {
     }
     return this;
   }
+  having!: (conditions: string | WhereConditions<T>, ...values: Literal[]) => Spell<T, ResultSet<T>>;
 
-  $orHaving(conditions, ...values) {
+  $orHaving(conditions: string | WhereConditions<T>, ...values: Literal[]): this {
     this.$having(conditions, ...values);
     const { havingConditions } = this;
     const len = havingConditions.length;
-    const combined = havingConditions.slice(1, len - 1).reduce((result, condition) => {
+    const combined = havingConditions.slice(1, len - 1).reduce((result: any, condition: any) => {
       return { type: 'op', name: 'and', args: [result, condition] };
     }, havingConditions[0]);
     this.havingConditions = [
@@ -810,6 +934,7 @@ class Spell {
     ];
     return this;
   }
+  orHaving!: (conditions: string | WhereConditions<T>, ...values: Literal[]) => Spell<T, ResultSet<T>>;
 
   /**
    * LEFT JOIN predefined associations in model.
@@ -819,10 +944,9 @@ class Spell {
    * .with({ comments: { select: 'content' } });
    *
    * @param {...string} qualifiers
-   * @returns {Spell}
    */
-  $with(...qualifiers) {
-    if (this.rowCount > 0 || this.skip > 0) {
+  $with(...qualifiers: (string | WithOptions)[]): this {
+    if (Number(this.rowCount) > 0 || this.skip > 0) {
       const spell = this.dup;
       spell.columns = [];
       this.#emptySpell();
@@ -831,15 +955,16 @@ class Spell {
 
     for (const qualifier of qualifiers) {
       if (isPlainObject(qualifier)) {
-        for (const key in qualifier) {
-          joinAssociation(this, this.Model, this.Model.tableAlias, key, qualifier[key]);
+        for (const [key, value] of Object.entries(qualifier)) {
+          joinAssociation(this, this.Model, this.Model.tableAlias, key, value);
         }
-      } else {
-        joinAssociation(this, this.Model, this.Model.tableAlias, qualifier);
+      } else if (qualifier) {
+        joinAssociation(this, this.Model, this.Model.tableAlias, qualifier as string);
       }
     }
     return this;
   }
+  with!: (...qualifiers: (string | WithOptions)[]) => Spell<T, U>;
 
   /**
    * LEFT JOIN arbitrary models with specified ON conditions.
@@ -850,11 +975,10 @@ class Spell {
    * @param {Model}         Model
    * @param {string|Object} onConditions
    * @param {...*}          values
-   * @returns {Spell}
    */
-  $join(Model, onConditions, ...values) {
+  $join<V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]): this {
     if (typeof Model === 'string') {
-      return this.$with(...arguments);
+      return this.$with(Model, onConditions as WithOptions, ...values as any);
     }
     const qualifier = Model.tableAlias;
     const { joins } = this;
@@ -862,9 +986,13 @@ class Spell {
     if (qualifier in joins) {
       throw new Error(`invalid join target. ${qualifier} already defined.`);
     }
-    joins[qualifier] = { Model, on: parseConditions(Model, onConditions, ...values)[0] };
+    joins[qualifier] = {
+      Model,
+      on: parseConditions(Model, onConditions, ...values)[0],
+    };
     return this;
   }
+  join!: <V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]) => Spell<T, U>;
 
   /**
    * add optimizer hints to query
@@ -872,24 +1000,22 @@ class Spell {
    * .optimizerHints('SET_VAR(foreign_key_checks=OFF)')
    * .optimizerHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)')
    * @param {...string} hints
-   * @returns {Spell}
    * @memberof Spell
    */
-  $optimizerHints(...hints) {
+  $optimizerHints(...hints: (string | Hint | IndexHint | HintInterface)[]) {
     this.hints.push(...hints.map(hint => Hint.build(hint)));
     return this;
   }
+  optimizerHints!: (...hints: (string | Hint | IndexHint | HintInterface)[]) => Spell<T, U>;
 
   /**
    * @example
    * .useIndex('idx_id')
    * .useIndex('idx_id', 'idx_title_id')
    * .useIndex('idx_id', { orderBy: ['idx_title', 'idx_org_id'] }, { groupBy: 'idx_type' })
-   * @param {string | object} hints
-   * @returns {Spell}
    * @memberof Spell
    */
-  $useIndex(...hints) {
+  $useIndex(...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) {
     this.hints.push(...hints.map((hint) => {
       if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.use) {
         console.warn('Do not recommend set non-use index hint in useIndex');
@@ -898,17 +1024,16 @@ class Spell {
     }));
     return this;
   }
+  useIndex!: (...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) => Spell<T, U>;
 
   /**
    * @example
    * .forceIndex('idx_id')
    * .forceIndex('idx_id', 'idx_title_id')
    * .forceIndex('idx_id', { orderBy: ['idx_title', 'idx_org_id'] }, { groupBy: 'idx_type' })
-   * @param {string | object} hints
-   * @returns {Spell}
    * @memberof Spell
    */
-  $forceIndex(...hints) {
+  $forceIndex(...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) {
     this.hints.push(...hints.map((hint) => {
       if (hint instanceof Hint || (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.force)) {
         console.warn('Do not recommend set non-force index hint in forceIndex');
@@ -917,17 +1042,16 @@ class Spell {
     }));
     return this;
   }
+  forceIndex!: (...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) => Spell<T, U>;
 
   /**
    * @example
    * .ignoreIndex('idx_id')
    * .ignoreIndex('idx_id', 'idx_title_id')
    * .ignoreIndex('idx_id', { orderBy: ['idx_title', 'idx_org_id'] }, { groupBy: 'idx_type' })
-   * @param {string | object} hints
-   * @returns {Spell}
    * @memberof Spell
    */
-  $ignoreIndex(...hints) {
+  $ignoreIndex(...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) {
     this.hints.push(...hints.map((hint) => {
       if (hint instanceof IndexHint && hint.type !== INDEX_HINT_TYPE.ignore) {
         console.warn('Do not recommend set non-ignore index hint in ignoreIndex');
@@ -936,6 +1060,17 @@ class Spell {
     }));
     return this;
   }
+  ignoreIndex!: (...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) => Spell<T, U>;
+
+  count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+
+  sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
   /**
    * Get the query results by batch. Returns an async iterator which can then be consumed with an async loop or the cutting edge `for await`. The iterator is an Object that contains a `next()` method:
@@ -959,15 +1094,12 @@ class Spell {
    * for await (const post of Post.all.batch()) {
    *    handle(post);
    * }
-   *
-   * @param {number} size
-   * @returns {Object}
    */
   async * batch(size = 1000) {
-    const limit = parseInt(size, 10);
+    const limit = Number(size);
     if (!(limit > 0)) throw new Error(`invalid batch limit ${size}`);
     // Duplicate the spell because spell.skip gets updated while iterating over the batch.
-    const spell = this.limit(limit);
+    const spell = this.$limit(limit) as Spell<T, Collection<InstanceType<T>>>;
     let results = await spell;
 
     while (results.length > 0) {
@@ -980,34 +1112,32 @@ class Spell {
 
   /**
    * Format current spell to SQL string.
-   * @returns {string}
    */
-  toSqlString() {
+  toSqlString(): string {
     const { Model } = this;
-    const { sql, values } = Model.driver.format(this);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { sql, values } = Model.driver!.format(this as any);
     return SqlString.format(sql, values);
   }
 
   /**
    * Alias of {@link Spell#toSqlString}
-   * @returns {string}
    */
   toString() {
     return this.toSqlString();
   }
 }
 
-for (const aggregator in AGGREGATOR_MAP) {
-  const func = AGGREGATOR_MAP[aggregator];
+for (const [aggregator, func] of Object.entries(AGGREGATOR_MAP)) {
   Object.defineProperty(Spell.prototype, `$${aggregator}`, {
     configurable: true,
     writable: true,
-    value: function Spell_aggregator(name = '*') {
+    value: function Spell_aggregator(name: any = '*') {
       if (name instanceof Raw) {
         this.$select(Raw.build(`${func.toUpperCase()}(${name}) AS ${aggregator}`));
         return this;
       }
-      if (name !== '*' && parseExpr(name).type !== 'id') {
+      if (name !== '*' && parseExpr(name as string)?.type !== 'id') {
         throw new Error(`unexpected operand ${name} for ${func.toUpperCase()}()`);
       }
       this.$select(`${func}(${name}) as ${aggregator}`);
@@ -1020,13 +1150,13 @@ for (const method of Object.getOwnPropertyNames(Spell.prototype)) {
   if (method.startsWith('$')) {
     const descriptor = Object.getOwnPropertyDescriptor(Spell.prototype, method);
     Object.defineProperty(Spell.prototype, method.slice(1), Object.assign({}, descriptor, {
-      value: function Spell_dup() {
+      value: function Spell_dup<T extends typeof AbstractBone>(this: Spell<T>, ...args: any[]) {
         const spell = this.dup;
-        spell[method](...arguments);
+        (spell as any)[method](...args);
         return spell;
       }
     }));
   }
 }
 
-module.exports = Spell;
+export default Spell;

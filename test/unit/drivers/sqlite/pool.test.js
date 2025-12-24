@@ -74,7 +74,7 @@ describe('=> SQLite driver.pool', function() {
   it('should release connection back to pool', async function() {
     const pool = new Pool({
       database: '/tmp/leoric.sqlite3',
-      trace: true,
+      trace: false,
       connectionLimit: 2,
     });
     const conn1 = await pool.getConnection();
@@ -84,5 +84,12 @@ describe('=> SQLite driver.pool', function() {
     conn1.release();
     const conn3 = await conn3Promise;
     assert.equal(conn1, conn3);
+  });
+
+  it('should default connectionLimit to 10', async function() {
+    const pool = new Pool({
+      database: '/tmp/leoric.sqlite3',
+    });
+    assert.equal(pool.connectionLimit, 10);
   });
 });

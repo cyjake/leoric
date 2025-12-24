@@ -239,7 +239,6 @@ function parseValue(value: Literal | Literal[] | Set<Literal>): Literal | Litera
  * Parse sql expressions into ast for validations and sanitizations.
  * @param {string} str
  * @param {...*}   values
- * @returns {Object[]}
  */
 function parseExprList(str: any, ...values: Literal[]) {
   if (str instanceof Raw) return [ str ];

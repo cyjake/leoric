@@ -5,8 +5,6 @@ import Raw from './raw';
 import { AbstractBone } from './types/abstract_bone';
 import { Literal } from './types/common';
 import Spell from './spell';
-// deferred to break cyclic dependencies
-let SpellClass: any;
 
 const LOGICAL_OPERATOR_MAP = {
   $and: 'and',
@@ -47,7 +45,7 @@ type QueryExpr = Expr | RawExpr | Subquery<typeof AbstractBone>;
  * Parse object values as literal or subquery
  */
 function parseValue<T extends typeof AbstractBone>(value: Spell<T> | Raw | Literal): Expr | RawExpr | Subquery<T> {
-  if (value instanceof SpellClass) return { type: 'subquery', value: value as Spell<T> };
+  if (value instanceof Spell) return { type: 'subquery', value: value as Spell<T> };
   if (value instanceof Raw) return { type: 'raw', value: value.value };
   return parseExpr('?', value) as Expr;
 }
@@ -191,11 +189,10 @@ function parseNamedLogicalOperator(name: string, condition: LogicalObjectConditi
  * { $or: [ { title: 'Leah', content: 'Diablo' }, { title: 'Stranger' } ] }
  */
 export function parseObject(conditions: MixedObjectCondition) {
-  if (!SpellClass) SpellClass = require('./spell');
   const result = [];
 
   for (const [name, value] of Object.entries(conditions)) {
-    if (value instanceof SpellClass) {
+    if (value instanceof Spell) {
       // { tagId: Tag.where({ deletedAt: null }).select('id') }
       result.push({
         type: 'op',

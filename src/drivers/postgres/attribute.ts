@@ -11,7 +11,7 @@ class PostgresAttribute extends Attribute {
     super(name, params, opts);
   }
 
-  static DataTypes = (DataTypes).invokable || DataTypes;
+  static DataTypes = DataTypes.invokable;
 
   toSqlString(): string {
     const {
@@ -25,7 +25,7 @@ class PostgresAttribute extends Attribute {
     } = this;
     const chunks = [
       escapeId(columnName),
-      columnType.toUpperCase() || type.toSqlString(),
+      columnType.toUpperCase(),
     ];
     if (type instanceof (DataTypes).INTEGER && primaryKey) {
       chunks[1] = (type instanceof (DataTypes).BIGINT) ? 'BIGSERIAL' : 'SERIAL';

@@ -4,8 +4,8 @@ import type Spell from '../../spell';
 import { AbstractBone } from '../../types/abstract_bone';
 
 class MySQLSpellBook extends Spellbook {
-  formatOptimizerHints<T extends typeof AbstractBone>(spell?: Spell<T>): string {
-    const optimizerHints = spell?.hints?.filter((hint: any) => hint instanceof Hint) || [];
+  formatOptimizerHints<T extends typeof AbstractBone>(spell: Spell<T>): string {
+    const optimizerHints = spell.hints.filter((hint: any) => hint instanceof Hint);
     if (Array.isArray(optimizerHints) && optimizerHints.length > 0) {
       const hints = optimizerHints.map((hint: any) => hint.toSqlString()).join(' ');
       return `/*+ ${hints} */`;
@@ -13,8 +13,8 @@ class MySQLSpellBook extends Spellbook {
     return '';
   }
 
-  formatIndexHints<T extends typeof AbstractBone>(spell?: Spell<T>): string {
-    const indexHints = (spell)?.hints?.filter((hint: any) => hint instanceof IndexHint) || [];
+  formatIndexHints<T extends typeof AbstractBone>(spell: Spell<T>): string {
+    const indexHints = spell.hints.filter((hint: any) => hint instanceof IndexHint);
     if (Array.isArray(indexHints) && indexHints.length > 0) {
       const hints = IndexHint.merge(indexHints as IndexHint[]);
       return hints.map(hint => hint.toSqlString()).join(' ');
@@ -25,14 +25,13 @@ class MySQLSpellBook extends Spellbook {
   formatUpdateOnDuplicate<T extends typeof AbstractBone>(spell: Spell<T>, columns: string[]): string {
     const { updateOnDuplicate, Model } = spell;
     if (!updateOnDuplicate) return '';
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const { columnAttributes, primaryColumn } = Model;
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map((column: string) => (columnAttributes[column] && columnAttributes[column].columnName) || column)
+      columns = updateOnDuplicate.map((column: string) => columnAttributes[column].columnName)
         .filter((column: string) => column !== primaryColumn);
-    } else if (!columns.length) {
-      columns = Object.values(columnAttributes).map((attribute: any) => attribute.columnName).filter((column: string) => column !== primaryColumn);
     }
 
     const sets: string[] = [];

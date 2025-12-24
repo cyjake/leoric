@@ -112,6 +112,7 @@
     "@types/debug": "^4.1.12",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.1",
+    "@types/pluralize": "^0.0.33",
     "@types/sinon": "^10.0.20",
     "@types/sql.js": "^1.4.4",
     "@types/sqlstring": "^2.3.2",

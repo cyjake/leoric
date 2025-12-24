@@ -2,12 +2,13 @@ import Spellbook from '../abstract/spellbook';
 import type Spell from '../../spell';
 import { Literal } from '../../types/common';
 import { AbstractBone } from '../../types/abstract_bone';
+import { Expr, Identifier } from '../../expr';
 
 function renameSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>): void {
   const { Model, columns, joins, groups } = spell;
   const whitelist = new Set<string>();
 
-  for (const token of columns) {
+  for (const token of columns as Expr[]) {
     if (token.type === 'id') {
       if (!token.qualifiers && Model.columnAttributes[token.value]) {
         token.qualifiers = [Model.tableAlias];
@@ -29,7 +30,7 @@ function renameSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>): void 
   }
 
   for (let i = 0; i < columns.length; i++) {
-    const token = columns[i];
+    const token = columns[i] as Identifier;
     const { type, qualifiers, value } = token;
     if (!qualifiers || type !== 'id') continue;
     const qualifier = qualifiers[0];

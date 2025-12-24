@@ -56,7 +56,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
       throw new Error('Unable to update with empty set');
     }
 
-    const table = escapeId(spell.table.value);
+    const table = escapeId(spell.table.value as string);
     const values: Record<string, Literal> = {};
     Object.keys(sets!).reduce((obj, key) => {
       obj[escapeId(Model.unalias(key))] = sets![key];
@@ -81,7 +81,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
   formatDelete<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     const { Model, whereConditions } = spell;
     const { escapeId } = Model.driver!;
-    const table = escapeId(spell.table.value);
+    const table = escapeId(spell.table.value as string);
     const whereArgs: Literal[] = [];
     let whereClause = '';
     if (whereConditions.length > 0) {
@@ -99,7 +99,7 @@ class MySpellbook extends SqliteDriver.Spellbook {
   formatMyInsert<T extends typeof AbstractBone>(spell: Spell<T>): SpellBookFormatResult<FormatResult> {
     const { Model, sets } = spell;
     const { escapeId } = Model.driver!;
-    const table = escapeId(spell.table.value);
+    const table = escapeId(spell.table.value as string);
     if (Array.isArray(sets)) throw new Error('multiple sets not supported in INSERT command yet');
 
     const { shardingKey } = Model;

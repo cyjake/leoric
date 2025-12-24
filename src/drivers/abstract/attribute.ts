@@ -7,7 +7,7 @@ import { Literal, PickTypeKeys } from '../../types/common';
  * Find the corresponding JavaScript type of the type in database.
  * @param {string} dataType
  */
-function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
+export function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
   if (type instanceof DataTypes.VIRTUAL) return '';
   if (type instanceof DataTypes.BOOLEAN) return Boolean;
   if (type instanceof DataTypes.JSON) return JSON;

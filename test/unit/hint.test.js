@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const sinon = require('sinon');
 
 const {
   connect, Bone,
@@ -115,12 +116,20 @@ describe('IndexHint', () => {
 describe('MySQL', async () => {
   class Post extends Bone {
     static table = 'articles';
+
+    static initialize() {
+      this.hasMany('comments', {
+        foreignKey: 'articleId'
+      });
+    }
   }
+
+  class Comment extends Bone {}
 
   before(async function() {
     Bone.driver = null;
     await connect({
-      models: [ Post ],
+      models: [ Post, Comment ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,
@@ -204,6 +213,17 @@ describe('MySQL', async () => {
       assert.equal(
         Post.find({ title: { $like: '%Post%' } }).optimizerHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)').toString(),
         "SELECT /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ * FROM `articles` WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
+      );
+    });
+
+    it('find with join', () => {
+      assert.equal(
+        Post.find({ isPrivate: true }).with('comments').optimizerHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)').toString(),
+        'SELECT /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL WHERE `posts`.`is_private` = true AND `posts`.`gmt_deleted` IS NULL'
+      );
+      assert.equal(
+        Post.find({ isPrivate: true }).with('comments').useIndex('idx_articleId').toString(),
+        'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL USE INDEX (idx_articleId) WHERE `posts`.`is_private` = true AND `posts`.`gmt_deleted` IS NULL'
       );
     });
 
@@ -397,6 +417,30 @@ describe('MySQL', async () => {
         .toString(),
       "UPDATE /*+ SET_VAR(foreign_key_checks=OFF) MAX_EXECUTION_TIME(1000) */ `articles` FORCE INDEX (idx_id,idx_title) IGNORE INDEX (idx_hle,idx_hle1) USE INDEX (idx_hle2) SET `title` = 'hello', `gmt_modified` = '2017-12-12 00:00:00.000' WHERE `title` LIKE '%Post%' AND `gmt_deleted` IS NULL"
     );
+  });
+
+  it('miss use of force index hint', () => {
+    const sandbox = sinon.createSandbox();
+    sandbox.stub(console, 'warn');
+    Post.find().forceIndex(new IndexHint('idx_id', INDEX_HINT_TYPE.use)).toString();
+    assert.ok(console.warn.calledOnce);
+    sandbox.restore();
+  });
+
+  it('miss use of ignore index hint', () => {
+    const sandbox = sinon.createSandbox();
+    sandbox.stub(console, 'warn');
+    Post.find().ignoreIndex(new IndexHint('idx_id', INDEX_HINT_TYPE.force)).toString();
+    assert.ok(console.warn.calledOnce);
+    sandbox.restore();
+  });
+
+  it('missuse of use index hint', () => {
+    const sandbox = sinon.createSandbox();
+    sandbox.stub(console, 'warn');
+    Post.find().useIndex(new IndexHint('idx_id', INDEX_HINT_TYPE.ignore)).toString();
+    assert.ok(console.warn.calledOnce);
+    sandbox.restore();
   });
 });
 

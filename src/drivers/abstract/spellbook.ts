@@ -1,5 +1,5 @@
 import SqlString from 'sqlstring';
-import { Expr, findExpr, walkExpr } from '../../expr';
+import { Expr, findExpr, Identifier, walkExpr } from '../../expr';
 import { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } from '../../expr_formatter';
 import Raw from '../../raw';
 import type Spell from '../../spell';
@@ -19,11 +19,11 @@ function qualify<T extends typeof AbstractBone>(spell: Spell<T>) {
   };
 
   for (const ast of columns.concat(groups, whereConditions, havingConditions)) {
-    walkExpr(ast, clarify);
+    walkExpr(ast as Expr, clarify);
   }
 
   for (const [ ast ] of orders) {
-    walkExpr(ast, clarify);
+    walkExpr(ast as Expr, clarify);
   }
 }
 
@@ -32,17 +32,18 @@ function qualify<T extends typeof AbstractBone>(spell: Spell<T>) {
  */
 function formatSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>, values: any[]) {
   const { Model, columns, joins, groups } = spell;
-  const { escapeId } = Model.driver;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const { escapeId } = Model.driver!;
   const baseName = Model.tableAlias;
   const selects = new Set<string>();
   const map: Record<string, string[]> = {};
   let isAggregate = false;
 
-  for (const token of columns) {
+  for (const token of columns as Expr[]) {
     collectLiteral(spell, token, values);
     const selectExpr = formatExpr(spell, token);
     isAggregate = isAggregate || isAggregatorExpr(spell, token);
-    const qualifier = token.qualifiers ? token.qualifiers[0] : '';
+    const qualifier = (token as Identifier).qualifiers?.[0] ?? '';
     const list = map[qualifier] || (map[qualifier] = []);
     list.push(selectExpr);
   }
@@ -51,7 +52,8 @@ function formatSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>, values
     const list = map[qualifier];
     if (list) {
       for (const selectExpr of list) selects.add(selectExpr);
-    } else if (groups.length === 0 && ![ 'sqlite', 'sqljs' ].includes(Model.driver.type) && !isAggregate) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    } else if (groups.length === 0 && ![ 'sqlite', 'sqljs' ].includes(Model.driver!.type) && !isAggregate) {
       selects.add(`${escapeId(qualifier)}.*`);
     }
   }
@@ -106,7 +108,8 @@ export default class SpellBook {
     const { Model, sets, updateOnDuplicate } = spell;
     const { shardingKey } = Model;
     const { createdAt } = Model.timestamps;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const columns: string[] = [];
     const updateOnDuplicateColumns: string[] = [];
 
@@ -186,7 +189,8 @@ export default class SpellBook {
    */
   formatSelectWithoutJoin<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { columns, whereConditions, groups, havingConditions, orders, rowCount, skip, Model } = spell;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const chunks: string[] = [ 'SELECT' ];
     const values: any[] = [];
 
@@ -198,10 +202,10 @@ export default class SpellBook {
     }
 
     if (columns.length > 0) {
-      for (const column of columns) collectLiteral(spell, column, values);
+      for (const column of columns) collectLiteral(spell, column as Expr, values);
       const selects: string[] = [];
       for (const token of columns) {
-        const column = formatExpr(spell, token);
+        const column = formatExpr(spell, token as Expr);
         if (!selects.includes(column)) selects.push(column);
       }
       chunks.push(`${selects.join(', ')}`);
@@ -238,7 +242,7 @@ export default class SpellBook {
     }
 
     if (orders.length > 0) {
-      for (const [ expr ] of orders) collectLiteral(spell, expr, values);
+      for (const [ expr ] of orders) collectLiteral(spell, expr as Expr, values);
       chunks.push(`ORDER BY ${this.formatOrders(spell, orders).join(', ')}`);
     }
     if (Number(rowCount) > 0) chunks.push(`LIMIT ${rowCount}`);
@@ -268,7 +272,8 @@ export default class SpellBook {
   formatReturning<T extends typeof AbstractBone>(spell: Spell<T>) {
     const { Model, returning } = spell;
     const { primaryColumn } = Model;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
 
     let returnings: string[] | undefined;
     if (returning === true) returnings = [ escapeId(primaryColumn) ];
@@ -285,7 +290,8 @@ export default class SpellBook {
     const { updateOnDuplicate, uniqueKeys, Model, sets } = spell;
     if (!updateOnDuplicate) return '';
     const { columnAttributes, primaryColumn } = Model;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const actualUniqueKeys: string[] = [];
 
     if (uniqueKeys) {
@@ -310,9 +316,7 @@ export default class SpellBook {
     }
 
     if (Array.isArray(updateOnDuplicate) && updateOnDuplicate.length) {
-      columns = updateOnDuplicate.map((column: string) => (columnAttributes[column] && columnAttributes[column].columnName) || column);
-    } else if (!columns.length) {
-      columns = Object.values(columnAttributes).map(({ columnName }) => columnName);
+      columns = updateOnDuplicate.map((column: string) => columnAttributes[column].columnName);
     }
     const updateKeys = columns.map((column: string) => `${escapeId(column)}=EXCLUDED.${escapeId(column)}`);
 
@@ -345,7 +349,8 @@ export default class SpellBook {
 
     const values: any[] = [];
     const assigns: string[] = [];
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     for (const name in sets) {
       const value = sets[name];
       const columnName = escapeId(Model.unalias(name));
@@ -389,7 +394,8 @@ export default class SpellBook {
   formatDelete<T extends typeof AbstractBone>(spell: Spell<T>): { sql: string; values?: Literal[] | Record<string, Literal> } {
     const { Model, whereConditions } = spell;
     const { shardingKey } = Model;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const table = escapeId(Model.table);
 
     if (shardingKey && !whereConditions.some((condition: any) => findExpr(condition, { type: 'id', value: shardingKey }))) {
@@ -446,7 +452,8 @@ export default class SpellBook {
     qualify(spell);
 
     const { Model, whereConditions, groups, havingConditions, orders, rowCount, skip, joins } = spell;
-    const { escapeId } = Model.driver;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { escapeId } = Model.driver!;
     const baseName = Model.tableAlias;
 
     const chunks: string[] = [ 'SELECT' ];

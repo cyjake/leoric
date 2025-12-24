@@ -183,13 +183,13 @@ class MysqlDriver extends AbstractDriver {
     const { escapeId } = this;
     const { database } = this.options;
     const { columnName } = new this.Attribute(name);
-    const schemaInfo = await this.querySchemaInfo(database || '', table);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unused-vars
-    const { columnName: _, ...columnInfo } = schemaInfo[table].find(entry => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const schemaInfo = await this.querySchemaInfo(database!, table);
+    const { columnName: originColumnName, ...columnInfo } = schemaInfo[table].find(entry => {
       return entry.columnName == columnName;
-    })!;
+    }) || {};
 
-    if (!columnInfo) {
+    if (!originColumnName) {
       throw new Error(`Unable to find column ${table}.${columnName}`);
     }
 

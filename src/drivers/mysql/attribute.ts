@@ -15,7 +15,6 @@ class MysqlAttribute extends Attribute {
   toSqlString(): string {
     const {
       columnName,
-      type,
       columnType,
       allowNull,
       defaultValue,
@@ -26,7 +25,7 @@ class MysqlAttribute extends Attribute {
 
     const chunks = [
       escapeId(columnName),
-      columnType.toUpperCase() || type.toSqlString(),
+      columnType.toUpperCase(),
     ];
 
     if (primaryKey) chunks.push('PRIMARY KEY');
