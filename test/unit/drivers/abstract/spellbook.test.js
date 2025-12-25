@@ -12,11 +12,14 @@ describe('=> Spellbook', function() {
       this.belongsTo('author', { className: 'User' });
     }
   }
+  class Comment extends Bone {
+    static shardingKey = 'articleId';
+  }
 
   before(async function() {
     Bone.driver = null;
     await connect({
-      models: [ User, Post, Attachment ],
+      models: [ User, Post, Attachment, Comment ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,
@@ -67,6 +70,57 @@ describe('=> Spellbook', function() {
       assert.equal(query.toString(), heresql(`
           SELECT MAX("posts"."gmt_create") AS "maximum" FROM "articles" AS "posts" LEFT JOIN "users" AS "authors" ON "posts"."userId" = "authors"."id" WHERE "posts"."gmt_deleted" IS NULL
         `).replaceAll('"', '`'));
+    });
+
+    it('should throw error if OFFSET is used without LIMIT', function() {
+      const query = Post.find().offset(10);
+      assert.throws(function() {
+        query.toString();
+      }, /Unable to query with OFFSET yet without LIMIT/i);
+    });
+  });
+
+  describe('formatInsert()', function() {
+    it('should throw error when inserting rows without sharding key', function() {
+      const query = Comment.create({ content: 'photo1.jpg' }, { validate: false });
+      assert.throws(function() {
+        query.toString();
+      }, /Sharding key comments.articleId cannot be NULL/i);
+    });
+  });
+
+  describe('formatUpdate()', function() {
+    it('should throw error when updating rows without sharding key', function() {
+      const query = Comment.update({ id: 1 }, { content: 'updated photo1.jpg' });
+      assert.throws(function() {
+        query.toString();
+      }, /Sharding key comments.articleId is required/i);
+    });
+
+    it('should throw error when nothing to update', function() {
+      const query = Post.update({ id: 1 }, {}, { silent: true });
+      assert.throws(function() {
+        query.toString();
+      }, /Unable to update with empty set/i);
+    });
+  });
+
+  describe('formatDelete()', function() {
+    it('should throw error when deleting rows without sharding key', function() {
+      const query = Comment.remove({ id: 1 }, true);
+      assert.throws(function() {
+        query.toString();
+      }, /Sharding key comments.articleId is required/i);
+    });
+  });
+
+  describe('format()', function() {
+    it('should throw error when formatting invalid SQL', function() {
+      assert.throws(function() {
+        const query = Post.findOne();
+        query.command = 'INVALID SQL';
+        query.toString();
+      }, /Unsupported SQL command/i);
     });
   });
 });

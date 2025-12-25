@@ -1,10 +1,3 @@
-
-/**
- * @typedef {Object} FormatResult
- * @property {boolean} useHooks
- * @property {Array} args
- */
-
 import { Attribute } from './types/common';
 
 /**

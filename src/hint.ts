@@ -29,11 +29,15 @@ export interface HintInterface extends BaseHintInterface {
   scope?: INDEX_HINT_SCOPE;
 }
 
+export type HintScopeObject = {
+  [key in INDEX_HINT_SCOPE_TYPE]?: string | string[];
+}
+
 export class Hint {
 
   #text = '';
 
-  static build(hint: string | Hint | BaseHintInterface): Hint | IndexHint {
+  static build(hint: string | Hint | IndexHint | BaseHintInterface): Hint | IndexHint {
     if (hint instanceof Hint || hint instanceof IndexHint) return hint;
     if (typeof hint === 'string') return new Hint(hint);
     if (isPlainObject(hint) && hint.index) return IndexHint.build(hint);
@@ -94,7 +98,7 @@ export class IndexHint {
    * })
    */
   static build(
-    hint: string | IndexHint | HintInterface | { [key in INDEX_HINT_SCOPE_TYPE]?: string | string[] },
+    hint: string | IndexHint | HintInterface | HintScopeObject,
     type?: INDEX_HINT_TYPE,
     scope?: INDEX_HINT_SCOPE,
   ): IndexHint {

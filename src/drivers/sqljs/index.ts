@@ -45,10 +45,14 @@ export default class SqljsDriver extends SqliteDriver {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   async getConnection() {
     return await this.pool.getConnection();
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   async query(query: SqljsQueryQuery, values?: SqljsQueryValues, spell?: SpellMeta) {
     const connection = await this.getConnection();
 
@@ -64,6 +68,8 @@ export default class SqljsDriver extends SqliteDriver {
 
     const { logger } = this;
     const logOpts = { ...spell, query };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const sql = logger.format(query, values, spell);
     const start = performance.now();
     let result;
@@ -71,7 +77,7 @@ export default class SqljsDriver extends SqliteDriver {
     try {
       result = await connection.query(query, values, spell);
     } catch (err) {
-      logger.logQueryError(err, sql, calculateDuration(start), logOpts);
+      logger.logQueryError(err as Error, sql, calculateDuration(start), logOpts);
       throw err;
     }
     logger.tryLogQuery(sql, calculateDuration(start), logOpts, result);

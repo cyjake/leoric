@@ -3,7 +3,7 @@ import Spell from './spell';
 import Bone from './bone';
 import Collection from './collection';
 import { invokable as DataTypes, LENGTH_VARIANTS } from './data_types';
-import migrations from './migrations';
+import * as migrations from './migrations';
 import sequelize from './adapters/sequelize';
 import { heresql } from './utils/string';
 import Realm from './realm';

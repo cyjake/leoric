@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const Attribute = require('../../../../src/drivers/postgres/attribute');
+const Attribute = require('../../../../src/drivers/postgres/attribute').default;
 const { BIGINT, INTEGER, DATE, JSONB, STRING } = Attribute.DataTypes;
 
 describe('=> Attribute (postgres)', function() {

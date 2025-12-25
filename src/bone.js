@@ -14,7 +14,7 @@ require('reflect-metadata');
 
 const { default: DataTypes } = require('./data_types');
 const Collection = require('./collection').default;
-const Spell = require('./spell');
+const Spell = require('./spell').default;
 const Raw = require('./raw').default;
 const { capitalize, camelCase, snakeCase } = require('./utils/string');
 const { hookNames, setupSingleHook } = require('./setup_hooks');

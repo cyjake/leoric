@@ -7,7 +7,7 @@ import { Literal, PickTypeKeys } from '../../types/common';
  * Find the corresponding JavaScript type of the type in database.
  * @param {string} dataType
  */
-function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
+export function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
   if (type instanceof DataTypes.VIRTUAL) return '';
   if (type instanceof DataTypes.BOOLEAN) return Boolean;
   if (type instanceof DataTypes.JSON) return JSON;
@@ -87,7 +87,7 @@ function createType(DataTypes: typeof AbstractDataTypes, params: { dataType?: st
   }
 }
 
-interface AttributeParams {
+export interface AttributeParams {
   type?: AbstractDataType;
   defaultValue?: Literal;
   primaryKey?: boolean;
@@ -109,6 +109,9 @@ export default class Attribute {
   columnType!: string;
   dataType?: string;
   jsType?: Literal;
+  autoIncrement?: boolean;
+  comment?: string;
+  unique?: boolean;
 
   /**
    * Attribute name and definition

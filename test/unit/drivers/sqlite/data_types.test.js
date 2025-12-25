@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const DataTypes = require('../../../../src/drivers/sqlite/data_types');
+const DataTypes = require('../../../../src/drivers/sqlite/data_types').default;
 
 describe('=> Data Types', () => {
   const {

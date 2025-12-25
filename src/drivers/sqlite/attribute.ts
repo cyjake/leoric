@@ -1,11 +1,18 @@
-'use strict';
-
-const Attribute = require('../abstract/attribute').default;
-const DataTypes = require('./data_types');
-const { escape, escapeId } = require('./sqlstring');
+import Attribute from '../abstract/attribute';
+import DataTypes from './data_types';
+import { escape, escapeId } from './sqlstring';
 
 class SqliteAttribute extends Attribute {
-  constructor(name, params, opts) {
+  declare columnName: string;
+  declare columnType: string;
+  declare type: any;
+  declare allowNull: boolean;
+  declare defaultValue: any;
+  declare primaryKey: boolean;
+  declare unique?: boolean;
+  declare autoIncrement?: boolean;
+
+  constructor(name: string, params?: any, opts?: any) {
     super(name, params, opts);
   }
 
@@ -13,7 +20,7 @@ class SqliteAttribute extends Attribute {
     return DataTypes;
   }
 
-  toSqlString() {
+  toSqlString(): string {
     const { columnName, columnType, type, allowNull, defaultValue, primaryKey, unique } = this;
     const chunks = [
       escapeId(columnName),
@@ -39,4 +46,4 @@ class SqliteAttribute extends Attribute {
   }
 }
 
-module.exports = SqliteAttribute;
+export default SqliteAttribute;

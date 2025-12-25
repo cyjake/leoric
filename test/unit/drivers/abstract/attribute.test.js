@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const { default: DataTypes, LENGTH_VARIANTS } = require('../../../../src/data_types');
-const { default: AbstractAttribute } = require('../../../../src/drivers/abstract/attribute');
+const { default: AbstractAttribute, findJsType } = require('../../../../src/drivers/abstract/attribute');
 const { INTEGER, TEXT } = DataTypes;
 
 class Attribute extends AbstractAttribute {
@@ -42,6 +42,29 @@ describe('=> Attribute', function() {
       assert.throws(() => {
         attribute.toSqlString();
       }, /unimplemented/);
+    });
+  });
+
+  describe('constructor({ underscored })', function() {
+    it('should set underscored option', async function() {
+      const attribute = new Attribute('createdAt', {
+        type: INTEGER,
+      }, { underscored: true });
+      assert.equal(attribute.columnName, 'created_at');
+    });
+  });
+
+  describe('findJsType()', function() {
+    it('should return Boolean on BOOLEAN type', async function() {
+      const jsType = findJsType(DataTypes, new DataTypes.BOOLEAN, 'boolean');
+      assert.equal(jsType, Boolean);
+      const jsType2 = findJsType(DataTypes, null, 'boolean');
+      assert.equal(jsType2, Boolean);
+    });
+
+    it('should return JSON on JSON type', async function() {
+      const jsType = findJsType(DataTypes, new DataTypes.JSONB, 'json');
+      assert.equal(jsType, JSON);
     });
   });
 });

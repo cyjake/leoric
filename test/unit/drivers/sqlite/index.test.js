@@ -5,7 +5,7 @@ const path = require('path');
 const dayjs = require('dayjs');
 
 const { heresql } = require('../../../../src/utils/string');
-const SqliteDriver = require('../../../../src/drivers/sqlite');
+const { SqliteDriver } = require('../../../../src/drivers');
 
 const { INTEGER, BIGINT, STRING, DATE, BOOLEAN, JSONB } = SqliteDriver.DataTypes;
 

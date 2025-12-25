@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const { heresql } = require('../../../../src/utils/string');
-const Logger = require('../../../../src/drivers/abstract/logger');
+const Logger = require('../../../../src/drivers/abstract/logger').default;
 
 describe('=> Logger', function() {
   const logger = new Logger({

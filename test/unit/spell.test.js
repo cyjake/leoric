@@ -39,13 +39,44 @@ describe('=> Spell', function() {
   it('supports error convention with nodeify', async () => {
     const post = await new Promise((resolve, reject) => {
       Post.create({ title: 'Gettysburg Address' }).nodeify((err, result) => {
-        if (err) reject(err);
-        else resolve(result);
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
       });
     });
     assert.ok(post instanceof Post);
     assert.ok(post.id);
     assert.equal(post.title, 'Gettysburg Address');
+  });
+
+  it('error convention should work as expected', async () => {
+    await assert.rejects(new Promise((resolve, reject) => {
+      User.create({ id: 1 }, { validate: false }).nodeify((err, user) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(user);
+        }
+      });
+    }), /ER_NO_DEFAULT_FOR_FIELD/);
+  });
+
+  it('ignite query with .catch()', async () => {
+    const post = await Post.create({ title: 'The Divine Comedy' }).catch(err => {
+      // ignored
+    });
+    assert.ok(post instanceof Post);
+    await post.remove(true);
+  });
+
+  it('ignite query with .finally()', async () => {
+    const post = await Post.create({ title: 'The Divine Comedy' }).finally(() => {
+      assert.ok('finally called');
+    });
+    assert.ok(post instanceof Post);
+    await post.remove(true);
   });
 
   it('insert', function() {
@@ -516,6 +547,13 @@ describe('=> Spell', function() {
 
   it('orWhere', function() {
     assert.equal(
+      Post.find().orWhere('title = ?', 'Leah').toString(),
+      "SELECT * FROM `articles` WHERE `title` = 'Leah' AND `gmt_deleted` IS NULL"
+    );
+  });
+
+  it('orWhere with existing where conditions', function() {
+    assert.equal(
       Post.where({ id: 1 }).where('title = ?', 'New Post').orWhere('title = ?', 'Leah').toString(),
       "SELECT * FROM `articles` WHERE (`id` = 1 AND `title` = 'New Post' OR `title` = 'Leah') AND `gmt_deleted` IS NULL"
     );
@@ -535,11 +573,43 @@ describe('=> Spell', function() {
     );
   });
 
+  it('orHaving with existing having conditions', function() {
+    assert.equal(
+      Post.count().group('authorId')
+        .having({ count: { $gt: 10 } })
+        .having({ count: { $lt: 20 } })
+        .orHaving('count = 5').toString(),
+      'SELECT COUNT(*) AS `count`, `author_id` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 10 AND `count` < 20 OR `count` = 5'
+    );
+  });
+
+  it('offset / limit', function() {
+    assert.equal(
+      Post.find().offset(10).limit(5).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL LIMIT 5 OFFSET 10'
+    );
+  });
+
+  it('offset / limit with invalid args', function() {
+    assert.throws(() => {
+      Post.find().limit('x').toString();
+    }, /invalid limit/);
+    assert.throws(() => {
+      Post.find().offset('y').toString();
+    }, /invalid offset/);
+  });
+
   it('count / group by / having / order', function() {
     assert.equal(
       Post.group('authorId').count().having({ count: { $gt: 0 } }).order('count desc').toString(),
       'SELECT `author_id`, COUNT(*) AS `count` FROM `articles` WHERE `gmt_deleted` IS NULL GROUP BY `author_id` HAVING `count` > 0 ORDER BY `count` DESC'
     );
+  });
+
+  it('aggregate with invalid attribute', function() {
+    assert.throws(() => {
+      Post.average('a > b').toString();
+    }, /unexpected operand/);
   });
 
   it('count / group by / having / order with raw', function() {
@@ -584,6 +654,12 @@ describe('=> Spell', function() {
     );
   });
 
+  it('should throw error when joining undefined relation', function() {
+    assert.throws(() => {
+      Post.find().with('undefined').toString();
+    }, /unable to find association/i);
+  });
+
   it('arbitrary join', function() {
     assert.equal(
       Post.join(Comment, 'comments.articleId = posts.id').toString(),
@@ -613,11 +689,49 @@ describe('=> Spell', function() {
       Post.join(Comment, 'comments.articleId = posts.id').limit(1).toString(),
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
     );
+  });
 
+  it('abitrary join with predefined association', function() {
+    assert.equal(
+      Post.join('comments').toString(),
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `posts`.`id` = `comments`.`article_id` AND `comments`.`gmt_deleted` IS NULL WHERE `posts`.`gmt_deleted` IS NULL'
+    );
+  });
+
+  it('arbitrary join with conflicting qualifiers should throw error', function() {
+    assert.throws(() => {
+      Post.find().with('comments').join(Comment, 'comments.articleId = posts.id').toString();
+    }, /invalid join target/);
+  });
+
+  it('batch select with invalid batch limit', function() {
+    assert.rejects(async () => {
+      [...Post.find().batch(-1)];
+    }, /invalid batch limit/);
   });
 
   describe('form should work', function () {
-    it('should work', function () {
+    it('should work with simple table', function () {
+      assert.equal(Post.select('title').from('articles').where({
+        title: {
+          $like: '%yoxi%',
+        },
+        id: {
+          $gte: 1
+        }
+      })
+      .limit(1)
+      .order('createdAt').toSqlString(), heresql(`
+        SELECT "title"
+          FROM "articles"
+        WHERE "title" LIKE '%yoxi%'
+        AND "id" >= 1
+        AND "gmt_deleted" IS NULL
+        ORDER BY "gmt_create" LIMIT 1
+      `).replaceAll('"', '`'));
+    });
+
+    it('should work with subquery', function () {
       assert.equal(Post.select('title').from(Post.select('id', 'title', 'createdAt').where({
         title: {
           $like: '%yoxi%',
@@ -630,13 +744,13 @@ describe('=> Spell', function() {
       })
       .limit(1)
       .order('createdAt').toSqlString(), heresql(`
-          SELECT "title"
-            FROM (SELECT "id", "title", "gmt_create"
-              FROM "articles" WHERE "title" LIKE '%yoxi%'
-            AND "gmt_deleted" IS NULL ORDER BY "id" LIMIT 10)
-            AS "posts"
-          WHERE "id" >= 1 ORDER BY "gmt_create" LIMIT 1
-         `).replaceAll('"', '`'));
+        SELECT "title"
+          FROM (SELECT "id", "title", "gmt_create"
+            FROM "articles" WHERE "title" LIKE '%yoxi%'
+          AND "gmt_deleted" IS NULL ORDER BY "id" LIMIT 10)
+          AS "posts"
+        WHERE "id" >= 1 ORDER BY "gmt_create" LIMIT 1
+      `).replaceAll('"', '`'));
     });
 
     it('should work with nest', function () {
@@ -659,15 +773,15 @@ describe('=> Spell', function() {
       })
       .limit(1)
       .order('createdAt').toSqlString(), heresql(`
-          SELECT "title"
-            FROM (SELECT "id", "title", "gmt_create"
-              FROM (SELECT * FROM "articles" WHERE "id" >= 10 AND "gmt_deleted" IS NULL LIMIT 100)
-              AS "posts"
-              WHERE "title" LIKE '%yoxi%'
-            ORDER BY "id" LIMIT 10)
+        SELECT "title"
+          FROM (SELECT "id", "title", "gmt_create"
+            FROM (SELECT * FROM "articles" WHERE "id" >= 10 AND "gmt_deleted" IS NULL LIMIT 100)
             AS "posts"
-          WHERE "id" >= 1 ORDER BY "gmt_create" LIMIT 1
-         `).replaceAll('"', '`'));
+            WHERE "title" LIKE '%yoxi%'
+          ORDER BY "id" LIMIT 10)
+          AS "posts"
+        WHERE "id" >= 1 ORDER BY "gmt_create" LIMIT 1
+      `).replaceAll('"', '`'));
     });
   });
 
@@ -789,6 +903,13 @@ describe('=> Spell', function() {
     );
   });
 
+  it('order by Raw', function() {
+    assert.equal(
+      Post.order(raw('FIELD(id, 1, 2, 3) DESC')).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY FIELD(id, 1, 2, 3) DESC'
+    );
+  });
+
   it('where conditions with array', () => {
     assert.equal(
       Post.where({ id: [ 1, 2, 3 ] }).toString(),
@@ -808,10 +929,28 @@ describe('=> Spell', function() {
     );
   });
 
+  it('where conditions with null', () => {
+    assert.throws(() => Post.where(null).toString(), /unexpected conditions/i);
+  });
+
   it('order by string with multiple condition', () => {
     assert.equal(
       Post.order('id asc, gmt_create desc').toString(),
       'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id`, `gmt_create` DESC'
+    );
+  });
+
+  it('order by string with mixed condition', () => {
+    assert.equal(
+      Post.order('id desc, gmt_create').toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY `id` DESC, `gmt_create`'
+    );
+  });
+
+  it('order by raw object', () => {
+    assert.equal(
+      Post.order(raw('FIELD(id, 1, 2, 3)')).toString(),
+      'SELECT * FROM `articles` WHERE `gmt_deleted` IS NULL ORDER BY FIELD(id, 1, 2, 3)'
     );
   });
 
@@ -822,6 +961,18 @@ describe('=> Spell', function() {
       Book.where({ isbn: 9787550616950 }).increment('price').toString(),
       "UPDATE `books` SET `price` = `price` + 1, `gmt_modified` = '2012-12-14 12:00:00.000' WHERE `isbn` = 9787550616950 AND `gmt_deleted` IS NULL"
     );
+  });
+
+  it('increment undefined attribute', () => {
+    assert.throws(() => {
+      Book.where({ isbn: 9787550616950 }).increment('undefined').toString();
+    }, /undefined attribute/i);
+  });
+
+  it('increment infinite', () => {
+    assert.throws(() => {
+      Book.where({ isbn: 9787550616950 }).increment('price', Infinity).toString();
+    }, /unexpected increment value/i);
   });
 
   it('decrement', () => {
@@ -951,6 +1102,12 @@ describe('=> Spell', function() {
       Post.select('id', raw(`COUNT(title) as count`)).toString(),
       'SELECT `id`, COUNT(title) as count FROM `articles` WHERE `gmt_deleted` IS NULL'
     );
+  });
+
+  it('select with non existent columns', function () {
+    assert.throws(() => {
+      Post.select('id', 'non_existent_column').toString();
+    }, /unable to find attribute/i);
   });
 
   describe('silent should work', function() {

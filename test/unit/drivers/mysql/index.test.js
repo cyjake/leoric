@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const MysqlDriver = require('../../../../src/drivers/mysql');
+const { MysqlDriver } = require('../../../../src/drivers');
 
 const database = 'leoric';
 const options = {
@@ -94,5 +94,11 @@ describe('=> MySQL driver', () => {
     const { affectedRows, insertId } = await driver.query('INSERT INTO articles (title) VALUES ("Leah")');
     assert.ok(insertId);
     assert.equal(affectedRows, 1);
+  });
+
+  it('driver.renameColumn()', async () => {
+    await assert.rejects(async () => {
+      await driver.renameColumn('articles', 'undefined', 'headline');
+    }, /unable to find column/i);
   });
 });
