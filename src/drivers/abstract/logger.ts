@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import SqlString from 'sqlstring';
 import type { Literal, QueryOptions } from '../../types/common';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import { Spell } from '../..';
 
 const debug = Debug('leoric');

@@ -1,5 +1,5 @@
 import type { AbstractDriver } from './drivers';
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import { Connection, Literal } from './types/common';
 import { isBone } from './utils';
 

@@ -4,7 +4,7 @@ import {
   SetOptions, BeforeHooksType, AfterHooksType,
   QueryOptions, OrderOptions, QueryResult, Values as CommonValues, BoneColumns, InstanceColumns, BoneCreateValues, Collection,
 } from '../types/common';
-import { AbstractBone } from '../types/abstract_bone';
+import { AbstractBone } from '../abstract_bone';
 import Spell from '../spell';
 
 interface SequelizeDestroyOptions extends QueryOptions {
@@ -203,7 +203,7 @@ export class SequelizeBone extends AbstractBone {
   destroy<T>(this: T, options?: SequelizeDestroyOptions): Promise<T | number>;
   update<T = this>(this: T, changes?: { [Property in keyof Extract<this, Literal>]?: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
   update<T = this>(this: T, changes?: { [key: string]: Literal }, opts?: SequelizeInstanceUpdateOptions<this>): Promise<number>;
-
 }
+
 
 export default function sequelize(Bone: typeof AbstractBone): typeof SequelizeBone;

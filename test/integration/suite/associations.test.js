@@ -48,6 +48,7 @@ describe('=> Associations', function() {
     ]);
     const tags = await Promise.all(tagNames.map(name => Tag.create({ name, type: 0 })));
     const topics = await Promise.all(topicNames.map(name => Tag.create({ name, type: 1 })));
+    const category = await Tag.create({ name: 'boss', type: 2 });
 
     for (const post of posts) {
       await Promise.all([
@@ -68,6 +69,7 @@ describe('=> Associations', function() {
     await mapTags(posts[0], topics.slice(2, 3));
     await mapTags(posts[1], tags.slice(2, 3));
     await mapTags(posts[1], topics.slice(0, 1));
+    await mapTags(posts[0], [category]);
   });
 
   after(async function() {
@@ -88,9 +90,21 @@ describe('=> Associations', function() {
     }, /duplicated association/);
   });
 
+  it('Bone.hasOne should throw if assiciate model does not exist', async function() {
+    assert.throws(function() {
+      Post.hasOne('nonexistModel');
+    }, /unable to find associated model/);
+  });
+
   it('Bone.hasOne', async function() {
     const post = await Post.first.with('attachment');
     expect(post.attachment).to.be.a(Attachment);
+  });
+
+  it('Bone.hasOne through', async function() {
+    const post = await Post.first.with('category');
+    expect(post.category).to.be.a(Tag);
+    expect(post.category.name).to.be('boss');
   });
 
   it('Bone.belongsTo', async function() {

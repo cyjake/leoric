@@ -1,7 +1,7 @@
 
 import Raw from './raw';
 import Spell from './spell';
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import { Literal } from './types/common';
 
 export interface Identifier {

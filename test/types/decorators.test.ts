@@ -5,7 +5,7 @@ const { TEXT, STRING, INTEGER } = DataTypes;
 
 describe('=> Decorators (TypeScript)', function() {
   before(async function() {
-    Bone.driver = null;
+    (Bone as any).driver = null;
     await connect({
       host: 'localhost',
       port: process.env.MYSQL_PORT,

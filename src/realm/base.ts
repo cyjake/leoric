@@ -6,9 +6,9 @@ import Raw, { rawQuery, raw, RawQueryOptions } from '../raw';
 import { LEGACY_TIMESTAMP_MAP } from '../constants';
 import { AttributeMeta, ColumnMeta, Connection, Literal } from '../types/common';
 import { invokable as DataTypes, AbstractDataType, DataType } from '../data_types';
-import { AbstractBone, InitOptions } from '../types/abstract_bone';
+import { AbstractBone, InitOptions } from '../abstract_bone';
 
-const SequelizeBone = sequelize(Bone);
+const SequelizeBone: typeof AbstractBone = sequelize(Bone as any) as unknown as typeof AbstractBone;
 
 interface SyncOptions {
   force?: boolean;

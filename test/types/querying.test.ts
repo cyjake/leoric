@@ -37,7 +37,7 @@ describe('=> Querying (TypeScript)', function() {
   }
 
   before(async function() {
-    Bone.driver = null;
+    (Bone as any).driver = null;
     await connect({
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',

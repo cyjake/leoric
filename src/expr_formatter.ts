@@ -16,7 +16,7 @@ import {
 } from './expr';
 import { AGGREGATORS } from './constants';
 import Spell from './spell';
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import { Literal } from './types/common';
 
 /**

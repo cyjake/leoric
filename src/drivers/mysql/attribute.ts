@@ -30,7 +30,7 @@ class MysqlAttribute extends Attribute {
 
     if (primaryKey) chunks.push('PRIMARY KEY');
 
-    if (primaryKey || this.autoIncrement) chunks.push('AUTO_INCREMENT');
+    if (this.autoIncrement ?? primaryKey) chunks.push('AUTO_INCREMENT');
 
     if (!primaryKey && !allowNull) chunks.push('NOT NULL');
 
