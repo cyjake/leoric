@@ -16,7 +16,7 @@ describe('Hint', () => {
 
     assert.throws(() => {
       Hint.build({});
-    }, /unknown hint/i);
+    }, /unknown index hint/i);
 
     assert.throws(() => {
       Hint.build(null);

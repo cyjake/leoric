@@ -399,7 +399,19 @@ describe('=> Basic', () => {
       const prevUpdatedAt = post.updatedAt;
       await sleep(10);
       await post.save();
-      assert.deepEqual(post.previousChanges(), { authorId: [ null, 100 ], title: [ 'Untitled', 'MHW' ], updatedAt: [ prevUpdatedAt, post.updatedAt ] });
+      assert.deepEqual(post.previousChanges(), {
+        authorId: [ null, 100 ],
+        title: [ 'Untitled', 'MHW' ],
+        updatedAt: [ prevUpdatedAt, post.updatedAt ]
+      });
+    });
+
+    it('Bone.previousChanges(name) should still return {} if values equal', async function () {
+      const post = new Post({ title: 'Untitled' });
+      await post.save();
+      post.title = 'Untitled';
+      await post.save();
+      assert.deepEqual(post.previousChanges('title'), {});
     });
 
     it('Bone.changes(key): raw VS rawSaved', async function () {
@@ -936,6 +948,17 @@ describe('=> Basic', () => {
       expect(foundPost3.updatedAt.getTime()).to.be.above(foundPost2.updatedAt.getTime());
     });
 
+    it('Bone.update({}, values) should work', async function() {
+      const posts = await Promise.all([
+        Post.create({ title: 'New Post' }),
+        Post.create({ title: 'New Post 2'})
+      ]);
+      const affectedRows = await Post.update({}, { title: 'Untitled' });
+      expect(posts.length).to.equal(affectedRows);
+      const newPosts = await Post.all;
+      assert(newPosts.every(p => p.title === 'Untitled'));
+    });
+
     it('bone.update(values, options)', async () => {
       const post = await Post.create({ title: 'New Post' });
       await post.update({ extra: { versions: [ 2, 3 ] } });
@@ -986,15 +1009,11 @@ describe('=> Basic', () => {
       assert.equal(post.authorId, 2);
     });
 
-    it('Bone.update({}, values) should work', async function() {
-      const posts = await Promise.all([
-        Post.create({ title: 'New Post' }),
-        Post.create({ title: 'New Post 2'})
-      ]);
-      const affectedRows = await Post.update({}, { title: 'Untitled' });
-      expect(posts.length).to.equal(affectedRows);
-      const newPosts = await Post.all;
-      assert(newPosts.every(p => p.title === 'Untitled'));
+    it('bone.update() should throw if missing primary key', async function() {
+      const post = new Post({ title: 'New Post' });
+      await assert.rejects(async () => {
+        await post.update({ title: 'Skeleton King' });
+      }, /unset primary key/);
     });
 
     it('bone.save() should UPDATE when primaryKey is defined and saved before', async function() {
@@ -1030,9 +1049,9 @@ describe('=> Basic', () => {
       await Post.create({ title: 'New Post' });
       const post = await Post.first;
       // affectedRows is only available through `bone.update()` directly
-      assert.equal(await post.update(), 0);
+      await post.save();
       post.title = 'Skeleton King';
-      assert.equal(await post.update(), 1);
+      await post.save();
       assert.deepEqual(await Post.first, post);
     });
 

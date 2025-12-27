@@ -37,10 +37,10 @@ export class Hint {
 
   #text = '';
 
-  static build(hint: string | Hint | IndexHint | BaseHintInterface): Hint | IndexHint {
+  static build(hint: CommonHintArgs): Hint | IndexHint {
     if (hint instanceof Hint || hint instanceof IndexHint) return hint;
     if (typeof hint === 'string') return new Hint(hint);
-    if (isPlainObject(hint) && hint.index) return IndexHint.build(hint);
+    if (isPlainObject(hint)) return IndexHint.build(hint);
     throw new SyntaxError(format('Unknown hint %s', hint));
   }
 
@@ -230,6 +230,4 @@ export class IndexHint {
   }
 }
 
-export type CommonHintsArgs = string | HintInterface | Hint | IndexHint | {
-  [key in INDEX_HINT_SCOPE_TYPE]?: string | Array<string>
-};
+export type CommonHintArgs = string | HintInterface | Hint | IndexHint | HintScopeObject;

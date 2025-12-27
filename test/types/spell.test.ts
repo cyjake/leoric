@@ -104,7 +104,7 @@ describe('=> Spell (TypeScript)', function() {
   }
 
   before(async function() {
-    Bone.driver = null;
+    (Bone as any).driver = null;
     await connect({
       host: 'localhost',
       port: process.env.MYSQL_PORT,
@@ -115,7 +115,7 @@ describe('=> Spell (TypeScript)', function() {
   });
 
   after(() => {
-    Bone.driver = null;
+    (Bone as any).driver = null;
   });
 
   it('get/first/last/all', () => {

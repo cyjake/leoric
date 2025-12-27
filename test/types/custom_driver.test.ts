@@ -5,7 +5,7 @@ import Realm, { SqliteDriver, Literal, SpellBookFormatResult, Column, Raw, Bone,
 import { formatConditions, collectLiteral } from '../../src/expr_formatter';
 import { findExpr } from '../../src/expr';
 import Spell from '../../src/spell';
-import { AbstractBone } from '../../src/types/abstract_bone';
+import { AbstractBone } from '../../src/abstract_bone';
 
 interface FormatResult {
   sql: string;

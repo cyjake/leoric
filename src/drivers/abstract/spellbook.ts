@@ -3,7 +3,7 @@ import { Expr, findExpr, Identifier, walkExpr } from '../../expr';
 import { formatExpr, formatConditions, collectLiteral, isAggregatorExpr } from '../../expr_formatter';
 import Raw from '../../raw';
 import type Spell from '../../spell';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import { Literal } from '../..';
 
 /**

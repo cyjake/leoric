@@ -51,7 +51,7 @@ case $1 in
     args=("${@:2}")
     dts
     ;;
-  *.js)
+  *.js|*.ts)
     args=("${@:1}")
     run $1
     ;;

@@ -90,8 +90,8 @@ describe('=> sequelize (TypeScript)', function() {
   }
 
   before(async function() {
-    Bone.driver = null;
-    SequelizeBone.driver = null;
+    (Bone as any).driver = null;
+    (SequelizeBone as any).driver = null;
     await connect({
       host: 'localhost',
       port: process.env.MYSQL_PORT,

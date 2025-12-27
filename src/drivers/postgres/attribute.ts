@@ -47,20 +47,20 @@ class PostgresAttribute extends Attribute {
 
   equals(columnInfo: any): boolean {
     if (!columnInfo) return false;
-    if ((this).type.toSqlString() !== columnInfo.columnType.toUpperCase()) {
+    if (this.type.toSqlString() !== columnInfo.columnType.toUpperCase()) {
       debug('[attribute] [%s] columnType not equal (defined: %s, actual: %s)',
-        (this).columnName,
-        (this).type.toSqlString(),
+        this.columnName,
+        this.type.toSqlString(),
         columnInfo.columnType.toUpperCase());
       return false;
     }
     const props: (keyof this)[] = [ 'allowNull', 'defaultValue', 'primaryKey' ];
     for (const prop of props) {
-      if ((this)[prop] != columnInfo[prop]) {
+      if (this[prop] != columnInfo[prop]) {
         debug('[attribute] [%s] %s not equal (defined: %s, actual: %s)',
-          (this).columnName,
+          this.columnName,
           prop,
-          (this)[prop],
+          this[prop],
           columnInfo[prop]);
         return false;
       }

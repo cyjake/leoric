@@ -49,9 +49,6 @@ export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = 
       options['type'] = findType(tsType);
     }
 
-    // narrowing the type of options to ColumnOption
-    if (!('type' in options)) throw new Error(`unknown column options ${options}`);
-
     // target refers to model prototype, an internal instance of `Bone {}`
     const model = target.constructor as any;
     if (!model.hasOwnProperty('attributes') || !model.attributes) {
@@ -69,7 +66,7 @@ export function Column(options: ColumnOption | DATA_TYPE<DataType> | DataType = 
 
 const { hasMany, hasOne, belongsTo } = ASSOCIATE_METADATA_MAP;
 
-export function HasMany(options: AssociateOptions = {}) {
+export function HasMany(options: Partial<AssociateOptions> = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
     // it seems it's not possible to get the type of array element at runtime
@@ -80,7 +77,7 @@ export function HasMany(options: AssociateOptions = {}) {
   };
 }
 
-export function HasOne(options: AssociateOptions = {}) {
+export function HasOne(options: Partial<AssociateOptions> = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
     if (options.className == null) {
@@ -104,7 +101,7 @@ export function HasOne(options: AssociateOptions = {}) {
  *   foo?: Foo;
  * }
  */
-export function BelongsTo(options: AssociateOptions = {}) {
+export function BelongsTo(options: Partial<AssociateOptions> = {}) {
   return function(target: Bone, propertyKey: string) {
     const model = target.constructor;
     if (options.className == null) {

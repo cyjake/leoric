@@ -1241,7 +1241,7 @@ describe('=> Realm', () => {
       const boneRequireCache = require.cache[realFilePath];
       // delete bone cache
       delete require.cache[realFilePath];
-      const MyBone = require('../../src/bone');
+      const MyBone = require('../../src/bone').default;
       class Bone1 extends MyBone {
         constructor (...args) {
           super(...args);

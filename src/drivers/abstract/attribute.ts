@@ -92,6 +92,7 @@ export interface AttributeParams {
   defaultValue?: Literal;
   primaryKey?: boolean;
   allowNull?: boolean;
+  autoIncrement?: boolean;
   columnName?: string;
   columnType?: string;
   dataType?: string;
@@ -101,6 +102,7 @@ export interface AttributeParams {
 export default class Attribute {
   static DataTypes = AbstractDataTypes;
 
+  name!: string;
   type!: AbstractDataType;
   defaultValue?: Literal;
   primaryKey?: boolean;
@@ -108,10 +110,11 @@ export default class Attribute {
   columnName!: string;
   columnType!: string;
   dataType?: string;
-  jsType?: Literal;
+  jsType!: typeof Boolean | typeof Number | typeof String | typeof Date | typeof JSON | typeof Buffer;
   autoIncrement?: boolean;
   comment?: string;
   unique?: boolean;
+  virtual?: boolean;
 
   /**
    * Attribute name and definition

@@ -12,7 +12,7 @@ import { heresql } from '../../utils/string';
 import { getIndexName } from '../abstract';
 import { Literal, QueryOptions, QueryResult } from '../../types/common';
 import Connection from './connection';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import Spell from '../../spell';
 
 interface SchemaColumn {

@@ -18,6 +18,7 @@ class Post extends Bone {
     });
     this.hasMany('topics', { through: 'tagMaps',  where: { type: 1 }, className: 'Tag' });
     this.hasMany('tags', { through: 'tagMaps', where: { type: 0 } });
+    this.hasOne('category', { through: 'tagMaps', where: { type: 2 }, className: 'Tag' });
 
     this.attribute('extra', { type: JSON });
   }

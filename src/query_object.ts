@@ -2,7 +2,7 @@
 import { isPlainObject } from './utils';
 import { Expr, Identifier, Operator, parseExpr, RawExpr, Subquery } from './expr';
 import Raw from './raw';
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import { Literal } from './types/common';
 import Spell from './spell';
 
@@ -31,13 +31,17 @@ const OPERATOR_MAP = {
 type LogicalOperator = keyof typeof LOGICAL_OPERATOR_MAP;
 
 type ObjectCondition =
-  | Record<string, Literal | Literal[] | Record<keyof typeof OPERATOR_MAP, Literal | Literal[]>>;
+  | Record<string, Literal
+  | Literal[]
+  | Record<keyof typeof OPERATOR_MAP, Literal | Literal[]>>;
 
 type LogicalObjectCondition =
-  | Record<LogicalOperator, ObjectCondition | ObjectCondition[]>;
+  | Record<LogicalOperator, ObjectCondition
+  | ObjectCondition[]>;
 
 type MixedObjectCondition =
-  | ObjectCondition | LogicalObjectCondition;
+  | ObjectCondition
+  | LogicalObjectCondition;
 
 type QueryExpr = Expr | RawExpr | Subquery<typeof AbstractBone>;
 
