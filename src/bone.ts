@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import Spell from './spell';
 import { AbstractBone } from './abstract_bone';
-import { rawQuery } from './raw';
 import {
   BoneColumns,
   Collection,
@@ -51,21 +50,6 @@ export default class Bone extends AbstractBone {
   }
 
   /**
-   * Restore soft-deleted rows by clearing deletedAt.
-   * @example
-   * Bone.restore({ title: 'aaa' })
-   * Bone.restore({ title: 'aaa' }, { hooks: false })
-   */
-  static restore<T extends typeof Bone>(this: T, conditions: WhereConditions<T>, opts: QueryOptions = {}) {
-    const { deletedAt } = this.timestamps as { deletedAt: string };
-    if (deletedAt == null) {
-      throw new Error('Model is not paranoid');
-    }
-    // Use un-paranoid update to clear deletedAt
-    return this._find(conditions, { ...opts, paranoid: false }).$update({ [deletedAt]: null }) as Spell<T, number>;
-  }
-
-  /**
    * Discard all the applied scopes.
    * Bone.unscoped includes soft-deleted rows
    */
@@ -73,13 +57,48 @@ export default class Bone extends AbstractBone {
     return this._find().unscoped;
   }
 
+  static restore<T extends typeof Bone>(this: T, conditions: WhereConditions<T>, opts: QueryOptions = {}) {
+    return super._restore(conditions, opts);
+  }
+
+  static update<T extends typeof Bone, Key extends BoneColumns<T>>(
+    this: T,
+    conditions: WhereConditions<T>,
+    values: Record<Key, Literal | Raw>,
+    options: QueryOptions = {},
+  ) {
+    return super._update(conditions, values, options);
+  }
+
   /**
-   * Execute a raw query
-   * @example
-   * Bone.query('SELECT * FROM posts WHERE id = ?', [1])
-   * Bone.query('SELECT * FROM posts WHERE id = :id', { replacements: { id: 1 } })
+   * update rows
+   * @param changes data changes
+   * @param opts query options
    */
-  static async query<T extends typeof Bone>(this: T, sql: string, values?: Literal[] | QueryOptions, opts: QueryOptions = {}): Promise<{ rows?: any[]; fields?: { table: string; name: string }[] }> {
-    return await rawQuery(this.driver, sql, values as any, { model: this as any, ...opts });
+  async update(
+    values: Record<string, Literal | Raw> = {},
+    options: QueryOptions & { fields?: string[] } = {},
+  ): Promise<number> {
+    const changes: Record<string, Literal | Raw> = {};
+    const originalValues = Object.assign({}, this.getRaw());
+    const { fields = [] } = options;
+
+    for (const name in values) {
+      const value = values[name];
+      if (value instanceof Raw) {
+        changes[name] = value;
+      } else if (value !== undefined && this.hasAttribute(name) && (!fields.length || (fields as any).includes(name))) {
+        this[name] = value;
+        changes[name] = this.attribute(name);
+      }
+    }
+
+    try {
+      const res = await super._update(Object.keys(changes).length ? changes : values, options);
+      return res;
+    } catch (error) {
+      this._setRaw(originalValues);
+      throw error;
+    }
   }
 }

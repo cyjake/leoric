@@ -4,6 +4,7 @@ const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
 const { Bone, connect, sequelize, DataTypes, raw, Hint } = require('../../../src');
+const util = require('util');
 
 const userAttributes = {
   id: DataTypes.BIGINT,
@@ -51,16 +52,26 @@ describe('=> Sequelize adapter', () => {
     }
   };
 
+  class User extends Spine {
+    static initialize() {
+      this.hasMany('posts', { className: 'Post', foreignKey: 'authorId' });
+    }
+  }
+
   class Post extends Spine {
     static get table() {
       return 'articles';
+    }
+
+    static initialize() {
+      this.belongsTo('user', { className: 'User', foreignKey: 'authorId' });
     }
   };
 
   before(async () => {
     await connect({
       Bone: Spine,
-      models: [ Book, Post ],
+      models: [ Book, Post, User ],
       database: 'leoric',
       user: 'root',
       port: process.env.MYSQL_PORT,
@@ -90,6 +101,12 @@ describe('=> Sequelize adapter', () => {
 
     const minimum = await Book.aggregate('price', 'minimum');
     assert.equal(Math.round(minimum), 10);
+  });
+
+  it('Model.aggregate(attribute, invalidAggregateFunction)', async () => {
+    await assert.rejects(async () => {
+      await Book.aggregate('price', 'invalidAggregateFunction');
+    }, /unknown aggregator function/i);
   });
 
   it('Model.aggregate(attribute, aggregateFunction, { where })', async () => {
@@ -143,6 +160,12 @@ describe('=> Sequelize adapter', () => {
     assert.equal(count3, 1);
   });
 
+  it('Model.belongsToMany()', async () => {
+    assert.throws(() => {
+      User.belongsToMany('groups', { through: 'UserGroup' });
+    }, /unimplemented/i);
+  });
+
   it('Model.build()', async () => {
     const book = Book.build({ name: 'Book of Cain', price: 10 });
     assert.ok(!book.id);
@@ -170,6 +193,11 @@ describe('=> Sequelize adapter', () => {
     assert.equal(books[1].name, 'Book of Cain1');
   });
 
+  it('Model.bulkBuild([])', async () => {
+    const books = Book.bulkBuild([]);
+    assert.equal(books.length, 0);
+  });
+
   it('Model.bulkBuild(values, { raw })', async () => {
     const books = Book.bulkBuild([{ name: 'Book of Eli' }, { name: 'Book of Eli' }], { raw: true });
     assert.equal(books.length, 2);
@@ -187,6 +215,28 @@ describe('=> Sequelize adapter', () => {
     assert.ok(books[1].isbn);
     assert.equal(books[0].name, 'Rendezvous with Rama');
     assert.equal(books[1].name, 'Excellent Sheep');
+  });
+
+  it('Model.bulkDestroy()', async () => {
+    await Promise.all([
+      Book.create({ name: 'Rendezvous with Rama', price: 42 }),
+      Book.create({ name: 'Excellent Sheep', price: 23 }),
+    ]);
+    const rowCount = await Book.bulkDestroy();
+    assert.equal(rowCount, 2);
+    assert.equal(await Book.count(), 0);
+  });
+
+  it('Model.bulkUpdate()', async () => {
+    await Promise.all([
+      Book.create({ name: 'Rendezvous with Rama', price: 42 }),
+      Book.create({ name: 'Excellent Sheep', price: 23 }),
+    ]);
+    const rowCount = await Book.bulkUpdate({ price: 10 });
+    assert.equal(rowCount, 2);
+    const books = await Book.findAll({ order: [['price', 'asc']] });
+    assert.equal(books[0].price, 10);
+    assert.equal(books[1].price, 10);
   });
 
   it('Model.count()', async () => {
@@ -256,13 +306,33 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Book.count('deletedAt'), 0);
   });
 
+  it('Model.count({ group })', async () => {
+    await Promise.all([
+      Post.create({ title: 'Leah' }),
+      Post.create({ title: 'Leah' }),
+      Post.create({ title: 'Tyrael' }),
+    ]);
+    const result = await Post.count({ group: ['title', 'authorId'] });
+    assert.equal(result.length, 2);
+  });
+
   it('Model.create()', async () => {
     const post = await Post.create({ title: 'By three they come' });
     assert.ok(post.id);
     assert.equal(post.title, 'By three they come');
   });
 
-  it('Model.decrement()', async () => {
+  it('Model.decrement(field)', async () => {
+    const isbn = 9787550616950;
+    await Book.create({ isbn, name: 'Book of Cain', price: 7 });
+    await Book.create({ isbn: 9787550616951, name: 'Book of Abel', price: 20 });
+    await Book.decrement('price');
+    const books = await Book.findAll({ order: [['isbn', 'asc']] });
+    assert.equal(books[0].price, 6);
+    assert.equal(books[1].price, 19);
+  });
+
+  it('Model.decrement(field, { where })', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
     await Book.decrement('price', { where: { isbn } });
@@ -274,6 +344,23 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.price, 7);
   });
 
+  it('Model.decrement(invalidField)', async () => {
+    await assert.rejects(async () => {
+      await Book.decrement(42, { where: {} });
+    }, /unexpected field/i);
+  });
+
+  it('Model.decrement(field, { paranoid: false })', async () => {
+    const isbn = 9787550616950;
+    await Book.create({ isbn, name: 'Book of Cain', price: 10, deletedAt: new Date() });
+    await Book.decrement('price', { where: { isbn } });
+    const book = await Book.findOne({ where: { isbn }, paranoid: false });
+    assert.equal(book.price, 10);
+    await Book.decrement('price', { where: { isbn }, paranoid: false });
+    await book.reload();
+    assert.equal(book.price, 9);
+  });
+
   it('Model.destroy()', async () => {
     await Promise.all([
       Post.create({ title: 'By three they come' }),
@@ -281,6 +368,11 @@ describe('=> Sequelize adapter', () => {
     ]);
     const rowCount = await Post.destroy();
     assert.equal(rowCount, 2);
+  });
+
+  it('Model.destroy({ individualHooks: true })', async () => {
+    const result = await Post.destroy({ individualHooks: true });
+    assert.ok(result == null);
   });
 
   it('Model.findAll()', async () => {
@@ -386,7 +478,17 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts[1].id, ids[1]);
     assert.equal(posts[2].id, ids[2]);
     assert.equal(posts[3].id, ids[3]);
+  });
 
+  it('Model.findAll({ order }) edge cases', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    assert.equal((await Post.findAll({ order: [] })).length, 2);
+    assert.equal((await Post.findAll({ order: [[]] })).length, 2);
+    assert.equal((await Post.findAll({ order: [null, 'title ASC']})).length, 2);
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -565,7 +667,17 @@ describe('=> Sequelize adapter', () => {
     assert.equal(rows.length, 1);
     assert.equal(count, 1);
 
-    // with limit
+    const result = await Post.findAndCountAll();
+    assert.equal(result.rows.length, 2);
+    assert.equal(result.count, 2);
+  });
+
+  it('Model.findAndCountAll({ limit })', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
     const { rows: rows1, count: count1 } = await Post.findAndCountAll({
       where: {
         title: { $like: '%ea%' },
@@ -576,8 +688,13 @@ describe('=> Sequelize adapter', () => {
 
     assert.equal(rows1.length, 0);
     assert.equal(count1, 1);
+  });
 
-    //ignore attributes
+  it('Model.findAndCountAll({ attributes })', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
 
     const { rows: rows2, count: count2 } = await Post.findAndCountAll({
       where: {
@@ -591,12 +708,11 @@ describe('=> Sequelize adapter', () => {
     assert.deepEqual(Object.keys(rows2[0].getRaw()), [ 'id' ]);
   });
 
-  it('Model.findAndCountAll(opt) with paranoid = false', async () => {
+  it('Model.findAndCountAll({ paranoid: false })', async () => {
     await Promise.all([
-      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000), deletedAt: new Date() },
       { title: 'Tyrael' },
     ].map(opts => Post.create(opts)));
-    await Post.destroy({ title: 'Leah' });
     const post = await Post.findOne({ where: { title: 'Leah' } });
     assert.equal(post, null);
     const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
@@ -639,6 +755,27 @@ describe('=> Sequelize adapter', () => {
 
     const post2 = await Post.find({ where: { title: 'Leah' } });
     assert.equal(post2.title, 'Leah');
+  });
+
+  it('Model.find({ include })', async () => {
+    const user = await User.create({
+      email: 'user@example.com',
+      nickname: 'John',
+      status: 1
+    });
+    await Post.create({ title: 'Leah', authorId: user.id });
+    const foundPost = await Post.find({ include: 'user' });
+    assert.equal(foundPost.title, 'Leah');
+    assert.equal(foundPost.authorId, user.id);
+  });
+
+  it('Model.find({ order: Raw })', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+    const foundPosts = await Post.findAll({ order: raw(`FIELD(title, 'Tyrael', 'Leah')`) });
+    assert.equal(foundPosts[0].title, 'Tyrael');
   });
 
   it('Model.findOne(id)', async () => {
@@ -755,6 +892,17 @@ describe('=> Sequelize adapter', () => {
     assert.equal(result[1].title, 'Leah');
   });
 
+  it('Model.findCreateFind(<empty>)', async function() {
+    const post = await Post.findCreateFind();
+    assert.ok(post == null);
+  });
+
+  it('Model.findOrBuild(<empty>)', async function() {
+    const [post, isNewRecord] = await Post.findOrBuild();
+    assert.ok(post instanceof Post);
+    assert.equal(isNewRecord, true);
+  });
+
   it('Model.getTableName()', async function() {
     assert.equal(Post.getTableName(), 'articles');
     assert.equal(Book.getTableName(), 'books');
@@ -858,7 +1006,20 @@ describe('=> Sequelize adapter', () => {
 
   });
 
-  it('Model.increment()', async () => {
+  it('Model.increment(invalidField)', async () => {
+    await assert.rejects(async () => {
+      await Book.increment(42, { where: {} });
+    }, /unexpected field/i);
+  });
+
+  it('Model.increment(field)', async () => {
+    await Book.create({ isbn: 9787550616950, name: 'Book of Cain', price: 7 });
+    await Book.increment('price');
+    const book = await Book.findOne({ where: { isbn: 9787550616950 } });
+    assert.equal(book.price, 8);
+  });
+
+  it('Model.increment(field, { where })', async () => {
     const isbn = 9787550616950;
     const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
@@ -875,7 +1036,7 @@ describe('=> Sequelize adapter', () => {
     clock.restore();
   });
 
-  it('Model.increment(, { paranoid })', async () => {
+  it('Model.increment(field, { paranoid })', async () => {
     const isbn = 9787550616950;
     const fakeDate = new Date(`2012-12-14 12:00:00`).getTime();
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
@@ -900,7 +1061,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.price, 15);
   });
 
-  it('Model.increment(, { silent })', async () => {
+  it('Model.increment(field, { silent })', async () => {
     const fakeDate = new Date(`2012-12-14 12:00-08:00`).getTime();
     const clock = sinon.useFakeTimers(fakeDate);
     const isbn = 9787550616950;
@@ -915,19 +1076,36 @@ describe('=> Sequelize adapter', () => {
 
   it('Model.removeAttribute()', async function() {
     const Model = sequelize(Bone);
-    class User extends Model {};
+    class Person extends Model {
+      static table = 'users';
+    };
     await connect({
       Bone: Model,
-      models: [ User ],
+      models: [ Person ],
       dialect: 'sqlite',
       database: '/tmp/leoric.sqlite3',
     });
-    assert(User.attributes.birthday);
-    User.removeAttribute('birthday');
-    assert(User.attributes.birthday == null);
+    assert(Person.attributes.birthday);
+    Person.removeAttribute('birthday');
+    assert(Person.attributes.birthday == null);
+  });
+
+  it('Model.removeHook()', async function() {
+    await assert.rejects(async () => {
+      Post.removeHook('beforeCreate', 'nonexistentHook');
+    }, /unimplemented/i);
   });
 
   it('Model.restore()', async () => {
+    const post = await Post.create({ title: 'By three they come' });
+    await post.remove();
+    assert.equal(await Post.first, null);
+    assert(post.deletedAt);
+    await Post.restore();
+    assert.ok(await Post.first);
+  });
+
+  it('Model.restore({ where })', async () => {
     const post = await Post.create({ title: 'By three they come' });
     await post.remove();
     assert.equal(await Post.first, null);
@@ -936,20 +1114,46 @@ describe('=> Sequelize adapter', () => {
     assert.ok(await Post.first);
   });
 
+  it('Model.schema()', async function() {
+    await assert.rejects(async () => {
+      Post.schema('blog');
+    }, /unimplemented/i);
+  });
+
+  it('Model.update(values)', async () => {
+    await Post.create({ title: 'By three they come' });
+    await Post.update({ title: 'By three thy way opens' });
+    const result = await Post.first;
+    assert.equal(result.title, 'By three thy way opens');
+  });
+
+  it('Model.update(values, { individualHooks })', async () => {
+    const result = await Post.update({ title: 'By three they come' }, { individualHooks: true });
+    assert.ok(result == null);
+  });
+
   it('Model.update(values, { paranoid })', async () => {
     const post = await Post.create({ title: 'By three they come' });
-    await Post.update({ title: 'By three thy way opens' }, { where: { title: 'By three they come' }});
+    await Post.update({ title: 'By three thy way opens' }, {
+      where: { title: 'By three they come' },
+    });
     const result = await Post.first;
     assert.equal(result.title, 'By three thy way opens');
     await post.destroy();
-    const res = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }, paranoid: true });
+    const res = await Post.update({ title: 'By four thy way opens' }, {
+      where: { title: 'By three thy way opens' },
+      paranoid: true,
+    });
     assert.equal(res, 0);
     const post1 = await Post.findByPk(post.id, { paranoid: false });
     assert.equal(post1.title, 'By three thy way opens');
-    const res1 = await Post.update({ title: 'By four thy way opens' }, { where: { title: 'By three thy way opens' }});
+    const res1 = await Post.update({ title: 'By four they come' }, {
+      where: { title: 'By three thy way opens' },
+      paranoid: false,
+    });
     assert.equal(res1, 1);
     const post2 = await Post.findByPk(post.id, { paranoid: false });
-    assert.equal(post2.title, 'By four thy way opens');
+    assert.equal(post2.title, 'By four they come');
   });
 
   it('Model.truncate()', async () => {
@@ -988,9 +1192,46 @@ describe('=> Sequelize adapter', () => {
     await book.decrement({ price: 2 });
     await book.reload();
     assert.equal(book.price, 7);
+
+    await assert.rejects(async () => {
+      const book2 = new Book({ name: 'No ISBN Book', price: 5 });
+      await book2.decrement('price');
+    }, /unset primary key/i);
+
+    await assert.rejects(async () => {
+      await book.decrement(42);
+    }, /unexpected fields/i);
+
+    await assert.rejects(async () => {
+      await book.decrement('missingField');
+    }, /undefined attribute/i);
+
+    await assert.rejects(async () => {
+      await book.decrement(['missingField']);
+    }, /undefined attribute/i);
+
+    await assert.rejects(async () => {
+      await book.decrement({ missingField: 2 });
+    }, /undefined attribute/i);
   });
 
-  it('model.increment()', async () => {
+  it('model.equals()', async () => {
+    await assert.rejects(async () => {
+      const book1 = new Book({ name: 'Book 1' });
+      const book2 = {};
+      book1.equals(book2);
+    }, /unimplemented/i);
+  });
+
+  it('model.equalsOneOf()', async () => {
+    await assert.rejects(async () => {
+      const book1 = new Book({ name: 'Book 1' });
+      const book2 = {};
+      book1.equalsOneOf([ book2 ]);
+    }, /unimplemented/i);
+  });
+
+  it('model.increment(field)', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
     await book.increment('price');
@@ -1002,7 +1243,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal(book.price, 13);
   });
 
-  it('model.increment(, { paranoid })', async () => {
+  it('model.increment(field, { paranoid })', async () => {
     const isbn = 9787550616950;
     const book = await Book.create({ isbn, name: 'Book of Cain', price: 10 });
     await book.increment('price');
@@ -1019,6 +1260,27 @@ describe('=> Sequelize adapter', () => {
     await book.increment({ price: 2 }, { paranoid: false });
     await book.reload();
     assert.equal(book.price, 15);
+
+    await assert.rejects(async () => {
+      const book2 = new Book({ name: 'No ISBN Book', price: 5 });
+      await book2.increment('price');
+    }, /unset primary key/i);
+
+    await assert.rejects(async () => {
+      await book.increment(42);
+    }, /unexpected fields/i);
+
+    await assert.rejects(async () => {
+      await book.increment('missingField');
+    }, /undefined attribute/i);
+
+    await assert.rejects(async () => {
+      await book.increment(['missingField']);
+    }, /undefined attribute/i);
+
+    await assert.rejects(async () => {
+      await book.increment({ missingField: 2 });
+    }, /undefined attribute/i);
   });
 
   it('model.restore()', async () => {
@@ -1040,6 +1302,18 @@ describe('=> Sequelize adapter', () => {
     result = await Post.first;
     assert.equal(result.title, 'By three thy way opened');
     assert.equal(result.authorId, 1);
+  });
+
+  it('Model.update(values, { fields })', async () => {
+    const post = await Post.create({ title: 'By three they come', content: 'Old content' });
+    await post.update({ title: 'By three thy way opens', content: 'New content' }, {
+      where: { title: 'By three they come' },
+      fields: [ 'title' ],
+    });
+    const result = await Post.first;
+    assert.equal(result.title, 'By three thy way opens');
+    assert.equal(result.content, 'Old content');
+    await post.remove();
   });
 
   it('model.changed(key)', async () => {
@@ -1244,6 +1518,13 @@ describe('=> Sequelize adapter', () => {
     await book.reload();
     assert.equal(book.name, 'Book of Justice');
   });
+
+  it('model[util.inspect.custom]()', async () => {
+    const book = await Book.create({ name: 'Book of Cain', price: 42 });
+    const inspected = util.inspect(book);
+    assert(inspected.includes('Book of Cain'));
+    assert(inspected.includes('42'));
+  });
 });
 
 describe('Model scope', () => {
@@ -1304,6 +1585,16 @@ describe('Model scope', () => {
     Bone.driver = null;
   });
 
+  it('addScope(name, null) should work', () => {
+    // null
+    MyPost.addScope('Nioh', null);
+
+    assert.equal(
+      MyPost.scope('Nioh').where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL'
+    );
+  });
+
   it('addScope({ where }) should work', () => {
     // object
     MyPost.addScope('NioH', {
@@ -1329,6 +1620,30 @@ describe('Model scope', () => {
     assert.equal(
       MyPost.scope('MHW').where({ title: 'New Post' }).toString(),
       'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "type" = 1 AND "gmt_deleted" IS NULL ORDER BY "id" DESC LIMIT 1'
+    );
+  });
+
+  it('addScope([{ order }, { order }]) should work', function() {
+    MyPost.addScope('OrderByAuthorAndTitle', [{
+      order: { authorId: 'desc' },
+    }, {
+      order: { title: 'asc' },
+    }]);
+    assert.equal(
+      MyPost.scope('OrderByAuthorAndTitle').where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL ORDER BY "author_id" DESC, "title"'
+    );
+  });
+
+  it('addScope([{ limit }, { limit }]) should work', function() {
+    MyPost.addScope('LimitBy2And4', [{
+      limit: 2,
+    }, {
+      limit: 4,
+    }]);
+    assert.equal(
+      MyPost.scope('LimitBy2And4').where({ title: 'New Post' }).toString(),
+      'SELECT * FROM "articles" WHERE "title" = \'New Post\' AND "gmt_deleted" IS NULL LIMIT 4'
     );
   });
 
@@ -2149,4 +2464,3 @@ describe('mysql only', () => {
     });
   });
 });
-

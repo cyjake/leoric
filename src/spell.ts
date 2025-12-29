@@ -527,7 +527,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   get unparanoid() {
     const spell = this.dup;
     spell.scopes = spell.scopes.filter((scope: any) => !scope.__paranoid);
-    return spell;
+    return spell as typeof this;
   }
 
   get all() {
