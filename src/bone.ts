@@ -10,6 +10,7 @@ import {
   WhereConditions,
 } from './types/common';
 import Raw from './raw';
+import { isPlainObject } from './utils';
 
 export default class Bone extends AbstractBone {
   /**
@@ -76,20 +77,22 @@ export default class Bone extends AbstractBone {
    * @param opts query options
    */
   async update(
-    values: Record<string, Literal | Raw> = {},
+    values: Record<string, Literal | Raw>,
     options: QueryOptions & { fields?: string[] } = {},
   ): Promise<number> {
     const changes: Record<string, Literal | Raw> = {};
     const originalValues = Object.assign({}, this.getRaw());
     const { fields = [] } = options;
 
-    for (const name in values) {
-      const value = values[name];
-      if (value instanceof Raw) {
-        changes[name] = value;
-      } else if (value !== undefined && this.hasAttribute(name) && (!fields.length || (fields as any).includes(name))) {
-        this[name] = value;
-        changes[name] = this.attribute(name);
+    if (isPlainObject(values)) {
+      for (const name in values) {
+        const value = values[name];
+        if (value instanceof Raw) {
+          changes[name] = value;
+        } else if (value !== undefined && this.hasAttribute(name) && (!fields.length || (fields as any).includes(name))) {
+          this[name] = value;
+          changes[name] = this.attribute(name);
+        }
       }
     }
 

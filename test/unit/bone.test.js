@@ -654,20 +654,33 @@ describe('=> Bone', function() {
   });
 
   describe('=> Bone.bulkCreate()', function() {
-    it('should fallback to single create if validate 1 by 1', async function() {
-      class Note extends Bone {
-        static attributes = {
-          id: { type: STRING, primaryKey: true, allowNull: false, autoIncrement: false },
-          authorId: BIGINT,
-          content: STRING,
-        };
-      }
+    class Note extends Bone {
+      static attributes = {
+        id: { type: STRING, primaryKey: true, allowNull: false, autoIncrement: false },
+        authorId: BIGINT,
+        content: STRING,
+      };
+    }
+
+    before(async function() {
       await Note.sync({ force: true });
+    });
+
+    it('should fallback to single create if validate 1 by 1', async function() {
       const notes = await Note.bulkCreate([
         { id: 'a', authorId: 1, content: 'hello' },
         { id: 'b', authorId: 1, content: 'world' },
       ], { validate: true });
       assert.deepEqual(notes.map(n => n.id), [ 'a', 'b' ]);
+    });
+
+    it('should validate all records before creating', async function() {
+      await assert.rejects(async () => {
+        await Note.bulkCreate([
+          { authorId: 1, content: 'hello' },
+          { authorId: 1, content: 'world' },
+        ], { validate: true });
+      }, /LeoricValidateError: Validation notNull on id failed/i);
     });
   });
 

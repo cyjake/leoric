@@ -489,6 +489,7 @@ describe('=> Sequelize adapter', () => {
     assert.equal((await Post.findAll({ order: [] })).length, 2);
     assert.equal((await Post.findAll({ order: [[]] })).length, 2);
     assert.equal((await Post.findAll({ order: [null, 'title ASC']})).length, 2);
+    assert.equal((await Post.findAll({ order: ['title']})).length, 2);
   });
 
   it('Model.findAll(opt) with { paranoid: false }', async () => {
@@ -767,6 +768,13 @@ describe('=> Sequelize adapter', () => {
     const foundPost = await Post.find({ include: 'user' });
     assert.equal(foundPost.title, 'Leah');
     assert.equal(foundPost.authorId, user.id);
+    assert.equal(foundPost.user.email, 'user@example.com');
+  });
+
+  it('Model.find({ include: invalid })', async () => {
+    await assert.doesNotReject(async () => {
+      await Post.find({ include: new Date() });
+    });
   });
 
   it('Model.find({ order: Raw })', async () => {
@@ -1128,7 +1136,10 @@ describe('=> Sequelize adapter', () => {
   });
 
   it('Model.update(values, { individualHooks })', async () => {
-    const result = await Post.update({ title: 'By three they come' }, { individualHooks: true });
+    const result = await Post.update({ title: 'By three they come' }, {
+      individualHooks: true,
+      paranoid: false,
+    });
     assert.ok(result == null);
   });
 
@@ -1392,6 +1403,9 @@ describe('=> Sequelize adapter', () => {
     await post.reload();
     assert.equal(post.authorId, 3);
     await post.update({ title: 'Mardget', authorId: 2 }, { fields: [ ] });
+    assert.equal(post.title, 'Mardget');
+    assert.equal(post.authorId, 2);
+    await post.update({}, { fields: ['title'] });
     assert.equal(post.title, 'Mardget');
     assert.equal(post.authorId, 2);
   });

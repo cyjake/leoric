@@ -453,7 +453,9 @@ export class AbstractBone {
     records = instances.map(instance => (instance as any).getRaw());
     if (!(autoIncrement && unset || allset)) {
       if (options.validate !== false) {
-        for (const record of records) this._validateAttributes(record);
+        for (const record of records) {
+          this._validateAttributes({ [primaryKey]: undefined, ...record });
+        }
       }
       return await new Spell<T, InstanceType<T>[]>(this, options).$bulkInsert(records);
     }
@@ -942,7 +944,7 @@ export class AbstractBone {
     const diff = compare((attributes), columnMap);
     Object.defineProperties(this, looseReadonly({ timestamps, primaryKey, columns, attributeMap, associations, tableAlias }));
     this[tableKey] = table;
-    this[synchronizedKey] = Object.keys(diff).length === 0;
+    this.synchronized = Object.keys(diff).length === 0;
     if (!this.synchronized) {
       debug(`[load] ${this.name} \`${this.table}\` out of sync %j`, Object.keys(diff));
     }
@@ -1184,7 +1186,7 @@ export class AbstractBone {
    * bone.remove(true)  // => DELETE FROM ... WHERE ...
    * bone.remove(true, { hooks: false })
    */
-  async remove(forceDelete?: boolean, opts: QueryOptions = {}): Promise<number> {
+  async remove(forceDelete?: boolean, opts?: QueryOptions): Promise<number> {
     return await this._remove(forceDelete, opts);
   }
 
@@ -1197,7 +1199,7 @@ export class AbstractBone {
    * post.remove()      // update the `deletedAt`
    * post.remove(true)  // delete record
    */
-  async _remove(forceDelete?: boolean, opts: QueryOptions = {}) {
+  async _remove(forceDelete?: boolean, opts?: QueryOptions) {
     const Model = this.constructor as typeof AbstractBone;
     const { primaryKey, shardingKey, attributes, timestamps } = Model;
     const { deletedAt } = timestamps;
@@ -1213,7 +1215,7 @@ export class AbstractBone {
     if (!forceDelete && attributes[deletedAt]) {
       const result = this._update({
         [deletedAt]: new Date(),
-      }, opts);
+      }, opts || {});
       return result;
     }
     return await Model._remove(condition, forceDelete, opts);

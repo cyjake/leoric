@@ -151,7 +151,6 @@ function parseScope<T extends typeof SequelizeBone & typeof AbstractBone>(
     // array should not contain function
     return setScopeToSpell(mergeScope(scope));
   }
-  return scope;
 }
 
 /**
