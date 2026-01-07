@@ -31,7 +31,7 @@ import {
 import { executeValidator, LeoricValidateError } from './validator';
 import Attribute, { AttributeParams } from './drivers/abstract/attribute';
 
-interface SyncOptions {
+export interface SyncOptions {
   force?: boolean;
   alter?: boolean;
 }
@@ -47,9 +47,9 @@ export interface InitOptions {
   timestamps?: boolean;
 }
 
-const columnAttributesKey = Symbol('leoric#columnAttributes');
-const synchronizedKey = Symbol('leoric#synchronized');
-const tableKey = Symbol('leoric#table');
+export const columnAttributesKey = Symbol('leoric#columnAttributes');
+export const synchronizedKey = Symbol('leoric#synchronized');
+export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
 
@@ -151,7 +151,7 @@ export class AbstractBone {
 
   static timestamps: { createdAt: string; updatedAt: string; deletedAt: string };
 
-  static _scope: (spell: Spell<typeof AbstractBone>) => void;
+  static _scope: any;
 
   static associations: { [key: string]: any };
 
@@ -514,15 +514,8 @@ export class AbstractBone {
    * @example
    * Post.include('author', 'comments').where('posts.id = ?', 1)
    */
-  static include(...names: string[]): any {
+  static include<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T> {
     return this._find().$with(...names);
-  }
-
-  /**
-   * Start a find query by creating and returning Spell
-   */
-  static find(conditions: any, ...values: any[]): any {
-    return this._find(conditions, ...values);
   }
 
   /**
@@ -624,9 +617,14 @@ export class AbstractBone {
   /**
    * Update any record that matches conditions.
    */
-  static update(conditions: any, values: any = {}, options: any = {}): any {
+  static _update<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
+    this: T,
+    conditions: WhereConditions<T>,
+    values: Record<Key, Literal | Raw>,
+    options: QueryOptions,
+  ) {
     const { attributes } = this;
-    const data = Object.assign({}, values);
+    const data: Record<string, Literal> = Object.assign({}, values);
     const { updatedAt, deletedAt } = this.timestamps;
     if (attributes[updatedAt] && !data[updatedAt] && !data[deletedAt] && !options.silent) {
       data[updatedAt] = new Date();
@@ -636,18 +634,20 @@ export class AbstractBone {
       const instance = new this(validateData);
       (instance as any)._validateAttributes(validateData);
     }
-    let spell: any = new Spell(this, options).$where(conditions).$update(data);
-    if (options && options.paranoid === false) spell = spell.unparanoid;
-    return (spell as any).later((result: any) => result.affectedRows);
+    let spell = new Spell<T, number>(this, options).$where(conditions).$update(data);
+    if (options && options.paranoid === false) {
+      spell = spell.unparanoid as Spell<T, number>;
+    }
+    return spell.later(result => result.affectedRows);
   }
 
   /**
    * JSON merge convenience for update
    */
-  static jsonMerge<T extends typeof AbstractBone, Key extends keyof Values<T>>(
+  static jsonMerge<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
     this: T,
     conditions: WhereConditions<T>,
-    values: Record<Key, Record<string, Literal> | Raw>,
+    values: Record<Key, Literal | Record<string, Literal> | Raw>,
     options: QueryOptions & { preserve?: boolean } = {},
   ): Promise<number> {
     const { preserve, ...restOptions } = options;
@@ -660,7 +660,7 @@ export class AbstractBone {
         data[name as Key] = value as Record<string, Literal>;
       }
     }
-    return this.update(conditions, data, restOptions);
+    return this._update(conditions, data, restOptions);
   }
 
   static jsonMergePreserve<T extends typeof AbstractBone, Key extends keyof Values<T>>(
@@ -675,7 +675,7 @@ export class AbstractBone {
   /**
    * Remove rows. If soft delete is applied, an UPDATE query is performed instead of DELETing records directly. Set `forceDelete` to true to force a `DELETE` query.
    */
-  static remove(conditions: any, forceDelete = false, options?: any): any {
+  static remove<T extends typeof AbstractBone>(this: T, conditions: WhereConditions<T>, forceDelete = false, options?: QueryOptions) {
     return this._remove(conditions, forceDelete, options);
   }
 
@@ -694,24 +694,30 @@ export class AbstractBone {
     this: T,
     conditions: WhereConditions<T>,
     forceDelete = false,
-    options: QueryOptions,
-  ) {
+    options?: QueryOptions,
+  ): Spell<T, number> {
     const { deletedAt } = this.timestamps;
     if (forceDelete !== true && this.attributes[deletedAt]) {
-      return AbstractBone.update.call(this, conditions, { [deletedAt]: new Date() }, {
+      return this._update.call(this, conditions, { [deletedAt]: new Date() }, {
         ...options,
         hooks: false, // should not run hooks again
-      });
+      }) as Spell<T, number>;
     }
 
-    const spell = new Spell(this, options).unscoped.$where(conditions).$delete();
+    const spell = new Spell<T, number>(this, options).unscoped.$where(conditions).$delete();
     return spell.later(result => {
       return result.affectedRows;
-    });
+    }) as Spell<T, number>;
   }
 
-  static async query(sql: string, values: Literal[], opts: QueryOptions) {
-    return await rawQuery(this.driver, sql, values, { model: this, ...opts });
+  /**
+   * Execute a raw query
+   * @example
+   * Bone.query('SELECT * FROM posts WHERE id = ?', [1])
+   * Bone.query('SELECT * FROM posts WHERE id = :id', { replacements: { id: 1 } })
+   */
+  static async query<T extends typeof AbstractBone>(this: T, sql: string, values?: Literal[] | QueryOptions, opts: QueryOptions = {}): Promise<{ rows?: any[]; fields?: { table: string; name: string }[] }> {
+    return await rawQuery(this.driver, sql, values as any, { model: this as any, ...opts });
   }
 
   /**
@@ -950,6 +956,21 @@ export class AbstractBone {
 
   static from<T extends typeof AbstractBone>(this: T, table: string | Spell<T>) {
     return new Spell(this).$from(table);
+  }
+
+  /**
+   * Restore soft-deleted rows by clearing deletedAt.
+   * @example
+   * Bone.restore({ title: 'aaa' })
+   * Bone.restore({ title: 'aaa' }, { hooks: false })
+   */
+  static _restore<T extends typeof AbstractBone>(this: T, conditions: WhereConditions<T>, opts: QueryOptions) {
+    const { deletedAt } = this.timestamps as { deletedAt: string };
+    if (deletedAt == null) {
+      throw new Error('Model is not paranoid');
+    }
+    // Use un-paranoid update to clear deletedAt
+    return this._find(conditions, { ...opts, paranoid: false }).$update({ [deletedAt]: null }) as Spell<T, number>;
   }
 
   // raw accessors
@@ -1237,42 +1258,10 @@ export class AbstractBone {
   }
 
   /**
-   * update rows
-   * @param changes data changes
-   * @param opts query options
-   */
-  async update(
-    values?: Record<string, Literal | Raw>,
-    options: QueryOptions & { fields?: string[] } = {},
-  ): Promise<number> {
-    const changes: Record<string, Literal | Raw> = {};
-    const originalValues = Object.assign({}, this.#raw);
-    const { fields = [] } = options;
-    if (typeof values === 'object') {
-      for (const name in values) {
-        const value = values[name];
-        if (value instanceof Raw) {
-          changes[name] = value;
-        } else if (value !== undefined && this.hasAttribute(name) && (!fields.length || (fields as any).includes(name))) {
-          this[name] = value;
-          changes[name] = this.attribute(name);
-        }
-      }
-    }
-    try {
-      const res = await this._update(Object.keys(changes).length ? changes : values, options);
-      return res;
-    } catch (error) {
-      this._setRaw(originalValues);
-      throw error;
-    }
-  }
-
-  /**
    * Persist changes on current instance back to database with `UPDATE`.
    * @private
    */
-  async _update(values?: Record<string, Literal>, options: QueryOptions = {}): Promise<number> {
+  async _update(values: Record<string, Literal>, options: QueryOptions): Promise<number> {
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey, shardingKey } = Model;
     const changes: Record<string, Literal> = {};

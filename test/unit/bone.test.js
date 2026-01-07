@@ -624,6 +624,19 @@ describe('=> Bone', function() {
       ]);
       assert.equal(Post.shardingColumn, 'user_id');
     });
+
+    it('should return null if no sharding key specified', function() {
+      class Post extends Bone {
+        static attributes = {
+          userId: BIGINT,
+        };
+      }
+      Post.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'user_id', columnType: 'bigint', dataType: 'bigint' },
+      ]);
+      assert.equal(Post.shardingColumn, undefined);
+    });
   });
 
   describe('=> Bone.upsert()', function() {
