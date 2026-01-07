@@ -301,11 +301,11 @@ export class AbstractBone {
     }, {});
     Object.defineProperty(this.prototype, name, {
       get() {
-        return this.attribute(name); }
-        ,
+        return this.attribute(name);
+      },
       set(value: any) {
-        return this.attribute(name, value); }
-        ,
+        return this.attribute(name, value);
+      },
       ...customDescriptor,
       enumerable: true,
       configurable: true,
