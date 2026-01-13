@@ -5,7 +5,7 @@ import { findDriver, AbstractDriver } from '../drivers';
 import { isBone } from '../utils';
 
 import BaseRealm from './base';
-import { AbstractBone } from '../types/abstract_bone';
+import { AbstractBone } from '../abstract_bone';
 
 /**
  *

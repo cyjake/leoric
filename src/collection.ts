@@ -1,4 +1,4 @@
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import Spell from './spell';
 import { Literal, Values } from './types/common';
 import { Alias, Identifier } from './expr';
@@ -10,10 +10,19 @@ class Collection<T extends object> extends Array<T> {
   /**
    * Convert results by determining whether the result is instantiable or not.
    */
-  static init<T extends typeof AbstractBone>(
-    { spell, rows, fields, insertId, affectedRows }:
-    { spell: Spell<T>; rows: any[]; fields: any[]; insertId?: number; affectedRows?: number },
-  ) {
+  static init<T extends typeof AbstractBone>({
+    spell,
+    rows,
+    fields,
+    insertId,
+    affectedRows,
+  }: {
+    spell: Spell<T>;
+    rows: any[];
+    fields: any[];
+    insertId?: number;
+    affectedRows?: number;
+  }) {
     if (spell.command !== 'select') return { insertId, affectedRows };
     return dispatch(spell, rows, fields);
   }

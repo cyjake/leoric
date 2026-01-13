@@ -89,7 +89,7 @@ describe('=> Basics (TypeScript)', function() {
   });
 
   after(() => {
-    Bone.driver = null;
+    (Bone as any).driver = null;
   });
 
   beforeEach(async function() {

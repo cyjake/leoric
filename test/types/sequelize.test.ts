@@ -54,7 +54,7 @@ describe('=> sequelize (TypeScript)', function() {
 
     @Column(VIRTUAL)
     get virtualField(): string {
-      return this.getDataValue('content')?.toLowerCase() || '';
+      return (this.getDataValue('content') as string)?.toLowerCase() || '';
     }
 
     set virtualField(v: string) {
@@ -90,8 +90,8 @@ describe('=> sequelize (TypeScript)', function() {
   }
 
   before(async function() {
-    Bone.driver = null;
-    SequelizeBone.driver = null;
+    (Bone as any).driver = null;
+    (SequelizeBone as any).driver = null;
     await connect({
       host: 'localhost',
       port: process.env.MYSQL_PORT,
@@ -622,7 +622,7 @@ describe('=> sequelize (TypeScript)', function() {
       await Post.destroy({ where: { title: 'Leah' } });
       const post = await Post.findOne({ where: { title: 'Leah' } });
       assert.equal(post, null);
-      const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false });
+      const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false })!;
       assert.equal(post1.title, 'Leah');
 
       const { rows, count } = await Post.findAndCountAll({
@@ -641,11 +641,11 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.findOne(id)', async () => {
       const { id } = await Post.create({ title: 'Leah' });
 
-      const post = await Post.findOne();
+      const post = await Post.findOne()!;
       assert.equal(post.title, 'Leah');
 
       // if passed value, take the value as primary key
-      assert.deepEqual((await Post.findOne(id)).toJSON(), post.toJSON());
+      assert.deepEqual((await Post.findOne(id))!.toJSON(), post.toJSON());
 
       // if passed null or undefined, return null
       assert.equal(await Post.findOne(null as any), null);
@@ -655,16 +655,16 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.findOne(id) with paranoid = false', async () => {
       const { id } = await Post.create({ title: 'Leah' });
 
-      const post = await Post.findOne();
+      const post = await Post.findOne()!;
       assert.equal(post.title, 'Leah');
       await post.remove();
       const post1 = await Post.findOne();
       assert.equal(post1, null);
-      const post2 = await Post.findOne({ paranoid: false });
+      const post2 = await Post.findOne({ paranoid: false })!;
       assert.equal(post2.isNewRecord, false);
       assert(post2);
 
-      const post3 = await Post.findOne({ where: { id }, paranoid: false });
+      const post3 = await Post.findOne({ where: { id }, paranoid: false })!;
       assert.equal(post3.title, 'Leah');
       assert.equal(post3.isNewRecord, false);
       await post3.destroy({ force: true });
@@ -677,7 +677,7 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.findByPk(pk)', async () => {
       const { id } = await Post.create({ title: 'Leah' });
 
-      const post = await Post.findByPk(id);
+      const post = await Post.findByPk(id)!;
       assert.equal(post.title, 'Leah');
       assert.equal(post.isNewRecord, false);
     });
@@ -755,8 +755,8 @@ describe('=> sequelize (TypeScript)', function() {
         where: { id: p1.id },
         defaults: { id: 1, title: 'Tyrael' },
       });
-      assert.equal(p2.id, p1.id);
-      assert.equal(p2.title, 'Leah');
+      assert.equal(p2!.id, p1.id);
+      assert.equal(p2!.title, 'Leah');
     });
   });
 
@@ -991,7 +991,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(probe, true);
       assert.deepEqual(instance, post);
 
-      Post.addHook<Post>('beforeUpdate', (obj, values) => {
+      Post.addHook('beforeUpdate', (obj, values) => {
         obj.changed('title');
         if (!values.content) {
           values.content = 'yahaha';
@@ -1183,7 +1183,7 @@ describe('=> sequelize (TypeScript)', function() {
   describe('=> Model.find({ hint })', () => {
     it('findOne', () => {
       assert.equal(
-        Post.findOne({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') }).toString(),
+        Post.findOne({ where: { id: 1 }, hint: new Hint('SET_VAR(foreign_key_checks=OFF)') })!.toString(),
         'SELECT /*+ SET_VAR(foreign_key_checks=OFF) */ * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1'
       );
     });
@@ -1379,8 +1379,8 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       await Post.update({ title: 'Diablo' }, { where: { title: 'Leah' } });
       assert.equal(await Post.findOne({ where: { title: 'Leah' }}), null);
-      assert.equal((await Post.findOne({ where: { title: 'Cain' }})).title, 'Cain');
-      assert.equal((await Post.findOne({ where: { title: 'Diablo' }})).title, 'Diablo');
+      assert.equal((await Post.findOne({ where: { title: 'Cain' }})!).title, 'Cain');
+      assert.equal((await Post.findOne({ where: { title: 'Diablo' }})!).title, 'Diablo');
     });
 
     it('post.update()', async function() {
@@ -1438,7 +1438,7 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       await Post.remove({ title: 'Cain' });
       assert.equal((await Post.findAll()).length, 1);
-      assert.equal((await Post.findOne()).title, 'Leah');
+      assert.equal((await Post.findOne())!.title, 'Leah');
     });
 
     it('post.remove()', async function() {
@@ -1457,7 +1457,7 @@ describe('=> sequelize (TypeScript)', function() {
       assert.equal(result.affectedRows, 1);
 
       assert.equal(await Post.count(), 1);
-      assert.equal((await Post.findOne()).title, 'Cain');
+      assert.equal((await Post.findOne())!.title, 'Cain');
     });
   });
 

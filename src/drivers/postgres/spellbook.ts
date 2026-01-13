@@ -1,6 +1,6 @@
 import Spellbook from '../abstract/spellbook';
 import type Spell from '../../spell';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 
 class PostgresSpellBook extends Spellbook {
   formatInsert<T extends typeof AbstractBone>(spell: Spell<T>) {

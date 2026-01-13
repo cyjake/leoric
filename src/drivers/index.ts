@@ -28,3 +28,5 @@ export {
   SqljsDriver,
   AbstractDriver,
 };
+
+export { ConnectOptions } from './abstract';

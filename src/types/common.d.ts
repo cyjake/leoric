@@ -1,7 +1,7 @@
 
-import { CommonHintsArgs } from '../hint';
+import { CommonHintArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
-import { AbstractBone } from './abstract_bone';
+import { AbstractBone } from '../abstract_bone';
 import Raw from '../raw';
 import { Spell } from '../spell';
 
@@ -51,6 +51,8 @@ export interface Connection {
     values?: Array<Literal | Literal[]>,
     opts: Spell<T> | QueryOptions & { connection?: Connection },
   ): Promise<QueryResult>;
+
+  release(): void;
 }
 
 export declare class Pool {
@@ -64,8 +66,8 @@ export interface QueryOptions {
   paranoid?: boolean;
   silent?: boolean;
   connection?: Connection;
-  hints?: Array<CommonHintsArgs>;
-  hint?: CommonHintsArgs;
+  hints?: Array<CommonHintArgs>;
+  hint?: CommonHintArgs;
   transaction?: Connection | {
     connection: Connection
   } | null;
@@ -77,11 +79,13 @@ export type BulkCreateOptions = QueryOptions & {
 }
 
 export interface AssociateOptions {
-  className?: string;
+  className: string;
   foreignKey?: string;
   through?: string;
   where?: Record<string, Literal>;
   select?: string[] | ((name: string) => boolean);
+  hasMany?: boolean;
+  belongsTo?: boolean;
 }
 
 export type command = 'select' | 'insert' | 'bulkInsert' | 'update' | 'delete' | 'upsert';
@@ -142,6 +146,7 @@ export declare class Attribute {
   jsType: Literal;
   virtual: boolean;
   unique?: boolean;
+  autoIncrement?: boolean;
 
   equals(columnInfo: ColumnMeta): boolean;
   cast(value: Literal): Literal;
@@ -189,10 +194,12 @@ export type OnConditions<T extends typeof AbstractBone> = {
 // https://stackoverflow.com/a/68077021/179691
 export type PickTypeKeys<Obj, Type, T extends keyof Obj = keyof Obj> = ({ [P in keyof Obj]: Obj[P] extends Type ? P : never })[T];
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+type OmitFunctions<T> = { [P in keyof T as T[P] extends Function ? never : P]: T[P]; };
+
 export type NullablePartial<T> = { [P in keyof T]?: T[P] | null };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type Values<T> = NullablePartial<Omit<T, PickTypeKeys<T, Function> | 'isNewRecord' | 'Model' | 'dataValues'>>;
+export type Values<T> = NullablePartial<Omit<OmitFunctions<T>, 'isNewRecord' | 'Model' | 'dataValues'>>;
 
 export type BoneColumns<T extends typeof AbstractBone, Key extends keyof InstanceType<T> = keyof Values<InstanceType<T>>> = Key;
 
@@ -208,10 +215,3 @@ export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' |
 
 // https://stackoverflow.com/a/67232225/179691
 type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R, any> ? R: never;
-
-/**
- * Plain keyMap type object of a Bone's attributes
- * BoneInstanceValues<user> = { id: number, name: string }
- */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<InstanceType<T>, PickTypeKeys<InstanceType<T>, Function> | 'isNewRecord' | 'Model' | 'dataValues'>;

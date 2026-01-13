@@ -1,5 +1,7 @@
 import { Attribute } from './types/common';
 
+export type HookFunc = (...args: any[]) => void | Promise<void>;
+
 /**
  *
  * @param {boolean} isInstance class or instance
@@ -111,7 +113,7 @@ const hookNames = hookableMethods.reduce(function(result, method) {
   return result;
 }, [] as string[]);
 
-function addHook(target: any, hookName: string, func: (...args: any[]) => Promise<void>) {
+function addHook(target: any, hookName: string, func: HookFunc) {
   const { type, method } = getFnType(hookName);
   const sequelize = target.sequelize;
   if (hookableMethods.includes(method)) {
@@ -180,7 +182,7 @@ function addHook(target: any, hookName: string, func: (...args: any[]) => Promis
  * @param {string} hookName
  * @param {function} func
  */
-function setupSingleHook(target: any, hookName: string, func: (...args: any[]) => Promise<void>) {
+function setupSingleHook(target: any, hookName: string, func: HookFunc) {
   const { method } = getFnType(hookName);
   if (hookableMethods.includes(method)) {
     addHook(target, hookName, func);

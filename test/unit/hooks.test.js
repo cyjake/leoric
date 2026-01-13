@@ -692,6 +692,14 @@ describe('hooks', function() {
         assert.equal(user1.email, 'hy@h.com');
         assert.equal(beforeProbe, null);
         assert.equal(afterProbe, null);
+
+        // skip if hook name not exist
+        const originCreateFunc = User.create;
+        User.addHook();
+        assert.equal(User.create, originCreateFunc);
+        // skip if hook callback not exist
+        User.addHook('beforeCreate');
+        assert.equal(User.create, originCreateFunc);
       });
 
       it('update hooks', async () => {
@@ -708,7 +716,12 @@ describe('hooks', function() {
           afterProbe = 'after';
         });
 
-        const user = await User.create({ nickname: 'tim1', email: 'h1@h.com' ,meta: { foo: 1, bar: 'baz'}, status: 1 });
+        const user = await User.create({
+          nickname: 'tim1',
+          email: 'h1@h.com',
+          meta: { foo: 1, bar: 'baz' },
+          status: 1,
+        });
 
         await user.update({ nickname: 'jim2'});
         let updatedUser = await User.findOne(user.id);

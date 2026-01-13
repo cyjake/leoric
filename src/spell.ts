@@ -7,7 +7,7 @@ import pluralize from 'pluralize';
 import SqlString from 'sqlstring';
 import { parseExprList, parseExpr, walkExpr, Expr, Token, Alias } from './expr';
 import { isPlainObject } from './utils';
-import { IndexHint, INDEX_HINT_TYPE, Hint, HintInterface, HintScopeObject } from './hint';
+import { IndexHint, INDEX_HINT_TYPE, Hint, HintInterface, HintScopeObject, CommonHintArgs } from './hint';
 import { parseObject } from './query_object';
 import Raw from './raw';
 import { AGGREGATOR_MAP } from './constants';
@@ -23,7 +23,7 @@ import {
   WithOptions,
   WhereConditions,
 } from './types/common';
-import { AbstractBone } from './types/abstract_bone';
+import { AbstractBone } from './abstract_bone';
 import { Identifier, Func, Operator, TernaryOperator, Subquery } from './expr';
 
 // Polyfill for structuredClone
@@ -70,8 +70,8 @@ interface SpellOptions {
   rowCount?: number;
   connection?: Connection;
   sets?: { [key: string]: Literal } | { [key: string]: Literal }[];
-  hints?: Array<Hint | IndexHint>;
-  hint?: Hint | IndexHint;
+  hints?: Array<CommonHintArgs>;
+  hint?: CommonHintArgs;
   paranoid?: boolean;
   transaction?: any;
   laters?: Array<(result: any) => any>;
@@ -342,7 +342,7 @@ function joinAssociation(spell: Spell<any>, BaseModel: typeof AbstractBone, base
   spell.joins[refName] = {
     Model: RefModel,
     on: joinOnConditions(spell, BaseModel, baseName, refName, { where: whereOpts, association }),
-    hasMany: association.hasMany || (throughAssociation ? throughAssociation.hasMany : false),
+    hasMany: targetAssociation?.hasMany ?? association.hasMany ?? throughAssociation?.hasMany ?? false,
   };
 
   if (includes) joinAssociation(spell, RefModel, refName, includes);
@@ -527,7 +527,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   get unparanoid() {
     const spell = this.dup;
     spell.scopes = spell.scopes.filter((scope: any) => !scope.__paranoid);
-    return spell;
+    return spell as typeof this;
   }
 
   get all() {
@@ -666,7 +666,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     this.sets = parseSet(this, records);
     return this;
   }
-  bulkInsert!: (records: Record<string, any>[]) => Spell<T, U>;
+  bulkInsert!: (records: Record<string, any>[]) => Spell<T, InstanceType<T>[]>;
 
   /**
    * Whitelist columnAttributes to select. Can be called repeatedly to select more columnAttributes.
@@ -790,14 +790,15 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * .group('YEAR(createdAt)');
    * @param {...string} names
    */
-  $group(...names: string[]): this {
+  $group(...names: Array<string | Raw>): this {
     const { columns, groups, Model } = this;
 
     for (const name of names) {
-      if (Model.attributes[name] && Model.attributes[name].virtual) {
-        throw new Error(`unable to use virtual attribute ${name} as group column in model ${Model.name}`);
+      const column = name instanceof Raw ? name.toString() : name;
+      if (Model.attributes[column]?.virtual) {
+        throw new Error(`unable to use virtual attribute ${column} as group column in model ${Model.name}`);
       }
-      const token = parseExpr(name) as Alias | Identifier;
+      const token = parseExpr(column) as Alias | Identifier;
       if (token.type === 'alias') {
         groups.push({ type: 'id', value: token.value });
       } else {
@@ -1062,14 +1063,19 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   }
   ignoreIndex!: (...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) => Spell<T, U>;
 
+  $count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
   count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
+  $average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
   average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
+  $minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
   minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
+  $maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
   maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
+  $sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
   sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
 
   /**

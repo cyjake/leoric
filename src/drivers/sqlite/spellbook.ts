@@ -1,7 +1,7 @@
 import Spellbook from '../abstract/spellbook';
 import type Spell from '../../spell';
 import { Literal } from '../../types/common';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import { Expr, Identifier } from '../../expr';
 
 function renameSelectExpr<T extends typeof AbstractBone>(spell: Spell<T>): void {

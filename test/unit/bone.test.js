@@ -83,7 +83,7 @@ describe('=> Bone', function() {
       class User extends Bone {
         static attributes = {};
       }
-      await User.load([
+      User.load([
         { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
       ]);
       assert.ok(User.attributes.id);
@@ -97,7 +97,7 @@ describe('=> Bone', function() {
           iid: { type: BIGINT, primaryKey: true },
         };
       };
-      await User.load([
+      User.load([
         { columnName: 'iid', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
       ]);
       assert.equal(User.attributes.iid.primaryKey, true);
@@ -297,6 +297,22 @@ describe('=> Bone', function() {
         user.bar = 1;
         assert.equal(user.bar, '1');
       }, /TypeError: Cannot set property bar/);
+    });
+
+    it('should skip renaming if attribute does not exist', async function() {
+      class User extends Bone {
+        static attributes = {
+          foo: { type: STRING },
+        };
+      }
+      User.load([
+        { columnName: 'foo', columnType: 'varchar', dataType: 'varchar' },
+      ]);
+      assert.doesNotThrow(function() {
+        User.renameAttribute('baz', 'qux');
+      });
+      assert.deepEqual(Object.keys(User.attributes).sort(), [ 'foo', 'id' ]);
+      assert.deepEqual(Object.keys(User.columnAttributes).sort(), [ 'foo', 'id' ]);
     });
   });
 
@@ -591,6 +607,91 @@ describe('=> Bone', function() {
       const note = await Note.findOne().with('member');
       assert.ok(note.member instanceof Member);
       assert.equal(note.member.id, member_id);
+    });
+  });
+
+  describe('=> Bone.shardingColumn', function() {
+    it('should return the sharding column if sharding key specified', function() {
+      class Post extends Bone {
+        static attributes = {
+          userId: BIGINT,
+        };
+        static shardingKey = 'userId';
+      }
+      Post.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'user_id', columnType: 'bigint', dataType: 'bigint' },
+      ]);
+      assert.equal(Post.shardingColumn, 'user_id');
+    });
+
+    it('should return null if no sharding key specified', function() {
+      class Post extends Bone {
+        static attributes = {
+          userId: BIGINT,
+        };
+      }
+      Post.load([
+        { columnName: 'id', columnType: 'bigint', dataType: 'bigint', primaryKey: true },
+        { columnName: 'user_id', columnType: 'bigint', dataType: 'bigint' },
+      ]);
+      assert.equal(Post.shardingColumn, undefined);
+    });
+  });
+
+  describe('=> Bone.upsert()', function() {
+    it('should skip if nothing to update', async function() {
+      class Note extends Bone {
+        static attributes = {
+          authorId: BIGINT,
+          content: STRING,
+        };
+      }
+      await Note.sync({ force: true });
+      const result = await Note.upsert({ });
+      assert.equal(result, 0);
+    });
+  });
+
+  describe('=> Bone.bulkCreate()', function() {
+    class Note extends Bone {
+      static attributes = {
+        id: { type: STRING, primaryKey: true, allowNull: false, autoIncrement: false },
+        authorId: BIGINT,
+        content: STRING,
+      };
+    }
+
+    before(async function() {
+      await Note.sync({ force: true });
+    });
+
+    it('should fallback to single create if validate 1 by 1', async function() {
+      const notes = await Note.bulkCreate([
+        { id: 'a', authorId: 1, content: 'hello' },
+        { id: 'b', authorId: 1, content: 'world' },
+      ], { validate: true });
+      assert.deepEqual(notes.map(n => n.id), [ 'a', 'b' ]);
+    });
+
+    it('should validate all records before creating', async function() {
+      await assert.rejects(async () => {
+        await Note.bulkCreate([
+          { authorId: 1, content: 'hello' },
+          { authorId: 1, content: 'world' },
+        ], { validate: true });
+      }, /LeoricValidateError: Validation notNull on id failed/i);
+    });
+  });
+
+  describe('=> bone.create()', function() {
+    it('should skip if nothing to create', async function() {
+      class Note extends Bone {
+        static attributes = {};
+      }
+      await Note.sync({ force: true });
+      const note = new Note();
+      assert.deepEqual(await note.create(), note);
     });
   });
 });

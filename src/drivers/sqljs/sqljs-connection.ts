@@ -101,6 +101,8 @@ export class SqljsConnection {
     this.database = undefined;
   }
 
+  async query(query: string, values?: SqljsQueryValues, spell?: SpellMeta): Promise<SqljsConnectionQueryResult>;
+  async query(query: { sql: string; nestTables?: boolean }, values?: SqljsQueryValues, spell?: SpellMeta): Promise<SqljsConnectionQueryResult>;
   async query(query: string | { sql: string, nestTables?: boolean}, values?: SqljsQueryValues, spell?: SpellMeta) {
     const { sql, nestTables } = typeof query === 'string'
       ? { sql: query, nestTables: false }

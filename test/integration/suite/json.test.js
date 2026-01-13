@@ -83,6 +83,13 @@ describe('=> Basic', () => {
       assert.equal(gen.name, 'gen2');
     });
 
+    it('bone.jsonMerge(values, options) should throw if primary key is missing', async () => {
+      const gen = new Gen({ name: 'testUpdateGen', extra: { test: 'gen' }});
+      await assert.rejects(async () => {
+        await gen.jsonMerge({ extra: { url: 'https://www.taobao.com/?id=2' } });
+      }, /unset primary key/);
+    });
+
     it('bone.jsonMerge(values, options) with object and primitive values mixed should work', async () => {
       const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
       await gen.jsonMerge({
@@ -94,6 +101,15 @@ describe('=> Basic', () => {
       assert.equal(gen.extra.test, 'gen');
       assert.equal(gen.extra.url, 'https://www.taobao.com/?id=2');
       assert.equal(gen.name, 'gen2');
+    });
+
+    it('bone.jsonMerge(values, options) should return 0 if nothing updated', async () => {
+      const gen = await Gen.create({ name: 'testUpdateGen', extra: { test: 'gen' }});
+      await gen.remove();
+      const affectedRows = await gen.jsonMerge({
+        extra: { test: 'gen' },
+      });
+      assert.equal(affectedRows, 0);
     });
 
     it('bone.jsonMergePreserve(name, values, options) should work', async () => {

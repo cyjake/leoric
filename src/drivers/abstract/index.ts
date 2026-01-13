@@ -6,7 +6,7 @@ import Attribute, { AttributeParams } from './attribute';
 import DataTypes from '../../data_types';
 import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import { ColumnMeta, Connection, Literal, Pool, QueryOptions, QueryResult } from '../../types/common';
 import Spell from '../../spell';
 
@@ -383,18 +383,18 @@ export default class AbstractDriver {
     await this.query(sql);
   }
 
-  async rollback(opts: { connection?: Connection}) {
+  async rollback(opts: { Model: typeof AbstractBone; connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
     return await this.query('ROLLBACK', [], { command: 'ROLLBACK', ...opts, connection });
   }
 
-  async commit(opts: { connection?: Connection}) {
+  async commit(opts: { Model: typeof AbstractBone; connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
 
     return await this.query('COMMIT', [], { command: 'COMMIT', ...opts, connection });
   }
 
-  async begin(opts: { connection?: Connection}) {
+  async begin(opts: { Model: typeof AbstractBone; connection?: Connection}) {
     const connection = opts.connection || await this.getConnection();
     return await this.query('BEGIN', [], { command: 'BEGIN', ...opts, connection });
   }

@@ -1,6 +1,6 @@
 import type { Database, sqlite3 } from 'sqlite3';
 import type Spell from '../../spell';
-import { AbstractBone } from '../../types/abstract_bone';
+import { AbstractBone } from '../../abstract_bone';
 import { Literal, QueryResult } from '../../types/common';
 import type Pool from './pool';
 
