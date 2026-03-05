@@ -402,7 +402,7 @@ scopeDeletedAt.__paranoid = true;
  * For performance reason, {@link Bone} use the prefixed with `$` ones mostly.
  * @alias Spell
  */
-class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null> extends Promise<U> {
+class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<InstanceType<T>> | ResultSet<T> | number | null, G extends boolean = false> extends Promise<U> {
   Model: T;
   connection?: Connection;
 
@@ -520,7 +520,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   get unscoped() {
     const spell = this.dup;
     spell.scopes = [];
-    return spell;
+    return spell as typeof this;
   }
 
   // remove `deleted is NULL`
@@ -810,7 +810,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     }
     return this;
   }
-  group!: (...names: string[]) => Spell<T, U>;
+  group!: (...names: Array<string | Raw>) => Spell<T, ResultSet<T>, true>;
 
   /**
    * Set the ORDER of the query
@@ -1063,20 +1063,20 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   }
   ignoreIndex!: (...hints: (string | IndexHint | HintInterface | HintScopeObject)[]) => Spell<T, U>;
 
-  $count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
-  count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+  $count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
+  count!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
 
-  $average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
-  average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+  $average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
+  average!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
 
-  $minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
-  minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+  $minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
+  minimum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
 
-  $maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
-  maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+  $maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
+  maximum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
 
-  $sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
-  sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, Extract<U, ResultSet<T> | number>>;
+  $sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
+  sum!: (name?: BoneColumns<T> | Raw | string) => Spell<T, G extends true ? ResultSet<T> : number, G>;
 
   /**
    * Get the query results by batch. Returns an async iterator which can then be consumed with an async loop or the cutting edge `for await`. The iterator is an Object that contains a `next()` method:
@@ -1159,7 +1159,7 @@ for (const method of Object.getOwnPropertyNames(Spell.prototype)) {
       value: function Spell_dup<T extends typeof AbstractBone>(this: Spell<T>, ...args: any[]) {
         const spell = this.dup;
         (spell as any)[method](...args);
-        return spell;
+        return spell as typeof this;
       }
     }));
   }

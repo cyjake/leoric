@@ -21,8 +21,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: leoric
         ports:
-        # will assign a random free host port
-        - 5432/tcp
+          - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       # https://github.community/t5/GitHub-Actions/github-actions-cannot-connect-to-mysql-service/td-p/30611#
@@ -33,7 +32,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: leoric
         ports:
-          - 3306
+          - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
@@ -55,8 +54,8 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
-          MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
+          POSTGRES_PORT: 5432
+          MYSQL_PORT: 3306
           MYSQL_ROOT_PASSWORD: password
 
   publish-npm:
@@ -69,4 +68,14 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
       - run: npm install
-      - run: npm publish --provenance --access public
+      - name: npm publish
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ $VERSION == *"alpha"* ]]; then
+            TAG="alpha"
+          elif [[ $VERSION == *"beta"* ]]; then
+            TAG="beta"
+          else
+            TAG="latest"
+          fi
+          npm publish --provenance --access public --tag $TAG

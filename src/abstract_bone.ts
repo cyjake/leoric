@@ -367,10 +367,11 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, opts: QueryOptions = {}) {
+  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, opts?: QueryOptions): Spell<T, InstanceType<T>> | InstanceType<T> {
+    opts = opts ?? {};
     const data = Object.assign({}, values);
     const instance = new this(data);
-    return instance.create({ ...opts });
+    return instance.create({ ...opts }) as Spell<T, InstanceType<T>> | InstanceType<T>;
   }
 
   /**
@@ -622,7 +623,7 @@ export class AbstractBone {
   static _update<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
     this: T,
     conditions: WhereConditions<T>,
-    values: Record<Key, Literal | Raw>,
+    values: Partial<Record<Key, Literal | Raw>>,
     options: QueryOptions,
   ) {
     const { attributes } = this;
@@ -700,7 +701,9 @@ export class AbstractBone {
   ): Spell<T, number> {
     const { deletedAt } = this.timestamps;
     if (forceDelete !== true && this.attributes[deletedAt]) {
-      return this._update.call(this, conditions, { [deletedAt]: new Date() }, {
+      const deletedAtKey = deletedAt as keyof Values<T>;
+      const payload = { [deletedAtKey]: new Date() } as Pick<Values<T>, typeof deletedAtKey>;
+      return this._update.call(this, conditions, payload, {
         ...options,
         hooks: false, // should not run hooks again
       }) as Spell<T, number>;
@@ -1263,7 +1266,7 @@ export class AbstractBone {
    * Persist changes on current instance back to database with `UPDATE`.
    * @private
    */
-  async _update(values: Record<string, Literal>, options: QueryOptions): Promise<number> {
+  async _update(values: Partial<Record<string, Literal>>, options: QueryOptions): Promise<number> {
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey, shardingKey } = Model;
     const changes: Record<string, Literal> = {};
@@ -1318,7 +1321,12 @@ export class AbstractBone {
    * /// after: bone.extra equals { name: 'zhangsan', url: 'https://taobao.com' }
   */
   jsonMerge<Key extends keyof Extract<this, Literal>>(
-    values: Record<Key, Record<string, Literal>>,
+    values: { [K in Key]: K extends keyof this ? this[K] extends Record<string, Literal> ? Record<string, Literal> : Literal : Record<string, Literal> },
+    opts?: QueryOptions & { preserve?: boolean },
+  ): Promise<number>;
+
+  jsonMerge<Key extends keyof Extract<this, Literal>>(
+    values: Record<Key, Literal | Record<string, Literal>>,
     opts?: QueryOptions & { preserve?: boolean },
   ): Promise<number>;
 
@@ -1515,7 +1523,7 @@ export class AbstractBone {
     return this.constructor.name + ' ' + util.inspect(this.toJSON());
   }
 
-  toJSON(): Record<string, any> {
+  toJSON<M extends AbstractBone>(this: M): Values<M> {
     const obj: any = {};
     for (const key in this) {
       if (this.#rawUnset.has(key)) continue;
