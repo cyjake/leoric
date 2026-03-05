@@ -109,7 +109,7 @@ export default class Bone extends AbstractBone {
    * create instance
    * @param opts query options
    */
-  create(opts?: QueryOptions): Spell<typeof Bone, this> | this {
-    return super.create(opts) as Spell<typeof Bone, this> | this;
+  create(opts?: QueryOptions): Spell<typeof AbstractBone, this> | this {
+    return super.create(opts) as Spell<typeof AbstractBone, this> | this;
   }
 }

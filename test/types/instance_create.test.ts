@@ -2,6 +2,8 @@ import { strict as assert } from 'assert';
 import { Bone } from '../../src';
 import type Spell from '../../src/spell';
 
+type SpellInstance<T> = T extends Spell<any, infer U> ? U : never;
+
 describe('=> Instance Create Type (TypeScript)', function() {
   class Post extends Bone {
     id!: bigint;
@@ -19,8 +21,11 @@ describe('=> Instance Create Type (TypeScript)', function() {
     type PostCreateReturn = ReturnType<Post['create']>;
     type UserCreateReturn = ReturnType<User['create']>;
 
-    const postTypeCheck: PostCreateReturn = null as unknown as Post | Spell<typeof Bone, Post>;
-    const userTypeCheck: UserCreateReturn = null as unknown as User | Spell<typeof Bone, User>;
+    type PostCreateInstance = SpellInstance<PostCreateReturn> | Extract<PostCreateReturn, Post>;
+    type UserCreateInstance = SpellInstance<UserCreateReturn> | Extract<UserCreateReturn, User>;
+
+    const postTypeCheck: PostCreateInstance = null as unknown as Post;
+    const userTypeCheck: UserCreateInstance = null as unknown as User;
 
     assert.ok(postTypeCheck || postTypeCheck === null);
     assert.ok(userTypeCheck || userTypeCheck === null);

@@ -367,11 +367,11 @@ export class AbstractBone {
    * @example
    * Bone.create({ foo: 1, bar: 'baz' })
    */
-  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, opts?: QueryOptions): Promise<InstanceType<T>> | InstanceType<T> {
+  static create<T extends typeof AbstractBone>(this: T, values: BoneCreateValues<T>, opts?: QueryOptions): Spell<T, InstanceType<T>> | InstanceType<T> {
     opts = opts ?? {};
     const data = Object.assign({}, values);
     const instance = new this(data);
-    return instance.create({ ...opts }) as Promise<InstanceType<T>> | InstanceType<T>;
+    return instance.create({ ...opts }) as Spell<T, InstanceType<T>> | InstanceType<T>;
   }
 
   /**
