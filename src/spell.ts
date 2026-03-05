@@ -810,7 +810,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     }
     return this;
   }
-  group!: (...names: string[]) => Spell<T, ResultSet<T>, true>;
+  group!: (...names: Array<string | Raw>) => Spell<T, ResultSet<T>, true>;
 
   /**
    * Set the ORDER of the query
