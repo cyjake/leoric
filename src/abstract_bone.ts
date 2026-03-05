@@ -701,7 +701,9 @@ export class AbstractBone {
   ): Spell<T, number> {
     const { deletedAt } = this.timestamps;
     if (forceDelete !== true && this.attributes[deletedAt]) {
-      return this._update.call(this, conditions, { [deletedAt]: new Date() } as any, {
+      const deletedAtKey = deletedAt as keyof Values<T>;
+      const payload = { [deletedAtKey]: new Date() } as Pick<Values<T>, typeof deletedAtKey>;
+      return this._update.call(this, conditions, payload, {
         ...options,
         hooks: false, // should not run hooks again
       }) as Spell<T, number>;
