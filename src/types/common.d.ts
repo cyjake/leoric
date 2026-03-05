@@ -174,7 +174,7 @@ type OrderOptions<T extends typeof AbstractBone> = {
 | string | Raw;
 
 export class Collection<T extends AbstractBone> extends Array<T> {
-  save(): Promise<any[]>;
+  save(): Promise<T[]>;
   toJSON(): Values<T>[];
   toObject(): Values<T>[];
 }
