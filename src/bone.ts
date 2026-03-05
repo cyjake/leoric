@@ -65,7 +65,7 @@ export default class Bone extends AbstractBone {
   static update<T extends typeof Bone, Key extends BoneColumns<T>>(
     this: T,
     conditions: WhereConditions<T>,
-    values: Record<Key, Literal | Raw>,
+    values: Partial<Record<Key, Literal | Raw>>,
     options: QueryOptions = {},
   ) {
     return super._update(conditions, values, options);
@@ -77,7 +77,7 @@ export default class Bone extends AbstractBone {
    * @param opts query options
    */
   async update(
-    values: Record<string, Literal | Raw>,
+    values: Partial<Record<string, Literal | Raw>>,
     options: QueryOptions & { fields?: string[] } = {},
   ): Promise<number> {
     const changes: Record<string, Literal | Raw> = {};
@@ -103,5 +103,13 @@ export default class Bone extends AbstractBone {
       this._setRaw(originalValues);
       throw error;
     }
+  }
+
+  /**
+   * create instance
+   * @param opts query options
+   */
+  create(opts?: QueryOptions): Spell<typeof Bone, this> | this {
+    return super.create(opts) as Spell<typeof Bone, this> | this;
   }
 }
