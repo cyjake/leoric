@@ -17,8 +17,8 @@ interface SyncOptions {
 
 /**
  * construct model attributes entirely from column definitions
- * @param {Bone} model
- * @param {Array<string, Object>} columns column definitions
+ * @param model
+ * @param columns column definitions
  */
 function initAttributes(
   model: typeof AbstractBone & { driver: AbstractDriver },
@@ -201,8 +201,8 @@ export default class BaseRealm {
 
   /**
    * escape value
-   * @param {string} value
-   * @returns {string} escaped value
+   * @param value
+   * @returns escaped value
    * @memberof Realm
    */
   escape(value: string): string {

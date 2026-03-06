@@ -199,8 +199,7 @@ export class AbstractBone {
   /**
    * Model.hasAttribute(name)
    * @static
-   * @param {string} name
-   * @returns {boolean}
+   * @param name
    */
   static hasAttribute(name: string): boolean {
     if (!name) return false;
@@ -223,7 +222,7 @@ export class AbstractBone {
 
   /**
    * get actual update/insert columns to avoid empty insert or update
-   * @param {Object} data
+   * @param data
    */
   static _getColumns(data: Record<string, Literal>): Record<string, Literal> {
     if (!Object.keys(data).length) return data;
@@ -1037,8 +1036,7 @@ export class AbstractBone {
 
   /**
    * instance.hasAttribute(name)
-   * @param {string} name
-   * @returns {boolean}
+   * @param name
    */
   hasAttribute(name: string): boolean {
     if (!name) return false;
@@ -1196,7 +1194,7 @@ export class AbstractBone {
   /**
    * Delete current instance. If `deletedAt` attribute exists, calling {@link Bone#remove} does not actually delete the record from the database. Instead, it updates the value of `deletedAt` attribute to current date. This is called [soft delete](../querying#scopes). To force a regular `DELETE`, use `.remove(true)`.
    * @private
-   * @param {boolean} forceDelete
+   * @param forceDelete
    * @example
    * const post = await Post.first
    * post.remove()      // update the `deletedAt`

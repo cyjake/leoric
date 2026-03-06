@@ -19,9 +19,9 @@ export function escapeId(identifier: string): string {
 /**
  * Schema altering commands other than RENAME COLUMN or ADD COLUMN
  * - https://www.sqlite.org/lang_altertable.html
- * @param {SqliteDriver} driver
- * @param {string} table
- * @param {Object[]} changes the changed attributes
+ * @param driver
+ * @param table
+ * @param changes the changed attributes
  */
 export async function alterTableWithChangeColumn(
   driver: SqliteDriver,

@@ -5,7 +5,7 @@ import { Literal, PickTypeKeys } from '../../types/common';
 
 /**
  * Find the corresponding JavaScript type of the type in database.
- * @param {string} dataType
+ * @param dataType
  */
 export function findJsType(DataTypes: typeof AbstractDataTypes, type: AbstractDataType, dataType: string) {
   if (type instanceof DataTypes.VIRTUAL) return '';
@@ -47,10 +47,10 @@ type DataTypeKey = PickTypeKeys<typeof AbstractDataTypes, AbstractDataType>;
 
 /**
  * Find and instantiate the database specific data type
- * @param {Function} DataTypes
- * @param {Object} params
- * @param {Function} params.type
- * @param {string} params.dataType
+ * @param DataTypes
+ * @param params
+ * @param params.type
+ * @param params.dataType
  */
 function createType(DataTypes: typeof AbstractDataTypes, params: { dataType?: string; type?: any }) {
   const { dataType, type } = params;
@@ -118,10 +118,10 @@ export default class Attribute {
 
   /**
    * Attribute name and definition
-   * @param {string} name attribute name
-   * @param {Object} params attribute definition
-   * @param {Object} opts
-   * @param {boolean} opts.underscored
+   * @param name attribute name
+   * @param params attribute definition
+   * @param opts
+   * @param opts.underscored
    */
   constructor(name: string, params?: AttributeParams, { underscored }: { underscored?: boolean } = {}) {
     const { DataTypes } = this.constructor as typeof Attribute;
@@ -194,7 +194,7 @@ export default class Attribute {
 
   /**
    * @abstract
-   * @returns {string} SQL string representation of this attribute
+   * @returns SQL string representation of this attribute
    */
   toSqlString(): string {
     throw new Error('unimplemented!');

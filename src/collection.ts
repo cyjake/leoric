@@ -68,7 +68,7 @@ class Collection<T extends object> extends Array<T> {
 /**
  * Check if the query result of spell is instantiatable by examining the query structure.
  * - https://www.yuque.com/leoric/blog/ciiard#XoI4O (zh-CN)
- * @param {Spell} spell
+ * @param spell
  */
 function instantiatable<T extends typeof AbstractBone>(spell: Spell<T>) {
   const { columns, groups, Model } = spell;
@@ -87,9 +87,9 @@ type CollectionItem<U extends typeof AbstractBone> = Record<string, InstanceType
 /**
  * Convert the results to collection that consists of models with their associations set up according to `spell.joins`.
  * @private
- * @param {Spell} spell
- * @param {Object[]} rows
- * @param {Object[]} fields
+ * @param spell
+ * @param rows
+ * @param fields
  */
 function dispatch<T extends typeof AbstractBone, U extends typeof AbstractBone>(
   spell: Spell<T>,

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Global - Documentation</title>
+    <title>spell - Documentation</title>
     <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -23,7 +23,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Global</h1>
+    <h1 class="page-title">spell</h1>
     
 
     
@@ -35,9 +35,8 @@
 
 <header>
     
-        <h2>
         
-        </h2>
+            
         
     
 </header>
@@ -46,8 +45,17 @@
     <div class="container-overview">
     
         
+            <div class="description"><p>The <a href="Spell.html"><code>Spell</code></a> class.</p></div>
+        
 
         
+            
+<div class="section-method">
+
+
+
+
+
 
 
 <dl class="details">
@@ -85,6 +93,29 @@
     
 </dl>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
 
         
     
@@ -111,14 +142,14 @@
 
     
 
-    <h4 class="name" id="BelongsTo"><span class="type-signature"></span>BelongsTo<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~checkCond"><span class="type-signature">(inner) </span>checkCond<span class="signature">(Model, conds)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>design:type will be <code>Function { [native code] }</code> in following example</p>
+    <p>check condition to avoid use virtual fields as where conditions</p>
 </div>
 
 
@@ -166,6 +197,226 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>Model</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>conds</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~findAssociation"><span class="type-signature">(inner) </span>findAssociation<span class="signature">(associations, opts)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Find association by certain criteria.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>associations</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>Model associations</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Model</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>Search criteria, e.g.</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -185,9 +436,7 @@
 <div class="section-examples">
 <h5>Example:</h5>
 
-    <pre class="prettyprint"><code>import type Foo from './foo';
-class Bar extends Bone {
-  </code></pre>
+    <pre class="prettyprint"><code>findAssociation({ Model: Post });</code></pre>
 
 </div>
 
@@ -199,353 +448,14 @@ class Bar extends Bone {
 
     
 
-    <h4 class="name" id="collectLiteral"><span class="type-signature"></span>collectLiteral<span class="signature">(values, ast)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~formatValueSet"><span class="type-signature">(inner) </span>formatValueSet<span class="signature">(spell, obj, strict)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>The <code>... IS NULL</code> predicate is not parameterizable.</p>
-<ul>
-<li>https://github.com/brianc/node-postgres/issues/1751</li>
-</ul>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>values</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>the collected values</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ast</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>the abstract syntax tree</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="executeValidator"><span class="type-signature"></span>executeValidator<span class="signature">(ctx, name, attribute, setValue)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Execute a validator on a Bone instance</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>ctx</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>context</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>validate name</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>attribute</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>setValue</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="findModel"><span class="type-signature"></span>findModel<span class="signature">(spell, qualifiers)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Find model by qualifiers.</p>
+    <p>Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.</p>
 </div>
 
 
@@ -641,7 +551,364 @@ class Bar extends Bone {
 
         <tr>
             
-                <td class="name"><code>qualifiers</code></td>
+                <td class="name"><code>obj</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>key-value pairs of columnAttributes</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>strict</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>check attribute exist or not</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~joinAssociation"><span class="type-signature">(inner) </span>joinAssociation<span class="signature">(spell, BaseModel, baseName, refName, opts)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Parse associations into spell.joins</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>spell</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>An instance of spell</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseModel</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>A subclass of Bone</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseName</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>Might be Model.tableAlias, Model.table, or other names given by users</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>refName</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>The name of the join target</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>Extra options such as <code>select</code>, <code>throughAssociation</code></p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="~joinOnConditions"><span class="type-signature">(inner) </span>joinOnConditions<span class="signature">(spell, BaseModel, baseName, refName, opts)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Construct on conditions as ast from associations.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>spell</code></td>
             
 
             <td class="type">
@@ -654,6 +921,162 @@ class Bar extends Bone {
 
             <td class="description last">
                 
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseModel</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseName</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>refName</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                
+                
+                    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>association</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>the association between BaseModel and RefModel</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>where</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>through</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>used to override association.where when processing `` associations</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
                 
             </td>
         </tr>
@@ -680,8 +1103,9 @@ class Bar extends Bone {
 <div class="section-examples">
 <h5>Example:</h5>
 
-    <pre class="prettyprint"><code>findModel(spell, ['comments'])
-findModel(spell)</code></pre>
+    <pre class="prettyprint"><code>joinOnConditions(spell, Post, 'posts', 'comments', {
+  association: { Model: Comment, foreignKey: 'postId' }
+});</code></pre>
 
 </div>
 
@@ -693,200 +1117,14 @@ findModel(spell)</code></pre>
 
     
 
-    <h4 class="name" id="formatArgs"><span class="type-signature"></span>formatArgs<span class="signature">(isInstance, fnName, args, target)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>isInstance</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>class or instance</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>fnName</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>target</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>class or instance
-}</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="formatConditions"><span class="type-signature"></span>formatConditions<span class="signature">(conditions)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~parseConditions"><span class="type-signature">(inner) </span>parseConditions<span class="signature">(Model, conditions, &hellip;values)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Format an array of conditions into an expression. Conditions will be joined with <code>AND</code>.</p>
+    <p>Parse condition expressions</p>
 </div>
 
 
@@ -949,6 +1187,8 @@ findModel(spell)</code></pre>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -957,6 +1197,35 @@ findModel(spell)</code></pre>
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>Model</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                
+                
+            </td>
+        </tr>
+
     
 
         <tr>
@@ -969,11 +1238,50 @@ findModel(spell)</code></pre>
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last">
-                <p>An array of parsed where/having/on conditions</p>
+                
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>values</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                
                 
             </td>
         </tr>
@@ -997,6 +1305,14 @@ findModel(spell)</code></pre>
 
 
 
+<div class="section-examples">
+<h5>Example:</h5>
+
+    <pre class="prettyprint"><code>parseConditions(Model, { foo: { $op: value } });
+parseConditions(Model, 'foo = ?', value);</code></pre>
+
+</div>
+
 </div>
 
         
@@ -1005,14 +1321,14 @@ findModel(spell)</code></pre>
 
     
 
-    <h4 class="name" id="formatExpr"><span class="type-signature"></span>formatExpr<span class="signature">(spell, ast)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~parseSet"><span class="type-signature">(inner) </span>parseSet<span class="signature">(spell, obj)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Format the abstract syntax tree of an expression into escaped string.</p>
+    <p>Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.</p>
 </div>
 
 
@@ -1108,7 +1424,7 @@ findModel(spell)</code></pre>
 
         <tr>
             
-                <td class="name"><code>ast</code></td>
+                <td class="name"><code>obj</code></td>
             
 
             <td class="type">
@@ -1120,7 +1436,7 @@ findModel(spell)</code></pre>
             
 
             <td class="description last">
-                
+                <p>key-value pairs of columnAttributes</p>
                 
             </td>
         </tr>
@@ -1152,14 +1468,14 @@ findModel(spell)</code></pre>
 
     
 
-    <h4 class="name" id="formatIdentifier"><span class="type-signature"></span>formatIdentifier<span class="signature">(spell, ast)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~scopeDeletedAt"><span class="type-signature">(inner) </span>scopeDeletedAt<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Format identifiers into escaped string with qualifiers.</p>
+    <p>If Model supports soft delete, and deletedAt isn't specified in whereConditions yet, and the table isn't a subquery, append a default where({ deletedAt: null }).</p>
 </div>
 
 
@@ -1207,1706 +1523,6 @@ findModel(spell)</code></pre>
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>spell</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ast</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="formatOpExpr"><span class="type-signature"></span>formatOpExpr<span class="signature">(spell, ast)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Format <code>{ type: 'op' }</code> expressions into escaped string.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>spell</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ast</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="instantiatable"><span class="type-signature"></span>instantiatable<span class="signature">(spell)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Check if the query result of spell is instantiatable by examining the query structure.</p>
-<ul>
-<li>https://www.yuque.com/leoric/blog/ciiard#XoI4O (zh-CN)</li>
-</ul>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>spell</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="isAggregatorExpr"><span class="type-signature"></span>isAggregatorExpr<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Format the abstract syntax tree of an expression into escaped string.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="isLogicalCondition"><span class="type-signature"></span>isLogicalCondition<span class="signature">(condition)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>determine if query object is logical condition</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>condition</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>query object</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="isLogicalOp"><span class="type-signature"></span>isLogicalOp<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Check if current token is logical operator or not, e.g. <code>AND</code>/<code>NOT</code>/<code>OR</code>.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="isLogicalOperator"><span class="type-signature"></span>isLogicalOperator<span class="signature">(operator)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>determin if operator is logical operator</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>operator</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>lowercased operator</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="isOperatorCondition"><span class="type-signature"></span>isOperatorCondition<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Check if object condition is an operator condition, such as <code>{ $gte: 100, $lt: 200 }</code>.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="parseLogicalOperator"><span class="type-signature"></span>parseLogicalOperator<span class="signature">($op, value)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>parse logical objects that is already in tree-like structure</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>$op</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>logical operators, such as <code>$or</code>, <code>$and</code>, and <code>$not</code>.</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>value</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>logical operands</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-examples">
-<h5>Example:</h5>
-
-    <pre class="prettyprint"><code>{ $or: { title: 'Leah', content: 'Diablo' } }
-{ $or: [ { title: 'Leah' }, { content: 'Diablo' } ] }
-{ $not: [ { title: 'Leah' }, { title: { $like: '%jjj' }} ] }</code></pre>
-
-</div>
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="parseNamedLogicalOperator"><span class="type-signature"></span>parseNamedLogicalOperator<span class="signature">(name, condition)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>parse logical objects that have column name lifted upper level</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>column name</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>condition</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>logical query objects</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-examples">
-<h5>Example:</h5>
-
-    <pre class="prettyprint"><code>{ foo: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }
-{ foo: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }
-{ foo: { $not: [ 'Leah', 'Nephalem' ] } }</code></pre>
-
-</div>
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="parseObject"><span class="type-signature"></span>parseObject<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Parse query objects, which is a complete madness because the operator orders vary. The result would be normalized spell ast. See <code>module:src/query_object~OPERATOR_MAP</code> and <code>module:src/query_object~LOGICAL_OPERATOR_MAP</code> for supported <code>$op</code>s.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-examples">
-<h5>Example:</h5>
-
-    <pre class="prettyprint"><code>{ foo: null }
-{ foo: { $gt: new Date(2012, 4, 15) } }
-{ foo: { $between: [1, 10] } }
-{ foo: { $or: [ 'Leah', { $like: '%Leah%' } ] } }
-{ foo: [ 1, 2, 3 ] }
-{ foo: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }
-{ foo: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }
-{ foo: { $not: [ 'Leah', 'Nephalem' ] } }
-{ $or: { title: 'Leah', content: 'Diablo' } }
-{ $or: [ { title: 'Leah', content: 'Diablo' }, { title: 'Stranger' } ] }</code></pre>
-
-</div>
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="parseOperator"><span class="type-signature"></span>parseOperator<span class="signature">(name)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>parse operator condition into expression ast</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-examples">
-<h5>Example:</h5>
-
-    <pre class="prettyprint"><code>parseOperator('id', { $gt: 0, $lt: 999999 });
-// => { type: 'op', name: 'and', args: [ ... ]}</code></pre>
-
-</div>
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="parseValue"><span class="type-signature"></span>parseValue<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Parse object values as literal or subquery</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="rawQuery"><span class="type-signature">(async) </span>rawQuery<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>raw query</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="setupSingleHook"><span class="type-signature"></span>setupSingleHook<span class="signature">(target, hookName, func)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>setup hook to class</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>target</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>target class</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>hookName</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>func</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 

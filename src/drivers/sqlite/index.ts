@@ -90,7 +90,8 @@ class SqliteDriver extends AbstractDriver {
     let result: QueryResult;
 
     try {
-      result = await connection.query(query, processedValues, opts);
+      const spell = opts instanceof Spell ? opts : undefined;
+      result = await connection.query(query, processedValues, spell);
     } catch (err) {
       logger.logQueryError(err as Error, sql, calculateDuration(start), logOpts);
       throw err;

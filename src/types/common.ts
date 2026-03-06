@@ -2,8 +2,7 @@
 import { CommonHintArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from '../abstract_bone';
-import Raw from '../raw';
-import { Spell } from '../spell';
+import type Spell from '../spell';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
@@ -33,30 +32,18 @@ export interface QueryResult {
   fields?: Array<{ table: string, name: string }>,
 }
 
-interface TransactionMethodOptions {
-  Model: typeof AbstractBone;
-}
-
 export interface Connection {
-  /**
-   * MySQL
-   */
-  query(
-    query: string,
-    values?: Array<Literal | Literal[]>,
-  ): Promise<QueryResult>;
-
   query<T extends typeof AbstractBone>(
     query: string | { sql: string; nestTables?: boolean },
     values?: Array<Literal | Literal[]>,
-    opts: Spell<T> | QueryOptions & { connection?: Connection },
+    spell?: Spell<T>,
   ): Promise<QueryResult>;
 
   release(): void;
 }
 
-export declare class Pool {
-  async getConnection(): Promise<Connection>;
+export interface Pool {
+  getConnection(): Promise<Connection>;
 }
 
 export interface QueryOptions {
@@ -125,36 +112,6 @@ export type BoneOptions = {
   isNewRecord?: boolean;
 }
 
-export declare class Attribute {
-  /**
-   * attribute name
-   */
-  name: string;
-  /**
-   * primaryKey tag
-   */
-  primaryKey: boolean;
-  allowNull: boolean;
-  /**
-   * attribute column name in table
-   */
-  columnName: string;
-  columnType: string;
-  type: typeof DataType;
-  defaultValue: Literal;
-  dataType: string;
-  jsType: Literal;
-  virtual: boolean;
-  unique?: boolean;
-  autoIncrement?: boolean;
-
-  equals(columnInfo: ColumnMeta): boolean;
-  cast(value: Literal): Literal;
-  uncast(value: Literal, strict?: boolean): Literal;
-
-  toSqlString(): string;
-}
-
 export type SetOptions<T extends typeof AbstractBone> = {
   [Property in BoneColumns<T>]: Literal
 } | {
@@ -165,15 +122,9 @@ export type WithOptions = {
   [qualifier: string]: { select: string | string[], throughRelation?: string }
 }
 
-type OrderSortType = 'desc' | 'asc' | Uppercase<'desc' | 'asc'>;
-
-type OrderOptions<T extends typeof AbstractBone> = {
-  [Property in Extract<BoneColumns<T>, Literal>]?: OrderSortType
-} | [ BoneColumns<T>, OrderSortType ]
-| Array<BoneColumns<T> | [ BoneColumns<T>, OrderSortType ] | Raw | string | Array<Raw | string>>
-| string | Raw;
-
-export class Collection<T extends AbstractBone> extends Array<T> {
+// Collection is implemented in src/collection.ts which itself imports from this module,
+// so we use an ambient declaration here to avoid a circular dependency.
+export declare class Collection<T extends AbstractBone> extends Array<T> {
   save(): Promise<T[]>;
   toJSON(): Values<T>[];
   toObject(): Values<T>[];
@@ -213,5 +164,3 @@ export type BoneCreateValues<T extends typeof AbstractBone> = Partial<Values<Ins
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';
 
-// https://stackoverflow.com/a/67232225/179691
-type GeneratorReturnType<T extends Generator> = T extends Generator<any, infer R, any> ? R: never;

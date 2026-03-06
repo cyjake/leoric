@@ -1,7 +1,7 @@
 
 /**
  * Convert the first charactor of the string from lowercase to uppercase.
- * @param {string} str
+ * @param str
  */
 export function capitalize(str: string): string {
   return str.replace(/^([a-z])/, (m, chr) => chr.toUpperCase());
@@ -9,7 +9,7 @@ export function capitalize(str: string): string {
 
 /**
  * Convert the first charactor of the string from uppercase to lowercase
- * @param {string} str
+ * @param str
  */
 export function uncapitalize(str: string): string {
   return str.replace(/^([A-Z])/, (m, chr) => chr.toLowerCase());
@@ -21,8 +21,7 @@ export function uncapitalize(str: string): string {
  * camelCase('FooBar')   // => 'fooBar'
  * camelCase('foo-bar')  // => 'fooBar'
  * camelCase('foo_bar')  // => 'fooBar'
- * @param {string} str
- * @returns {string}
+ * @param str
  */
 export function camelCase(str: string): string {
   return uncapitalize(str).replace(/[-_]([a-z])/g, (m, chr) => chr.toUpperCase());
@@ -33,8 +32,7 @@ export function camelCase(str: string): string {
  * @example
  * snakeCase('FooBar')  // => 'foo_bar'
  * snakeCase('fooBar')  // => 'foo_bar'
- * @param {string} str
- * @returns {string}
+ * @param str
  */
 export function snakeCase(str: string): string {
   return uncapitalize(str).replace(/([A-Z])/g, (m, chr) => `_${chr.toLowerCase()}`);
@@ -42,8 +40,7 @@ export function snakeCase(str: string): string {
 
 /**
  * Convert multiline SQL into single line for better logging
- * @param {string|Function} text
- * @returns {string}
+ * @param text
  * @example
  * heresql(`
  *   SELECT *

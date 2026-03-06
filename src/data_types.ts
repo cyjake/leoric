@@ -60,7 +60,7 @@ function hasDataLength(dataLength: string | number | undefined) {
  * STRING
  * STRING(127)
  * STRING.BINARY
- * @param {number} dataLength
+ * @param dataLength
  */
 class STRING extends DataType {
   constructor(dataLength = 255) {
@@ -137,7 +137,7 @@ class VARBINARY extends BINARY {
  * INTEGER.UNSIGNED
  * INTEGER.UNSIGNED.ZEROFILL
  * INTEGER(10)
- * @param {number} dataLength
+ * @param dataLength
  */
 class INTEGER extends DataType {
   unsigned?: boolean;
@@ -196,7 +196,7 @@ class INTEGER extends DataType {
  * TINYINT
  * TINYINT.UNSIGNED
  * TINYINT(1)
- * @param {number} dataLength
+ * @param dataLength
  */
 class TINYINT extends INTEGER {
   constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
@@ -211,7 +211,7 @@ class TINYINT extends INTEGER {
  * SMALLINT
  * SMALLINT.UNSIGNED
  * SMALLINT(2)
- * @param {number} dataLength
+ * @param dataLength
  */
 class SMALLINT extends INTEGER {
   constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
@@ -226,7 +226,7 @@ class SMALLINT extends INTEGER {
  * MEDIUMINT
  * MEDIUMINT.UNSIGNED
  * MEDIUMINT(3)
- * @param {number} dataLength
+ * @param dataLength
  */
 class MEDIUMINT extends INTEGER {
   constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
@@ -242,7 +242,7 @@ class MEDIUMINT extends INTEGER {
  * BIGINT
  * BIGINT.UNSIGNED
  * BIGINT(8)
- * @param {number} dataLength
+ * @param dataLength
  */
 class BIGINT extends INTEGER {
   constructor(dataLength?: number, unsigned?: boolean, zerofill?: boolean) {
@@ -257,8 +257,8 @@ class BIGINT extends INTEGER {
  * DECIMAL
  * DECIMAL.UNSIGNED
  * DECIMAL(5, 2)
- * @param {number} precision
- * @param {number} scale
+ * @param precision
+ * @param scale
  * - https://dev.mysql.com/doc/refman/8.0/en/fixed-point-types.html
  */
 class DECIMAL extends INTEGER {
@@ -629,8 +629,7 @@ class DataTypes {
 
   /**
    * Check if params is instance of DataType or not
-   * @param {*} params
-   * @returns {boolean}
+   * @param params
    */
   static is(params: any): boolean {
     return params instanceof DataType;

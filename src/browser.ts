@@ -12,20 +12,12 @@ import { isBone } from './utils';
 import { ConnectOptions } from './drivers/abstract';
 
 /**
- * @typedef {Object} RawSql
- * @property {boolean} __raw
- * @property {string} value
- * @property {string} type
- */
-
-
-/**
  * Connect models to database. Need to provide both connect options and models.
  * @alias module:index.connect
- * @param {Object} opts
- * @param {string} opts.client - client name
- * @param {string|Bone[]} opts.models - an array of models
- * @returns {Pool} the connection pool in case we need to perform raw query
+ * @param opts
+ * @param opts.client - client name
+ * @param opts.models - an array of models
+ * @returns the connection pool in case we need to perform raw query
  */
 export async function connect(opts: ConnectOptions & { Bone?: typeof Bone }): Promise<InstanceType<typeof Realm>> {
   opts = { Bone, ...opts };
