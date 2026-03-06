@@ -145,6 +145,17 @@ describe('=> Realm', () => {
       }, /Unexpected models dir/);
     });
 
+    it('should load TypeScript models with default export from a models directory', async function() {
+      const realm = new Realm({
+        dialect: 'sqlite',
+        database: ':memory:',
+        models: path.resolve(__dirname, '../models'),
+      });
+      await realm.connect();
+      // photo.ts is a TypeScript model using `export default` in test/models/
+      assert.ok(realm.models.Photo, 'Photo model should be loaded from photo.ts');
+    });
+
     it('should hold models as object in realm.models', async function() {
       class User extends Bone {}
       class Post extends Bone {
