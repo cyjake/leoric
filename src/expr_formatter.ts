@@ -25,8 +25,8 @@ import { Literal } from './types/common';
  * findModel(spell, ['comments'])
  * findModel(spell)
  *
- * @param {Spell} spell
- * @param {string[]} qualifiers
+ * @param spell
+ * @param qualifiers
  */
 function findModel<T extends typeof AbstractBone>(spell: Spell<T>, qualifiers?: string[]) {
   const qualifier = qualifiers && qualifiers[0];
@@ -39,8 +39,8 @@ function findModel<T extends typeof AbstractBone>(spell: Spell<T>, qualifiers?: 
 
 /**
  * Format identifiers into escaped string with qualifiers.
- * @param {Spell}  spell
- * @param {Object} ast
+ * @param spell
+ * @param ast
  */
 function formatIdentifier<T extends typeof AbstractBone>(spell: Spell<T>, ast: Identifier | Alias) {
   const { value } = ast;
@@ -122,8 +122,8 @@ function isAggregatorExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: E
 
 /**
  * Format the abstract syntax tree of an expression into escaped string.
- * @param {Spell}  spell
- * @param {Object} ast
+ * @param spell
+ * @param ast
  */
 function formatExpr<T extends typeof AbstractBone>(
   spell: Spell<T>,
@@ -164,8 +164,8 @@ function isLogicalOp(expr: Expr): boolean {
 
 /**
  * Format `{ type: 'op' }` expressions into escaped string.
- * @param {Spell}  spell
- * @param {Object} ast
+ * @param spell
+ * @param ast
  */
 function formatOpExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Operator | TernaryOperator) {
   const { name, args } = ast;
@@ -212,7 +212,7 @@ function formatOpExpr<T extends typeof AbstractBone>(spell: Spell<T>, ast: Opera
 
 /**
  * Format an array of conditions into an expression. Conditions will be joined with `AND`.
- * @param {Object[]} conditions - An array of parsed where/having/on conditions
+ * @param conditions - An array of parsed where/having/on conditions
  */
 function formatConditions<T extends typeof AbstractBone>(spell: Spell<T>, conditions: Expr[]): string {
   return conditions
@@ -229,8 +229,8 @@ function formatConditions<T extends typeof AbstractBone>(spell: Spell<T>, condit
 /**
  * The `... IS NULL` predicate is not parameterizable.
  * - https://github.com/brianc/node-postgres/issues/1751
- * @param {Array} values the collected values
- * @param {Object} ast the abstract syntax tree
+ * @param values the collected values
+ * @param ast the abstract syntax tree
  */
 function collectLiteral<T extends typeof AbstractBone>(spell: Spell<T>, ast: Expr, values: Literal[] = []) {
   walkExpr(ast, function(itr) {

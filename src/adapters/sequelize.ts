@@ -237,7 +237,6 @@ export default function sequelize(Bone: typeof AbstractBone) {
      * @deprecated scope is not recommended to use
      * @param name
      * @param args
-     * @returns
      */
     static scope<T extends typeof SequelizeBone>(
       this: T,
@@ -373,7 +372,6 @@ export default function sequelize(Bone: typeof AbstractBone) {
      * see https://github.com/sequelize/sequelize/blob/a729c4df41fa3a58fbecaf879265d2fb73d80e5f/src/model.js#L2299
      * @param valueSets
      * @param options
-     * @returns
      */
     static bulkBuild(valueSets: Record<string, Literal>[], options: { raw?: boolean; isNewRecord?: boolean; validate?: boolean } = {}) {
       if (!valueSets.length) return [];
@@ -693,7 +691,6 @@ export default function sequelize(Bone: typeof AbstractBone) {
      *
      *
      * @param options
-     * @returns
      */
     async destroy(options: SequelizeDestroyOptions = {}): Promise<any> {
       const removeResult = await this._remove(options.force, { ...options });

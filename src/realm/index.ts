@@ -8,16 +8,8 @@ import BaseRealm from './base';
 import { AbstractBone } from '../abstract_bone';
 
 /**
- *
- * @typedef {Object} QueryResult
- * @property {Array} rows
- * @property {Array} fields
- */
-
-/**
  * find models in directory
- * @param {string} dir
- * @returns {Array.<Bone>}
+ * @param dir
  */
 async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
   if (!dir || typeof dir !== 'string') {
@@ -28,7 +20,7 @@ async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
 
   for (const entry of entries) {
     const extname = path.extname(entry.name);
-    if (entry.isFile() && ['.js', '.mjs'].includes(extname)) {
+    if (entry.isFile() && ['.js', '.mjs', '.ts'].includes(extname)) {
       const model = require(path.join(dir, entry.name));
       if (isBone(model)) models.push(model);
     }

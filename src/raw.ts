@@ -28,8 +28,7 @@ export default class Raw {
 /**
  * raw sql object
  * @static
- * @param {string} sql
- * @returns {RawSql}
+ * @param sql
  * @memberof Realm
  */
 export function raw(sql: string): Raw {

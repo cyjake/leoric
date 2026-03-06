@@ -26,11 +26,6 @@ import {
 import { AbstractBone } from './abstract_bone';
 import { Identifier, Func, Operator, TernaryOperator, Subquery } from './expr';
 
-// Polyfill for structuredClone
-declare global {
-  function structuredClone<T>(value: T, options?: any): T;
-}
-
 interface SpellBookFormatStandardResult {
   sql: string;
   values?: Array<Literal> | {
@@ -86,8 +81,8 @@ export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
 
 /**
  * check condition to avoid use virtual fields as where conditions
- * @param {Bone} Model
- * @param {Array<Object>} conds
+ * @param Model
+ * @param conds
  */
 function checkCond(Model: typeof AbstractBone, conds: any[]): void {
   for (const cond of conds) {
@@ -106,10 +101,9 @@ function checkCond(Model: typeof AbstractBone, conds: any[]): void {
  * @example
  * parseConditions(Model, { foo: { $op: value } });
  * parseConditions(Model, 'foo = ?', value);
- * @param {Bone} Model
- * @param {(string|Object)} conditions
- * @param {...*} values
- * @returns {Array}
+ * @param Model
+ * @param conditions
+ * @param values
  */
 function parseConditions(Model: typeof AbstractBone, conditions: any, ...values: Literal[]): any[] {
   if (conditions instanceof Raw) return [ conditions ];
@@ -163,10 +157,9 @@ function parseSelect<T extends typeof AbstractBone>(spell: Spell<T>, ...names: A
 
 /**
  * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
- * @param {Spell} spell
- * @param {Object} obj - key-value pairs of columnAttributes
- * @param {boolean} strict - check attribute exist or not
- * @returns {Object}
+ * @param spell
+ * @param obj - key-value pairs of columnAttributes
+ * @param strict - check attribute exist or not
  */
 function formatValueSet(spell: Spell<any>, obj: Record<string, any>): Record<string, any> {
   const { Model } = spell;
@@ -200,8 +193,8 @@ function formatValueSet(spell: Spell<any>, obj: Record<string, any>): Record<str
 
 /**
  * Translate key-value pairs of columnAttributes into key-value pairs of columns. Get ready for the SET part when generating SQL.
- * @param {Spell}  spell
- * @param {Object|Array} obj   - key-value pairs of columnAttributes
+ * @param spell
+ * @param obj   - key-value pairs of columnAttributes
  */
 function parseSet(spell: Spell<any>, obj: any): Record<string, any> | Record<string, any>[] {
   let sets: Record<string, any> | Record<string, any>[];
@@ -223,13 +216,13 @@ function parseSet(spell: Spell<any>, obj: any): Record<string, any> | Record<str
  *   association: { Model: Comment, foreignKey: 'postId' }
  * });
  *
- * @param {Spell}  spell
- * @param {Model}  BaseModel
- * @param {string} baseName
- * @param {string} refName
- * @param {Object} opts
- * @param {Object} opts.association - the association between BaseModel and RefModel
- * @param {Object} opts.where    - used to override association.where when processing `{ through }` associations
+ * @param spell
+ * @param BaseModel
+ * @param baseName
+ * @param refName
+ * @param opts
+ * @param opts.association - the association between BaseModel and RefModel
+ * @param opts.where    - used to override association.where when processing `{ through }` associations
  */
 function joinOnConditions(
   spell: Spell<typeof AbstractBone>,
@@ -270,8 +263,8 @@ function joinOnConditions(
  * Find association by certain criteria.
  * @example
  * findAssociation({ Model: Post });
- * @param {Object} associations - Model associations
- * @param {Object} opts      - Search criteria, e.g. { Model }
+ * @param associations - Model associations
+ * @param opts      - Search criteria, e.g. { Model }
  */
 function findAssociation(associations: Record<string, any>, opts: Record<string, any>): any {
   for (const qualifier in associations) {
@@ -290,11 +283,11 @@ function findAssociation(associations: Record<string, any>, opts: Record<string,
 
 /**
  * Parse associations into spell.joins
- * @param {Spell}  spell     - An instance of spell
- * @param {Model}  BaseModel - A subclass of Bone
- * @param {string} baseName  - Might be Model.tableAlias, Model.table, or other names given by users
- * @param {string} refName   - The name of the join target
- * @param {Object} opts      - Extra options such as { select, throughAssociation }
+ * @param spell     - An instance of spell
+ * @param BaseModel - A subclass of Bone
+ * @param baseName  - Might be Model.tableAlias, Model.table, or other names given by users
+ * @param refName   - The name of the join target
+ * @param opts      - Extra options such as `select`, `throughAssociation`
  */
 function joinAssociation(spell: Spell<any>, BaseModel: typeof AbstractBone, baseName: string, refName: string, opts: Record<string, any> = {}): void {
   const { joins } = spell;
@@ -427,8 +420,8 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Create a spell.
-   * @param {Model}          Model    - A sub class of {@link Bone}.
-   * @param {Object}         opts     - Extra columnAttributes to be set.
+   * @param Model    - A sub class of {@link Bone}.
+   * @param opts     - Extra columnAttributes to be set.
    */
   constructor(Model: T, opts: Partial<SpellOptions> = {}) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -568,8 +561,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Get nth record.
-   * @param {number} index
-   * @returns {Bone}
+   * @param index
    */
   $get(index: number): this {
     this.$limit(1);
@@ -604,43 +596,31 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @example
    * const post = await Post.first
    * Post.last.then(post => handle(post));
-   * @param {Function} resolve
-   * @param {Function} reject
+   * @param resolve
+   * @param reject
    */
   then<V, W>(resolve?: ((value: U) => V | Promise<V>) | null, reject?: ((reason: any) => W | Promise<W>) | null): Promise<V | W> {
     return Promise.resolve(this.ignite()).then(resolve, reject);
   }
 
   /**
-   * @param {Function} reject
+   * @param reject
    */
   catch<V>(reject?: ((reason: any) => V | Promise<V>) | null): Promise<any | V> {
     return this.then(null, reject);
   }
 
   /**
-   * @param {Function} onFinally
+   * @param onFinally
    */
   finally(onFinally?: (() => void) | null): Promise<any> {
     return this.then().finally(onFinally);
   }
 
   /**
-   * - https://nodejs.org/en/knowledge/errors/what-are-the-error-conventions/
-   * @param {Function} callback
-   */
-  nodeify(callback: (err: any, result?: any) => void): void {
-    this.then(function resolve(result: any) {
-      callback(null, result);
-    }, function reject(err: any) {
-      callback(err);
-    });
-  }
-
-  /**
    * Generate an INSERT query.
    * @private
-   * @param {Object} obj - key-values pairs
+   * @param obj - key-values pairs
    */
   $insert(obj: Record<string, any>): this {
     this.command = 'insert';
@@ -652,7 +632,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   /**
    * Generate a upsert-like query which takes advantage of ON DUPLICATE KEY UPDATE.
    * @private
-   * @param {Object} obj - key-value pairs to SET
+   * @param obj - key-value pairs to SET
    */
   $upsert(obj: Record<string, any>): this {
     this.command = 'upsert';
@@ -670,7 +650,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Whitelist columnAttributes to select. Can be called repeatedly to select more columnAttributes.
-   * @param {...string} names
+   * @param names
    * @example
    * .select('title');
    * .select('title', 'createdAt');
@@ -685,7 +665,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   /**
    * Make a UPDATE query with values updated by generating SET key=value from obj.
    * @private
-   * @param {Object} obj - key-value pairs to SET
+   * @param obj - key-value pairs to SET
    */
   $update(obj: Record<string, any>): this {
     this.command = 'update';
@@ -740,7 +720,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Set the table of the spell. If an instance of {@link Spell} is passed, it will be used as a derived table.
-   * @param {string|Spell} table
+   * @param table
    */
   $from(table: string | Spell<any>): this {
     this.table = table instanceof Spell
@@ -755,8 +735,8 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @example
    * .where({ foo: null });
    * .where('foo = ? and bar >= ?', null, 42);
-   * @param {string|Object} conditions
-   * @param {...*}          values     - only necessary when using templated string conditions
+   * @param conditions
+   * @param values     - only necessary when using templated string conditions
    */
   $where(conditions: any, ...values: Literal[]): this {
     const Model = this.Model;
@@ -788,7 +768,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @example
    * .group('city');
    * .group('YEAR(createdAt)');
-   * @param {...string} names
+   * @param names
    */
   $group(...names: Array<string | Raw>): this {
     const { columns, groups, Model } = this;
@@ -819,8 +799,8 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * .order('title', 'desc');
    * .order({ title: 'desc' });
    * .order('id asc, gmt_created desc')
-   * @param {string|Object} name
-   * @param {string} direction
+   * @param name
+   * @param direction
    */
   $order(name: string | Raw | Record<string, 'asc' | 'desc'>, direction?: string): this {
     if (isPlainObject(name)) {
@@ -871,7 +851,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Set the OFFSET of the query.
-   * @param {number} skip
+   * @param skip
    */
   $offset(skip: number) {
     skip = +skip;
@@ -883,7 +863,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Set the LIMIT of the query.
-   * @param {number} rowCount
+   * @param rowCount
    */
   $limit(rowCount: number) {
     rowCount = +rowCount;
@@ -900,8 +880,8 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * .having('maximum > 42');
    * .having({ count: 5 });
    *
-   * @param {string|Object} conditions
-   * @param {...*}          values
+   * @param conditions
+   * @param values
    */
   $having(conditions: string | WhereConditions<T>, ...values: Literal[]): this {
     const Model = this.Model;
@@ -944,7 +924,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * .with('attachment', 'comments');
    * .with({ comments: { select: 'content' } });
    *
-   * @param {...string} qualifiers
+   * @param qualifiers
    */
   $with(...qualifiers: (string | WithOptions)[]): this {
     if (Number(this.rowCount) > 0 || this.skip > 0) {
@@ -973,9 +953,9 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * .join(User, 'users.id = posts.authorId');
    * .join(TagMap, 'tagMaps.targetId = posts.id and tagMaps.targetType = 0');
    *
-   * @param {Model}         Model
-   * @param {string|Object} onConditions
-   * @param {...*}          values
+   * @param Model
+   * @param onConditions
+   * @param values
    */
   $join<V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]): this {
     if (typeof Model === 'string') {
@@ -1000,7 +980,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @example
    * .optimizerHints('SET_VAR(foreign_key_checks=OFF)')
    * .optimizerHints('SET_VAR(foreign_key_checks=OFF)', 'MAX_EXECUTION_TIME(1000)')
-   * @param {...string} hints
+   * @param hints
    * @memberof Spell
    */
   $optimizerHints(...hints: (string | Hint | IndexHint | HintInterface)[]) {

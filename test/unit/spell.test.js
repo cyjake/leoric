@@ -36,33 +36,6 @@ describe('=> Spell', function() {
     await assert.rejects(async () => await Note.all);
   });
 
-  it('supports error convention with nodeify', async () => {
-    const post = await new Promise((resolve, reject) => {
-      Post.create({ title: 'Gettysburg Address' }).nodeify((err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
-    });
-    assert.ok(post instanceof Post);
-    assert.ok(post.id);
-    assert.equal(post.title, 'Gettysburg Address');
-  });
-
-  it('error convention should work as expected', async () => {
-    await assert.rejects(new Promise((resolve, reject) => {
-      User.create({ id: 1 }, { validate: false }).nodeify((err, user) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(user);
-        }
-      });
-    }), /ER_NO_DEFAULT_FOR_FIELD/);
-  });
-
   it('ignite query with .catch()', async () => {
     const post = await Post.create({ title: 'The Divine Comedy' }).catch(err => {
       // ignored

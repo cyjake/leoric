@@ -209,8 +209,8 @@ const RETURNING_TYPES = [
  * precedes('and', 'or')  // => -1
  * precedes('and', 'and') // => 0
  * precedes('+', '/') // => 1
- * @param {string} left  - name of the left operator
- * @param {string} right - name of the right operator
+ * @param left  - name of the left operator
+ * @param right - name of the right operator
  */
 function precedes(left: string, right: string): number {
   if (left == right) return 0;
@@ -237,8 +237,8 @@ function parseValue(value: Literal | Literal[] | Set<Literal>): Literal | Litera
 
 /**
  * Parse sql expressions into ast for validations and sanitizations.
- * @param {string} str
- * @param {...*}   values
+ * @param str
+ * @param values
  */
 function parseExprList(str: any, ...values: Literal[]) {
   if (str instanceof Raw) return [ str ];
@@ -562,8 +562,8 @@ function parseExpr(str: string, ...values: any[]) {
 
 /**
  * Traversing ast to find expresssion that matches `opts`.
- * @param {Spell} spell
- * @param {Object} opts
+ * @param spell
+ * @param opts
  */
 function findExpr(ast: Expr, opts: Partial<Expr>): Expr | undefined {
   let found;
@@ -578,8 +578,8 @@ function findExpr(ast: Expr, opts: Partial<Expr>): Expr | undefined {
 
 /**
  * Walk through an ast, starting from the root token.
- * @param {Object}   ast
- * @param {Function} fn
+ * @param ast
+ * @param fn
  */
 function walkExpr(ast: Expr, fn: (ast: Expr) => void): Expr {
   fn(ast);
@@ -596,8 +596,8 @@ function walkExpr(ast: Expr, fn: (ast: Expr) => void): Expr {
  * copyExpr(ast, ({ type, value }) => {
  *   if (type == 'id') return { type, qualifiers: ['posts'], value }
  * });
- * @param {Object}   ast
- * @param {function} fn
+ * @param ast
+ * @param fn
  */
 function copyExpr(ast: Expr, fn: (ast: Expr) => Expr | undefined): Expr {
   ast = fn(ast) || ast;

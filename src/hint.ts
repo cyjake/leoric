@@ -61,8 +61,7 @@ export class Hint {
 
   /**
    *
-   * @param {Hint} hint
-   * @returns {boolean}
+   * @param hint
    * @memberof Hint
    */
   isEqual(hint: Hint): boolean {
@@ -85,9 +84,8 @@ export class IndexHint {
    * build index hint
    *
    * @static
-   * @param {string | IndexHint} hint
-   * @param {string} type index hint type
-   * @returns {IndexHint}
+   * @param hint
+   * @param type index hint type
    * @example
    * build('idx_title')
    * build('idx_title', type: INDEX_HINT_TYPE.force, INDEX_HINT_SCOPE.groupBy)
@@ -127,9 +125,9 @@ export class IndexHint {
 
   /**
    * Creates an instance of IndexHint.
-   * @param {Array<string> | string} index
-   * @param {INDEX_HINT_TYPE} type
-   * @param {INDEX_HINT_SCOPE?} scope
+   * @param index
+   * @param type
+   * @param scope
    * @memberof IndexHint
    */
   constructor(index: string | string[], type: INDEX_HINT_TYPE = INDEX_HINT_TYPE.use, scope: INDEX_HINT_SCOPE | '' = '') {
@@ -190,8 +188,7 @@ export class IndexHint {
 
   /**
    *
-   * @param {IndexHint} hint
-   * @returns {boolean}
+   * @param hint
    * @memberof IndexHint
    */
   isEqual(hint: IndexHint): boolean {
@@ -203,8 +200,7 @@ export class IndexHint {
 
   /**
    * @static
-   * @param {IndexHint} hints
-   * @returns {Array<IndexHint>}
+   * @param hints
    * @memberof IndexHint
    */
   static merge(hints: IndexHint[]): IndexHint[] {

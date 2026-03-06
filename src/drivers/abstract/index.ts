@@ -114,8 +114,7 @@ export default class AbstractDriver {
 
   /**
    * query with spell
-   * @param {Spell} spell
-   * @returns
+   * @param spell
    */
   async cast<T extends typeof AbstractBone>(spell: Spell<T>): Promise<QueryResult> {
     const { sql, values } = this.format(spell);
@@ -141,7 +140,7 @@ export default class AbstractDriver {
 
   /**
    * disconnect manually
-   * @param {Function} callback
+   * @param callback
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async disconnect(callback?: () => Promise<void>): Promise<void> {
@@ -154,8 +153,7 @@ export default class AbstractDriver {
 
   /**
    * use spellbook to format spell
-   * @param {Spell} spell
-   * @returns
+   * @param spell
    */
   format<T extends typeof AbstractBone>(spell: Spell<T>) {
     return this.spellbook.format(spell);

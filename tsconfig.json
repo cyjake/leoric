@@ -1,7 +1,7 @@
 {
   "extends": "@tsconfig/node18",
   "compilerOptions": {
-    "allowJs": true,
+    "strict": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "downlevelIteration": true,
@@ -9,15 +9,17 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "importHelpers": true,
-    "module": "CommonJS",
-    "moduleResolution": "Node",
     "noUnusedLocals": true,
     "outDir": "lib",
     "skipLibCheck": true,
     "sourceMap": true,
-    "strictNullChecks": true,
     "target": "ES2020",
     "lib": ["ESNext"]
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "allowJs": true
+    }
   },
   "include": [
     "src/**/*"

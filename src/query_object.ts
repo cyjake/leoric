@@ -78,7 +78,7 @@ function merge(conditions: QueryExpr[], operator = 'and') {
  * @example
  * parseOperator('id', { $gt: 0, $lt: 999999 });
  * // => { type: 'op', name: 'and', args: [ ... ]}
- * @param {string} name
+ * @param name
  */
 function parseOperator(name: string, condition: ObjectCondition) {
   const result: Array<Operator> = [];
@@ -101,7 +101,7 @@ function parseOperator(name: string, condition: ObjectCondition) {
 
 /**
  * determin if operator is logical operator
- * @param {string} operator lowercased operator
+ * @param operator lowercased operator
  */
 function isLogicalOperator(operator: string) {
   return LOGICAL_OPERATOR_MAP.hasOwnProperty(operator);
@@ -109,7 +109,7 @@ function isLogicalOperator(operator: string) {
 
 /**
  * determine if query object is logical condition
- * @param {Object} condition query object
+ * @param condition query object
  */
 function isLogicalCondition(condition: Record<string, any>) {
   for (const name in condition) {
@@ -124,8 +124,8 @@ function isLogicalCondition(condition: Record<string, any>) {
  * { $or: { title: 'Leah', content: 'Diablo' } }
  * { $or: [ { title: 'Leah' }, { content: 'Diablo' } ] }
  * { $not: [ { title: 'Leah' }, { title: { $like: '%jjj' }} ] }
- * @param {string} $op logical operators, such as `$or`, `$and`, and `$not`.
- * @param {Object|Object[]} value logical operands
+ * @param $op logical operators, such as `$or`, `$and`, and `$not`.
+ * @param value logical operands
  */
 function parseLogicalOperator($op: LogicalOperator, value: ObjectCondition | ObjectCondition[]) {
   const operator = LOGICAL_OPERATOR_MAP[$op];
@@ -162,8 +162,8 @@ function parseLogicalOperator($op: LogicalOperator, value: ObjectCondition | Obj
  * { foo: { $not: { $gt: '2021-01-01', $lte: '2021-12-31' } } }
  * { foo: { $not: [ '2021-09-30', { $gte: '2021-10-07' } ] } }
  * { foo: { $not: [ 'Leah', 'Nephalem' ] } }
- * @param {string} name column name
- * @param {Object} condition logical query objects
+ * @param name column name
+ * @param condition logical query objects
  */
 function parseNamedLogicalOperator(name: string, condition: LogicalObjectCondition) {
   for (const $op of Object.keys(condition) as LogicalOperator[]) {

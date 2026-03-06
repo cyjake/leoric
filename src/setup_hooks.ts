@@ -1,13 +1,13 @@
-import { Attribute } from './types/common';
+import type Attribute from './drivers/abstract/attribute';
 
 export type HookFunc = (...args: any[]) => void | Promise<void>;
 
 /**
  *
- * @param {boolean} isInstance class or instance
- * @param {string} fnName
- * @param {array} args
- * @param {Bone} target class or instance
+ * @param isInstance class or instance
+ * @param fnName
+ * @param args
+ * @param target class or instance
  * }
  */
 function formatArgs(isInstance: boolean, fnName: string, args: any[], target: any) {
@@ -178,9 +178,9 @@ function addHook(target: any, hookName: string, func: HookFunc) {
 
 /**
  * setup hook to class
- * @param {Bone} target target class
- * @param {string} hookName
- * @param {function} func
+ * @param target target class
+ * @param hookName
+ * @param func
  */
 function setupSingleHook(target: any, hookName: string, func: HookFunc) {
   const { method } = getFnType(hookName);
