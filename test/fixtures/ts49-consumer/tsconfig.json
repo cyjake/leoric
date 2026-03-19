@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": false,
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
+    "outDir": "dist"
+  },
+  "include": ["src/**/*"]
+}
