@@ -7,6 +7,9 @@ lib
 logs
 node_modules
 tmp
+types/ts4.9
+test/fixtures/ts49-consumer/node_modules
+test/fixtures/ts49-consumer/dist
 
 *.log
 docs/Gemfile.lock

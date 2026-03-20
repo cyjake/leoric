@@ -1,0 +1,16 @@
+{
+  "name": "ts49-consumer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "leoric": "file:../../.."
+  },
+  "devDependencies": {
+    "typescript": "4.9.4",
+    "@types/node": "18.19.130"
+  }
+}

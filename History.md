@@ -1,3 +1,10 @@
+2.15.0-alpha.3 / 2026-03-19
+===================
+
+## What's Changed
+* feat(types): add TypeScript 4.9 declaration support via typesVersions
+
+
 2.14.0 / 2025-12-09
 ===================
 
