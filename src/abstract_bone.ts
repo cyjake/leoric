@@ -53,23 +53,40 @@ export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
 
+// Module-private Symbol keys for internal instance state. Using Symbols instead of private
+// fields (#raw etc.) because private fields cannot be accessed through a Proxy (they use an
+// identity-based brand check and Proxy is not the original object), which is needed for
+// the ES2022 class fields fix. The properties are initialized with enumerable: false so they
+// are invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys),
+// matching the behavior of the original private fields.
+// See: https://github.com/cyjake/leoric/issues/377
+const RAW = Symbol('leoric#raw');
+const RAW_SAVED = Symbol('leoric#rawSaved');
+const RAW_UNSET = Symbol('leoric#rawUnset');
+const RAW_PREVIOUS = Symbol('leoric#rawPrevious');
+
+// Short accessors for internal state
+function $raw(self: any): Record<string, any> { return self[RAW]; }
+function $rawSaved(self: any): Record<string, any> { return self[RAW_SAVED]; }
+function $rawUnset(self: any): Set<string> { return self[RAW_UNSET]; }
+function $rawPrevious(self: any): Record<string, any> { return self[RAW_PREVIOUS]; }
+
+// Static marker set by loadAttribute() to indicate prototype getter/setters are defined.
+// Used by constructor to decide whether to wrap instances in a Proxy.
+export const hasLoadedAttributesKey = Symbol('leoric#hasLoadedAttributes');
+
 export class AbstractBone {
   static DataTypes: typeof DataTypes = DataTypes.invokable;
 
   // eslint-disable-next-line no-undef
   [key: string]: any;
 
-  // private state
-  #raw: Record<string, any> = {};
-  #rawSaved: Record<string, any> = {};
-  #rawUnset: Set<string> = new Set();
-  #rawPrevious: Record<string, any> = {};
-
   isNewRecord = true;
 
   static [columnAttributesKey]: { [key: string]: Attribute } | null;
   static [synchronizedKey]: boolean;
   static [tableKey]: string;
+  static [hasLoadedAttributesKey]: boolean;
 
   static get synchronized(): boolean {
     return this[synchronizedKey];
@@ -156,6 +173,12 @@ export class AbstractBone {
   static associations: { [key: string]: any };
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
+    // Initialize internal Symbol-keyed properties as non-enumerable so they are
+    // invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys).
+    Object.defineProperty(this, RAW, { value: {}, writable: true, configurable: true, enumerable: false });
+    Object.defineProperty(this, RAW_SAVED, { value: {}, writable: true, configurable: true, enumerable: false });
+    Object.defineProperty(this, RAW_UNSET, { value: new Set(), writable: true, configurable: true, enumerable: false });
+    Object.defineProperty(this, RAW_PREVIOUS, { value: {}, writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, 'isNewRecord', {
       value: opts.isNewRecord !== undefined ? opts.isNewRecord : true,
       configurable: true,
@@ -167,6 +190,30 @@ export class AbstractBone {
       for (const name in values) {
         this[name] = values[name];
       }
+    }
+
+    // Wrap in Proxy to intercept ES2022 class field definitions ([[DefineOwnProperty]])
+    // that would otherwise shadow prototype getter/setters defined by loadAttribute().
+    // Only activate after loadAttribute() has run (hasLoadedAttributesKey === true).
+    if ((this.constructor as any)[hasLoadedAttributesKey]) {
+      const attributes = (this.constructor as typeof AbstractBone).attributes;
+      const proxy = new Proxy(this, {
+        defineProperty(target, prop, descriptor) {
+          if (typeof prop === 'string' && Object.prototype.hasOwnProperty.call(attributes, prop)) {
+            // Only intercept data descriptors (class field initializers).
+            // Forward accessor descriptors ({ get/set }) to allow legitimate overrides.
+            if ('value' in descriptor) {
+              if (descriptor.value !== undefined) {
+                target.attribute(prop, descriptor.value);
+                debug('intercepted defineProperty on attribute "%s"', prop);
+              }
+              return true;
+            }
+          }
+          return Reflect.defineProperty(target, prop, descriptor);
+        },
+      });
+      return proxy as any;
     }
   }
 
@@ -309,6 +356,7 @@ export class AbstractBone {
       enumerable: true,
       configurable: true,
     });
+    this[hasLoadedAttributesKey] = true;
   }
 
   static hasOne(name: string, options?: AssociateOptions): void {
@@ -979,35 +1027,35 @@ export class AbstractBone {
 
   // raw accessors
   getRaw(key?: string) {
-    if (key) return this.#raw[key];
-    return this.#raw;
+    if (key) return $raw(this)[key];
+    return $raw(this);
   }
 
   getRawSaved(key?: string) {
-    if (key) return this.#rawSaved[key];
-    return this.#rawSaved;
+    if (key) return $rawSaved(this)[key];
+    return $rawSaved(this);
   }
 
   getRawPrevious(key?: string) {
-    if (key) return this.#rawPrevious[key];
-    return this.#rawPrevious;
+    if (key) return $rawPrevious(this)[key];
+    return $rawPrevious(this);
   }
 
   _setRaw(...args: any[]): void {
     const [ name, value ] = args as any;
     if (args.length > 1) {
-      this.#raw[name] = value;
+      $raw(this)[name] = value;
     } else if (args.length === 1 && name !== undefined && typeof name === 'object') {
-      this.#raw = name;
+      (this as any)[RAW] = name;
     }
   }
 
   _getRawUnset(): Set<string> {
-    return this.#rawUnset;
+    return $rawUnset(this);
   }
 
   _setRawSaved(key: string, value: any): void {
-    this.#rawSaved[key] = value;
+    $rawSaved(this)[key] = value;
   }
 
   attribute<T, Key extends keyof Values<T>, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
@@ -1025,12 +1073,12 @@ export class AbstractBone {
     const attribute = attributes[name];
     if (!attribute) throw new Error(`${(this.constructor as typeof AbstractBone).name} has no attribute "${name}"`);
     if (arguments.length > 1) {
-      this.#raw[name] = value instanceof Raw ? value : attribute.cast(value);
-      this.#rawUnset.delete(name);
+      $raw(this)[name] = value instanceof Raw ? value : attribute.cast(value);
+      $rawUnset(this).delete(name);
       return this;
     }
-    if (this.#rawUnset.has(name)) return;
-    const rawValue = this.#raw[name];
+    if ($rawUnset(this).has(name)) return;
+    const rawValue = $raw(this)[name];
     return rawValue == null ? null : rawValue;
   }
 
@@ -1050,7 +1098,7 @@ export class AbstractBone {
    * bone.attributeWas('foo')  // => 1
    */
   attributeWas(name: string): any {
-    const value = this.#rawSaved[name];
+    const value = $rawSaved(this)[name];
     return value == null ? null : value;
   }
 
@@ -1061,7 +1109,7 @@ export class AbstractBone {
    * bone.attributeChanged('foo')
    */
   attributeChanged(name: string): boolean {
-    if (this.#rawUnset.has(name) || !this.hasAttribute(name)) return false;
+    if ($rawUnset(this).has(name) || !this.hasAttribute(name)) return false;
     const value = this.attribute(name);
     const valueWas = this.attributeWas(name);
     return !isDeepStrictEqual(value, valueWas);
@@ -1083,7 +1131,7 @@ export class AbstractBone {
    */
   changes(name?: string): Record<string, [ any, any ]> {
     if (name != null) {
-      if (this.#rawUnset.has(name) || !this.hasAttribute(name)) return {};
+      if ($rawUnset(this).has(name) || !this.hasAttribute(name)) return {};
       const value = this.attribute(name);
       const valueWas = this.attributeWas(name);
       if (isDeepStrictEqual(value, valueWas)) return {};
@@ -1091,7 +1139,7 @@ export class AbstractBone {
     }
     const result: Record<string, [ any, any ]> = {};
     for (const attrKey of Object.keys((this.constructor as any).attributes)) {
-      if (this.#rawUnset.has(attrKey)) continue;
+      if ($rawUnset(this).has(attrKey)) continue;
       const value = this.attribute(attrKey);
       const valueWas = this.attributeWas(attrKey);
       if (!isDeepStrictEqual(value, valueWas)) result[attrKey] = [ valueWas, value ];
@@ -1110,19 +1158,19 @@ export class AbstractBone {
 
   previousChanges(name?: string): Record<string, [ any, any ]> {
     if (name != null) {
-      if (this.#rawUnset.has(name) || this.#rawPrevious[name] === undefined || !this.hasAttribute(name)) {
+      if ($rawUnset(this).has(name) || $rawPrevious(this)[name] === undefined || !this.hasAttribute(name)) {
         return {};
       }
       const value = this.attribute(name);
-      const valueWas = this.#rawPrevious[name] == null ? null : this.#rawPrevious[name];
+      const valueWas = $rawPrevious(this)[name] == null ? null : $rawPrevious(this)[name];
       if (isDeepStrictEqual(value, valueWas)) return {};
       return { [name]: [ valueWas, value ] };
     }
     const result: Record<string, [ any, any ]> = {};
     for (const attrKey of Object.keys((this.constructor as any).attributes)) {
-      if (this.#rawUnset.has(attrKey) || this.#rawPrevious[attrKey] === undefined) continue;
+      if ($rawUnset(this).has(attrKey) || $rawPrevious(this)[attrKey] === undefined) continue;
       const value = this.attribute(attrKey);
-      const valueWas = this.#rawPrevious[attrKey] == null ? null : this.#rawPrevious[attrKey];
+      const valueWas = $rawPrevious(this)[attrKey] == null ? null : $rawPrevious(this)[attrKey];
       if (!isDeepStrictEqual(value, valueWas)) result[attrKey] = [ valueWas, value ];
     }
     return result;
@@ -1147,7 +1195,7 @@ export class AbstractBone {
    */
   async _save(opts: QueryOptions = {}): Promise<this> {
     const { primaryKey } = (this.constructor as any);
-    if (this.#rawUnset.has(primaryKey)) throw new Error(`unset primary key ${primaryKey}`);
+    if ($rawUnset(this).has(primaryKey)) throw new Error(`unset primary key ${primaryKey}`);
     if (this[primaryKey] == null) {
       await this.create(opts);
     } else if (this.changed(primaryKey)) {
@@ -1172,11 +1220,11 @@ export class AbstractBone {
     for (const name of Object.keys(attributes)) {
       const attribute = attributes[name];
       let value: any;
-      try { value = attribute.uncast(this.#raw[name]); }
-      catch (error) { console.error(error); value = this.#raw[name]; }
-      if (this.#rawSaved[name] !== undefined) this.#rawPrevious[name] = this.#rawSaved[name];
-      else if (this.#rawPrevious[name] === undefined && this.#raw[name] != null) this.#rawPrevious[name] = null;
-      this.#rawSaved[name] = attribute.cast(value);
+      try { value = attribute.uncast($raw(this)[name]); }
+      catch (error) { console.error(error); value = $raw(this)[name]; }
+      if ($rawSaved(this)[name] !== undefined) $rawPrevious(this)[name] = $rawSaved(this)[name];
+      else if ($rawPrevious(this)[name] === undefined && $raw(this)[name] != null) $rawPrevious(this)[name] = null;
+      $rawSaved(this)[name] = attribute.cast(value);
     }
   }
 
@@ -1454,13 +1502,15 @@ export class AbstractBone {
   }
 
   /**
-   * Protected clone
+   * Protected clone — replaces internal state with merged data from target.
+   * Note: `this` here is the proxy (all method calls go through proxy). The proxy
+   * has no `set` trap, so Symbol-key assignments delegate to the underlying target.
    */
   _clone(target: any): void {
-    this.#raw = Object.assign({}, this.getRaw(), target.getRaw());
-    this.#rawSaved = Object.assign({}, this.getRawSaved(), target.getRawSaved());
-    this.#rawPrevious = Object.assign({}, this.getRawPrevious(), target.getRawPrevious());
-    this.#rawUnset = target._getRawUnset();
+    (this as any)[RAW] = Object.assign({}, this.getRaw(), target.getRaw());
+    (this as any)[RAW_SAVED] = Object.assign({}, this.getRawSaved(), target.getRawSaved());
+    (this as any)[RAW_PREVIOUS] = Object.assign({}, this.getRawPrevious(), target.getRawPrevious());
+    (this as any)[RAW_UNSET] = target._getRawUnset();
   }
 
   /**
@@ -1524,7 +1574,7 @@ export class AbstractBone {
   toJSON<M extends AbstractBone>(this: M): Values<M> {
     const obj: any = {};
     for (const key in this) {
-      if (this.#rawUnset.has(key)) continue;
+      if ($rawUnset(this).has(key)) continue;
       if (typeof this[key] !== 'function') {
         const value = this[key];
         if (value != null) obj[key] = value as any instanceof AbstractBone ? value.toJSON() : value;
@@ -1545,7 +1595,7 @@ export class AbstractBone {
   toObject(): any {
     const obj: any = {};
     for (const key in this) {
-      if (this.#rawUnset.has(key)) continue;
+      if ($rawUnset(this).has(key)) continue;
       if (typeof this[key] !== 'function') {
         const value = this[key];
         obj[key] = value != null && typeof value.toObject === 'function' ? value.toObject() : value;
@@ -1622,8 +1672,8 @@ function valuesValidate(values: any, attributes: any, ctx: any) {
 
 function cloneValue(value: any) {
   if (value instanceof Date && isNaN(value as any)) return value;
+  // eslint-disable-next-line no-undef
   return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 }
 
 Reflect.defineMetadata(IS_LEORIC_BONE, true, AbstractBone);
-

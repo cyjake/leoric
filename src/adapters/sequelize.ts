@@ -1,7 +1,10 @@
 import { HookFunc, setupSingleHook } from '../setup_hooks';
 import { compose, isPlainObject } from '../utils';
 import Raw from '../raw';
-import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey } from '../abstract_bone';
+import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey, hasLoadedAttributesKey } from '../abstract_bone';
+// Re-export so TypeScript declaration emitter can "name" the unique symbol type
+// inherited by SequelizeBone from AbstractBone (required to avoid TS4058)
+export { hasLoadedAttributesKey };
 import type Spell from '../spell';
 import type { BoneColumns, Collection, Literal, QueryOptions, WhereConditions } from '../types/common';
 import util from 'util';
