@@ -1,8 +1,14 @@
-2.15.0-alpha.3 / 2026-03-19
-===================
+2.15.? / 2026-xx-xx
+====================
 
 ## What's Changed
-* feat(types): add TypeScript 4.9 declaration support via typesVersions
+* refactor: typescript-native migration — source rewritten in TypeScript with full type coverage by @cyjake in https://github.com/cyjake/leoric/pull/453
+* refactor: typescript-native migration, jsdoc and docs fixes by @cyjake in https://github.com/cyjake/leoric/pull/458
+* fix(types): resolve v2.14.x compatibility gaps after TS migration by @cyjake in https://github.com/cyjake/leoric/pull/456
+* feat(types): add TypeScript 4.9 declaration support by @cyjake in https://github.com/cyjake/leoric/pull/460
+* fix: support ES2022 class fields by intercepting [[DefineOwnProperty]] via Proxy by @JimmyDaddy in https://github.com/cyjake/leoric/pull/461
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.14.0...v2.15.0
 
 
 2.14.0 / 2025-12-09
