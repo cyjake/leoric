@@ -53,22 +53,21 @@ export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
 
-// Symbol-keyed internal instance state. Using module-private Symbols instead of private
-// fields (#raw etc.) because private fields cannot be accessed through a Proxy (they use
-// an identity-based brand check and Proxy is not the original object), which is needed for
-// the ES2022 class fields fix. Symbol keys have the same performance characteristics as
-// private fields (V8 optimizes them as in-object properties) and are invisible to
-// enumeration and JSON serialization. See: https://github.com/cyjake/leoric/issues/377
-const RAW = Symbol('leoric#raw');
-const RAW_SAVED = Symbol('leoric#rawSaved');
-const RAW_UNSET = Symbol('leoric#rawUnset');
-const RAW_PREVIOUS = Symbol('leoric#rawPrevious');
+// WeakMap-based internal instance state. Using WeakMaps instead of private fields (#raw etc.)
+// because private fields cannot be accessed through a Proxy (identity-based brand check),
+// which is needed for the ES2022 class fields fix. WeakMap entries are invisible to
+// assert.deepStrictEqual (just like private fields), which is important for test assertions
+// comparing model instances. See: https://github.com/cyjake/leoric/issues/377
+const rawMap = new WeakMap<object, Record<string, any>>();
+const rawSavedMap = new WeakMap<object, Record<string, any>>();
+const rawUnsetMap = new WeakMap<object, Set<string>>();
+const rawPreviousMap = new WeakMap<object, Record<string, any>>();
 
-// Short accessors for internal state
-function $raw(self: any): Record<string, any> { return self[RAW]; }
-function $rawSaved(self: any): Record<string, any> { return self[RAW_SAVED]; }
-function $rawUnset(self: any): Set<string> { return self[RAW_UNSET]; }
-function $rawPrevious(self: any): Record<string, any> { return self[RAW_PREVIOUS]; }
+// Short accessors for internal state (non-null asserted — always initialized in constructor)
+function $raw(self: object): Record<string, any> { return rawMap.get(self)!; }
+function $rawSaved(self: object): Record<string, any> { return rawSavedMap.get(self)!; }
+function $rawUnset(self: object): Set<string> { return rawUnsetMap.get(self)!; }
+function $rawPrevious(self: object): Record<string, any> { return rawPreviousMap.get(self)!; }
 
 // Static marker set by loadAttribute() to indicate prototype getter/setters are defined.
 // Used by constructor to decide whether to wrap instances in a Proxy.
@@ -172,10 +171,10 @@ export class AbstractBone {
   static associations: { [key: string]: any };
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
-    (this as any)[RAW] = {};
-    (this as any)[RAW_SAVED] = {};
-    (this as any)[RAW_UNSET] = new Set();
-    (this as any)[RAW_PREVIOUS] = {};
+    rawMap.set(this, {});
+    rawSavedMap.set(this, {});
+    rawUnsetMap.set(this, new Set());
+    rawPreviousMap.set(this, {});
     Object.defineProperty(this, 'isNewRecord', {
       value: opts.isNewRecord !== undefined ? opts.isNewRecord : true,
       configurable: true,
@@ -210,6 +209,11 @@ export class AbstractBone {
           return Reflect.defineProperty(target, prop, descriptor);
         },
       });
+      // Share WeakMap state so methods called on the proxy can access internal data
+      rawMap.set(proxy, rawMap.get(this)!);
+      rawSavedMap.set(proxy, rawSavedMap.get(this)!);
+      rawUnsetMap.set(proxy, rawUnsetMap.get(this)!);
+      rawPreviousMap.set(proxy, rawPreviousMap.get(this)!);
       return proxy as any;
     }
   }
@@ -1043,7 +1047,7 @@ export class AbstractBone {
     if (args.length > 1) {
       $raw(this)[name] = value;
     } else if (args.length === 1 && name !== undefined && typeof name === 'object') {
-      (this as any)[RAW] = name;
+      rawMap.set(this, name);
     }
   }
 
@@ -1500,14 +1504,15 @@ export class AbstractBone {
 
   /**
    * Protected clone — replaces internal state with merged data from target.
-   * Note: `this` here is the proxy (all method calls go through proxy). The proxy's
-   * set trap is not defined, so assignments to Symbol keys delegate to the target object.
+   * Note: `this` here is the proxy (all method calls go through proxy). This creates
+   * new objects for the proxy's WeakMap entries; the original target's entries become
+   * stale but are never accessed (no code path reaches the raw target directly).
    */
   _clone(target: any): void {
-    (this as any)[RAW] = Object.assign({}, this.getRaw(), target.getRaw());
-    (this as any)[RAW_SAVED] = Object.assign({}, this.getRawSaved(), target.getRawSaved());
-    (this as any)[RAW_PREVIOUS] = Object.assign({}, this.getRawPrevious(), target.getRawPrevious());
-    (this as any)[RAW_UNSET] = target._getRawUnset();
+    rawMap.set(this, Object.assign({}, this.getRaw(), target.getRaw()));
+    rawSavedMap.set(this, Object.assign({}, this.getRawSaved(), target.getRawSaved()));
+    rawPreviousMap.set(this, Object.assign({}, this.getRawPrevious(), target.getRawPrevious()));
+    rawUnsetMap.set(this, target._getRawUnset());
   }
 
   /**
