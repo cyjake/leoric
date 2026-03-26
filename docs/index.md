@@ -345,16 +345,37 @@ LEFT JOIN tags
 
 ## Guides
 
-For detailed informations, please check out following guides accordingly:
+### Getting Started
 
-1. [Basics]({{ '/basics' | relative_url }})
-2. [Migrations]({{ '/migrations' | relative_url }})
-3. [Validations]({{ '/validations' | relative_url }})
-4. [Associations]({{ '/associations' | relative_url }})
-5. [Query Interfaces]({{ '/querying' | relative_url }})
-6. [Hooks]({{ '/hooks' | relative_url }})
-7. [TypeScript Support]({{ '/types' | relative_url }})
-7. [Sequelize Adapter]({{ '/sequelize' | relative_url }})
+1. [Quick Start]({{ '/starter' | relative_url }})
+2. [Basics]({{ '/basics' | relative_url }})
+3. [Setup Guides]({{ '/setup' | relative_url }})
+
+### Core Guides
+
+1. [Query Interfaces]({{ '/querying' | relative_url }})
+2. [Associations]({{ '/associations' | relative_url }})
+3. [Migrations]({{ '/migrations' | relative_url }})
+4. [Validations]({{ '/validations' | relative_url }})
+5. [Hooks]({{ '/hooks' | relative_url }})
+6. [Transactions]({{ '/transactions' | relative_url }})
+
+### Advanced
+
+1. [Realm API]({{ '/realm' | relative_url }})
+2. [Raw Queries]({{ '/raw-query' | relative_url }})
+3. [JSON Fields]({{ '/json' | relative_url }})
+4. [Soft Delete]({{ '/soft-delete' | relative_url }})
+5. [Index Hints]({{ '/index-hints' | relative_url }})
+6. [Best Practices]({{ '/best-practices' | relative_url }})
+
+### References
+
+1. [Data Types]({{ '/data-types' | relative_url }})
+2. [TypeScript Support]({{ '/types' | relative_url }})
+3. [Logging]({{ '/logging' | relative_url }})
+4. [Sequelize Adapter]({{ '/sequelize' | relative_url }})
+5. [Troubleshooting]({{ '/troubleshooting' | relative_url }})
 
 ## Contributing
 

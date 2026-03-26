@@ -16,10 +16,10 @@ await realm.connect();
 
 When sequelize adapter is active, the model API will behave similarly with the actual [Sequelize Model](https://sequelize.org/master/class/lib/model.js~Model.html). See the content below for detail.
 
-## 目录
+## Table of Contents
 {:.no_toc}
 
-1. 目录
+1. Table of Contents
 {:toc}
 
 ## CRUD: Reading and Writing Data

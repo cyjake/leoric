@@ -355,15 +355,107 @@ await realm.rollback(3);
 
 ### 重置数据库
 
-// TODO
+重置数据库需要先回退所有已执行的迁移，然后从头重新执行。目前 Leoric 没有提供专门的 `reset()` 方法，但可以通过组合 `rollback()` 和 `migrate()` 实现：
+
+```js
+const Realm = require('leoric');
+const realm = new Realm({
+  client: 'mysql',
+  migrations: 'database/migrations',
+});
+
+// 回退所有迁移（使用一个足够大的数字）
+await realm.rollback(Infinity);
+
+// 重新执行所有迁移
+await realm.migrate();
+```
+
+> **警告**：此操作会销毁所有现有数据，执行前务必备份数据库。
 
 ### 执行单个迁移任务
 
-// TODO
+可以通过给 `realm.migrate()` 传入 `steps` 参数来控制执行的迁移数量：
+
+```js
+// 只执行下一个待执行的迁移
+await realm.migrate(1);
+
+// 执行接下来的 3 个待执行的迁移
+await realm.migrate(3);
+```
+
+类似地，`realm.rollback()` 也接受步数参数：
+
+```js
+// 回退最后一个迁移
+await realm.rollback();
+
+// 回退最后 3 个迁移
+await realm.rollback(3);
+```
+
+> **注意**：目前没有内置方式按名称执行特定迁移。迁移始终按照文件名时间戳的顺序执行。
 
 ## 在迁移任务中使用 Model
 
-// TODO
+某些场景下你可能需要在迁移中使用模型来操作数据。此时可以引入模型并使用原始查询或模型方法。需要注意模型必须先建立连接：
+
+```js
+module.exports = {
+  async up(driver, DataTypes) {
+    // 先添加新列
+    await driver.addColumn('users', 'display_name', {
+      type: DataTypes.STRING,
+    });
+
+    // 使用原始 SQL 从已有数据填充新列
+    await driver.query(`
+      UPDATE users SET display_name = CONCAT(first_name, ' ', last_name)
+    `);
+  },
+
+  async down(driver, DataTypes) {
+    await driver.removeColumn('users', 'display_name');
+  },
+};
+```
+
+如果需要使用模型 API 而非原始 SQL，可以在迁移中创建 Realm 实例。但一般不推荐这样做，因为模型定义可能会随时间变化，与迁移产生不一致：
+
+```js
+const Realm = require('leoric');
+const User = require('../../app/models/user');
+
+module.exports = {
+  async up(driver, DataTypes) {
+    await driver.addColumn('users', 'display_name', {
+      type: DataTypes.STRING,
+    });
+
+    // 使用模型 API（需要先 connect）
+    const realm = new Realm({
+      client: 'mysql',
+      database: 'myapp',
+      models: [User],
+    });
+    await realm.connect();
+
+    const users = await User.find();
+    for (const user of users) {
+      await user.update({ displayName: `${user.firstName} ${user.lastName}` });
+    }
+
+    await realm.disconnect();
+  },
+
+  async down(driver, DataTypes) {
+    await driver.removeColumn('users', 'display_name');
+  },
+};
+```
+
+> **最佳实践**：在迁移中优先使用原始 SQL 查询（`driver.query()`）而非模型 API。原始 SQL 是确定性的，不会因为后续模型定义变更而出问题。
 
 ## 转存表结构信息
 

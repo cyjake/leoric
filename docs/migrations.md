@@ -357,15 +357,107 @@ await realm.rollback(3);
 
 ### Resetting the Database
 
-// TODO
+To reset the database, rollback all executed migrations and then re-run them from scratch. Currently Leoric does not provide a dedicated `reset()` method, but this can be achieved by combining `rollback()` and `migrate()`:
+
+```js
+const Realm = require('leoric');
+const realm = new Realm({
+  client: 'mysql',
+  migrations: 'database/migrations',
+});
+
+// rollback all migrations (use a large number to cover all)
+await realm.rollback(Infinity);
+
+// re-run all migrations
+await realm.migrate();
+```
+
+> **Warning**: This will destroy all existing data. Always back up your database before resetting.
 
 ### Running Specific Migration
 
-// TODO
+You can control how many pending migrations to run by passing a `steps` parameter to `realm.migrate()`:
+
+```js
+// run only the next pending migration
+await realm.migrate(1);
+
+// run the next 3 pending migrations
+await realm.migrate(3);
+```
+
+Similarly, `realm.rollback()` accepts a step count:
+
+```js
+// rollback the last migration
+await realm.rollback();
+
+// rollback the last 3 migrations
+await realm.rollback(3);
+```
+
+> **Note**: There is currently no built-in way to run a specific migration by name. Migrations are always executed in chronological order based on their filename timestamps.
 
 ## Using Models in Migrations
 
-// TODO
+In some cases, you may need to use models within migrations to manipulate data. To do this, require the model and use raw queries or model methods. Keep in mind that the model must already be connected:
+
+```js
+module.exports = {
+  async up(driver, DataTypes) {
+    // Add the new column first
+    await driver.addColumn('users', 'display_name', {
+      type: DataTypes.STRING,
+    });
+
+    // Use raw SQL to populate the new column from existing data
+    await driver.query(`
+      UPDATE users SET display_name = CONCAT(first_name, ' ', last_name)
+    `);
+  },
+
+  async down(driver, DataTypes) {
+    await driver.removeColumn('users', 'display_name');
+  },
+};
+```
+
+If you need to use the model API instead of raw SQL, you can set up a Realm instance within the migration. However, this is generally discouraged because model definitions may change over time and become out of sync with the migration:
+
+```js
+const Realm = require('leoric');
+const User = require('../../app/models/user');
+
+module.exports = {
+  async up(driver, DataTypes) {
+    await driver.addColumn('users', 'display_name', {
+      type: DataTypes.STRING,
+    });
+
+    // Use model API (ensure connect is called)
+    const realm = new Realm({
+      client: 'mysql',
+      database: 'myapp',
+      models: [User],
+    });
+    await realm.connect();
+
+    const users = await User.find();
+    for (const user of users) {
+      await user.update({ displayName: `${user.firstName} ${user.lastName}` });
+    }
+
+    await realm.disconnect();
+  },
+
+  async down(driver, DataTypes) {
+    await driver.removeColumn('users', 'display_name');
+  },
+};
+```
+
+> **Best practice**: Prefer raw SQL queries (`driver.query()`) over model APIs in migrations. Raw SQL is deterministic and won't break if the model definition changes later.
 
 ## Schema Dumping
 
