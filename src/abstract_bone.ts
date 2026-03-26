@@ -194,13 +194,16 @@ export class AbstractBone {
       const attributes = (this.constructor as typeof AbstractBone).attributes;
       const proxy = new Proxy(this, {
         defineProperty(target, prop, descriptor) {
-          if (typeof prop === 'string' && prop in attributes) {
-            // Intercept class field definition that would shadow attribute getter/setter
-            if (descriptor.value !== undefined) {
-              target.attribute(prop, descriptor.value);
-              debug('intercepted defineProperty on attribute "%s"', prop);
+          if (typeof prop === 'string' && Object.prototype.hasOwnProperty.call(attributes, prop)) {
+            // Only intercept data descriptors (class field initializers).
+            // Forward accessor descriptors ({ get/set }) to allow legitimate overrides.
+            if ('value' in descriptor) {
+              if (descriptor.value !== undefined) {
+                target.attribute(prop, descriptor.value);
+                debug('intercepted defineProperty on attribute "%s"', prop);
+              }
+              return true;
             }
-            return true;
           }
           return Reflect.defineProperty(target, prop, descriptor);
         },

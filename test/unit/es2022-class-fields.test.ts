@@ -732,46 +732,48 @@ describe('=> ES2022 class fields', () => {
         });
       }
 
-      // Simulate ctx access — createProxy wraps realm per request
-      const fakeCtx = { id: 'request-1', app: fakeApp };
-      const ctxModel = createProxy(realm, { app: fakeApp, ctx: fakeCtx });
+      try {
+        // Simulate ctx access — createProxy wraps realm per request
+        const fakeCtx = { id: 'request-1', app: fakeApp };
+        const ctxModel = createProxy(realm, { app: fakeApp, ctx: fakeCtx });
 
-      // Access model through proxy — triggers InjectModelClass creation
-      const InjectedUser = ctxModel.User;
-      assert.ok(InjectedUser);
-      assert.equal(InjectedUser.name, 'User');
-      assert.notStrictEqual(InjectedUser, User); // different class
+        // Access model through proxy — triggers InjectModelClass creation
+        const InjectedUser = ctxModel.User;
+        assert.ok(InjectedUser);
+        assert.equal(InjectedUser.name, 'User');
+        assert.notStrictEqual(InjectedUser, User); // different class
 
-      // Cached on second access
-      assert.strictEqual(ctxModel.User, InjectedUser);
+        // Cached on second access
+        assert.strictEqual(ctxModel.User, InjectedUser);
 
-      // ctx/app accessible on class and prototype
-      assert.strictEqual((InjectedUser as any).ctx, fakeCtx);
-      assert.strictEqual((InjectedUser as any).app, fakeApp);
+        // ctx/app accessible on class and prototype
+        assert.strictEqual((InjectedUser as any).ctx, fakeCtx);
+        assert.strictEqual((InjectedUser as any).app, fakeApp);
 
-      // Create instance — Proxy intercepts defineProperty from super()
-      const user = new InjectedUser({ name: 'Alice', age: 25 });
-      assert.equal(user.name, 'Alice');
-      assert.equal(user.age, 25);
-      assert.equal(user.attribute('name'), 'Alice');
+        // Create instance — Proxy intercepts defineProperty from super()
+        const user = new InjectedUser({ name: 'Alice', age: 25 });
+        assert.equal(user.name, 'Alice');
+        assert.equal(user.age, 25);
+        assert.equal(user.attribute('name'), 'Alice');
 
-      // Instance inherits ctx/app from InjectModelClass.prototype
-      assert.strictEqual((user as any).ctx, fakeCtx);
-      assert.strictEqual((user as any).app, fakeApp);
+        // Instance inherits ctx/app from InjectModelClass.prototype
+        assert.strictEqual((user as any).ctx, fakeCtx);
+        assert.strictEqual((user as any).app, fakeApp);
 
-      // Mutation works
-      user.name = 'Bob';
-      assert.equal(user.name, 'Bob');
-      assert.ok(user.changed('name'));
+        // Mutation works
+        user.name = 'Bob';
+        assert.equal(user.name, 'Bob');
+        assert.ok(user.changed('name'));
 
-      // toJSON / toObject work
-      const json = user.toJSON();
-      assert.equal(json.name, 'Bob');
-      assert.equal(json.age, 25);
-
-      // Clean up global Bone.prototype.app
-      delete (Bone as any).app;
-      delete (Bone.prototype as any).app;
+        // toJSON / toObject work
+        const json = user.toJSON();
+        assert.equal(json.name, 'Bob');
+        assert.equal(json.age, 25);
+      } finally {
+        // Clean up global Bone/Bone.prototype.app to prevent leaking into other tests
+        delete (Bone as any).app;
+        delete (Bone.prototype as any).app;
+      }
     });
 
     it('setPrototypeOf + createProxy: model with different base class', () => {
@@ -1171,6 +1173,31 @@ describe('=> ES2022 class fields', () => {
       const user = new User({ name: 'John' });
       assert.equal(user.name, 'John');
       assert.equal(user.attribute('name'), 'John');
+    });
+
+    it('accessor descriptor on attribute name forwards to Reflect.defineProperty', () => {
+      class User extends Bone {
+        @Column({ type: DataTypes.STRING })
+        declare name: string;
+      }
+      (User as any).load([
+        { columnName: 'name', columnType: 'varchar(255)', dataType: 'varchar', isNullable: 'YES' },
+      ]);
+
+      const user = new User({ name: 'John' });
+      assert.equal(user.name, 'John');
+
+      // Legitimate accessor override on an attribute name should go through
+      let intercepted = 'initial';
+      Object.defineProperty(user, 'name', {
+        get() { return intercepted; },
+        set(v: string) { intercepted = v; },
+        configurable: true,
+      });
+      assert.equal(user.name, 'initial');
+      user.name = 'override';
+      assert.equal(user.name, 'override');
+      assert.equal(intercepted, 'override');
     });
 
     it('pure JS class fields via Model.init() API', () => {
