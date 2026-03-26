@@ -137,7 +137,7 @@ class User extends Bone {
 
 虽然 `hasOne` 和 `belongsTo` 都可以被用来配置一对一关联，但两者之间有个比较大的差别在于关联字段所属的表。如果是 `belongsTo`，需要关联字段添加到主表中，如果是 `hasOne`，则需要放到外表。推荐阅读《[关联关系]({% link zh/associations.md %})》文档了解更多使用细节。
 
-### HasMany with Through
+### 通过中间表的 HasMany 关联
 
 对于多对多关联，可以使用 `through` 选项：
 

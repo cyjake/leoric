@@ -294,11 +294,11 @@ realm.connect().then(() => {
 router.post('/transfer', async (req, res) => {
   const { fromId, toId, amount } = req.body;
 
-  await User.transaction(async () => {
-    const from = await User.findOne(fromId);
-    const to = await User.findOne(toId);
-    await from.update({ balance: from.balance - amount });
-    await to.update({ balance: to.balance + amount });
+  await User.transaction(async ({ connection }) => {
+    const from = await User.findOne(fromId, { connection });
+    const to = await User.findOne(toId, { connection });
+    await from.update({ balance: from.balance - amount }, { connection });
+    await to.update({ balance: to.balance + amount }, { connection });
   });
 
   res.json({ success: true });
