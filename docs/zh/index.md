@@ -338,16 +338,37 @@ LEFT JOIN tags
 
 ## 上手指南
 
-推荐依次阅读如下文档了解有关 Leoric 的详细信息
+### 入门
 
-1. [基础]({{ '/zh/basics' | relative_url }})
-2. [表结构变更]({{ '/zh/migrations' | relative_url }})
-3. [校验]({{ '/zh/validations' | relative_url }})
-4. [关联关系]({{ '/zh/associations' | relative_url }})
-5. [查询接口]({{ '/zh/querying' | relative_url }})
-6. [钩子]({{ '/zh/hooks' | relative_url }})
-7. [TypeScript 支持]({{ '/zh/types' | relative_url }})
-8. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
+1. [快速开始]({{ '/zh/starter' | relative_url }})
+2. [基础]({{ '/zh/basics' | relative_url }})
+3. [环境配置]({{ '/zh/setup' | relative_url }})
+
+### 核心指南
+
+1. [查询接口]({{ '/zh/querying' | relative_url }})
+2. [关联关系]({{ '/zh/associations' | relative_url }})
+3. [表结构变更]({{ '/zh/migrations' | relative_url }})
+4. [校验]({{ '/zh/validations' | relative_url }})
+5. [钩子]({{ '/zh/hooks' | relative_url }})
+6. [事务]({{ '/zh/transactions' | relative_url }})
+
+### 进阶
+
+1. [Realm API]({{ '/zh/realm' | relative_url }})
+2. [原始查询]({{ '/zh/raw-query' | relative_url }})
+3. [JSON 字段]({{ '/zh/json' | relative_url }})
+4. [软删除]({{ '/zh/soft-delete' | relative_url }})
+5. [索引提示]({{ '/zh/index-hints' | relative_url }})
+6. [最佳实践]({{ '/zh/best-practices' | relative_url }})
+
+### 参考
+
+1. [数据类型]({{ '/zh/data-types' | relative_url }})
+2. [TypeScript 支持]({{ '/zh/types' | relative_url }})
+3. [日志]({{ '/zh/logging' | relative_url }})
+4. [Sequelize 适配器]({{ '/zh/sequelize' | relative_url }})
+5. [错误排查]({{ '/zh/troubleshooting' | relative_url }})
 
 ## 参与贡献
 

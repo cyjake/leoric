@@ -36,7 +36,7 @@ layout: default
           <ul class="dropdown-list">
             <li><a href="{{ '/zh/setup' | relative_url }}">概要</a></li>
             <li><a href="{{ '/zh/setup/egg' | relative_url }}">Egg / Chair 配置</a></li>
-            <li><a href="{{ '/zh/setup/express' | relative_url }}">[wip] Express 配置</a></li>
+            <li><a href="{{ '/zh/setup/express' | relative_url }}">Express 配置</a></li>
             <li><a href="{{ '/zh/setup/midway' | relative_url }}">Midway 配置</a></li>
             <li><a href="{{ '/zh/setup/mysql' | relative_url }}">MySQL 配置</a></li>
             <li><a href="{{ '/zh/setup/sqlite' | relative_url }}">SQLite 配置</a></li>
@@ -56,6 +56,9 @@ layout: default
             {% endif %}
             {% endfor %}
           </ul>
+        </li>
+        <li class="nav-item">
+          <a href="{{ '/zh/playground' | relative_url }}">Playground</a>
         </li>
         <li class="nav-item">
           <a href="{{ '/api' | relative_url }}">API</a>

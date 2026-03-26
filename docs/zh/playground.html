@@ -1,0 +1,319 @@
+---
+layout: zh
+title: Playground
+---
+
+<style>
+.playground-container { max-width: var(--container-width); margin: 0 auto; padding: 0 16px; }
+.playground-header { margin-bottom: 24px; }
+.playground-header p { color: var(--color); opacity: 0.7; }
+.playground-mode { margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.playground-mode label { font-size: 13px; font-weight: 600; color: var(--color); opacity: 0.7; }
+.mode-toggle { display: inline-flex; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+.mode-toggle button {
+  padding: 6px 16px; font-size: 13px; font-weight: 600; border: none;
+  background: transparent; color: var(--color); cursor: pointer; transition: all 0.15s;
+}
+.mode-toggle button.active { background: var(--theme-color); color: #fff; }
+.playground-schema { margin-bottom: 16px; }
+.schema-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 0; font-weight: 600; color: var(--color); user-select: none; }
+.schema-toggle::before { content: '\25B6'; font-size: 10px; transition: transform 0.2s; }
+.schema-toggle.open::before { transform: rotate(90deg); }
+.schema-content { display: none; }
+.schema-content.open { display: block; }
+.schema-editor, .code-input {
+  width: 100%; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px; line-height: 1.5; padding: 12px; border: 1px solid var(--border-color);
+  border-radius: 6px; background-color: var(--bg-color); color: var(--color); resize: vertical; tab-size: 2;
+  box-sizing: border-box;
+}
+.schema-editor { min-height: 180px; }
+.code-input { min-height: 120px; font-size: 14px; line-height: 1.6; }
+.code-input:focus { outline: none; border-color: var(--theme-color); box-shadow: 0 0 0 2px rgba(255, 127, 97, 0.2); }
+.playground-examples { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.examples-label { font-size: 13px; font-weight: 600; color: var(--color); opacity: 0.7; }
+.example-btn {
+  padding: 4px 10px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 16px;
+  background: transparent; color: var(--color); cursor: pointer; transition: all 0.15s;
+}
+.example-btn:hover { background: var(--theme-color); color: #fff; border-color: var(--theme-color); }
+.playground-editor { position: relative; margin-bottom: 16px; }
+.editor-hint { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: var(--color); opacity: 0.4; pointer-events: none; }
+.playground-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+.run-btn {
+  padding: 8px 20px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px;
+  background: var(--theme-color); color: #fff; cursor: pointer; transition: opacity 0.15s;
+}
+.run-btn:hover { opacity: 0.85; }
+.run-btn:active { opacity: 0.7; }
+.playground-output { position: relative; }
+.output-label { font-size: 13px; font-weight: 600; color: var(--color); margin-bottom: 8px; }
+.output-content {
+  position: relative; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 14px; line-height: 1.6; padding: 12px; border: 1px solid var(--border-color);
+  border-radius: 6px; background-color: var(--bg-color); color: var(--color);
+  min-height: 60px; white-space: pre-wrap; word-break: break-all;
+}
+.output-error { color: #d73a49; }
+.copy-btn {
+  position: absolute; top: 32px; right: 8px; padding: 4px 8px; font-size: 12px;
+  border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color);
+  color: var(--color); cursor: pointer; opacity: 0.6; transition: opacity 0.15s;
+}
+.copy-btn:hover { opacity: 1; }
+</style>
+
+<div class="playground-container">
+  <div class="playground-header">
+    <p>编写 Leoric 查询代码，即时查看生成的 SQL。无需数据库连接。</p>
+  </div>
+
+  <div class="playground-mode">
+    <label>API 模式：</label>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="leoric">Leoric</button>
+      <button class="mode-btn" data-mode="sequelize">Sequelize</button>
+    </div>
+  </div>
+
+  <div class="playground-schema">
+    <div class="schema-toggle open" id="schema-toggle">模型定义</div>
+    <div class="schema-content open" id="schema-content">
+      <textarea class="schema-editor" id="schema-editor" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="playground-examples" id="examples-container"></div>
+
+  <div class="playground-editor">
+    <textarea class="code-input" id="code-input" spellcheck="false" placeholder="在此编写 Leoric 查询代码..."></textarea>
+    <span class="editor-hint">Cmd/Ctrl + Enter 运行</span>
+  </div>
+
+  <div class="playground-actions">
+    <button class="run-btn" id="run-btn">运行</button>
+  </div>
+
+  <div class="playground-output">
+    <div class="output-label">生成的 SQL</div>
+    <div class="output-content" id="output-content"></div>
+    <button class="copy-btn" id="copy-btn">复制</button>
+  </div>
+</div>
+
+<script src="{{ '/assets/javascript/leoric.bundle.js' | relative_url }}"></script>
+<script>
+(function() {
+  var setupModel = Leoric.setupModel;
+  var setupSequelizeModel = Leoric.setupSequelizeModel;
+  var DataTypes = Leoric.DataTypes;
+  var raw = Leoric.raw;
+  var STRING = DataTypes.STRING, TEXT = DataTypes.TEXT, INTEGER = DataTypes.INTEGER;
+  var BIGINT = DataTypes.BIGINT, DATE = DataTypes.DATE, BOOLEAN = DataTypes.BOOLEAN;
+  var BLOB = DataTypes.BLOB, JSON_TYPE = DataTypes.JSON, JSONB = DataTypes.JSONB, DECIMAL = DataTypes.DECIMAL;
+
+  var schemaEditor = document.getElementById('schema-editor');
+  var codeInput = document.getElementById('code-input');
+  var outputContent = document.getElementById('output-content');
+  var runBtn = document.getElementById('run-btn');
+  var copyBtn = document.getElementById('copy-btn');
+  var schemaToggle = document.getElementById('schema-toggle');
+  var schemaContent = document.getElementById('schema-content');
+  var examplesContainer = document.getElementById('examples-container');
+
+  var currentMode = 'leoric';
+
+  var SCHEMA_TEMPLATES = {
+    leoric: '// 在此定义模型，定义后可在下方代码编辑器中使用\n\
+const Post = setupModel(\'Post\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  title: STRING,\n\
+  content: TEXT,\n\
+  userId: BIGINT,\n\
+  status: INTEGER,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+  deletedAt: DATE,\n\
+});\n\
+\n\
+const User = setupModel(\'User\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  name: STRING,\n\
+  email: STRING,\n\
+  age: INTEGER,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+});\n\
+\n\
+const Comment = setupModel(\'Comment\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  postId: BIGINT,\n\
+  userId: BIGINT,\n\
+  content: TEXT,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+});',
+    sequelize: '// 在此定义模型（Sequelize 模式）\n\
+const Post = setupModel(\'Post\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  title: STRING,\n\
+  content: TEXT,\n\
+  userId: BIGINT,\n\
+  status: INTEGER,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+  deletedAt: DATE,\n\
+});\n\
+\n\
+const User = setupModel(\'User\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  name: STRING,\n\
+  email: STRING,\n\
+  age: INTEGER,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+});\n\
+\n\
+const Comment = setupModel(\'Comment\', {\n\
+  id: { type: BIGINT, primaryKey: true },\n\
+  postId: BIGINT,\n\
+  userId: BIGINT,\n\
+  content: TEXT,\n\
+  createdAt: DATE,\n\
+  updatedAt: DATE,\n\
+});'
+  };
+
+  var EXAMPLES = {
+    leoric: [
+      { label: '基础查询', code: "return Post.find({ userId: 1 }).order('id', 'desc').limit(10).toString()" },
+      { label: '选择字段', code: "return Post.find().select('id', 'title').where('createdAt > ?', new Date('2024-01-01')).toString()" },
+      { label: '聚合查询', code: "return Post.count().group('userId').having('count > 5').order('count', 'desc').toString()" },
+      { label: '关联查询', code: "return Post.include('user').where({ 'user.name': 'John' }).toString()" },
+      { label: '更新数据', code: "return Post.where({ userId: 1 }).update({ title: 'Updated' }).toString()" },
+      { label: '删除数据', code: "return Post.remove({ status: 0 }).toString()" },
+      { label: 'Raw 表达式', code: "return Post.find({ title: raw('LOWER(\"Hello\")') }).toString()" },
+      { label: '创建数据', code: "return Post.create({ title: 'New Post', userId: 1 }).toString()" },
+    ],
+    sequelize: [
+      { label: 'findAll', code: "return Post.findAll({ where: { userId: 1 }, order: [['id', 'desc']], limit: 10 }).toString()" },
+      { label: 'findOne', code: "return Post.findOne({ where: { title: 'Hello' } }).toString()" },
+      { label: 'findByPk', code: "return Post.findByPk(42).toString()" },
+      { label: '选择字段', code: "return Post.findAll({ attributes: ['id', 'title'], where: { userId: 1 } }).toString()" },
+      { label: 'count', code: "return Post.count({ where: { userId: 1 } }).toString()" },
+      { label: '分组聚合', code: "return Post.findAll({ attributes: ['userId'], group: 'userId', order: [['userId', 'asc']] }).toString()" },
+      { label: 'bulkDestroy', code: "return Post.bulkDestroy({ where: { status: 0 } }).toString()" },
+      { label: '关联查询', code: "return Post.findAll({ include: 'user', where: { 'user.name': 'John' } }).toString()" },
+    ]
+  };
+
+  var DEFAULT_CODE = {
+    leoric: "return Post.find({ userId: 1 }).order('id', 'desc').limit(10).toString()",
+    sequelize: "return Post.findAll({ where: { userId: 1 }, order: [['id', 'desc']], limit: 10 }).toString()"
+  };
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+    });
+    schemaEditor.value = SCHEMA_TEMPLATES[mode];
+    codeInput.value = DEFAULT_CODE[mode];
+    renderExamples();
+    runCode();
+  }
+
+  function renderExamples() {
+    var examples = EXAMPLES[currentMode];
+    var html = '<span class="examples-label">示例：</span>';
+    examples.forEach(function(ex) {
+      html += '<button class="example-btn">' + ex.label + '</button>';
+    });
+    examplesContainer.innerHTML = html;
+    examplesContainer.querySelectorAll('.example-btn').forEach(function(btn, i) {
+      btn.addEventListener('click', function() {
+        codeInput.value = examples[i].code;
+        runCode();
+      });
+    });
+  }
+
+  document.querySelectorAll('.mode-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchMode(btn.getAttribute('data-mode'));
+    });
+  });
+
+  schemaToggle.addEventListener('click', function() {
+    schemaToggle.classList.toggle('open');
+    schemaContent.classList.toggle('open');
+  });
+
+  runBtn.addEventListener('click', runCode);
+
+  codeInput.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runCode(); }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      var s = this.selectionStart, end = this.selectionEnd;
+      this.value = this.value.substring(0, s) + '  ' + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = s + 2;
+    }
+  });
+
+  schemaEditor.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      var s = this.selectionStart, end = this.selectionEnd;
+      this.value = this.value.substring(0, s) + '  ' + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = s + 2;
+    }
+  });
+
+  copyBtn.addEventListener('click', function() {
+    var text = outputContent.textContent;
+    navigator.clipboard.writeText(text).then(function() {
+      copyBtn.textContent = '已复制!';
+      setTimeout(function() { copyBtn.textContent = '复制'; }, 1500);
+    });
+  });
+
+  function buildModels() {
+    var schemaCode = schemaEditor.value;
+    var models = {};
+    var setup = currentMode === 'sequelize' ? setupSequelizeModel : setupModel;
+    var wrappedSetup = function(name, attrs) {
+      var Model = setup(name, attrs);
+      models[name] = Model;
+      return Model;
+    };
+    var fn = new Function('setupModel', 'STRING', 'TEXT', 'INTEGER', 'BIGINT', 'DATE', 'BOOLEAN', 'BLOB', 'JSON_TYPE', 'JSONB', 'DECIMAL', 'models',
+      schemaCode
+    );
+    fn.call({}, wrappedSetup, STRING, TEXT, INTEGER, BIGINT, DATE, BOOLEAN, BLOB, JSON_TYPE, JSONB, DECIMAL, models);
+    for (var name in models) { models[name].models = models; }
+    return models;
+  }
+
+  function runCode() {
+    outputContent.classList.remove('output-error');
+    try {
+      var models = buildModels();
+      var code = codeInput.value;
+      var argNames = Object.keys(models).concat(['raw', 'DataTypes', 'STRING', 'TEXT', 'INTEGER', 'BIGINT', 'DATE', 'BOOLEAN']);
+      var argValues = Object.values(models).concat([raw, DataTypes, STRING, TEXT, INTEGER, BIGINT, DATE, BOOLEAN]);
+      var fn = new Function(argNames.join(','), code);
+      var result = fn.apply(null, argValues);
+      if (result && typeof result.toSqlString === 'function') {
+        result = result.toSqlString();
+      }
+      outputContent.textContent = result || '(无输出 — 请确保返回一个值)';
+    } catch (err) {
+      outputContent.classList.add('output-error');
+      outputContent.textContent = err.message;
+    }
+  }
+
+  switchMode('leoric');
+})();
+</script>
