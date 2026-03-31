@@ -9,7 +9,7 @@ layout: default
     <nav>
       <ul>
         <li class="nav-item">
-          <form action="/search.html" method="get" class="search">
+          <form action="{{ '/search' | relative_url }}" method="get" class="search">
             <input type="search" name="q" placeholder="Search the site..." id="search-box">
             <input type="submit" value="🔍">
           </form>
@@ -73,11 +73,11 @@ layout: default
           </a>
         </li>
         <li class="nav-item">
-          <select id="j-color-scheme" class="color-scheme">
-            <option value="os-default">OS default</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
+          <div class="color-scheme-toggle" id="j-color-scheme">
+            <button type="button" value="os-default" title="OS default" aria-label="OS default color scheme">☯</button>
+            <button type="button" value="light" title="Light" aria-label="Light color scheme">&#9788;</button>
+            <button type="button" value="dark" title="Dark" aria-label="Dark color scheme">&#9790;</button>
+          </div>
         </li>
       </ul>
     </nav>
@@ -93,6 +93,8 @@ layout: default
   {% if site.github.private != true and site.github.license %}
   <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
     This site is open source. <a href="https://github.com/cyjake/leoric/edit/master/docs/{{ page.path }}">Improve this page</a>.
+    <span class="footer-sep">&middot;</span>
+    Powered by <a href="https://pages.github.com">GitHub Pages</a>.
   </div>
   {% endif %}
 </div>

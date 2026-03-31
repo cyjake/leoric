@@ -16,22 +16,24 @@ function main() {
       try {
         localStorage.setItem('color-scheme', value);
       } catch (e) {}
+      // Update toggle button active states
+      Array.from(document.querySelectorAll('.color-scheme-toggle button'), function(btn) {
+        btn.classList.toggle('active', btn.value === value);
+      });
     }
   }
 
   let colorScheme = 'os-default';
   try {
-    colorScheme = localStorage.getItem('color-scheme');
+    colorScheme = localStorage.getItem('color-scheme') || 'os-default';
   } catch (e) {}
   switchColorScheme(colorScheme);
 
-  Array.from(document.querySelectorAll('#j-color-scheme'), function bind(el) {
-    el.addEventListener('change', function onChange(e) {
-      const value = e.target.value;
-      switchColorScheme(value);
+  Array.from(document.querySelectorAll('.color-scheme-toggle'), function bind(el) {
+    el.addEventListener('click', function onClick(e) {
+      const btn = e.target.closest('button');
+      if (btn) switchColorScheme(btn.value);
     });
-    const selected = el.querySelector(`option[value="${colorScheme}"]`);
-    if (selected) selected.selected = true;
   });
 }
 

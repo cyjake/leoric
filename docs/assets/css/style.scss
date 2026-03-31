@@ -5,6 +5,7 @@
 $text-blue: var(--theme-color);
 
 @import 'jekyll-theme-primer';
+@import 'base16-dark';
 
 :root {
   --container-width: 920px;
@@ -67,9 +68,15 @@ $text-blue: var(--theme-color);
     border-color: var(--border-color) !important;
   }
 
-  .color-scheme {
-    background: none;
+  .color-scheme-toggle button {
     color: var(--color);
+    border-color: var(--border-color);
+
+    &.active {
+      background: var(--theme-color);
+      color: #fff;
+      border-color: var(--theme-color);
+    }
   }
 }
 
@@ -82,13 +89,14 @@ $text-blue: var(--theme-color);
 }
 
 html.dark {
-  @import 'base16-dark';
+  @include base16-dark;
   @include dark-theme-overrides;
 }
 
 body {
   color: var(--color);
   background: var(--bg-color);
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -97,18 +105,22 @@ body {
   }
 
   html:not(.light):not(.dark) {
-    @import 'base16-dark';
+    @include base16-dark;
     @include dark-theme-overrides;
   }
 }
 
 #header {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
   .logo {
     display: inline-block;
     padding: 0.5em 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   a:link, a:visited {
@@ -117,6 +129,7 @@ body {
 
   a:hover, a:active {
     text-decoration: none;
+    color: var(--theme-color);
   }
 
   nav {
@@ -129,11 +142,12 @@ body {
 
       & > a {
         display: block;
+        transition: color 0.15s ease;
       }
 
       .lang {
         padding-left: 22px;
-        background: left / 16px no-repeat url(../image/lang.svg) ;
+        background: left / 16px no-repeat url(../image/lang.svg);
       }
     }
 
@@ -141,29 +155,47 @@ body {
       position: relative;
 
       & [type="search"] {
-        padding: 0 24px 0 4px;
+        padding: 2px 28px 2px 10px;
         width: 100%;
         background: var(--bg-color);
         color: var(--color);
-        border: 1px solid rgb(118, 118, 118);
-        height: 1.6em;
-        border-radius: 2px;
+        border: 1px solid var(--border-color);
+        height: 2em;
+        border-radius: 6px;
+        font-size: 0.875em;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+        &::placeholder {
+          color: var(--color);
+          opacity: 0.45;
+        }
 
         &:focus-visible {
-          border: none;
+          border-color: var(--theme-color);
+          box-shadow: 0 0 0 2px rgba(255, 127, 97, 0.2);
+          outline: none;
         }
       }
 
       & [type="submit"] {
         position: absolute;
-        right: 0;
-        width: 1.6em;
-        height: 1.6em;
-        line-height: 1.7;
+        right: 2px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.8em;
+        height: 1.8em;
+        line-height: 1.8;
         padding: 0;
         background: none;
         border: none;
         cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.15s ease;
+        font-size: 0.85em;
+
+        &:hover {
+          opacity: 1;
+        }
       }
     }
 
@@ -176,7 +208,7 @@ body {
         right: -0.25em;
         z-index: 11;
         height: 2px;
-        background: #f0f0f0;
+        background: var(--theme-color);
         display: none;
       }
 
@@ -193,25 +225,88 @@ body {
     .dropdown-list {
       display: none;
       position: absolute;
-      top: 100%;
-      right: -0.5em;
+      top: calc(100% + 1px);
+      right: -0.75em;
       text-align: right;
       background: var(--bg-color);
       border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
       z-index: 10;
-      padding: 0.25em 0;
-      min-width: 140px;
+      padding: 0.375em 0;
+      min-width: 160px;
 
       li {
         list-style: none;
-        padding-left: 0.25em;
+        padding-left: 0;
       }
 
       a {
         display: block;
-        padding: 0.25em 0.5em;
+        padding: 0.35em 0.75em;
+        transition: background-color 0.1s ease, color 0.1s ease;
+        border-radius: 4px;
+        margin: 0 0.25em;
+
+        &:hover {
+          background-color: rgba(255, 127, 97, 0.08);
+          color: var(--theme-color);
+        }
       }
     }
+  }
+}
+
+.color-scheme-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  vertical-align: middle;
+
+  button {
+    appearance: none;
+    background: transparent;
+    color: var(--color);
+    border: none;
+    border-right: 1px solid var(--border-color);
+    padding: 0.25em 0.6em;
+    font-size: 0.8em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    font-family: inherit;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    &:hover {
+      background: rgba(255, 127, 97, 0.1);
+    }
+
+    &.active {
+      background: var(--theme-color);
+      color: #fff;
+    }
+  }
+}
+
+.footer {
+  font-size: 0.85em;
+  padding-bottom: 2em;
+
+  a {
+    color: var(--theme-color);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .footer-sep {
+    margin: 0 0.25em;
+    opacity: 0.4;
   }
 }
 
@@ -239,6 +334,7 @@ body {
 .markdown-body {
   blockquote {
     border-color: var(--border-color);
+    border-radius: 0 4px 4px 0;
   }
 
   figure {
@@ -259,6 +355,28 @@ body {
   .text-gray {
     color: var(--text-color) !important;
     opacity: 0.75;
+  }
+
+  div.highlight {
+    border-radius: 6px;
+
+    pre {
+      border-radius: 6px;
+    }
+  }
+
+  code, tt {
+    border-radius: 4px;
+    padding: 0.15em 0.35em;
+  }
+
+  table {
+    border-radius: 6px;
+    overflow: hidden;
+
+    th {
+      font-weight: 600;
+    }
   }
 }
 
@@ -301,6 +419,8 @@ body {
       background-color: transparent;
       opacity: 0.75;
       transition: all 0.1s ease-in-out;
+      border-radius: 6px;
+      padding: 0 8px;
 
       &:hover {
         background-color: var(--border-color);
@@ -308,8 +428,8 @@ body {
       }
     }
 
-    .color-scheme {
-      margin: 6px 0;
+    .color-scheme-toggle {
+      margin: 8px 0;
     }
 
     nav {
@@ -344,21 +464,37 @@ body {
         display: none;
         text-align: left;
         background: none;
-        padding: 0;
+        padding: 2px 0 2px 2px;
         position: static;
         border: none;
+        border-left: 2px solid var(--border-color);
+        border-radius: 0;
+        box-shadow: none;
         min-width: initial;
+        margin-left: 8px;
 
         li {
           padding-left: 0;
 
           a {
-            padding: 0 12px 0 24px;
+            padding: 0 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            height: 28px;
+            line-height: 28px;
+            opacity: 0.6;
+
+            &:hover {
+              opacity: 1;
+              background-color: transparent;
+              color: var(--theme-color);
+            }
           }
 
           a.active {
-            background-color: rgba(255, 255, 255, 0.15);
             opacity: 1;
+            color: var(--theme-color);
+            background-color: transparent;
           }
         }
       }

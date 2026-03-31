@@ -8,7 +8,7 @@ layout: default
     <nav>
       <ul>
         <li class="nav-item">
-          <form action="/zh/search.html" method="get" class="search">
+          <form action="{{ '/zh/search' | relative_url }}" method="get" class="search">
             <input type="search" name="q" placeholder="Search the site..." id="search-box">
             <input type="submit" value="🔍">
           </form>
@@ -72,11 +72,12 @@ layout: default
           </a>
         </li>
         <li class="nav-item">
-          <select id="j-color-scheme" class="color-scheme">
-            <option value="os-default">跟随系统设置</option>
-            <option value="light">浅色模式</option>
-            <option value="dark">深色模式</option>
-          </select>
+        <li class="nav-item">
+          <div class="color-scheme-toggle" id="j-color-scheme">
+            <button type="button" value="os-default" title="跟随系统设置" aria-label="跟随系统设置">&#9775;</button>
+            <button type="button" value="light" title="浅色模式" aria-label="浅色模式">&#9788;</button>
+            <button type="button" value="dark" title="深色模式" aria-label="深色模式">&#9790;</button>
+          </div>
         </li>
       </ul>
     </nav>
@@ -92,6 +93,8 @@ layout: default
   {% if site.github.private != true and site.github.license %}
   <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
     站点开源，<a href="https://github.com/cyjake/leoric/edit/master/docs/{{ page.path }}">修改页面</a>。
+    <span class="footer-sep">&middot;</span>
+    由 <a href="https://pages.github.com">GitHub Pages</a> 提供支持。
   </div>
   {% endif %}
 </div>
