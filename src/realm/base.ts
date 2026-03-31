@@ -137,15 +137,18 @@ export default class BaseRealm {
     if (this.driver == null) {
       throw new Error('Driver is not initialized');
     }
-    const { database } = opts;
+    const database = this.options.database || opts.database || '';
     const tables = models.map(model => model.physicTable);
-    const schemaInfo = await this.driver.querySchemaInfo(database as string, tables);
+    const schemaInfo = await this.driver.querySchemaInfo(database, tables);
 
     for (const model of models) {
       if (!model.driver) model.driver = this.driver;
       if (!model.options) model.options = this.options;
       if (!model.models) model.models = this.models;
       const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
+      if (!columns) {
+        throw new Error(`Unable to find schema info for model ${model.name} (table: ${model.physicTable || model.table})`);
+      }
       if (!model.attributes) {
         initAttributes(model as typeof AbstractBone & { driver: AbstractDriver }, columns);
       }

@@ -188,4 +188,32 @@ describe('=> Collection', function() {
     assert.deepEqual(result.toJSON(), [ null, undefined ]);
     assert.deepEqual(result.toObject(), [ null, undefined ]);
   });
+
+  // covers the loose equality check (`==`) in dispatchJoins for bigint primary keys,
+  // where mysql supportBigNumbers returns id as string instead of number.
+  it('should deduplicate joined rows with bigint primary key as string', async function() {
+    const result = Collection.init({
+      spell: User.include('posts').where({ id: 1 }),
+      rows: [
+        {
+          users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
+          posts: { id: '1', author_id: 1, title: 'Post A' },
+        },
+        {
+          users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
+          posts: { id: '2', author_id: 1, title: 'Post B' },
+        },
+        {
+          users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
+          // duplicate post id as string, should be deduplicated
+          posts: { id: '1', author_id: 1, title: 'Post A' },
+        },
+      ],
+      fields: [],
+    });
+    assert.equal(result.length, 1);
+    const user = result[0];
+    // 2 unique posts, not 3
+    assert.equal(user.posts.length, 2);
+  });
 });
