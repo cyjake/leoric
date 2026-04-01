@@ -190,7 +190,7 @@ describe('=> Collection', function() {
   });
 
   // covers the loose equality check (`==`) in dispatchJoins for bigint primary keys,
-  // where mysql supportBigNumbers returns id as string instead of number.
+  // where mysql can return id as string instead of number (e.g. with supportBigNumbers/bigNumberStrings).
   it('should deduplicate joined rows with bigint primary key as string', async function() {
     const result = Collection.init({
       spell: User.include('posts').where({ id: 1 }),
