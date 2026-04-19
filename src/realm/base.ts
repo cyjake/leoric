@@ -62,7 +62,7 @@ export default class BaseRealm {
   driver: AbstractDriver;
   models: Record<string, typeof AbstractBone>;
   connected?: boolean;
-  options: ConnectOptions;
+  options: ConnectOptions & { database: string };
 
   constructor(opts: ConnectOptions = {}) {
     const {
@@ -88,7 +88,7 @@ export default class BaseRealm {
       ...restOpts,
     });
 
-    const options = {
+    const options: ConnectOptions & { database: string } = {
       client,
       dialect: driver.dialect,
       database,
@@ -137,15 +137,15 @@ export default class BaseRealm {
     if (this.driver == null) {
       throw new Error('Driver is not initialized');
     }
-    const { database } = opts;
+    const { database } = this.options;
     const tables = models.map(model => model.physicTable);
-    const schemaInfo = await this.driver.querySchemaInfo(database as string, tables);
+    const schemaInfo = await this.driver.querySchemaInfo(database, tables);
 
     for (const model of models) {
       if (!model.driver) model.driver = this.driver;
       if (!model.options) model.options = this.options;
       if (!model.models) model.models = this.models;
-      const columns = schemaInfo[model.physicTable] || schemaInfo[model.table];
+      const columns = schemaInfo[model.physicTable] || schemaInfo[model.table] || [];
       if (!model.attributes) {
         initAttributes(model as typeof AbstractBone & { driver: AbstractDriver }, columns);
       }
