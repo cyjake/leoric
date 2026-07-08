@@ -800,6 +800,36 @@ describe('=> Sequelize adapter', () => {
     assert.equal(await Post.findOne(undefined), null);
   });
 
+  it('Model.findOne({ attributes: [raw("COUNT(id) as count")] }) should return plain object', async () => {
+    await Post.create({ title: 'Tyrael' });
+    await Post.create({ title: 'Leah' });
+
+    // findOne with aggregate-only attributes should return a plain object, not null
+    const result = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+    });
+    assert.ok(result, 'findOne with aggregate attributes should not return null');
+    assert.equal(Number(result.count), 2);
+
+    // findOne with aggregate + where should also work
+    const result2 = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+      where: { title: 'Leah' },
+    });
+    assert.ok(result2, 'findOne with aggregate + where should not return null');
+    assert.equal(Number(result2.count), 1);
+
+    // findOne with aggregate on empty result set should return null or zero count
+    const result3 = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+      where: { title: 'nonexistent' },
+    });
+    // COUNT always returns a row, so result should exist with count=0
+    if (result3) {
+      assert.equal(Number(result3.count), 0);
+    }
+  });
+
   it('Model.findOne(id) with paranoid = false', async () => {
     const { id } = await Post.create({ title: 'Leah' });
 

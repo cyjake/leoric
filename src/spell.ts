@@ -570,7 +570,10 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     return this.later((results: any[]) => {
       const { Model } = this;
       const result = results[0];
-      return result instanceof Model ? result : null;
+      // When attributes contain only aggregates (e.g. COUNT), result is a plain object, not a Model instance.
+      // Return it as-is to preserve backward compatibility with 2.12.x behavior.
+      if (result == null) return null;
+      return result instanceof Model ? result : result;
     });
   }
   get!: (index: number) => Spell<T, InstanceType<T> | null>;
