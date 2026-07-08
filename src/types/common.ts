@@ -164,8 +164,8 @@ export type BoneCreateValues<T extends typeof AbstractBone> = Partial<Values<Ins
 
 /**
  * @example
- * BoneInstanceValues<User> = { id: number, name: string }
- * @param T Bone class
+ * BoneInstanceValues<typeof User> = { id: number, name: string }
+ * @param T Bone class (constructor)
  */
 export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<OmitFunctions<InstanceType<T>>, 'isNewRecord' | 'Model' | 'dataValues'>;
 
