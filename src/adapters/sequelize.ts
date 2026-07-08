@@ -714,9 +714,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return this.toObject();
     }
 
-    getDataValue<T>(this: T): T;
-    getDataValue<T, Key extends keyof Values<T>>(this: T, key: Key): T[Key];
-    getDataValue<T, Key extends keyof T>(this: T, key: Key): T[Key];
+    getDataValue<T extends AbstractBone>(this: T): Values<T>;
+    getDataValue<T extends AbstractBone, Key extends Extract<keyof Values<T>, string>>(this: T, key: Key): Values<T>[Key];
     getDataValue(key?: string): Literal {
       // unset value should not throw error in sequelize
       return this.getRaw(key);
