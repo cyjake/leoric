@@ -779,8 +779,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       this[key] = value;
     }
 
-    setDataValue<T, Key extends keyof Values<T>>(this: T, key: Key, value: T[Key]): void;
-    setDataValue<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+    setDataValue<T extends AbstractBone, Key extends Extract<keyof Values<T>, string>>(this: T, key: Key, value: T[Key]): void;
     setDataValue(key: string, value: Literal): void;
     setDataValue(key: string, value: Literal): void {
       if (this.hasAttribute(key)) this.attribute(key, value);
