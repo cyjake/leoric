@@ -6,7 +6,7 @@
 import pluralize from 'pluralize';
 import SqlString from 'sqlstring';
 import { parseExprList, parseExpr, walkExpr, Expr, Token, Alias } from './expr';
-import { isPlainObject } from './utils';
+import { isPlainObject, isRaw } from './utils';
 import { IndexHint, INDEX_HINT_TYPE, Hint, HintInterface, HintScopeObject, CommonHintArgs } from './hint';
 import { parseObject } from './query_object';
 import Raw from './raw';
@@ -806,22 +806,15 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @param direction
    */
   $order(name: string | Raw | Record<string, 'asc' | 'desc'>, direction?: string): this {
-    if (isPlainObject(name)) {
-      if (name instanceof Raw) {
-        this.orders.push([
-          name,
-          'asc'
-        ]);
-      } else {
-        for (const [prop, dir] of Object.entries(name)) {
-          this.$order(prop, dir);
-        }
-      }
-    } else if (name instanceof Raw) {
+    if (isRaw(name)) {
       this.orders.push([
-        name,
+        name as Raw,
         (direction && direction.toLowerCase() === 'desc') ? 'desc' : 'asc'
       ]);
+    } else if (isPlainObject(name)) {
+      for (const [prop, dir] of Object.entries(name)) {
+        this.$order(prop, dir);
+      }
     } else {
       let orders: any[] = [];
       try {

@@ -1,5 +1,5 @@
 import { performance } from 'perf_hooks';
-import { IS_LEORIC_BONE } from '../constants';
+import { IS_LEORIC_BONE, IS_LEORIC_RAW } from '../constants';
 
 export function isPlainObject(value: unknown): boolean {
   return Object.prototype.toString.call(value) === '[object Object]';
@@ -51,4 +51,9 @@ export function isBone(bone: unknown): boolean {
   if (!bone || (typeof bone !== 'object' && typeof bone !== 'function')) return false;
   const metaValue = Reflect.getMetadata(IS_LEORIC_BONE, bone);
   return metaValue === true;
+}
+
+export function isRaw(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  return (value as any)[IS_LEORIC_RAW] === true;
 }

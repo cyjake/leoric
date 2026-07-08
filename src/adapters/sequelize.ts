@@ -1,5 +1,5 @@
 import { HookFunc, setupSingleHook } from '../setup_hooks';
-import { compose, isPlainObject } from '../utils';
+import { compose, isPlainObject, isRaw } from '../utils';
 import Raw from '../raw';
 import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey, hasLoadedAttributesKey } from '../abstract_bone';
 // Re-export so TypeScript declaration emitter can "name" the unique symbol type
@@ -84,12 +84,12 @@ function translateOptions<T extends typeof SequelizeBone & typeof AbstractBone>(
   if (having) spell.$having(having);
 
   if (order) {
-    if (typeof order === 'string' || order instanceof Raw || isPlainObject(order)) {
+    if (typeof order === 'string' || isRaw(order) || isPlainObject(order)) {
       spell.$order(order as any);
     } else if (Array.isArray(order) && order.length) {
       let found = false;
       for (const item of order) {
-        if (item instanceof Raw || /^(.+?)\s+(asc|desc)$/i.test(item)) {
+        if (isRaw(item) || (typeof item === 'string' && /^(.+?)\s+(asc|desc)$/i.test(item))) {
           // ['created_at desc', 'id asc']
           // [Raw('FIND_IN_SET(id, '1,2,3')), Raw('FIND_IN_SET(id, '4,5,6'))]
           spell.$order(item);

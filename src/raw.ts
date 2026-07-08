@@ -2,12 +2,15 @@ import type { AbstractDriver } from './drivers';
 import { AbstractBone } from './abstract_bone';
 import { Connection, Literal } from './types/common';
 import { isBone } from './utils';
+import { IS_LEORIC_RAW } from './constants';
 
 export default class Raw {
   value: string;
 
   // consumed in expr_formatter.js
   type = 'raw';
+
+  [IS_LEORIC_RAW] = true;
 
   constructor(value: string) {
     if (typeof value !== 'string') {

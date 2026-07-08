@@ -480,6 +480,26 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts[3].id, ids[3]);
   });
 
+  it('Model.findAll({ order: [[raw(...)], ...] }) should handle nested raw in array', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    // [[raw('...')], ['field', 'asc']] pattern used by skylark
+    const sql = Post.findAll({
+      order: [[ raw('id DESC') ], [ 'createdAt', 'asc' ]],
+    }).toSqlString();
+    assert.ok(sql.includes('ORDER BY id DESC'));
+    assert.ok(sql.includes('gmt_create'));
+
+    // should not throw 'name.split is not a function'
+    const posts = await Post.findAll({
+      order: [[ raw('id DESC') ], [ 'createdAt', 'asc' ]],
+    });
+    assert.ok(posts.length >= 0);
+  });
+
   it('Model.findAll({ order }) edge cases', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },

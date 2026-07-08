@@ -12,6 +12,20 @@ describe('=> Raw', () => {
       assert.throws(() => new Raw({ toSqlString() { return 'foo'; } }));
     });
   });
+
+  it('should have IS_LEORIC_RAW symbol marker', () => {
+    const r = new Raw('SELECT 1');
+    const IS = Symbol.for('leoric#raw');
+    assert.equal(r[IS], true);
+  });
+
+  it('should be identifiable via Symbol.for across module boundaries', () => {
+    const r = new Raw('id DESC');
+    const IS = Symbol.for('leoric#raw');
+    assert.equal(r[IS], true);
+    assert.equal(r.type, 'raw');
+    assert.equal(r.toString(), 'id DESC');
+  });
 });
 
 describe('=> rawQuery()', () => {
