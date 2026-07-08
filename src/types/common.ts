@@ -3,6 +3,7 @@ import { CommonHintArgs } from '../hint';
 import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from '../abstract_bone';
 import type Spell from '../spell';
+import type Attribute from '../drivers/abstract/attribute';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
@@ -94,7 +95,7 @@ export interface AttributeMeta extends ColumnMeta {
   }
 }
 
-export interface Attributes { [key: string]: AbstractDataType<DataType> | AttributeMeta }
+export interface Attributes { [key: string]: AbstractDataType<DataType> | AttributeMeta | Attribute }
 
 export type OperatorCondition = {
   [key in '$eq' | '$ne']?: Literal;
@@ -160,6 +161,13 @@ export type InstanceColumns<T = typeof AbstractBone, Key extends keyof T = keyof
  * Bone.create(values: BoneCreateValues<this>);
  */
 export type BoneCreateValues<T extends typeof AbstractBone> = Partial<Values<InstanceType<T>>>;
+
+/**
+ * @example
+ * BoneInstanceValues<User> = { id: number, name: string }
+ * @param T Bone class
+ */
+export type BoneInstanceValues<T extends typeof AbstractBone> = Omit<OmitFunctions<InstanceType<T>>, 'isNewRecord' | 'Model' | 'dataValues'>;
 
 export type BeforeHooksType = 'beforeCreate' | 'beforeBulkCreate' | 'beforeUpdate' | 'beforeSave' |  'beforeUpsert' | 'beforeRemove';
 export type AfterHooksType = 'afterCreate' | 'afterBulkCreate' | 'afterUpdate' | 'afterSave' | 'afterUpsert' | 'afterRemove';

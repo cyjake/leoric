@@ -6,7 +6,7 @@ import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey, hasLoaded
 // inherited by SequelizeBone from AbstractBone (required to avoid TS4058)
 export { hasLoadedAttributesKey };
 import type Spell from '../spell';
-import type { BoneColumns, Collection, Literal, QueryOptions, WhereConditions } from '../types/common';
+import type { BoneColumns, Collection, InstanceColumns, Literal, QueryOptions, Values, WhereConditions } from '../types/common';
 import util from 'util';
 import Attribute from '../drivers/abstract/attribute';
 
@@ -33,9 +33,9 @@ interface SequelizeUpdateOptions<T extends typeof SequelizeBone & typeof Abstrac
   paranoid?: boolean;
 }
 
-interface SequelizeInstanceUpdateOptions<T extends typeof SequelizeBone & typeof AbstractBone> extends QueryOptions {
-  attributes?: BoneColumns<T> | string | Raw | Array<BoneColumns<T> | string | Raw>;
-  fields?: Array<BoneColumns<T> | string | Raw> | BoneColumns<T>;
+export interface SequelizeInstanceUpdateOptions<T extends AbstractBone = AbstractBone> extends QueryOptions {
+  attributes?: InstanceColumns<T> | string | Raw | Array<InstanceColumns<T> | string | Raw>;
+  fields?: Array<InstanceColumns<T> | string | Raw> | InstanceColumns<T>;
 }
 
 interface CountSequelizeOptions<T extends typeof SequelizeBone & typeof AbstractBone> extends BaseSequelizeConditions<T> {
@@ -43,7 +43,7 @@ interface CountSequelizeOptions<T extends typeof SequelizeBone & typeof Abstract
   paranoid?: boolean;
 }
 
-interface SequelizeConditions<T extends typeof SequelizeBone & typeof AbstractBone> extends BaseSequelizeConditions<T> {
+export interface SequelizeConditions<T extends typeof SequelizeBone & typeof AbstractBone> extends BaseSequelizeConditions<T> {
   paranoid?: boolean;
 }
 
@@ -351,7 +351,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       throw new Error('unimplemented');
     }
 
-    static build(values: Record<string, Literal>, options: { raw?: boolean; isNewRecord?: boolean; validate?: boolean } = {}) {
+    static build<T extends typeof SequelizeBone & typeof AbstractBone>(this: T, values: Record<string, Literal>, options: { raw?: boolean; isNewRecord?: boolean; validate?: boolean } = {}): InstanceType<T> {
       const { raw } = Object.assign({ raw: false, isNewRecord: true }, options);
       const { attributes } = this;
 
@@ -368,7 +368,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
         instance = new this(values as any, options as any);
       }
 
-      return instance;
+      return instance as InstanceType<T>;
     }
 
     /**
@@ -376,7 +376,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
      * @param valueSets
      * @param options
      */
-    static bulkBuild(valueSets: Record<string, Literal>[], options: { raw?: boolean; isNewRecord?: boolean; validate?: boolean } = {}) {
+    static bulkBuild<T extends typeof SequelizeBone & typeof AbstractBone>(this: T, valueSets: Record<string, Literal>[], options: { raw?: boolean; isNewRecord?: boolean; validate?: boolean } = {}): InstanceType<T>[] {
       if (!valueSets.length) return [];
       return valueSets.map(value => this.build(value, options));
     }
@@ -433,7 +433,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return spell as Spell<T, number>;
     }
 
-    static findAll<T extends typeof SequelizeBone & typeof AbstractBone>(options: SequelizeConditions<T> = {}) {
+    static findAll<T extends typeof SequelizeBone & typeof AbstractBone>(options: SequelizeConditions<T> = {}): Spell<T, Collection<InstanceType<T>>> {
       const spell = super._find({}, filterOptions(options)) as Spell<T, Collection<InstanceType<T>>>;
       translateOptions(spell, options);
       if (options.paranoid === false) return spell.unparanoid;
@@ -578,7 +578,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       this: T,
       values: Record<string, Literal>,
       options: SequelizeUpdateOptions<T> = {},
-    ) {
+    ): Promise<any> {
       const { where, paranoid, individualHooks } = options;
       if (individualHooks) {
         let findSpell = super._find(where, options) as Spell<T, Collection<InstanceType<T>>>;
@@ -609,7 +609,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
 
     async update<T extends typeof SequelizeBone & typeof AbstractBone>(
       values: Record<string, Literal> = {},
-      options: SequelizeInstanceUpdateOptions<T> = {},
+      options: SequelizeInstanceUpdateOptions<InstanceType<T>> = {},
     ) {
       const { fields = [] } = options;
       const changeValues: Record<string, Literal> = {};
@@ -655,7 +655,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       }
     }
 
-    decrement<T extends typeof SequelizeBone & typeof AbstractBone>(fields: string | string[] | Record<string, number>, options: SequelizeInstanceUpdateOptions<T> = {}) {
+    decrement<T extends typeof SequelizeBone & typeof AbstractBone>(fields: string | string[] | Record<string, number>, options: SequelizeInstanceUpdateOptions<InstanceType<T>> = {}) {
       const Model = this.constructor as T;
       const { primaryKey } = Model;
       if (this[primaryKey] == null) {
@@ -714,6 +714,9 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return this.toObject();
     }
 
+    getDataValue<T>(this: T): T;
+    getDataValue<T, Key extends keyof Values<T>>(this: T, key: Key): T[Key];
+    getDataValue<T, Key extends keyof T>(this: T, key: Key): T[Key];
     getDataValue(key?: string): Literal {
       // unset value should not throw error in sequelize
       return this.getRaw(key);
@@ -723,7 +726,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return this.getRaw();
     }
 
-    increment<T extends typeof SequelizeBone & typeof AbstractBone>(fields: string | string[] | Record<string, number>, options: SequelizeInstanceUpdateOptions<T> = {}) {
+    increment<T extends typeof SequelizeBone & typeof AbstractBone>(fields: string | string[] | Record<string, number>, options: SequelizeInstanceUpdateOptions<InstanceType<T>> = {}) {
       const Model = this.constructor as T;
       const { primaryKey } = Model;
       if (this[primaryKey] == null) {
@@ -777,6 +780,9 @@ export default function sequelize(Bone: typeof AbstractBone) {
       this[key] = value;
     }
 
+    setDataValue<T, Key extends keyof Values<T>>(this: T, key: Key, value: T[Key]): void;
+    setDataValue<T, Key extends keyof T>(this: T, key: Key, value: T[Key]): void;
+    setDataValue(key: string, value: Literal): void;
     setDataValue(key: string, value: Literal): void {
       if (this.hasAttribute(key)) this.attribute(key, value);
       else this[key] = value;
@@ -790,8 +796,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
     /**
      * An alias of instance constructor. Some legacy code access model name from instance with `this.Model.name`.
      */
-    get Model() {
-      return this.constructor;
+    get Model(): typeof SequelizeBone & typeof AbstractBone {
+      return this.constructor as typeof SequelizeBone & typeof AbstractBone;
     }
 
     static removeHook(): void {
