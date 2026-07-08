@@ -1677,6 +1677,9 @@ function valuesValidate(values: any, attributes: any, ctx: any) {
 
 function cloneValue(value: any) {
   if (value instanceof Date && isNaN(value as any)) return value;
+  // structuredClone converts Buffer to Uint8Array, breaking isDeepStrictEqual comparisons.
+  // Preserve Buffer type by copying manually.
+  if (Buffer.isBuffer(value)) return Buffer.from(value);
   // eslint-disable-next-line no-undef
   return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 }
