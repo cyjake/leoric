@@ -381,15 +381,15 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return valueSets.map(value => this.build(value, options));
     }
 
-    static count(col?: string): Spell<any>;
-    static count<T extends typeof SequelizeBone & typeof AbstractBone>(options: CountSequelizeOptions<T>): Spell<any>;
-    static count<T extends typeof SequelizeBone & typeof AbstractBone>(options: string | CountSequelizeOptions<T> = {}): Spell<any> {
-      if (typeof options === 'string') return super._find().$count(options);
+    static count(col?: string): Spell<any, number>;
+    static count<T extends typeof SequelizeBone & typeof AbstractBone>(options: CountSequelizeOptions<T>): Spell<T, number>;
+    static count<T extends typeof SequelizeBone & typeof AbstractBone>(options: string | CountSequelizeOptions<T> = {}): Spell<T, number> {
+      if (typeof options === 'string') return super._find().$count(options) as Spell<T, number>;
       const { where, col, group, paranoid } = options;
       let spell = super._find(where, filterOptions(options));
       if (Array.isArray(group)) spell.$group(...group);
       if (paranoid === false) spell = spell.unparanoid;
-      return spell.$count(col);
+      return spell.$count(col) as Spell<T, number>;
     }
 
     static decrement<T extends typeof SequelizeBone & typeof AbstractBone>(this: T, fields: string | string[] | Record<string, number>, options: SequelizeUpdateOptions<T> = {}) {
