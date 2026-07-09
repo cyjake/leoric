@@ -1010,7 +1010,7 @@ export class AbstractBone {
   }
 
   static from<T extends typeof AbstractBone>(this: T, table: string | Spell<T>) {
-    return new Spell(this).$from(table);
+    return new Spell(this).$from(table).later(Collection.init);
   }
 
   /**

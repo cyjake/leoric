@@ -500,6 +500,22 @@ describe('=> Sequelize adapter', () => {
     assert.ok(posts.length >= 0);
   });
 
+  it('Model.from(Model.where()) should return Collection', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    // from(Model.where()) should return array-like Collection with slice method
+    const results = await Post.from(Post.where({}))
+      .order('id', 'desc');
+
+    assert.ok(typeof results.slice === 'function',
+      'from() result should have slice method');
+    assert.ok(results.length >= 2,
+      'from() result should contain created records');
+  });
+
   it('Model.findAll({ order }) edge cases', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
