@@ -821,3 +821,4 @@ export default function sequelize(Bone: typeof AbstractBone) {
 }
 
 export const SequelizeBone = sequelize(AbstractBone);
+export type SequelizeBone = InstanceType<typeof SequelizeBone>;
