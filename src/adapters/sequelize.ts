@@ -441,8 +441,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
     }
 
     static find<T extends typeof SequelizeBone & typeof AbstractBone>(): Spell<T, InstanceType<T> | null>;
-    static find<T extends typeof SequelizeBone & typeof AbstractBone>(options: SequelizeConditions<T>): Spell<T, InstanceType<T>> | null;
-    static find<T extends typeof SequelizeBone & typeof AbstractBone>(...args: any[]): Spell<T, InstanceType<T>> | null {
+    static find<T extends typeof SequelizeBone & typeof AbstractBone>(options: SequelizeConditions<T>): Spell<T, InstanceType<T> | null>;
+    static find<T extends typeof SequelizeBone & typeof AbstractBone>(...args: any[]): Spell<T, InstanceType<T> | null> | null {
       return this.findOne(...args);
     }
 
@@ -485,7 +485,9 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return instance;
     }
 
-    static findOne<T extends typeof SequelizeBone & typeof AbstractBone>(options?: SequelizeConditions<T> | null | number | string): Spell<T, InstanceType<T>> | null {
+    static findOne<T extends typeof SequelizeBone & typeof AbstractBone>(options: null | undefined): null;
+    static findOne<T extends typeof SequelizeBone & typeof AbstractBone>(options?: SequelizeConditions<T> | number | string): Spell<T, InstanceType<T> | null>;
+    static findOne<T extends typeof SequelizeBone & typeof AbstractBone>(options?: SequelizeConditions<T> | null | number | string): Spell<T, InstanceType<T> | null> | null {
       // findOne(null)
       if (arguments.length > 0 && options == null) return null;
 
@@ -501,7 +503,7 @@ export default function sequelize(Bone: typeof AbstractBone) {
         spell = super._find({}, filterOptions(opts)) as Spell<T, Collection<InstanceType<T>>>;
         translateOptions(spell, { ...opts, limit: 1 });
       }
-      spell = spell.$get(0) as Spell<T, InstanceType<T>>;
+      spell = spell.$get(0) as Spell<T, InstanceType<T> | null>;
       if (options && typeof options === 'object' && options.paranoid === false) return spell.unparanoid;
       return spell;
     }
