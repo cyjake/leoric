@@ -1,6 +1,9 @@
 import { EventEmitter } from 'events';
+import { createRequire } from 'module';
 import Connection from './connection';
 import { ConnectOptions } from '../abstract';
+
+const runtimeRequire = createRequire(__filename);
 
 interface PoolOptions extends ConnectOptions {
   connectionLimit?: number;
@@ -29,8 +32,10 @@ class Pool extends EventEmitter {
       client: (opts as any).client || 'sqlite3',
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const client = require(options.client!);
+    // SQLite clients are optional peer dependencies selected at runtime.
+    // Keep this load opaque to bundlers so applications only ship the client
+    // they explicitly install and configure.
+    const client = runtimeRequire(options.client ?? 'sqlite3');
     // Turn on stack trace capturing otherwise the output is useless
     // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
     if (options.trace) client.verbose();
