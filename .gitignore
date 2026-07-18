@@ -16,4 +16,4 @@ docs/Gemfile.lock
 package-lock.json
 .DS_Store
 .repo-dev
-
+.vscode
