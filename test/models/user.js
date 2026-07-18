@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, DataTypes } = require('../../src');
+const { Bone, DataTypes, Model } = require('../../src');
 
 const formatter = {
   formatName(value) {
@@ -81,4 +81,4 @@ User.init({
   }
 });
 
-module.exports = User;
+module.exports = Model()(User);

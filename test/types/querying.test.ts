@@ -1,8 +1,9 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, connect, Raw } from '../../src';
+import { Bone, DataTypes, Column, HasMany, Model, connect, Raw } from '../../src';
 
 describe('=> Querying (TypeScript)', function() {
   const { BIGINT, INTEGER, STRING } = DataTypes;
+  @Model()
   class Post extends Bone {
     static table = 'articles';
 
@@ -16,6 +17,7 @@ describe('=> Querying (TypeScript)', function() {
     title!: string;
   }
 
+  @Model()
   class User extends Bone {
     @Column(BIGINT)
     id!: number;

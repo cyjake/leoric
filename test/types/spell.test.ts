@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import sinon, { SinonFakeTimers } from 'sinon';
 
 import {
-  Bone, DataTypes, Column, HasOne,
+  Bone, DataTypes, Column, HasOne, Model,
   connect, INDEX_HINT_SCOPE_TYPE,
   INDEX_HINT_TYPE, INDEX_HINT_SCOPE, Hint, IndexHint, Raw, heresql,
 } from '../../src';
@@ -10,6 +10,7 @@ import {
 describe('=> Spell (TypeScript)', function() {
   const { STRING, TEXT, TINYINT } = DataTypes;
 
+  @Model()
   class Attachment extends Bone {
     @Column()
     id!: number;
@@ -32,6 +33,7 @@ describe('=> Spell (TypeScript)', function() {
     deletedAt!: Date;
   }
 
+  @Model()
   class Post extends Bone {
     static table = 'articles';
 
@@ -91,6 +93,7 @@ describe('=> Spell (TypeScript)', function() {
     attachment!: Attachment;
   }
 
+  @Model()
   class Comment extends Bone {
     @Column()
     id!: number;

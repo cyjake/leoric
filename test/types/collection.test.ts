@@ -1,7 +1,8 @@
 import { strict as assert } from 'assert';
-import { Bone, Collection, connect } from '../../src';
+import { Bone, Collection, Model, connect } from '../../src';
 
 describe('=> Collection (TypeScript)', function() {
+  @Model()
   class User extends Bone {
     id!: number;
     createdAt!: Date;

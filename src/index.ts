@@ -10,6 +10,7 @@ import Realm from './realm';
 import { default as Raw, raw } from './raw';
 import { isBone } from './utils';
 import { hookNames } from './setup_hooks';
+import { LeoricModelDefinitionError } from './abstract_bone';
 
 import * as decorators from './decorators';
 import * as drivers from './drivers';
@@ -74,6 +75,7 @@ Object.assign(Realm, {
   LENGTH_VARIANTS,
   isBone,
   hookNames,
+  LeoricModelDefinitionError,
   default: Realm,
 });
 
@@ -92,4 +94,5 @@ export {
   Raw,
   raw,
   isBone,
+  LeoricModelDefinitionError,
 };

@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const path = require('path');
 const Realm = require('../../src');
-const { connect, Bone, DataTypes, Logger, Spell, SqliteDriver, SequelizeBone } = Realm;
+const { connect, Bone, DataTypes, Logger, Model, Spell, SqliteDriver, SequelizeBone } = Realm;
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -157,10 +157,10 @@ describe('=> Realm', () => {
     });
 
     it('should hold models as object in realm.models', async function() {
-      class User extends Bone {}
-      class Post extends Bone {
+      const User = Model()(class User extends Bone {});
+      const Post = Model()(class Post extends Bone {
         static table = 'articles';
-      }
+      });
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -206,9 +206,9 @@ describe('=> Realm', () => {
   });
 
   describe('realm.connect', async () => {
-    class Post extends Bone {
+    const Post = Model()(class Post extends Bone {
       static table = 'articles';
-    }
+    });
 
     afterEach(async () => {
       await Post.truncate();
@@ -231,13 +231,13 @@ describe('=> Realm', () => {
 
   describe('realm.query', async () => {
 
-    class Post extends Bone {
+    const Post = Model()(class Post extends Bone {
       static get table() {
         return 'articles';
       }
-    }
+    });
 
-    class User extends Bone {}
+    const User = Model()(class User extends Bone {});
     User.init(attributes);
 
     afterEach(async () => {
@@ -769,7 +769,7 @@ describe('=> Realm', () => {
   });
 
   describe('realm.transaction (CRUD)', () => {
-    class User extends Bone {}
+    const User = Model()(class User extends Bone {});
 
     User.init(attributes);
 
@@ -1176,7 +1176,7 @@ describe('=> Realm', () => {
      * If models are cached and connected already, skip connecting them again because it would raise issues like duplicated associations or redundant class property definition etc.
      */
     it('should skip synchronized models', async function() {
-      class User extends Bone {}
+      const User = Model()(class User extends Bone {});
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -1195,9 +1195,9 @@ describe('=> Realm', () => {
         await realm2.connect();
       });
 
-      class Post extends Bone {
+      const Post = Model()(class Post extends Bone {
         static table = 'articles';
-      }
+      });
       await assert.doesNotReject(async function() {
         const realm2 = new Realm({
           port: process.env.MYSQL_PORT,
@@ -1211,7 +1211,7 @@ describe('=> Realm', () => {
     });
 
     it('should init attributes if attributes not defined', async function() {
-      class User extends Bone {}
+      const User = Model()(class User extends Bone {});
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -1226,9 +1226,9 @@ describe('=> Realm', () => {
     });
 
     it('should rename legacy timestamp attributes', async function() {
-      class Post extends Bone {
+      const Post = Model()(class Post extends Bone {
         static table = 'articles';
-      }
+      });
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',
@@ -1246,7 +1246,7 @@ describe('=> Realm', () => {
 
     it('should auto assign driver if not exist', async function () {
 
-      class User extends Bone {}
+      const User = Model()(class User extends Bone {});
 
       const realFilePath = require.resolve('../../src/bone');
       const boneRequireCache = require.cache[realFilePath];
@@ -1259,9 +1259,9 @@ describe('=> Realm', () => {
         }
       }
 
-      class Post extends Bone1 {
+      const Post = Model()(class Post extends Bone1 {
         static table = 'articles';
-      }
+      });
 
       // restore cache
       require.cache[realFilePath] = boneRequireCache;
@@ -1280,7 +1280,7 @@ describe('=> Realm', () => {
     });
 
     it('should throw if driver not exist', async function() {
-      class User extends Bone {}
+      const User = Model()(class User extends Bone {});
       const realm = new Realm({
         port: process.env.MYSQL_PORT,
         user: 'root',

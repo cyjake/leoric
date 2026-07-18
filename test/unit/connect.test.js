@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const { connect, Bone, DataTypes } = require('../../src');
+const { connect, Bone, DataTypes, Model } = require('../../src');
 
 describe('connect', function() {
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('connect', function() {
 
   it('connect with custom Bone', async function() {
     class Spine extends Bone {}
-    class Book extends Spine {}
+    const Book = Model()(class Book extends Spine {});
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -55,7 +55,7 @@ describe('connect', function() {
 
   it('connect models passed in opts.models (init with primaryKey)', async function() {
     const { STRING, BIGINT, DECIMAL, DATE } = DataTypes;
-    class Book extends Bone {
+    const Book = Model()(class Book extends Bone {
       static attributes = {
         isbn: { type: BIGINT, primaryKey: true },
         name: { type: STRING, allowNull: false },
@@ -64,7 +64,7 @@ describe('connect', function() {
         updatedAt: { type: DATE },
         deletedAt: { type: DATE },
       };
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -79,7 +79,7 @@ describe('connect', function() {
 
   it('connect models passed in opts.models (define class with primaryKey)', async function() {
     const { STRING, DECIMAL, DATE } = DataTypes;
-    class Book extends Bone {
+    const Book = Model()(class Book extends Bone {
       static primaryKey = 'isbn';
       static attributes = {
         name: { type: STRING, allowNull: false },
@@ -88,7 +88,7 @@ describe('connect', function() {
         updatedAt: { type: DATE },
         deletedAt: { type: DATE },
       };
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -103,7 +103,7 @@ describe('connect', function() {
   });
 
   it('initialize model attributes if not defined in model itself', async () => {
-    class Book extends Bone {}
+    const Book = Model()(class Book extends Bone {});
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -129,11 +129,11 @@ describe('connect', function() {
 
   it('should call customized initialize code in model', async function() {
     let initialized;
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       static initialize() {
         initialized = true;
       }
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',

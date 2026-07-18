@@ -41,7 +41,7 @@ The `Realm` constructor accepts a configuration object with the following option
 | `user`             | `string`                      | —          | Database user                                                               |
 | `password`         | `string`                      | —          | Database password                                                           |
 | `database`         | `string`                      | —          | Database name (aliases: `db`, `storage`)                                   |
-| `models`           | `Array \| string`             | —          | An array of model classes, or a directory path string                       |
+| `models`           | `Array \| string`             | —          | Finalized model classes, or a directory containing finalized models         |
 | `subclass`         | `boolean`                     | `false`    | Whether to create a subclass of `Bone` to isolate models                   |
 | `driver`           | `AbstractDriver`              | —          | Custom driver class                                                         |
 | `define`           | `object`                      | —          | Default model define options, e.g. `{ underscored: true }`                 |
@@ -68,17 +68,24 @@ const realm = new Realm({
 
 You can also pass model classes directly:
 
-```js
+```ts
+import { Bone, Model } from 'leoric';
 import Post from './models/post';
 import User from './models/user';
+
+@Model()
+class AuditLog extends Bone {}
 
 const realm = new Realm({
   dialect: 'mysql',
   host: 'localhost',
   database: 'my_app',
-  models: [Post, User],
+  models: [Post, User, AuditLog],
 });
 ```
+
+Each class in `models` must already be finalized with `@Model()`. In plain JavaScript,
+prefer `realm.define(class extends Bone {})` so the returned finalized class is bound explicitly.
 
 ## Connecting
 
@@ -112,9 +119,10 @@ await realm.disconnect(async () => {
 
 For simple use cases, you can use the `connect()` function exported from `leoric` directly, without creating a `Realm` instance explicitly:
 
-```js
-import { Bone, connect } from 'leoric';
+```ts
+import { Bone, Model, connect } from 'leoric';
 
+@Model()
 class Post extends Bone {}
 
 await connect({
@@ -133,16 +141,29 @@ const posts = await Post.find();
 
 ### `realm.define(name, attributes, options, descriptors)`
 
-Define a model dynamically at runtime without creating a separate class file.
+### `realm.define(Model, attributes, options, descriptors)`
+
+Define and register a finalized model at runtime. The class overload is the recommended
+JavaScript syntax; always use the returned class binding.
 
 ```js
+import Realm, { Bone } from 'leoric';
+
+const realm = new Realm({ database: 'my_app' });
 const { BIGINT, STRING, TEXT } = realm.DataTypes;
 
-const Post = realm.define('Post', {
-  id: { type: BIGINT, primaryKey: true },
-  title: STRING,
-  content: TEXT,
-});
+const Post = realm.define(
+  class Post extends Bone {
+    static initialize() {
+      this.belongsTo('author', { Model: 'User' });
+    }
+  },
+  {
+    id: { type: BIGINT, primaryKey: true },
+    title: STRING,
+    content: TEXT,
+  },
+);
 
 await realm.sync();
 
@@ -154,10 +175,19 @@ await Post.create({ title: 'Hello', content: 'World' });
 
 | Parameter     | Type     | Description                                |
 |---------------|----------|--------------------------------------------|
-| `name`        | `string` | Model name (will be used to infer table name) |
+| `name / Model`| `string / Bone subclass` | Model name or class to finalize |
 | `attributes`  | `object` | Column definitions                         |
 | `options`     | `object` | Optional model init options                |
 | `descriptors` | `object` | Optional property descriptors              |
+
+Calling `new` on an unfinalized `Bone` subclass throws immediately. This prevents native
+class fields from silently shadowing Leoric's attribute accessors. The legacy string overload
+remains available for models that do not need a custom class body.
+
+Finalization runs after the original constructor returns, so mapped attributes should not be
+read or written in that constructor body. Because `realm.define()` returns a finalized subclass,
+avoid static private fields accessed through `this`; use module-scoped private state or ordinary
+static properties instead.
 
 ## Schema Synchronization
 

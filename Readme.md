@@ -13,19 +13,19 @@ Leoric is an object-relational mapping library for Node.js, which is heavily inf
 Assume the tables of posts, users, and comments were setup already. We may declare the models as classes by extending from the base class `Bone` of Leoric. After the models are connected to the database, the columns of the tables are mapped as attributes, the associations are setup, feel free to start querying.
 
 ```js
-import { Bone, connect } from 'leoric'
+import Realm, { Bone } from 'leoric'
 
-// define model
-class Post extends Bone {
+const realm = new Realm({ host: 'example.com' })
+const Post = realm.define(class Post extends Bone {
   static initialize() {
     this.belongsTo('author', { Model: 'User' })
     this.hasMany('comments')
   }
-}
+})
 
 async function main() {
   // connect models to database
-  await connect({ host: 'example.com', models: [ Post ], /* among other options */ })
+  await realm.connect()
 
   // CRUD
   await Post.create({ title: 'New Post' })
@@ -47,15 +47,15 @@ If table structures were intended to be maintained in the models, Leoric can be 
 ```js
 import Realm, { Bone, DataTypes } from 'leoric';
 const { BIGINT, STRING } = DataTypes;
-class Post extends Bone {
+const realm = new Realm();
+const Post = realm.define(class Post extends Bone {
   static attributes = {
     id: { type: BIGINT, primaryKey: true },
     email: { type: STRING, allowNull: false },
     nickname: { type: STRING, allowNull: false },
   }
-}
+});
 
-const realm = new Realm({ models: [ Post ] });
 await realm.sync();
 ```
 
@@ -78,24 +78,25 @@ A more detailed syntax table may be found at the [documentation](https://leoric.
 ## TypeScript charged
 
 ```ts
-import { Bone, BelongsTo, Column, DataTypes: { TEXT } } from 'leoric';
+import { Bone, BelongsTo, Column, DataTypes: { TEXT }, Model } from 'leoric';
 import User from './user';
 
+@Model()
 export default class Post extends Bone {
   @Column({ autoIncrement: true })
-  id: bigint;
+  declare id: bigint;
 
   @Column(TEXT)
-  content: string;
+  declare content: string;
 
   @Column()
-  description: string;
+  declare description: string;
 
   @Column()
-  userId: bigint;
+  declare userId: bigint;
 
   @BelongsTo()
-  user: User;
+  declare user: User;
 }
 ```
 

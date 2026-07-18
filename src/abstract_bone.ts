@@ -53,17 +53,17 @@ export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
 
-// Module-private Symbol keys for internal instance state. Using Symbols instead of private
-// fields (#raw etc.) because private fields cannot be accessed through a Proxy (they use an
-// identity-based brand check and Proxy is not the original object), which is needed for
-// the ES2022 class fields fix. The properties are initialized with enumerable: false so they
-// are invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys),
-// matching the behavior of the original private fields.
-// See: https://github.com/cyjake/leoric/issues/377
+// Module-private Symbol keys for internal instance state. The properties are initialized
+// with enumerable: false so they are invisible to assert.deepStrictEqual (which only compares
+// own enumerable Symbol keys), matching the behavior of the original private fields.
 const RAW = Symbol('leoric#raw');
 const RAW_SAVED = Symbol('leoric#rawSaved');
 const RAW_UNSET = Symbol('leoric#rawUnset');
 const RAW_PREVIOUS = Symbol('leoric#rawPrevious');
+const MODEL_FINALIZED = Symbol('leoric#modelFinalized');
+const MODEL_NEEDS_FINALIZATION = Symbol('leoric#modelNeedsFinalization');
+const FINALIZED_MODELS = new WeakMap<typeof AbstractBone, typeof AbstractBone>();
+const SUPPLIED_ATTRIBUTES = new WeakMap<AbstractBone, Map<string, Literal>>();
 
 // Short accessors for internal state
 function $raw(self: any): Record<string, any> { return self[RAW]; }
@@ -71,9 +71,15 @@ function $rawSaved(self: any): Record<string, any> { return self[RAW_SAVED]; }
 function $rawUnset(self: any): Set<string> { return self[RAW_UNSET]; }
 function $rawPrevious(self: any): Record<string, any> { return self[RAW_PREVIOUS]; }
 
-// Static marker set by loadAttribute() to indicate prototype getter/setters are defined.
-// Used by constructor to decide whether to wrap instances in a Proxy.
+// Kept as a compatibility export for adapters and consumers that reference the symbol.
 export const hasLoadedAttributesKey = Symbol('leoric#hasLoadedAttributes');
+
+export class LeoricModelDefinitionError extends Error {
+  constructor(modelName: string) {
+    super(`${modelName} is not a finalized Leoric model. Add @Model() or define it through realm.define().`);
+    this.name = 'LeoricModelDefinitionError';
+  }
+}
 
 export class AbstractBone {
   static DataTypes: typeof DataTypes = DataTypes.invokable;
@@ -175,12 +181,20 @@ export class AbstractBone {
   static associations: { [key: string]: any };
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
+    const Model = new.target as typeof AbstractBone;
+    if (Model !== AbstractBone && !isModelClassFinalized(Model)) {
+      throw new LeoricModelDefinitionError(Model.name);
+    }
+
     // Initialize internal Symbol-keyed properties as non-enumerable so they are
     // invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys).
     Object.defineProperty(this, RAW, { value: {}, writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, RAW_SAVED, { value: {}, writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, RAW_UNSET, { value: new Set(), writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, RAW_PREVIOUS, { value: {}, writable: true, configurable: true, enumerable: false });
+    if (Object.prototype.hasOwnProperty.call(Model, MODEL_NEEDS_FINALIZATION)) {
+      SUPPLIED_ATTRIBUTES.set(this, captureSuppliedAttributes(values));
+    }
     Object.defineProperty(this, 'isNewRecord', {
       value: opts.isNewRecord !== undefined ? opts.isNewRecord : true,
       configurable: true,
@@ -194,29 +208,6 @@ export class AbstractBone {
       }
     }
 
-    // Wrap in Proxy to intercept ES2022 class field definitions ([[DefineOwnProperty]])
-    // that would otherwise shadow prototype getter/setters defined by loadAttribute().
-    // Only activate after loadAttribute() has run (hasLoadedAttributesKey === true).
-    if ((this.constructor as any)[hasLoadedAttributesKey]) {
-      const attributes = (this.constructor as typeof AbstractBone).attributes;
-      const proxy = new Proxy(this, {
-        defineProperty(target, prop, descriptor) {
-          if (typeof prop === 'string' && Object.prototype.hasOwnProperty.call(attributes, prop)) {
-            // Only intercept data descriptors (class field initializers).
-            // Forward accessor descriptors ({ get/set }) to allow legitimate overrides.
-            if ('value' in descriptor) {
-              if (descriptor.value !== undefined) {
-                target.attribute(prop, descriptor.value);
-                debug('intercepted defineProperty on attribute "%s"', prop);
-              }
-              return true;
-            }
-          }
-          return Reflect.defineProperty(target, prop, descriptor);
-        },
-      });
-      return proxy as any;
-    }
   }
 
   static get shardingColumn(): string | undefined {
@@ -1607,6 +1598,84 @@ export class AbstractBone {
       }
     }
     return obj;
+  }
+}
+
+export function markModelClassFinalized<T extends typeof AbstractBone>(Model: T): T {
+  Object.defineProperty(Model, MODEL_FINALIZED, {
+    value: true,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  return Model;
+}
+
+export function isModelClassFinalized(Model: typeof AbstractBone): boolean {
+  return Object.prototype.hasOwnProperty.call(Model, MODEL_FINALIZED);
+}
+
+export function finalizeModelClass<T extends typeof AbstractBone>(Target: T): T {
+  if (isModelClassFinalized(Target)) return Target;
+  const cachedModel = FINALIZED_MODELS.get(Target);
+  if (cachedModel) return cachedModel as T;
+
+  const ModelBase = Target as unknown as new (...args: any[]) => AbstractBone;
+  class FinalizedModel extends ModelBase {
+    constructor(...args: any[]) {
+      super(...args);
+      const suppliedAttributes = SUPPLIED_ATTRIBUTES.get(this);
+      SUPPLIED_ATTRIBUTES.delete(this);
+      finalizeClassFields(this, suppliedAttributes || new Map());
+    }
+  }
+
+  Object.defineProperty(FinalizedModel, 'name', {
+    value: Target.name,
+    configurable: true,
+  });
+  const prototypeDescriptors = Object.getOwnPropertyDescriptors(Target.prototype);
+  Reflect.deleteProperty(prototypeDescriptors, 'constructor');
+  Object.defineProperties(FinalizedModel.prototype, prototypeDescriptors);
+  const Finalized = FinalizedModel as unknown as T;
+  Object.defineProperty(Finalized, MODEL_NEEDS_FINALIZATION, {
+    value: true,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  markModelClassFinalized(Finalized);
+  FINALIZED_MODELS.set(Target, Finalized);
+  return Finalized;
+}
+
+function captureSuppliedAttributes(values?: { [key: string]: Literal }): Map<string, Literal> {
+  const suppliedAttributes = new Map<string, Literal>();
+  if (values && typeof values === 'object') {
+    for (const name of Object.keys(values)) {
+      if (values[name] !== undefined) suppliedAttributes.set(name, values[name]);
+    }
+  }
+  return suppliedAttributes;
+}
+
+function finalizeClassFields(instance: AbstractBone, suppliedAttributes: Map<string, Literal>): void {
+  const { attributes } = instance.constructor as typeof AbstractBone;
+  if (!attributes) return;
+
+  for (const name of Object.keys(attributes)) {
+    const descriptor = Object.getOwnPropertyDescriptor(instance, name);
+    if (!descriptor || !('value' in descriptor)) continue;
+    if (!descriptor.configurable || !delete instance[name]) {
+      throw new LeoricModelDefinitionError((instance.constructor as typeof AbstractBone).name);
+    }
+    if (!suppliedAttributes.has(name) && descriptor.value !== undefined) {
+      instance[name] = descriptor.value;
+    }
+  }
+
+  for (const [name, value] of suppliedAttributes) {
+    if (Object.prototype.hasOwnProperty.call(attributes, name)) instance[name] = value;
   }
 }
 

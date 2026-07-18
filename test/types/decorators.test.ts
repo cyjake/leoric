@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { Bone, DataTypes, Column, HasMany, BelongsTo, connect, HasOne } from '../../src';
+import { Bone, DataTypes, Column, HasMany, BelongsTo, Model, connect, HasOne } from '../../src';
 
 const { TEXT, STRING, INTEGER } = DataTypes;
 
@@ -17,6 +17,7 @@ describe('=> Decorators (TypeScript)', function() {
 
   describe('=> @Column()', function() {
     it('should be able to deduce column type from typescript', async function() {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -45,6 +46,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should be able to override column type', async function() {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -60,6 +62,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should be able to override column name', async function() {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -79,6 +82,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with setter', async () => {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -117,6 +121,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with getter', async () => {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -161,6 +166,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with validate',async () => {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -221,6 +227,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with other options', async () => {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -253,6 +260,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with type options', async () => {
+      @Model()
       class Note extends Bone {
         @Column({
           primaryKey: true,
@@ -275,6 +283,7 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should work with invokable data types', async () => {
+      @Model()
       class Note extends Bone {
         @Column()
         id!: bigint;
@@ -300,16 +309,19 @@ describe('=> Decorators (TypeScript)', function() {
     });
 
     it('should not override attributes of parent class', async function() {
+      @Model()
       class Base extends Bone {
         @Column()
         id!: bigint;
       }
 
+      @Model()
       class Note extends Base {
         @Column()
         body!: string;
       }
 
+      @Model()
       class Comment extends Note {
         static table = 'comments';
 
@@ -320,6 +332,7 @@ describe('=> Decorators (TypeScript)', function() {
         targetId!: number;
       }
 
+      @Model()
       class SubContent extends Comment {
         static table = 'contents';
 
@@ -333,6 +346,7 @@ describe('=> Decorators (TypeScript)', function() {
       }
 
       // normal subclass that not sync will inherent all the features from parent class
+      @Model()
       class ContentChildClass extends SubContent {
         getMyDesc() {
           return this.description?.toUpperCase();
@@ -400,6 +414,7 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('=> @HasMany()', function() {
+    @Model()
     class Note extends Bone {
       @Column()
       id!: bigint;
@@ -408,6 +423,7 @@ describe('=> Decorators (TypeScript)', function() {
       memberId!: bigint;
     }
 
+    @Model()
     class Member extends Bone {
       @Column()
       id!: bigint;
@@ -445,6 +461,7 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('=> @HasMany({ through })', function() {
+    @Model()
     class Tag extends Bone {
       @Column()
       id!: bigint;
@@ -460,6 +477,7 @@ describe('=> Decorators (TypeScript)', function() {
       note = 1,
     }
 
+    @Model()
     class TagMap extends Bone {
       @Column()
       id!: bigint;
@@ -477,6 +495,7 @@ describe('=> Decorators (TypeScript)', function() {
       tag!: Tag;
     }
 
+    @Model()
     class Note extends Bone {
       @Column()
       id!: bigint;
@@ -524,6 +543,7 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('HasMany({ select })', function() {
+    @Model()
     class Note extends Bone {
       @Column()
       id!: bigint;
@@ -535,6 +555,7 @@ describe('=> Decorators (TypeScript)', function() {
       memberId!: bigint;
     }
 
+    @Model()
     class Member extends Bone {
       @Column()
       id!: bigint;
@@ -578,6 +599,7 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('HasOne()', function() {
+    @Model()
     class Profile extends Bone {
       @Column()
       id!: bigint;
@@ -589,6 +611,7 @@ describe('=> Decorators (TypeScript)', function() {
       userId!: bigint;
     }
 
+    @Model()
     class User extends Bone {
       @Column()
       id!: bigint;
@@ -624,6 +647,7 @@ describe('=> Decorators (TypeScript)', function() {
   });
 
   describe('BelongsTo()', function() {
+    @Model()
     class Member extends Bone {
       @Column()
       id!: bigint;
@@ -632,6 +656,7 @@ describe('=> Decorators (TypeScript)', function() {
       email!: string;
     }
 
+    @Model()
     class Note extends Bone {
       @Column()
       id!: bigint;

@@ -4,7 +4,7 @@ const assert = require('assert').strict;
 const sinon = require('sinon');
 
 const {
-  connect, Bone,
+  connect, Bone, Model,
   Hint, IndexHint, INDEX_HINT_TYPE, INDEX_HINT_SCOPE,
 } = require('../../src');
 
@@ -114,7 +114,7 @@ describe('IndexHint', () => {
 });
 
 describe('MySQL', async () => {
-  class Post extends Bone {
+  const Post = Model()(class Post extends Bone {
     static table = 'articles';
 
     static initialize() {
@@ -122,9 +122,9 @@ describe('MySQL', async () => {
         foreignKey: 'articleId'
       });
     }
-  }
+  });
 
-  class Comment extends Bone {}
+  const Comment = Model()(class Comment extends Bone {});
 
   before(async function() {
     Bone.driver = null;
@@ -443,6 +443,5 @@ describe('MySQL', async () => {
     sandbox.restore();
   });
 });
-
 
 

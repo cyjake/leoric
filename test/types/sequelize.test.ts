@@ -1,11 +1,12 @@
 import { strict as assert } from 'assert';
 const sinon = require('sinon');
 
-import { SequelizeBone, Column, DataTypes, connect, Hint, Raw, Bone } from '../../src';
+import { SequelizeBone, Column, DataTypes, Model, connect, Hint, Raw, Bone } from '../../src';
 
 describe('=> sequelize (TypeScript)', function() {
   const { TEXT, STRING, VIRTUAL } = DataTypes;
 
+  @Model()
   class Post extends SequelizeBone {
     static table = 'articles';
 
@@ -62,6 +63,7 @@ describe('=> sequelize (TypeScript)', function() {
     }
   }
 
+  @Model()
   class Book extends SequelizeBone {
     @Column({
       primaryKey: true,
@@ -84,6 +86,7 @@ describe('=> sequelize (TypeScript)', function() {
     price!: number;
   }
 
+  @Model()
   class Like extends SequelizeBone {
     @Column()
     userId!: number;

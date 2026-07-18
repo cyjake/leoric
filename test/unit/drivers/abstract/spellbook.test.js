@@ -1,20 +1,20 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { connect, heresql, Bone } = require('../../../../src');
+const { connect, heresql, Bone, Model } = require('../../../../src');
 
 describe('=> Spellbook', function() {
-  class User extends Bone {}
-  class Attachment extends Bone {}
-  class Post extends Bone {
+  const User = Model()(class User extends Bone {});
+  const Attachment = Model()(class Attachment extends Bone {});
+  const Post = Model()(class Post extends Bone {
     static table = 'articles';
     static initialize() {
       this.belongsTo('author', { className: 'User' });
     }
-  }
-  class Comment extends Bone {
+  });
+  const Comment = Model()(class Comment extends Bone {
     static shardingKey = 'articleId';
-  }
+  });
 
   before(async function() {
     Bone.driver = null;

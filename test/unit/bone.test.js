@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, DataTypes, connect, default: Realm } = require('../../src');
+const { Bone, DataTypes, Model, connect, default: Realm } = require('../../src');
 const expect = require('expect.js');
 
 const {
@@ -279,14 +279,14 @@ describe('=> Bone', function() {
     });
 
     it('should still be enumerable event if there were getter', async function() {
-      class User extends Bone {
+      const User = Model()(class User extends Bone {
         static attributes = {
           foo: { type: STRING },
         };
         get bar() {
           return this.attribute('bar');
         }
-      }
+      });
       User.load([
         { columnName: 'foo', columnType: 'varchar', dataType: 'varchar' },
       ]);

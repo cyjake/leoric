@@ -41,6 +41,7 @@ export { Collection };
 export { DataTypes };
 export { Logger };
 export { Spell };
+export { LeoricModelDefinitionError } from './abstract_bone';
 export * from './adapters/sequelize';
 export { heresql };
 export * from './hint';

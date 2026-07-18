@@ -11,26 +11,48 @@ title: TypeScript Support
 
 ## Decorations
 
+### Model and Class Fields
+
+Every concrete TypeScript model must use `@Model()`. Declare mapped fields with `declare`
+so TypeScript emits no runtime class field that could shadow Leoric's attribute accessors.
+
+```ts
+import { Bone, Column, Model } from 'leoric';
+
+@Model()
+class User extends Bone {
+  @Column()
+  declare name: string;
+}
+```
+
+`@Model()` also repairs emitted JavaScript class fields after construction for compatibility,
+but `declare` avoids that work and remains the recommended form. Mapped attributes are not
+available inside the original constructor body because finalization runs after it returns.
+Because the decorator returns a finalized subclass, avoid static private fields that are
+accessed through `this`; use module-scoped private state or ordinary static properties instead.
+
 ### Column
 
 ```ts
-import { Bone, DataTypes: { SMALLINT } } from 'leoric';
+import { Bone, Column, DataTypes: { SMALLINT }, Model } from 'leoric';
 
+@Model()
 class User extends Bone {
   @Column({ primaryKey: true })
-  id: bigint;
+  declare id: bigint;
 
   @Column({ allowNull: false })
-  name: string;
+  declare name: string;
 
   @Column()
-  createdAt: Date;
+  declare createdAt: Date;
 
   @Column()
-  updatedAt: Date;
+  declare updatedAt: Date;
 
   @Column({ type: SMALLINT })
-  age: number;
+  declare age: number;
 }
 ```
 
@@ -57,12 +79,13 @@ If `type` option is omitted, `@Column()` will try to deduce the corresponding on
 Here is an example that is a little bit more comprehensive:
 
 ```ts
+@Model()
 class User extends Bone {
   @Column({ name: 'ssn', primaryKey: true, type: VARCHAR(16) })
-  ssn: string;
+  declare ssn: string;
 
   @Column({ name: 'gmt_create', allowNull: false })
-  createdAt: Date;
+  declare createdAt: Date;
 }
 ```
 
@@ -71,9 +94,10 @@ class User extends Bone {
 ```ts
 import User from './user';
 
+@Model()
 class Post extends Bone {
   @BelongsTo()
-  user: User;
+  declare user: User;
 }
 
 const post = await Post.include('user').first;
@@ -83,9 +107,10 @@ assert.ok(post.user.id);
 If the foreign key didn't follow the naming convention, please provide it with:
 
 ```ts
+@Model()
 class Post extends Bone {
   @BelongsTo({ foreignKey: 'authorId' })
-  user: User;
+  declare user: User;
 }
 ```
 
@@ -94,18 +119,20 @@ class Post extends Bone {
 ```ts
 import Post from './post';
 
+@Model()
 class User extends Bone {
   @HasMany()
-  posts: Post[];
+  declare posts: Post[];
 }
 ```
 
 If the foreign key didn't follow the naming convention, please provide it with:
 
 ```ts
+@Model()
 class User extends Bone {
   @HasMany({ foreignKey: 'authorId' })
-  posts: Post[];
+  declare posts: Post[];
 }
 ```
 
@@ -116,9 +143,10 @@ In a `hasMany` association, e.g. one-to-many, the foreign key should be at the a
 ```ts
 import Profile from './profile';
 
+@Model()
 class User extends Bone {
   @HasOne()
-  profile: Profile;
+  declare profile: Profile;
 }
 ```
 
@@ -127,9 +155,10 @@ If the foreign key didn't follow the naming convention, please provide it with:
 ```ts
 import Profile from './profile';
 
+@Model()
 class User extends Bone {
   @HasOne({ foreignKey: 'ownerId' })
-  profile: Profile;
+  declare profile: Profile;
 }
 ```
 
@@ -145,12 +174,13 @@ For many-to-many associations, use the `through` option:
 import Tag from './tag';
 import TagMap from './tag_map';
 
+@Model()
 class Post extends Bone {
   @HasMany({ through: 'tagMaps' })
-  tags: Tag[];
+  declare tags: Tag[];
 
   @HasMany()
-  tagMaps: TagMap[];
+  declare tagMaps: TagMap[];
 }
 ```
 
@@ -159,6 +189,7 @@ class Post extends Bone {
 You can add a `validate` option to `@Column()` to enable field validation:
 
 ```ts
+@Model()
 class User extends Bone {
   @Column({
     allowNull: false,
@@ -166,14 +197,14 @@ class User extends Bone {
       isEmail: true,
     },
   })
-  email: string;
+  declare email: string;
 
   @Column({
     validate: {
       isUrl: true,
     },
   })
-  website: string;
+  declare website: string;
 }
 ```
 
@@ -182,42 +213,43 @@ class User extends Bone {
 Here is a comprehensive example showing a full model definition in TypeScript:
 
 ```ts
-import { Bone, Column, BelongsTo, HasMany, DataTypes } from 'leoric';
+import { Bone, Column, BelongsTo, HasMany, DataTypes, Model } from 'leoric';
 const { TEXT, JSONB } = DataTypes;
 
 import User from './user';
 import Comment from './comment';
 
+@Model()
 export default class Post extends Bone {
   @Column({ primaryKey: true, autoIncrement: true })
-  id: bigint;
+  declare id: bigint;
 
   @Column({ allowNull: false })
-  title: string;
+  declare title: string;
 
   @Column(TEXT)
-  content: string;
+  declare content: string;
 
   @Column(JSONB)
-  extra: Record<string, unknown>;
+  declare extra: Record<string, unknown>;
 
   @Column()
-  userId: bigint;
+  declare userId: bigint;
 
   @Column()
-  createdAt: Date;
+  declare createdAt: Date;
 
   @Column()
-  updatedAt: Date;
+  declare updatedAt: Date;
 
   @Column()
-  deletedAt: Date;
+  declare deletedAt: Date;
 
   @BelongsTo()
-  user: User;
+  declare user: User;
 
   @HasMany()
-  comments: Comment[];
+  declare comments: Comment[];
 }
 ```
 

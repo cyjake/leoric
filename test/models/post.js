@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone } = require('../../src');
+const { Bone, Model } = require('../../src');
 
 class Post extends Bone {
   static table = 'articles';
@@ -57,4 +57,4 @@ Object.defineProperty(Post.prototype, 'slug', {
   enumerable: true,
 });
 
-module.exports = Post;
+module.exports = Model()(Post);

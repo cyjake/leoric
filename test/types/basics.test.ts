@@ -1,11 +1,12 @@
 import { strict as assert } from 'assert';
 import sinon, { SinonFakeTimers } from 'sinon';
-import Realm, { Bone, Column, DataTypes, connect, Raw } from '../../src';
+import Realm, { Bone, Column, DataTypes, Model, connect, Raw } from '../../src';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;
   let realm: Realm;
 
+  @Model()
   class Post extends Bone {
     static table = 'articles';
 
@@ -114,6 +115,7 @@ describe('=> Basics (TypeScript)', function() {
     });
 
     it('bone.attribute(name) type casting', async function() {
+      @Model()
       class Article extends Bone {
         @Column(DataTypes.TEXT)
         get settings(): Record<string, any> | null {

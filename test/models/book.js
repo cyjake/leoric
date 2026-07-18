@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone } = require('../../src');
+const { Bone, Model } = require('../../src');
 
 class Book extends Bone {
   // static get primaryKey() {
@@ -19,4 +19,4 @@ class Book extends Bone {
   }
 }
 
-module.exports = Book;
+module.exports = Model()(Book);

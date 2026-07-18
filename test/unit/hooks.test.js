@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 const { connect } = require('../../src');
-const { Bone, DataTypes, sequelize } = require('../../src');
+const { Bone, DataTypes, Model, sequelize } = require('../../src');
 
 const attributes = {
   id: DataTypes.BIGINT,
@@ -36,11 +36,11 @@ describe('hooks', function() {
   const Spine = sequelize(Bone);
 
   describe('create', async () => {
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       constructor(opts) {
         super(opts);
       }
-    }
+    });
 
     let beforeProbe = null;
     let afterProbe = null;
@@ -156,7 +156,7 @@ describe('hooks', function() {
   });
 
   describe('update', () => {
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       constructor(opts) {
         super(opts);
       }
@@ -164,7 +164,7 @@ describe('hooks', function() {
       getFingerprint() {
         return this.attribute('fingerprint');
       }
-    }
+    });
     User.init(attributes, {
       hooks: {
         beforeUpdate(obj, opts) {
@@ -300,11 +300,11 @@ describe('hooks', function() {
   });
 
   describe('remove', () => {
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       constructor(opts) {
         super(opts);
       }
-    }
+    });
 
     let beforeProbe;
     let afterProbe;
@@ -400,11 +400,11 @@ describe('hooks', function() {
   });
 
   describe('upsert', () => {
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       constructor(opts) {
         super(opts);
       }
-    }
+    });
 
     let beforeProbe;
     let afterProbe;
@@ -485,11 +485,11 @@ describe('hooks', function() {
   });
 
   describe('destroy', () => {
-    class User extends Spine {
+    const User = Model()(class User extends Spine {
       constructor(opts) {
         super(opts);
       }
-    }
+    });
 
     let beforeProbe;
     let afterProbe;
@@ -590,11 +590,11 @@ describe('hooks', function() {
   });
 
   describe('save', () => {
-    class User extends Bone {
+    const User = Model()(class User extends Bone {
       constructor(opts) {
         super(opts);
       }
-    }
+    });
 
     User.init(attributes, {
       hooks: {
@@ -643,19 +643,19 @@ describe('hooks', function() {
   describe('addHooks', () => {
 
     describe('hook', () => {
-      class User extends Spine {
+      const User = Model()(class User extends Spine {
         constructor(opts) {
           super(opts);
         }
-      }
+      });
 
       User.init(attributes);
 
-      class Post extends Spine {
+      const Post = Model()(class Post extends Spine {
         static get table() {
           return 'articles';
         }
-      }
+      });
 
       beforeEach(async () => {
         await connect({
@@ -981,11 +981,11 @@ describe('hooks', function() {
 
     describe('multiple hooks', () => {
 
-      class User extends Spine {
+      const User = Model()(class User extends Spine {
         constructor(opts) {
           super(opts);
         }
-      }
+      });
       let beforeProbe;
       let afterProbe;
       User.init(attributes, {

@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { connect, Bone, DataTypes } = require('../../src');
+const { connect, Bone, DataTypes, Model } = require('../../src');
 
 describe('connect', function() {
   beforeEach(() => {
@@ -9,7 +9,7 @@ describe('connect', function() {
   });
 
   it('should work without define attributes clearly', async function() {
-    class Book extends Bone {}
+    const Book = Model()(class Book extends Bone {});
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -28,7 +28,7 @@ describe('connect', function() {
 
   it('should work with define attributes clearly', async function() {
     const { STRING, BIGINT, DECIMAL, DATE } = DataTypes;
-    class Book extends Bone {
+    const Book = Model()(class Book extends Bone {
       static attributes = {
         isbn: { type: BIGINT, primaryKey: true },
         name: { type: STRING, allowNull: false },
@@ -37,7 +37,7 @@ describe('connect', function() {
         updatedAt: { type: DATE },
         deletedAt: { type: DATE },
       };
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -54,7 +54,7 @@ describe('connect', function() {
 
   it('should work with snake case', async function() {
     const { STRING, BIGINT, DECIMAL, DATE } = DataTypes;
-    class Book extends Bone {
+    const Book = Model()(class Book extends Bone {
       static attributes = {
         isbn: { type: BIGINT, primaryKey: true },
         name: { type: STRING, allowNull: false },
@@ -63,7 +63,7 @@ describe('connect', function() {
         updated_at: { type: DATE },
         deleted_at: { type: DATE },
       };
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -81,7 +81,7 @@ describe('connect', function() {
 
   it('should work with mixed case', async function() {
     const { STRING, BIGINT, DECIMAL, DATE } = DataTypes;
-    class Book extends Bone {
+    const Book = Model()(class Book extends Bone {
       static attributes = {
         isbn: { type: BIGINT, primaryKey: true },
         name: { type: STRING, allowNull: false },
@@ -90,7 +90,7 @@ describe('connect', function() {
         updatedAt: { type: DATE },
         deleted_at: { type: DATE },
       };
-    }
+    });
     await connect({
       port: process.env.MYSQL_PORT,
       user: 'root',
