@@ -498,6 +498,7 @@ describe('=> Sequelize adapter', () => {
       order: [[ raw('id DESC') ], [ 'createdAt', 'asc' ]],
     });
     assert.ok(posts.length >= 2);
+  });
 
   it('Model.from(Model.where()) should return Collection', async () => {
     await Promise.all([
