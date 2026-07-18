@@ -1,4 +1,5 @@
 import { BelongsTo, Bone, Column } from '../../src';
+// @ts-ignore — user.js has no declaration file
 import User from './user';
 
 export default class Photo extends Bone {

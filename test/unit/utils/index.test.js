@@ -1,8 +1,8 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, sequelize, isBone } = require('../../../src');
-const { compose, getPropertyNames, logger } = require('../../../src/utils');
+const { Bone, sequelize, isBone, Raw } = require('../../../src');
+const { compose, getPropertyNames, logger, isRaw } = require('../../../src/utils');
 
 describe('=> compose', function() {
   it('should return a default function if nothing to compose', function() {
@@ -86,5 +86,33 @@ describe('=> isBone', () => {
     assert.equal(isBone(Note1), true);
     assert.equal(isBone(sequelize(Note1)), true);
     assert.equal(isBone(sequelize(Note)), false);
+  });
+});
+
+describe('=> isRaw', () => {
+  it('should return true for Raw instances', () => {
+    const r = new Raw('SELECT 1');
+    assert.equal(isRaw(r), true);
+  });
+
+  it('should return false for non-Raw values', () => {
+    assert.equal(isRaw(null), false);
+    assert.equal(isRaw(undefined), false);
+    assert.equal(isRaw(1), false);
+    assert.equal(isRaw('string'), false);
+    assert.equal(isRaw({}), false);
+    assert.equal(isRaw([]), false);
+    assert.equal(isRaw(() => {}), false);
+  });
+
+  it('should recognize Raw via Symbol.for across module boundaries', () => {
+    const IS = Symbol.for('leoric#raw');
+    const fakeRaw = { type: 'raw', value: 'test', [IS]: true };
+    assert.equal(isRaw(fakeRaw), true);
+  });
+
+  it('should reject objects without Symbol marker', () => {
+    const notRaw = { type: 'raw', value: 'test' };
+    assert.equal(isRaw(notRaw), false);
   });
 });

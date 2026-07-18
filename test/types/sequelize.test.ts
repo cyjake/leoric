@@ -622,7 +622,7 @@ describe('=> sequelize (TypeScript)', function() {
       await Post.destroy({ where: { title: 'Leah' } });
       const post = await Post.findOne({ where: { title: 'Leah' } });
       assert.equal(post, null);
-      const post1 = await Post.findOne({ where: { title: 'Leah' }, paranoid: false })!;
+      const post1 = (await Post.findOne({ where: { title: 'Leah' }, paranoid: false }))!;
       assert.equal(post1.title, 'Leah');
 
       const { rows, count } = await Post.findAndCountAll({
@@ -641,11 +641,11 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.findOne(id)', async () => {
       const { id } = await Post.create({ title: 'Leah' });
 
-      const post = await Post.findOne()!;
+      const post = (await Post.findOne())!;
       assert.equal(post.title, 'Leah');
 
       // if passed value, take the value as primary key
-      assert.deepEqual((await Post.findOne(id))!.toJSON(), post.toJSON());
+      assert.deepEqual(((await Post.findOne(id))!).toJSON(), post.toJSON());
 
       // if passed null or undefined, return null
       assert.equal(await Post.findOne(null as any), null);
@@ -655,16 +655,16 @@ describe('=> sequelize (TypeScript)', function() {
     it('Model.findOne(id) with paranoid = false', async () => {
       const { id } = await Post.create({ title: 'Leah' });
 
-      const post = await Post.findOne()!;
+      const post = (await Post.findOne())!;
       assert.equal(post.title, 'Leah');
       await post.remove();
       const post1 = await Post.findOne();
       assert.equal(post1, null);
-      const post2 = await Post.findOne({ paranoid: false })!;
+      const post2 = (await Post.findOne({ paranoid: false }))!;
       assert.equal(post2.isNewRecord, false);
       assert(post2);
 
-      const post3 = await Post.findOne({ where: { id }, paranoid: false })!;
+      const post3 = (await Post.findOne({ where: { id }, paranoid: false }))!;
       assert.equal(post3.title, 'Leah');
       assert.equal(post3.isNewRecord, false);
       await post3.destroy({ force: true });
@@ -1379,8 +1379,8 @@ describe('=> sequelize (TypeScript)', function() {
       ]);
       await Post.update({ title: 'Diablo' }, { where: { title: 'Leah' } });
       assert.equal(await Post.findOne({ where: { title: 'Leah' }}), null);
-      assert.equal((await Post.findOne({ where: { title: 'Cain' }})!).title, 'Cain');
-      assert.equal((await Post.findOne({ where: { title: 'Diablo' }})!).title, 'Diablo');
+      assert.equal(((await Post.findOne({ where: { title: 'Cain' }}))!).title, 'Cain');
+      assert.equal(((await Post.findOne({ where: { title: 'Diablo' }}))!).title, 'Diablo');
     });
 
     it('post.update()', async function() {

@@ -170,7 +170,6 @@ function dispatchJoins<T extends typeof AbstractBone, U extends typeof AbstractB
           current[qualifier].push(instance as InstanceType<T>);
         }
       }
-      // TODO: add a test case to cover the loose equality check
       // bigint primary key in cartesian product will be string if mysql supportBigNumbers is true
       if (!id || current[qualifier].some((item: InstanceType<U>) => item[Model.primaryKey as keyof typeof item] == id)) {
         continue;

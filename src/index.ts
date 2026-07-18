@@ -19,7 +19,8 @@ import { ConnectOptions } from './drivers/abstract';
 export * from './decorators';
 export * from './drivers';
 export * from './hint';
-export { default as sequelize, SequelizeBone } from './adapters/sequelize';
+export * from './adapters/sequelize';
+export { default as sequelize } from './adapters/sequelize';
 
 export type * from './types/common';
 export * from './spell';
@@ -90,4 +91,5 @@ export {
   heresql,
   Raw,
   raw,
+  isBone,
 };

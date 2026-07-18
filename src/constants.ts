@@ -35,6 +35,7 @@ const ASSOCIATE_METADATA_MAP = {
 };
 
 const IS_LEORIC_BONE = Symbol('leoric#bone');
+const IS_LEORIC_RAW = Symbol.for('leoric#raw');
 
 export {
   AGGREGATOR_MAP,
@@ -45,4 +46,5 @@ export {
   TIMESTAMP_ATTRIBUTE_NAMES,
   AGGREGATORS,
   IS_LEORIC_BONE,
+  IS_LEORIC_RAW,
 };
