@@ -855,15 +855,13 @@ describe('=> Sequelize adapter', () => {
     assert.ok(result2, 'findOne with aggregate + where should not return null');
     assert.equal(Number(result2.count), 1);
 
-    // findOne with aggregate on empty result set should return null or zero count
     const result3 = await Post.findOne({
       attributes: [ raw('COUNT(id) as count') ],
       where: { title: 'nonexistent' },
     });
     // COUNT always returns a row, so result should exist with count=0
-    if (result3) {
-      assert.equal(Number(result3.count), 0);
-    }
+    assert.ok(result3);
+    assert.equal(Number(result3.count), 0);
   });
 
   it('Model.findOne(id) with paranoid = false', async () => {
