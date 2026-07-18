@@ -568,7 +568,6 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     if (index > 0) this.$offset(index);
 
     return this.later((results: any[]) => {
-      const { Model } = this;
       const result = results[0];
       // When attributes contain only aggregates (e.g. COUNT), result is a plain object, not a Model instance.
       // Return it as-is to preserve backward compatibility with 2.12.x behavior.

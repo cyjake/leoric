@@ -613,7 +613,9 @@ export default function sequelize(Bone: typeof AbstractBone) {
       values: Record<string, Literal> = {},
       options: SequelizeInstanceUpdateOptions<InstanceType<T>> = {},
     ) {
-      const { fields = [] } = options;
+      const fields = options.fields == null
+        ? []
+        : Array.isArray(options.fields) ? options.fields : [ options.fields ];
       const changeValues: Record<string, Literal> = {};
       const originalValues = Object.assign({}, this.getRaw());
       for (const name in values) {

@@ -1474,6 +1474,10 @@ describe('=> Sequelize adapter', () => {
     await post.update({}, { fields: ['title'] });
     assert.equal(post.title, 'Mardget');
     assert.equal(post.authorId, 2);
+
+    await post.update({ title: 'Gael', authorId: 4 }, { fields: 'title' });
+    assert.equal(post.title, 'Gael');
+    assert.equal(post.authorId, 2);
   });
 
   it('model.changed(key)', async () => {
