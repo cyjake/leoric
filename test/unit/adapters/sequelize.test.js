@@ -480,6 +480,42 @@ describe('=> Sequelize adapter', () => {
     assert.equal(posts[3].id, ids[3]);
   });
 
+  it('Model.findAll({ order: [[raw(...)], ...] }) should handle nested raw in array', async () => {
+    await Promise.all([
+      { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    // [[raw('...')], ['field', 'asc']] pattern used by skylark
+    const sql = Post.findAll({
+      order: [[ raw('id DESC') ], [ 'createdAt', 'asc' ]],
+    }).toSqlString();
+    assert.ok(sql.includes('ORDER BY id DESC'));
+    assert.ok(sql.includes('gmt_create'));
+
+    // should not throw 'name.split is not a function'
+    const posts = await Post.findAll({
+      order: [[ raw('id DESC') ], [ 'createdAt', 'asc' ]],
+    });
+    assert.ok(posts.length >= 2);
+  });
+
+  it('Model.from(Model.where()) should return Collection', async () => {
+    await Promise.all([
+      { title: 'Leah' },
+      { title: 'Tyrael' },
+    ].map(opts => Post.create(opts)));
+
+    // from(Model.where()) should return array-like Collection with slice method
+    const results = await Post.from(Post.where({}))
+      .order('id', 'desc');
+
+    assert.ok(typeof results.slice === 'function',
+      'from() result should have slice method');
+    assert.ok(results.length >= 2,
+      'from() result should contain created records');
+  });
+
   it('Model.findAll({ order }) edge cases', async () => {
     await Promise.all([
       { title: 'Leah', createdAt: new Date(Date.now() - 1000) },
@@ -798,6 +834,34 @@ describe('=> Sequelize adapter', () => {
     // if passed null or undefined, return null
     assert.equal(await Post.findOne(null), null);
     assert.equal(await Post.findOne(undefined), null);
+  });
+
+  it('Model.findOne({ attributes: [raw("COUNT(id) as count")] }) should return plain object', async () => {
+    await Post.create({ title: 'Tyrael' });
+    await Post.create({ title: 'Leah' });
+
+    // findOne with aggregate-only attributes should return a plain object, not null
+    const result = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+    });
+    assert.ok(result, 'findOne with aggregate attributes should not return null');
+    assert.equal(Number(result.count), 2);
+
+    // findOne with aggregate + where should also work
+    const result2 = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+      where: { title: 'Leah' },
+    });
+    assert.ok(result2, 'findOne with aggregate + where should not return null');
+    assert.equal(Number(result2.count), 1);
+
+    const result3 = await Post.findOne({
+      attributes: [ raw('COUNT(id) as count') ],
+      where: { title: 'nonexistent' },
+    });
+    // COUNT always returns a row, so result should exist with count=0
+    assert.ok(result3);
+    assert.equal(Number(result3.count), 0);
   });
 
   it('Model.findOne(id) with paranoid = false', async () => {
@@ -1407,6 +1471,10 @@ describe('=> Sequelize adapter', () => {
     assert.equal(post.authorId, 2);
     await post.update({}, { fields: ['title'] });
     assert.equal(post.title, 'Mardget');
+    assert.equal(post.authorId, 2);
+
+    await post.update({ title: 'Gael', authorId: 4 }, { fields: 'title' });
+    assert.equal(post.title, 'Gael');
     assert.equal(post.authorId, 2);
   });
 

@@ -80,6 +80,8 @@ export class AbstractBone {
 
   // eslint-disable-next-line no-undef
   [key: string]: any;
+  // eslint-disable-next-line no-undef
+  [key: symbol]: any;
 
   isNewRecord = true;
 
@@ -188,7 +190,7 @@ export class AbstractBone {
     setDefaultValue(values, (this.constructor as typeof AbstractBone).attributes);
     if (values) {
       for (const name in values) {
-        this[name] = values[name];
+        (this as any)[name] = values[name];
       }
     }
 
@@ -594,6 +596,7 @@ export class AbstractBone {
   static select<T extends typeof AbstractBone>(this: T, ...names: Array<BoneColumns<T>> | string[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, ...names: string[]): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, ...names: Raw[]): Spell<T>;
+  static select<T extends typeof AbstractBone>(this: T, ...names: Array<string | Raw>): Spell<T>;
   static select<T extends typeof AbstractBone>(this: T, filter: (name: string) => boolean): Spell<T>;
   /**
    * Whitelist SELECT fields by names or filter function
@@ -902,10 +905,10 @@ export class AbstractBone {
         instance._setRaw(attribute.name, castedValue);
         instance._setRawSaved(attribute.name, skipCloneValue ? attribute.cast(value) : cloneValue(castedValue));
       } else {
-        if (value != null && typeof value == 'object') instance[columnName] = value;
-        else if (!isNaN(value as any)) instance[columnName] = Number(value);
-        else if (!isNaN(Date.parse(value))) instance[columnName] = new Date(value);
-        else instance[columnName] = value;
+        if (value != null && typeof value == 'object') (instance as any)[columnName] = value;
+        else if (!isNaN(value as any)) (instance as any)[columnName] = Number(value);
+        else if (!isNaN(Date.parse(value))) (instance as any)[columnName] = new Date(value);
+        else (instance as any)[columnName] = value;
       }
     }
     for (const name in attributes) {
@@ -1007,7 +1010,7 @@ export class AbstractBone {
   }
 
   static from<T extends typeof AbstractBone>(this: T, table: string | Spell<T>) {
-    return new Spell(this).$from(table);
+    return new Spell(this).$from(table).later(Collection.init);
   }
 
   /**
@@ -1062,6 +1065,8 @@ export class AbstractBone {
   attribute<T, Key extends keyof T, U extends T[Key]>(this: T, name: Key): U extends Literal ? U : Literal;
   attribute<T, Key extends keyof Values<T>>(this: T, name: Key, value: Literal): this
   attribute<T, Key extends keyof T>(this: T, name: Key, value: Literal): this
+  attribute(name: string): Literal;
+  attribute(name: string, value: Literal): this;
 
   /**
    * @example
@@ -1672,6 +1677,9 @@ function valuesValidate(values: any, attributes: any, ctx: any) {
 
 function cloneValue(value: any) {
   if (value instanceof Date && isNaN(value as any)) return value;
+  // structuredClone converts Buffer to Uint8Array, breaking isDeepStrictEqual comparisons.
+  // Preserve Buffer type by copying manually.
+  if (Buffer.isBuffer(value)) return Buffer.from(value);
   // eslint-disable-next-line no-undef
   return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 }
