@@ -268,6 +268,23 @@ describe('=> ES2022 class fields', () => {
     });
   });
 
+  it('copies class-level prototype metadata', () => {
+    const metadataKey = Symbol('prototype metadata');
+    class UserDefinition extends Bone {}
+    Reflect.defineMetadata(metadataKey, { enabled: true }, UserDefinition.prototype);
+
+    const User = Model()(UserDefinition);
+
+    assert.deepEqual(Reflect.getOwnMetadata(metadataKey, User.prototype), { enabled: true });
+  });
+
+  it('reuses a compiled model through the direct decorator form', () => {
+    @Model()
+    class User extends Bone {}
+
+    assert.equal(Model(User), User);
+  });
+
   it('rejects compilation of classes outside the Bone hierarchy', () => {
     class NotAModel {}
 
@@ -319,6 +336,23 @@ describe('=> ES2022 class fields', () => {
     assert.equal(user.greet(), 'Hello Ada');
     assert.equal(user instanceof UserDefinition, false);
     assert.ok(user instanceof User);
+  });
+
+  it('rejects a realm definition outside its Bone hierarchy', () => {
+    class User {}
+
+    assert.throws(
+      () => realm.define(User as unknown as typeof Bone),
+      /User must extend this realm's Bone/,
+    );
+  });
+
+  it('registers a compiled class overload without explicit attributes', () => {
+    @Model()
+    class Marker extends Bone {}
+
+    assert.equal(realm.define(Marker), Marker);
+    assert.equal(realm.models.Marker, Marker);
   });
 
   it('keeps the string overload of realm.define() as the generated path', () => {
