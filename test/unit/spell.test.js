@@ -3,9 +3,9 @@
 const assert = require('assert').strict;
 const sinon = require('sinon');
 
-const { connect, raw, Bone, heresql, Model } = require('../../src');
+const { connect, raw, Bone, heresql } = require('../../src');
 
-const Post = Model()(class Post extends Bone {
+class Post extends Bone {
   static table = 'articles';
   static initialize() {
     this.hasOne('attachment', { foreignKey: 'articleId' });
@@ -13,12 +13,12 @@ const Post = Model()(class Post extends Bone {
       foreignKey: 'articleId'
     });
   }
-});
-const TagMap = Model()(class TagMap extends Bone {});
-const Comment = Model()(class Comment extends Bone {});
-const Book = Model()(class Book extends Bone {});
-const User = Model()(class User extends Bone {});
-const Attachment = Model()(class Attachment extends Bone {});
+}
+class TagMap extends Bone {}
+class Comment extends Bone {}
+class Book extends Bone {}
+class User extends Bone {}
+class Attachment extends Bone {}
 
 describe('=> Spell', function() {
   before(async function() {

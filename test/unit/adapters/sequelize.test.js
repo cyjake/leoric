@@ -3,7 +3,7 @@
 const assert = require('assert').strict;
 const crypto = require('crypto');
 const sinon = require('sinon');
-const { Bone, connect, sequelize, DataTypes, raw, Hint, Model: LeoricModel } = require('../../../src');
+const { Bone, connect, sequelize, DataTypes, raw, Hint } = require('../../../src');
 const util = require('util');
 
 const userAttributes = {
@@ -38,7 +38,7 @@ const userAttributes = {
 describe('=> Sequelize adapter', () => {
   const Spine = sequelize(Bone);
 
-  const Book = LeoricModel()(class Book extends Spine {
+  class Book extends Spine {
     static get primaryKey() {
       return 'isbn';
     }
@@ -50,15 +50,15 @@ describe('=> Sequelize adapter', () => {
     get slug() {
       return this.getDataValue('name').replace(/[^a-z]/gi, '-').toLowerCase();
     }
-  });
+  };
 
-  const User = LeoricModel()(class User extends Spine {
+  class User extends Spine {
     static initialize() {
       this.hasMany('posts', { className: 'Post', foreignKey: 'authorId' });
     }
-  });
+  }
 
-  const Post = LeoricModel()(class Post extends Spine {
+  class Post extends Spine {
     static get table() {
       return 'articles';
     }
@@ -66,7 +66,7 @@ describe('=> Sequelize adapter', () => {
     static initialize() {
       this.belongsTo('user', { className: 'User', foreignKey: 'authorId' });
     }
-  });
+  };
 
   before(async () => {
     await connect({
@@ -1148,9 +1148,9 @@ describe('=> Sequelize adapter', () => {
 
   it('Model.removeAttribute()', async function() {
     const Model = sequelize(Bone);
-    const Person = LeoricModel()(class Person extends Model {
+    class Person extends Model {
       static table = 'users';
-    });
+    };
     await connect({
       Bone: Model,
       models: [ Person ],
@@ -1611,13 +1611,13 @@ describe('=> Sequelize adapter', () => {
 
 describe('Model scope', () => {
   const Spine = sequelize(Bone);
-  const Post = LeoricModel()(class Post extends Spine {
+  class Post extends Spine {
     static table = 'articles';
-  });
+  };
 
-  const User = LeoricModel()(class User extends Spine {
+  class User extends Spine {
     static table = 'users';
-  });
+  };
 
   User.init(userAttributes, {
     defaultScope: {
@@ -1846,11 +1846,11 @@ describe('Model.init with getterMethods and setterMethods', () => {
   const Spine = sequelize(Bone);
   const email = 'shouldupdatemeta@leoric.com';
 
-  const User = LeoricModel()(class User extends Spine {
+  class User extends Spine {
     get i () {
       return 's';
     }
-  });
+  }
   User.init(userAttributes, {
     getterMethods: {
       nickname() {
@@ -2008,7 +2008,7 @@ describe('validator should work', () => {
     }
   };
 
-  const User = LeoricModel()(class User extends Spine {});
+  class User extends Spine {}
   User.init(attributes);
 
   before(async function() {
@@ -2250,11 +2250,11 @@ describe('validator should work', () => {
 describe('Model.find({ hint })', () => {
   const Spine = sequelize(Bone);
 
-  const Post = LeoricModel()(class Post extends Spine {
+  class Post extends Spine {
     static get table() {
       return 'articles';
     }
-  });
+  };
 
   before(async function() {
     await connect({
@@ -2296,9 +2296,9 @@ describe('Model.find({ hint })', () => {
 describe('Transaction', function() {
   const Spine = sequelize(Bone);
 
-  const User = LeoricModel()(class User extends Spine {
+  class User extends Spine {
     static table = 'users';
-  });
+  }
 
   before(async function() {
     await connect({
@@ -2375,11 +2375,11 @@ describe('Transaction', function() {
 describe('mysql only', () => {
   const Spine = sequelize(Bone);
 
-  const Post = LeoricModel()(class Post extends Spine {
+  class Post extends Spine {
     static get table() {
       return 'articles';
     }
-  });
+  };
 
   before(async function() {
     await connect({

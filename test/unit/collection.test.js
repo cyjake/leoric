@@ -1,18 +1,18 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, Collection, Model, connect, raw } = require('../../src');
+const { Bone, Collection, connect, raw } = require('../../src');
 
 describe('=> Collection', function() {
-  const Post = Model()(class Post extends Bone {
+  class Post extends Bone {
     static table = 'articles';
-  });
+  }
 
-  const User = Model()(class User extends Bone {
+  class User extends Bone {
     static initialize() {
       this.hasMany('posts', { foreignKey: 'authorId' });
     }
-  });
+  }
 
   before(async function() {
     await connect({

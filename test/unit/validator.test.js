@@ -2,7 +2,7 @@
 
 const assert = require('assert').strict;
 
-const { connect, Bone, DataTypes, Model } = require('../../src');
+const { connect, Bone, DataTypes } = require('../../src');
 const { executeValidator } = require('../../src/validator');
 
 describe('validator', () => {
@@ -75,7 +75,7 @@ describe('validator', () => {
     }
   };
 
-  const User = Model()(class User extends Bone {});
+  class User extends Bone {}
   User.init(attributes);
 
   before(async function() {

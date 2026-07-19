@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const { Bone, Model, sequelize, isBone, Raw } = require('../../../src');
+const { Bone, sequelize, isBone, Raw } = require('../../../src');
 const { compose, getPropertyNames, logger, isRaw } = require('../../../src/utils');
 
 describe('=> compose', function() {
@@ -45,8 +45,7 @@ describe('=> getPropertyNames', function() {
       enumerable: true,
     });
 
-    const FinalBar = Model()(Bar);
-    assert.deepEqual(getPropertyNames(new FinalBar()).sort(), [ 'a', 'b' ]);
+    assert.deepEqual(getPropertyNames(Object.create(Bar.prototype)).sort(), [ 'a', 'b' ]);
   });
 
   it('should exclude non-enumerable property names', async function() {
@@ -63,8 +62,7 @@ describe('=> getPropertyNames', function() {
       enumerable: true,
     });
 
-    const FinalFoo = Model()(Foo);
-    assert.deepEqual(getPropertyNames(new FinalFoo()).sort(), [ 'a' ]);
+    assert.deepEqual(getPropertyNames(Object.create(Foo.prototype)).sort(), [ 'a' ]);
   });
 });
 

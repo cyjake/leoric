@@ -2,19 +2,19 @@
 
 const assert = require('assert').strict;
 const dayjs = require('dayjs');
-const { connect, Bone, Model } = require('../../src');
+const { connect, Bone } = require('../../src');
 const { formatExpr, isAggregatorExpr, collectLiteral } = require('../../src/expr_formatter');
 
 describe('=> ExprFormatter', function() {
 
-  const Post = Model()(class Post extends Bone {
+  class Post extends Bone {
     static table = 'articles';
     static initialize() {
       this.attribute('settings', { type: JSON });
     }
-  });
+  }
 
-  const User = Model()(class User extends Bone {});
+  class User extends Bone {}
 
   before(async function() {
     Bone.driver = null;
