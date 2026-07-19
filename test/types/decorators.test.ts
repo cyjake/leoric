@@ -4,9 +4,11 @@ import { Bone, DataTypes, Column, HasMany, BelongsTo, connect, HasOne } from '..
 const { TEXT, STRING, INTEGER } = DataTypes;
 
 describe('=> Decorators (TypeScript)', function() {
+  let realm: Awaited<ReturnType<typeof connect>>;
+
   before(async function() {
     (Bone as any).driver = null;
-    await connect({
+    realm = await connect({
       host: 'localhost',
       port: process.env.MYSQL_PORT,
       user: 'root',
@@ -332,7 +334,7 @@ describe('=> Decorators (TypeScript)', function() {
         declare status: number;
       }
 
-      // normal subclass that not sync will inherent all the features from parent class
+      // A direct leaf inherits its parent's mapping but still needs realm registration.
       class ContentChildClass extends SubContent {
         getMyDesc() {
           return this.description?.toUpperCase();
@@ -342,6 +344,7 @@ describe('=> Decorators (TypeScript)', function() {
       await Note.sync({ force: true });
       await Comment.sync({ force: true });
       await SubContent.sync({ force: true });
+      realm.registerModel(ContentChildClass);
 
       assert.deepEqual(Object.keys(Base.attributes), ['id']);
       assert.deepEqual(Object.keys(Note.attributes), ['id', 'body']);
