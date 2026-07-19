@@ -41,7 +41,7 @@ The `Realm` constructor accepts a configuration object with the following option
 | `user`             | `string`                      | —          | Database user                                                               |
 | `password`         | `string`                      | —          | Database password                                                           |
 | `database`         | `string`                      | —          | Database name (aliases: `db`, `storage`)                                   |
-| `models`           | `Array \| string`             | —          | Finalized model classes, or a directory containing finalized models         |
+| `models`           | `Array \| string`             | —          | Model classes, or a directory containing model classes                       |
 | `subclass`         | `boolean`                     | `false`    | Whether to create a subclass of `Bone` to isolate models                   |
 | `driver`           | `AbstractDriver`              | —          | Custom driver class                                                         |
 | `define`           | `object`                      | —          | Default model define options, e.g. `{ underscored: true }`                 |
@@ -69,11 +69,10 @@ const realm = new Realm({
 You can also pass model classes directly:
 
 ```ts
-import { Bone, Model } from 'leoric';
+import { Bone } from 'leoric';
 import Post from './models/post';
 import User from './models/user';
 
-@Model()
 class AuditLog extends Bone {}
 
 const realm = new Realm({
@@ -84,8 +83,9 @@ const realm = new Realm({
 });
 ```
 
-Each class in `models` must already be finalized with `@Model()`. In plain JavaScript,
-prefer `realm.define(class extends Bone {})` so the returned finalized class is bound explicitly.
+Classes in `models` are registered directly. TypeScript mapped fields should use `declare` so
+they do not emit own properties that shadow Leoric's accessors. Use `@Model()` only when the
+definition intentionally contains regular ES2022 fields.
 
 ## Connecting
 
@@ -120,9 +120,8 @@ await realm.disconnect(async () => {
 For simple use cases, you can use the `connect()` function exported from `leoric` directly, without creating a `Realm` instance explicitly:
 
 ```ts
-import { Bone, Model, connect } from 'leoric';
+import { Bone, connect } from 'leoric';
 
-@Model()
 class Post extends Bone {}
 
 await connect({
@@ -143,8 +142,8 @@ const posts = await Post.find();
 
 ### `realm.define(Model, attributes, options, descriptors)`
 
-Define and register a finalized model at runtime. The class overload is the recommended
-JavaScript syntax; always use the returned class binding.
+Define and register a model at runtime. The string overload generates a `Bone` subclass. The
+class overload compiles the supplied definition once; always use the returned class binding.
 
 ```js
 import Realm, { Bone } from 'leoric';
@@ -175,19 +174,15 @@ await Post.create({ title: 'Hello', content: 'World' });
 
 | Parameter     | Type     | Description                                |
 |---------------|----------|--------------------------------------------|
-| `name / Model`| `string / Bone subclass` | Model name or class to finalize |
+| `name / Model`| `string / Bone subclass` | Model name or class to compile |
 | `attributes`  | `object` | Column definitions                         |
 | `options`     | `object` | Optional model init options                |
 | `descriptors` | `object` | Optional property descriptors              |
 
-Calling `new` on an unfinalized `Bone` subclass throws immediately. This prevents native
-class fields from silently shadowing Leoric's attribute accessors. The legacy string overload
-remains available for models that do not need a custom class body.
-
-Finalization runs after the original constructor returns, so mapped attributes should not be
-read or written in that constructor body. Because `realm.define()` returns a finalized subclass,
-avoid static private fields accessed through `this`; use module-scoped private state or ordinary
-static properties instead.
+Compilation creates a fresh subclass of the nearest ready `Bone`, copies the supported class
+footprint, and never executes the definition constructor. Regular mapped fields therefore do
+not shadow Leoric's accessors. Instance field initializers, custom constructors, and private
+instance fields are not supported on compiled definitions; put defaults in attribute metadata.
 
 ## Schema Synchronization
 

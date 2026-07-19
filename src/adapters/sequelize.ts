@@ -1,7 +1,16 @@
 import { HookFunc, setupSingleHook } from '../setup_hooks';
 import { compose, isPlainObject, isRaw } from '../utils';
 import Raw from '../raw';
-import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey, hasLoadedAttributesKey, markModelClassFinalized } from '../abstract_bone';
+import {
+  AbstractBone,
+  assertModelClassFields,
+  columnAttributesKey,
+  synchronizedKey,
+  tableKey,
+  hasLoadedAttributesKey,
+  markModelClassFieldsChecked,
+  markModelClassReady,
+} from '../abstract_bone';
 // Re-export so TypeScript declaration emitter can "name" the unique symbol type
 // inherited by SequelizeBone from AbstractBone (required to avoid TS4058)
 export { hasLoadedAttributesKey };
@@ -367,6 +376,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
       } else {
         instance = new this(values as any, options as any);
       }
+
+      assertModelClassFields(instance);
 
       return instance as InstanceType<T>;
     }
@@ -822,7 +833,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return this.constructor.name + ' ' + util.inspect(this.toJSON());
     }
   };
-  return markModelClassFinalized(SequelizeBone);
+  markModelClassReady(SequelizeBone);
+  return markModelClassFieldsChecked(SequelizeBone);
 }
 
 export const SequelizeBone = sequelize(AbstractBone);

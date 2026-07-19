@@ -60,10 +60,8 @@ const RAW = Symbol('leoric#raw');
 const RAW_SAVED = Symbol('leoric#rawSaved');
 const RAW_UNSET = Symbol('leoric#rawUnset');
 const RAW_PREVIOUS = Symbol('leoric#rawPrevious');
-const MODEL_FINALIZED = Symbol('leoric#modelFinalized');
-const MODEL_NEEDS_FINALIZATION = Symbol('leoric#modelNeedsFinalization');
-const FINALIZED_MODELS = new WeakMap<typeof AbstractBone, typeof AbstractBone>();
-const SUPPLIED_ATTRIBUTES = new WeakMap<AbstractBone, Map<string, Literal>>();
+const MODEL_READY = Symbol('leoric#modelReady');
+const MODEL_CLASS_FIELDS_CHECKED = Symbol('leoric#modelClassFieldsChecked');
 
 // Short accessors for internal state
 function $raw(self: any): Record<string, any> { return self[RAW]; }
@@ -76,8 +74,20 @@ export const hasLoadedAttributesKey = Symbol('leoric#hasLoadedAttributes');
 
 export class LeoricModelDefinitionError extends Error {
   constructor(modelName: string) {
-    super(`${modelName} is not a finalized Leoric model. Add @Model() or define it through realm.define().`);
+    super(`${modelName} is not a registered Leoric model. Add it to the realm models, decorate it with @Model(), or define it through realm.define().`);
     this.name = 'LeoricModelDefinitionError';
+  }
+}
+
+export class LeoricClassFieldError extends Error {
+  modelName: string;
+  attributeName: string;
+
+  constructor(modelName: string, attributeName: string) {
+    super(`${modelName}.${attributeName} is emitted as an ES class field and shadows Leoric's attribute accessor. Add \`declare\`, decorate ${modelName} with @Model(), or define it through realm.define(${modelName}, attributes).`);
+    this.name = 'LeoricClassFieldError';
+    this.modelName = modelName;
+    this.attributeName = attributeName;
   }
 }
 
@@ -182,7 +192,7 @@ export class AbstractBone {
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
     const Model = new.target as typeof AbstractBone;
-    if (Model !== AbstractBone && !isModelClassFinalized(Model)) {
+    if (Model !== AbstractBone && !isModelClassReady(Model)) {
       throw new LeoricModelDefinitionError(Model.name);
     }
 
@@ -192,9 +202,6 @@ export class AbstractBone {
     Object.defineProperty(this, RAW_SAVED, { value: {}, writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, RAW_UNSET, { value: new Set(), writable: true, configurable: true, enumerable: false });
     Object.defineProperty(this, RAW_PREVIOUS, { value: {}, writable: true, configurable: true, enumerable: false });
-    if (Object.prototype.hasOwnProperty.call(Model, MODEL_NEEDS_FINALIZATION)) {
-      SUPPLIED_ATTRIBUTES.set(this, captureSuppliedAttributes(values));
-    }
     Object.defineProperty(this, 'isNewRecord', {
       value: opts.isNewRecord !== undefined ? opts.isNewRecord : true,
       configurable: true,
@@ -411,6 +418,7 @@ export class AbstractBone {
     opts = opts ?? {};
     const data = Object.assign({}, values);
     const instance = new this(data);
+    assertModelClassFields(instance);
     return instance.create({ ...opts }) as Spell<T, InstanceType<T>> | InstanceType<T>;
   }
 
@@ -480,7 +488,11 @@ export class AbstractBone {
     const attribute = attributes[primaryKey];
     const autoIncrement = attribute.autoIncrement || (attribute.jsType == Number && attribute.primaryKey);
     if (options.validate !== false) records.map(entry => this._validateAttributes(entry));
-    const instances = records.map(entry => new this(entry) as InstanceType<T>);
+    const instances = records.map(entry => {
+      const instance = new this(entry) as InstanceType<T>;
+      assertModelClassFields(instance);
+      return instance;
+    });
     if (options.individualHooks) {
       await Promise.all(instances.map(instance => instance.save(options)));
       return instances;
@@ -676,6 +688,7 @@ export class AbstractBone {
     if (!options || options.validate !== false) {
       const validateData = copyValues(values);
       const instance = new this(validateData);
+      assertModelClassFields(instance);
       (instance as any)._validateAttributes(validateData);
     }
     let spell = new Spell<T, number>(this, options).$where(conditions).$update(data);
@@ -887,6 +900,7 @@ export class AbstractBone {
   static instantiate<T extends typeof AbstractBone>(this: T, row: any): InstanceType<T> {
     const { attributes, attributeMap } = this;
     const instance = new this();
+    assertModelClassFields(instance);
     const skipCloneValue = this.options?.skipCloneValue === true;
     for (const columnName in row) {
       const value = row[columnName];
@@ -998,6 +1012,7 @@ export class AbstractBone {
       }
     }
     this[columnAttributesKey] = null;
+    markModelClassReady(this);
   }
 
   static from<T extends typeof AbstractBone>(this: T, table: string | Spell<T>) {
@@ -1601,8 +1616,9 @@ export class AbstractBone {
   }
 }
 
-export function markModelClassFinalized<T extends typeof AbstractBone>(Model: T): T {
-  Object.defineProperty(Model, MODEL_FINALIZED, {
+export function markModelClassReady<T extends typeof AbstractBone>(Model: T): T {
+  if (isModelClassReady(Model)) return Model;
+  Object.defineProperty(Model, MODEL_READY, {
     value: true,
     configurable: false,
     enumerable: false,
@@ -1611,72 +1627,36 @@ export function markModelClassFinalized<T extends typeof AbstractBone>(Model: T)
   return Model;
 }
 
-export function isModelClassFinalized(Model: typeof AbstractBone): boolean {
-  return Object.prototype.hasOwnProperty.call(Model, MODEL_FINALIZED);
+export function isModelClassReady(Model: typeof AbstractBone): boolean {
+  return Object.prototype.hasOwnProperty.call(Model, MODEL_READY);
 }
 
-export function finalizeModelClass<T extends typeof AbstractBone>(Target: T): T {
-  if (isModelClassFinalized(Target)) return Target;
-  const cachedModel = FINALIZED_MODELS.get(Target);
-  if (cachedModel) return cachedModel as T;
-
-  const ModelBase = Target as unknown as new (...args: any[]) => AbstractBone;
-  class FinalizedModel extends ModelBase {
-    constructor(...args: any[]) {
-      super(...args);
-      const suppliedAttributes = SUPPLIED_ATTRIBUTES.get(this);
-      SUPPLIED_ATTRIBUTES.delete(this);
-      finalizeClassFields(this, suppliedAttributes || new Map());
-    }
-  }
-
-  Object.defineProperty(FinalizedModel, 'name', {
-    value: Target.name,
-    configurable: true,
-  });
-  const prototypeDescriptors = Object.getOwnPropertyDescriptors(Target.prototype);
-  Reflect.deleteProperty(prototypeDescriptors, 'constructor');
-  Object.defineProperties(FinalizedModel.prototype, prototypeDescriptors);
-  const Finalized = FinalizedModel as unknown as T;
-  Object.defineProperty(Finalized, MODEL_NEEDS_FINALIZATION, {
+export function markModelClassFieldsChecked<T extends typeof AbstractBone>(Model: T): T {
+  if (hasCheckedModelClassFields(Model)) return Model;
+  Object.defineProperty(Model, MODEL_CLASS_FIELDS_CHECKED, {
     value: true,
     configurable: false,
     enumerable: false,
     writable: false,
   });
-  markModelClassFinalized(Finalized);
-  FINALIZED_MODELS.set(Target, Finalized);
-  return Finalized;
+  return Model;
 }
 
-function captureSuppliedAttributes(values?: { [key: string]: Literal }): Map<string, Literal> {
-  const suppliedAttributes = new Map<string, Literal>();
-  if (values && typeof values === 'object') {
-    for (const name of Object.keys(values)) {
-      if (values[name] !== undefined) suppliedAttributes.set(name, values[name]);
-    }
-  }
-  return suppliedAttributes;
+export function hasCheckedModelClassFields(Model: typeof AbstractBone): boolean {
+  return Object.prototype.hasOwnProperty.call(Model, MODEL_CLASS_FIELDS_CHECKED);
 }
 
-function finalizeClassFields(instance: AbstractBone, suppliedAttributes: Map<string, Literal>): void {
-  const { attributes } = instance.constructor as typeof AbstractBone;
+export function assertModelClassFields(instance: AbstractBone): void {
+  const Model = instance.constructor as typeof AbstractBone;
+  if (hasCheckedModelClassFields(Model)) return;
+  const { attributes } = Model;
   if (!attributes) return;
-
   for (const name of Object.keys(attributes)) {
-    const descriptor = Object.getOwnPropertyDescriptor(instance, name);
-    if (!descriptor || !('value' in descriptor)) continue;
-    if (!descriptor.configurable || !delete instance[name]) {
-      throw new LeoricModelDefinitionError((instance.constructor as typeof AbstractBone).name);
-    }
-    if (!suppliedAttributes.has(name) && descriptor.value !== undefined) {
-      instance[name] = descriptor.value;
+    if (Object.prototype.hasOwnProperty.call(instance, name)) {
+      throw new LeoricClassFieldError(Model.name, name);
     }
   }
-
-  for (const [name, value] of suppliedAttributes) {
-    if (Object.prototype.hasOwnProperty.call(attributes, name)) instance[name] = value;
-  }
+  markModelClassFieldsChecked(Model);
 }
 
 function looseReadonly(props: Record<string, any>) {

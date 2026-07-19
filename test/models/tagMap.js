@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, Model } = require('../../src');
+const { Bone } = require('../../src');
 
 class TagMap extends Bone {
   static initialize() {
@@ -12,4 +12,4 @@ class TagMap extends Bone {
   }
 }
 
-module.exports = Model()(TagMap);
+module.exports = TagMap;

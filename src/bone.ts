@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import Spell from './spell';
-import { AbstractBone, markModelClassFinalized } from './abstract_bone';
+import { AbstractBone, markModelClassFieldsChecked, markModelClassReady } from './abstract_bone';
 import {
   BoneColumns,
   Collection,
@@ -114,4 +114,5 @@ export default class Bone extends AbstractBone {
   }
 }
 
-markModelClassFinalized(Bone);
+markModelClassReady(Bone);
+markModelClassFieldsChecked(Bone);

@@ -13,8 +13,25 @@ title: TypeScript Support
 
 ### Model and Class Fields
 
-Every concrete TypeScript model must use `@Model()`. Declare mapped fields with `declare`
-so TypeScript emits no runtime class field that could shadow Leoric's attribute accessors.
+Declare mapped fields with `declare` so TypeScript emits no runtime class field that could
+shadow Leoric's attribute accessors. This is the preferred path and does not require a class
+decorator.
+
+```ts
+import { Bone, Column } from 'leoric';
+
+class User extends Bone {
+  @Column()
+  declare name: string;
+}
+```
+
+Models supplied to `connect()` or a realm are registered directly and retain their original
+constructor, inheritance, and `instanceof` behavior. Leoric reports an ES class field that
+shadows a mapped accessor when it encounters the first ORM-created instance. A lint rule can
+report the same mistake before runtime.
+
+Use `@Model()` only when regular ES2022 fields must be supported:
 
 ```ts
 import { Bone, Column, Model } from 'leoric';
@@ -22,22 +39,21 @@ import { Bone, Column, Model } from 'leoric';
 @Model()
 class User extends Bone {
   @Column()
-  declare name: string;
+  name!: string;
 }
 ```
 
-`@Model()` also repairs emitted JavaScript class fields after construction for compatibility,
-but `declare` avoids that work and remains the recommended form. Mapped attributes are not
-available inside the original constructor body because finalization runs after it returns.
-Because the decorator returns a finalized subclass, avoid static private fields that are
-accessed through `this`; use module-scoped private state or ordinary static properties instead.
+`@Model()` compiles the definition into a fresh `Bone` subclass once. It copies supported
+methods, accessors, static configuration, and model metadata, but does not execute the
+definition's constructor or instance field initializers. Put mapped defaults in `@Column()`
+metadata. Custom constructors, private instance fields, and ordinary instance initializers
+are not supported on compiled definitions.
 
 ### Column
 
 ```ts
-import { Bone, Column, DataTypes: { SMALLINT }, Model } from 'leoric';
+import { Bone, Column, DataTypes: { SMALLINT } } from 'leoric';
 
-@Model()
 class User extends Bone {
   @Column({ primaryKey: true })
   declare id: bigint;
@@ -79,7 +95,6 @@ If `type` option is omitted, `@Column()` will try to deduce the corresponding on
 Here is an example that is a little bit more comprehensive:
 
 ```ts
-@Model()
 class User extends Bone {
   @Column({ name: 'ssn', primaryKey: true, type: VARCHAR(16) })
   declare ssn: string;
@@ -94,7 +109,6 @@ class User extends Bone {
 ```ts
 import User from './user';
 
-@Model()
 class Post extends Bone {
   @BelongsTo()
   declare user: User;
@@ -107,7 +121,6 @@ assert.ok(post.user.id);
 If the foreign key didn't follow the naming convention, please provide it with:
 
 ```ts
-@Model()
 class Post extends Bone {
   @BelongsTo({ foreignKey: 'authorId' })
   declare user: User;
@@ -119,7 +132,6 @@ class Post extends Bone {
 ```ts
 import Post from './post';
 
-@Model()
 class User extends Bone {
   @HasMany()
   declare posts: Post[];
@@ -129,7 +141,6 @@ class User extends Bone {
 If the foreign key didn't follow the naming convention, please provide it with:
 
 ```ts
-@Model()
 class User extends Bone {
   @HasMany({ foreignKey: 'authorId' })
   declare posts: Post[];
@@ -143,7 +154,6 @@ In a `hasMany` association, e.g. one-to-many, the foreign key should be at the a
 ```ts
 import Profile from './profile';
 
-@Model()
 class User extends Bone {
   @HasOne()
   declare profile: Profile;
@@ -155,7 +165,6 @@ If the foreign key didn't follow the naming convention, please provide it with:
 ```ts
 import Profile from './profile';
 
-@Model()
 class User extends Bone {
   @HasOne({ foreignKey: 'ownerId' })
   declare profile: Profile;
@@ -174,7 +183,6 @@ For many-to-many associations, use the `through` option:
 import Tag from './tag';
 import TagMap from './tag_map';
 
-@Model()
 class Post extends Bone {
   @HasMany({ through: 'tagMaps' })
   declare tags: Tag[];
@@ -189,7 +197,6 @@ class Post extends Bone {
 You can add a `validate` option to `@Column()` to enable field validation:
 
 ```ts
-@Model()
 class User extends Bone {
   @Column({
     allowNull: false,
@@ -213,13 +220,12 @@ class User extends Bone {
 Here is a comprehensive example showing a full model definition in TypeScript:
 
 ```ts
-import { Bone, Column, BelongsTo, HasMany, DataTypes, Model } from 'leoric';
+import { Bone, Column, BelongsTo, HasMany, DataTypes } from 'leoric';
 const { TEXT, JSONB } = DataTypes;
 
 import User from './user';
 import Comment from './comment';
 
-@Model()
 export default class Post extends Bone {
   @Column({ primaryKey: true, autoIncrement: true })
   declare id: bigint;

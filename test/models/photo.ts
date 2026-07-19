@@ -1,8 +1,7 @@
-import { BelongsTo, Bone, Column, Model } from '../../src';
+import { BelongsTo, Bone, Column } from '../../src';
 // @ts-ignore — user.js has no declaration file
 import User from './user';
 
-@Model()
 export default class Photo extends Bone {
   static shardingKey = 'userId';
 

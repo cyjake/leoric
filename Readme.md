@@ -78,10 +78,9 @@ A more detailed syntax table may be found at the [documentation](https://leoric.
 ## TypeScript charged
 
 ```ts
-import { Bone, BelongsTo, Column, DataTypes: { TEXT }, Model } from 'leoric';
+import { Bone, BelongsTo, Column, DataTypes: { TEXT } } from 'leoric';
 import User from './user';
 
-@Model()
 export default class Post extends Bone {
   @Column({ autoIncrement: true })
   declare id: bigint;

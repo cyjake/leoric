@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, DataTypes, Model } = require('../../src');
+const { Bone, DataTypes } = require('../../src');
 
 const CHARSET = 'abcdefghigklmnopqrstuvwxyz0123456789';
 
@@ -38,4 +38,4 @@ class Tag extends Bone {
   }
 }
 
-module.exports = Model()(Tag);
+module.exports = Tag;

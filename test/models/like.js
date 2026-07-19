@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, Model } =require('../../src');
+const { Bone } =require('../../src');
 
 const TARGET_TYPE = {
   post: 0,
@@ -28,4 +28,4 @@ class Like extends Bone {
   }
 }
 
-module.exports = Model()(Like);
+module.exports = Like;

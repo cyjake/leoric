@@ -8,11 +8,11 @@ import { AttributeMeta, ColumnMeta, Connection, Literal } from '../types/common'
 import { invokable as DataTypes, AbstractDataType, DataType } from '../data_types';
 import {
   AbstractBone,
-  finalizeModelClass,
   InitOptions,
-  isModelClassFinalized,
-  LeoricModelDefinitionError,
+  markModelClassFieldsChecked,
+  markModelClassReady,
 } from '../abstract_bone';
+import { compileModel } from '../model';
 
 const SequelizeBone: typeof AbstractBone = sequelize(Bone as any) as unknown as typeof AbstractBone;
 
@@ -59,7 +59,15 @@ function createSpine(opts: { Bone?: typeof AbstractBone; sequelize?: boolean; su
   } else if (opts.sequelize) {
     Model = SequelizeBone;
   }
-  return opts.subclass === true ? class Spine extends Model {} : Model;
+  if (opts.subclass === true) {
+    const Spine = class Spine extends Model {};
+    markModelClassReady(Spine);
+    markModelClassFieldsChecked(Spine);
+    return Spine;
+  }
+  markModelClassReady(Model);
+  markModelClassFieldsChecked(Model);
+  return Model;
 }
 
 export default class BaseRealm {
@@ -84,7 +92,7 @@ export default class BaseRealm {
 
     if (Array.isArray(opts.models)) {
       for (const model of opts.models) {
-        if (!isModelClassFinalized(model)) throw new LeoricModelDefinitionError(model.name);
+        markModelClassReady(model);
         models[model.name] = model;
       }
     }
@@ -147,19 +155,23 @@ export default class BaseRealm {
         enumerable: false,
         configurable: true,
       });
+      markModelClassReady(Model);
+      markModelClassFieldsChecked(Model);
     } else {
-      Model = nameOrModel;
+      if (!(nameOrModel.prototype instanceof this.Bone)) {
+        throw new TypeError(`${nameOrModel.name} must extend this realm's Bone`);
+      }
+      Model = compileModel(nameOrModel);
     }
 
-    const FinalizedModel = finalizeModelClass(Model);
-    if (attributes) FinalizedModel.init(attributes, options, descriptors);
-    this.models[FinalizedModel.name] = FinalizedModel;
-    this.Bone.models[FinalizedModel.name] = FinalizedModel;
-    return FinalizedModel;
+    if (attributes) Model.init(attributes, options, descriptors);
+    this.models[Model.name] = Model;
+    this.Bone.models[Model.name] = Model;
+    return Model;
   }
 
   registerModel<T extends typeof AbstractBone>(Model: T): T {
-    if (!isModelClassFinalized(Model)) throw new LeoricModelDefinitionError(Model.name);
+    markModelClassReady(Model);
     this.models[Model.name] = Model;
     this.Bone.models[Model.name] = Model;
     return Model;

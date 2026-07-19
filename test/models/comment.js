@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bone, Model } = require('../../src');
+const { Bone } = require('../../src');
 
 class Comment extends Bone {
   static initialize() {
@@ -10,4 +10,4 @@ class Comment extends Bone {
   }
 }
 
-module.exports = Model()(Comment);
+module.exports = Comment;

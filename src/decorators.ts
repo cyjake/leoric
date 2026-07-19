@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 
 import Bone from './bone';
-import { AbstractBone, finalizeModelClass } from './abstract_bone';
+import { AbstractBone } from './abstract_bone';
+import { compileModel } from './model';
 import DataTypes, { DataType, DATA_TYPE } from './data_types';
 import { ASSOCIATE_METADATA_MAP } from './constants';
 import { ColumnBase, Validator, AssociateOptions } from './types/common';
@@ -41,7 +42,7 @@ function findType(tsType: typeof BigInt | typeof Number | typeof Date | typeof S
 export function Model(): <T extends typeof AbstractBone>(target: T) => T;
 export function Model<T extends typeof AbstractBone>(target: T): T;
 export function Model<T extends typeof AbstractBone>(target?: T): T | ((model: T) => T) {
-  const decorate = (model: T) => finalizeModelClass(model) as T;
+  const decorate = (model: T) => compileModel(model);
   return target ? decorate(target) : decorate;
 }
 

@@ -1,14 +1,17 @@
 import assert from 'assert';
 import Realm, {
   Bone,
+  BelongsTo,
   Column,
   DataTypes,
+  LeoricClassFieldError,
+  LeoricModelCompilationError,
   LeoricModelDefinitionError,
   Model,
   connect,
-  sequelize,
 } from '../../src';
 import { AbstractBone } from '../../src/abstract_bone';
+import { ASSOCIATE_METADATA_MAP } from '../../src/constants';
 
 const { INTEGER, STRING } = DataTypes;
 
@@ -28,100 +31,146 @@ describe('=> ES2022 class fields', () => {
     (Bone as any).driver = null;
   });
 
-  it('rejects a concrete model that was not finalized', () => {
+  it('rejects a concrete model before registration', () => {
     class User extends Bone {
       @Column({ type: STRING })
       declare name: string;
     }
-    load(User, ['name']);
 
     assert.throws(
       () => new User({ name: 'Ada' }),
       error => error instanceof LeoricModelDefinitionError
-        && /Add @Model\(\) or define it through realm\.define\(\)/.test(error.message),
+        && /Add it to the realm models/.test(error.message),
     );
   });
 
-  it('rejects unfinalized models during Realm registration', () => {
-    class User extends Bone {}
-
-    assert.throws(
-      () => new Realm({ models: [ User ] }),
-      /User is not a finalized Leoric model/,
-    );
-  });
-
-  it('supports declare fields through @Model()', () => {
-    @Model()
+  it('registers direct models without replacing them', () => {
     class User extends Bone {
       @Column({ type: STRING })
       declare name: string;
     }
+
+    const registered = realm.registerModel(User);
     load(User, ['name']);
 
+    assert.equal(registered, User);
     const user = new User({ name: 'Ada' });
     assert.equal(user.name, 'Ada');
     user.name = 'Grace';
     assert.equal(user.attribute('name'), 'Grace');
   });
 
-  it('repairs native fields and keeps supplied values ahead of initializers', () => {
+  it('registers direct models supplied to Realm', () => {
+    class User extends Bone {
+      declare name: string;
+    }
+
+    const localRealm = new Realm({ models: [ User ] });
+    User.init({ name: STRING }, { timestamps: false });
+    load(User, ['name']);
+
+    assert.equal(localRealm.models.User, User);
+    assert.equal(new User({ name: 'Ada' }).name, 'Ada');
+  });
+
+  it('treats explicit attribute loading as direct-model setup', () => {
+    class User extends Bone {
+      @Column({ type: STRING })
+      declare name: string;
+    }
+
+    load(User, ['name']);
+
+    assert.equal(new User({ name: 'Ada' }).name, 'Ada');
+  });
+
+  it('reports unsafe fields on the first ORM-managed direct instance', () => {
+    class User extends Bone {
+      @Column({ type: STRING })
+      declare name: string;
+
+      constructor(...args: ConstructorParameters<typeof Bone>) {
+        super(...args);
+        Object.defineProperty(this, 'name', {
+          value: undefined,
+          configurable: true,
+          enumerable: true,
+          writable: true,
+        });
+      }
+    }
+
+    realm.registerModel(User);
+    load(User, ['name']);
+
+    assert.throws(
+      () => User.instantiate({ name: 'Ada' }),
+      error => error instanceof LeoricClassFieldError
+        && error.modelName === 'User'
+        && error.attributeName === 'name'
+        && /Add `declare`/.test(error.message),
+    );
+  });
+
+  it('caches successful direct-model field validation', () => {
+    class User extends Bone {
+      @Column({ type: STRING })
+      declare name: string;
+    }
+
+    realm.registerModel(User);
+    load(User, ['name']);
+
+    assert.equal(User.instantiate({ name: 'Ada' }).name, 'Ada');
+    assert.equal(User.instantiate({ name: 'Grace' }).name, 'Grace');
+  });
+
+  it('compiles decorated fields without running their initializers', () => {
     @Model()
     class User extends Bone {
       @Column({ type: STRING })
       name!: string;
 
-      @Column({ type: STRING })
-      role = 'guest';
+      @Column({ type: STRING, defaultValue: 'member' })
+      role = 'field initializer is not executed';
 
       cache = new Map<string, string>();
     }
     load(User, ['name', 'role']);
 
-    const supplied = new User({ name: 'Ada', role: 'admin' });
-    assert.equal(supplied.name, 'Ada');
-    assert.equal(supplied.role, 'admin');
-    assert.equal(supplied.attribute('role'), 'admin');
-    assert.ok(supplied.cache instanceof Map);
-    assert.equal(Object.prototype.hasOwnProperty.call(supplied, 'name'), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(supplied, 'role'), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(supplied, 'cache'), true);
-
-    const defaulted = new User({ name: 'Grace' });
-    assert.equal(defaulted.role, 'guest');
-    assert.equal(defaulted.attribute('role'), 'guest');
+    const user = new User({ name: 'Ada' });
+    assert.equal(user.name, 'Ada');
+    assert.equal(user.role, 'member');
+    assert.equal(user.attribute('role'), 'member');
+    assert.equal(user.cache, undefined);
+    assert.equal(Object.prototype.hasOwnProperty.call(user, 'name'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(user, 'role'), false);
   });
 
-  it('lets explicit values override schema and class-field defaults', () => {
-    @Model()
-    class User extends Bone {
-      @Column({ type: STRING, defaultValue: 'schema' })
-      name = 'field';
-    }
-    load(User, ['name']);
+  it('does not execute a compiled definition constructor', () => {
+    let constructed = 0;
 
-    assert.equal(new User().name, 'field');
-    assert.equal(new User({ name: 'caller' }).name, 'caller');
-  });
-
-  it('preserves values transformed by an explicit constructor', () => {
     @Model()
     class User extends Bone {
       @Column({ type: STRING })
-      name = 'field';
+      name!: string;
 
       constructor(values: { name?: string } = {}) {
+        constructed++;
         super({ ...values, name: values.name?.toUpperCase() });
       }
     }
     load(User, ['name']);
 
-    assert.equal(new User({ name: 'Ada' }).name, 'ADA');
+    assert.equal(new User({ name: 'Ada' }).name, 'Ada');
+    assert.equal(constructed, 0);
   });
 
-  it('preserves custom mapped accessors on the finalized prototype', () => {
+  it('copies methods, accessors, and public static configuration', () => {
     @Model()
     class User extends Bone {
+      static table = 'people';
+
       @Column({ type: STRING })
       get name(): string {
         return String(this.attribute('name')).toUpperCase();
@@ -130,140 +179,166 @@ describe('=> ES2022 class fields', () => {
       set name(value: string) {
         this.attribute('name', value.trim());
       }
-    }
-    load(User, ['name']);
 
-    const user = new User({ name: '  Ada  ' });
-    assert.equal(user.name, 'ADA');
-    assert.equal(user.attribute('name'), 'Ada');
-  });
-
-  it('finalizes mapped fields across a deep inheritance chain', () => {
-    class BaseUser extends Bone {
-      @Column({ type: STRING })
-      name!: string;
-    }
-
-    class AuditedUser extends BaseUser {
-      @Column({ type: INTEGER })
-      status = 1;
-    }
-
-    @Model()
-    class User extends AuditedUser {
-      @Column({ type: STRING })
-      role = 'member';
-    }
-    load(User, ['name', 'status', 'role']);
-
-    const user = new User({ name: 'Ada', status: 2 });
-    assert.equal(user.name, 'Ada');
-    assert.equal(user.status, 2);
-    assert.equal(user.role, 'member');
-  });
-
-  it('supports finalized leaves on the Sequelize adapter', () => {
-    const Spine = sequelize(Bone);
-
-    @Model()
-    class User extends Spine {
-      @Column({ type: STRING })
-      declare name: string;
-    }
-    load(User, ['name']);
-
-    const user = new User({ name: 'Ada' });
-    assert.equal(user.getDataValue('name'), 'Ada');
-    user.setDataValue('name', 'Grace');
-    assert.equal(user.name, 'Grace');
-  });
-
-  it('supports explicitly finalized framework subclasses and injections', () => {
-    @Model()
-    class User extends Bone {
-      @Column({ type: STRING })
-      declare name: string;
-    }
-
-    const ContextUser = Model()(class ContextUser extends User {});
-    const fakeContext = { requestId: 'ctx-1' };
-    Object.defineProperty(ContextUser.prototype, 'ctx', {
-      configurable: true,
-      get: () => fakeContext,
-    });
-    load(ContextUser, ['name']);
-
-    const user = new ContextUser({ name: 'Ada' }) as User & { ctx: typeof fakeContext };
-    assert.equal(user.name, 'Ada');
-    assert.equal(user.ctx, fakeContext);
-    assert.ok(user instanceof User);
-  });
-
-  it('requires every concrete leaf model to be finalized', () => {
-    @Model()
-    class User extends Bone {
-      @Column({ type: STRING })
-      name!: string;
-    }
-
-    class Admin extends User {
-      @Column({ type: STRING })
-      role = 'admin';
-    }
-    load(Admin, ['name', 'role']);
-
-    assert.throws(() => new Admin({ name: 'Ada' }), /Admin is not a finalized Leoric model/);
-  });
-
-  it('realm.define() finalizes and registers a JavaScript-style model', () => {
-    class User extends Bone {
-      name!: string;
-      role = 'guest';
-    }
-
-    const DefinedUser = realm.define(User, {
-      name: STRING,
-      role: STRING,
-    });
-    load(DefinedUser, ['name', 'role']);
-
-    assert.equal(realm.models.User, DefinedUser);
-    assert.notEqual(DefinedUser, User);
-    assert.throws(() => new User({ name: 'Ada' }), /User is not a finalized Leoric model/);
-
-    const user = new DefinedUser({ name: 'Ada' });
-    assert.equal(user.name, 'Ada');
-    assert.equal(user.role, 'guest');
-    assert.ok(user instanceof User);
-    assert.ok(user instanceof DefinedUser);
-  });
-
-  it('does not proxy finalized instances', () => {
-    @Model()
-    class User extends Bone {
-      #secret = 'normal instance';
-
-      @Column({ type: STRING })
-      name!: string;
-
-      get secret() {
-        return this.#secret;
+      greet() {
+        return `Hello ${this.name}`;
       }
     }
     load(User, ['name']);
 
-    const user = new User({ name: 'Ada' });
-    assert.equal(user.secret, 'normal instance');
+    const user = new User({ name: '  Ada  ' });
+    assert.equal(User.table, 'people');
+    assert.equal(user.name, 'ADA');
+    assert.equal(user.attribute('name'), 'Ada');
+    assert.equal(user.greet(), 'Hello ADA');
   });
 
-  it('preserves instantiate(), mutation, and change tracking', () => {
+  it('compiles children onto an already compiled parent', () => {
+    @Model()
+    class User extends Bone {
+      @Column({ type: STRING })
+      name!: string;
+
+      greet() {
+        return `Hello ${this.name}`;
+      }
+    }
+
+    @Model()
+    class Admin extends User {
+      @Column({ type: INTEGER })
+      level = 1;
+    }
+    load(Admin, ['name', 'level']);
+
+    const admin = new Admin({ name: 'Ada', level: 2 });
+    assert.ok(admin instanceof User);
+    assert.equal(admin.greet(), 'Hello Ada');
+    assert.equal(admin.level, 2);
+  });
+
+  it('compiles an unready definition chain onto the nearest ready base', () => {
+    class BaseUser extends Bone {
+      baseField = 'not executed';
+
+      baseMethod() {
+        return 'base method';
+      }
+    }
+
+    const User = Model()(class User extends BaseUser {
+      userField = 'not executed';
+    });
+
+    const user = new User();
+    assert.equal(user.baseField, undefined);
+    assert.equal(user.userField, undefined);
+    assert.equal(user.baseMethod(), 'base method');
+    assert.equal(user instanceof BaseUser, false);
+  });
+
+  it('preserves lexical super calls while flattening a definition chain', () => {
+    class BaseUser extends Bone {
+      greet() {
+        return 'Hello';
+      }
+    }
+
+    const User = Model()(class User extends BaseUser {
+      greet() {
+        return `${super.greet()} Ada`;
+      }
+    });
+
+    assert.equal(new User().greet(), 'Hello Ada');
+  });
+
+  it('copies association metadata collected before class compilation', () => {
+    @Model()
+    class User extends Bone {}
+
+    @Model()
+    class Post extends Bone {
+      @BelongsTo({ className: 'User', foreignKey: 'authorId' })
+      declare author: User;
+    }
+
+    assert.deepEqual(Reflect.getMetadata(ASSOCIATE_METADATA_MAP.belongsTo, Post), {
+      author: { className: 'User', foreignKey: 'authorId' },
+    });
+  });
+
+  it('rejects compilation of classes outside the Bone hierarchy', () => {
+    class NotAModel {}
+
+    assert.throws(
+      () => Model()(NotAModel as unknown as typeof Bone),
+      error => error instanceof LeoricModelCompilationError
+        && /must extend Bone or another Leoric model/.test(error.message),
+    );
+  });
+
+  it('requires every concrete direct leaf to be registered', () => {
+    class User extends Bone {
+      @Column({ type: STRING })
+      declare name: string;
+    }
+    realm.registerModel(User);
+
+    class Admin extends User {
+      @Column({ type: STRING })
+      declare role: string;
+    }
+
+    assert.throws(() => new Admin({ name: 'Ada' }), /Admin is not a registered Leoric model/);
+  });
+
+  it('compiles and registers the class overload of realm.define()', () => {
+    class UserDefinition extends Bone {
+      name!: string;
+      role = 'field initializer is not executed';
+
+      greet() {
+        return `Hello ${this.name}`;
+      }
+    }
+
+    const User = realm.define(UserDefinition, {
+      name: STRING,
+      role: { type: STRING, defaultValue: 'member' },
+    });
+    load(User, ['name', 'role']);
+
+    assert.equal(realm.models.UserDefinition, User);
+    assert.notEqual(User, UserDefinition);
+    assert.throws(() => new UserDefinition({ name: 'Ada' }), /not a registered Leoric model/);
+
+    const user = new User({ name: 'Ada' });
+    assert.equal(user.name, 'Ada');
+    assert.equal(user.role, 'member');
+    assert.equal(user.greet(), 'Hello Ada');
+    assert.equal(user instanceof UserDefinition, false);
+    assert.ok(user instanceof User);
+  });
+
+  it('keeps the string overload of realm.define() as the generated path', () => {
+    const User = realm.define('GeneratedUser', {
+      name: STRING,
+    }, { timestamps: false });
+    load(User, ['name']);
+
+    assert.equal(realm.models.GeneratedUser, User);
+    assert.equal(new User({ name: 'Ada' }).name, 'Ada');
+  });
+
+  it('preserves instantiate(), mutation, and change tracking on compiled models', () => {
     @Model()
     class Post extends Bone {
       @Column({ type: STRING })
       title!: string;
 
       @Column({ type: INTEGER })
-      wordCount = 0;
+      wordCount!: number;
     }
     load(Post, ['title', 'wordCount']);
 
@@ -281,8 +356,8 @@ describe('=> ES2022 class fields', () => {
 function load(ModelClass: typeof AbstractBone, names: string[]) {
   ModelClass.load(names.map(name => ({
     columnName: name === 'wordCount' ? 'word_count' : name,
-    columnType: name === 'status' || name === 'wordCount' ? 'int(11)' : 'varchar(255)',
-    dataType: name === 'status' || name === 'wordCount' ? 'int' : 'varchar',
+    columnType: name === 'level' || name === 'wordCount' ? 'int(11)' : 'varchar(255)',
+    dataType: name === 'level' || name === 'wordCount' ? 'int' : 'varchar',
     isNullable: 'YES',
   })));
 }
