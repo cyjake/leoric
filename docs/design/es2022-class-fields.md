@@ -303,6 +303,23 @@ within 1%, and no getter or setter regression. These findings reinforce
 `declare` as the default TypeScript recommendation while keeping compilation as
 an inexpensive compatibility path.
 
+## Compatibility Test Matrix
+
+The class-field contract is verified at three levels:
+
+- focused unit tests cover model readiness, class-field diagnostics, successful
+  guard caching, compilation, inheritance, metadata, identity, and both
+  `@Model()` and `realm.define(Class)` entry points;
+- TypeScript fixtures are compiled and executed with explicit `tsconfig` files
+  for ES2022 `Define` semantics and legacy assignment semantics;
+- native JavaScript class fields are evaluated directly by each Node.js runtime
+  in the CI matrix, without passing through the repository's `ts-node` hook.
+
+The emitted/runtime fixtures must verify the unsafe direct path, the preferred
+`declare` path, and both compilation entry points. This prevents simulated
+class fields from standing in for the compiler and runtime behavior users
+actually receive.
+
 ## Implementation Order
 
 The design should be implemented and reviewed in the following slices:
