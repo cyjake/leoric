@@ -1,35 +1,34 @@
 import { strict as assert } from 'assert';
 import sinon, { SinonFakeTimers } from 'sinon';
-import Realm, { Bone, Column, DataTypes, Model, connect, Raw } from '../../src';
+import Realm, { Bone, Column, DataTypes, connect, Raw } from '../../src';
 
 describe('=> Basics (TypeScript)', function() {
   const { TEXT } = DataTypes;
   let realm: Realm;
 
-  @Model()
   class Post extends Bone {
     static table = 'articles';
 
     @Column()
-    id!: bigint;
+    declare id: bigint;
 
     @Column({ name: 'gmt_create' })
-    createdAt!: Date;
+    declare createdAt: Date;
 
     @Column({ name: 'gmt_modified' })
-    updatedAt!: Date;
+    declare updatedAt: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt!: Date;
+    declare deletedAt: Date;
 
     @Column()
-    title!: string;
+    declare title: string;
 
     @Column(TEXT)
-    content!: string;
+    declare content: string;
 
     @Column(TEXT)
-    extra!: string;
+    declare extra: string;
 
     @Column()
     get thumb(): string {
@@ -41,13 +40,13 @@ describe('=> Basics (TypeScript)', function() {
     }
 
     @Column()
-    authorId!: bigint;
+    declare authorId: bigint;
 
     @Column()
-    isPrivate!: boolean;
+    declare isPrivate: boolean;
 
     @Column(TEXT)
-    summary!: string;
+    declare summary: string;
 
     @Column(TEXT)
     get settings(): Record<string, any> | null {
@@ -66,7 +65,7 @@ describe('=> Basics (TypeScript)', function() {
     }
 
     @Column()
-    wordCount!: number;
+    declare wordCount: number;
 
     @Column(DataTypes.VIRTUAL)
     get isEmptyContent(): boolean {
@@ -115,7 +114,6 @@ describe('=> Basics (TypeScript)', function() {
     });
 
     it('bone.attribute(name) type casting', async function() {
-      @Model()
       class Article extends Bone {
         @Column(DataTypes.TEXT)
         get settings(): Record<string, any> | null {
@@ -138,8 +136,8 @@ describe('=> Basics (TypeScript)', function() {
           return eval(this.attribute('callback') as string);
         }
       }
-      const article = new Article({});
       await Article.sync({});
+      const article = new Article({});
       article.attribute('settings', '{"bar":2}');
       article.attribute('isPrivate', '1');
       article.attribute('callback', '() => 1');

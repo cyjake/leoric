@@ -10,6 +10,7 @@ const {
 } = require('../lib/abstract_bone');
 
 const iterations = readPositiveInt('ITERATIONS', 100000);
+const compilationIterations = readPositiveInt('COMPILATION_ITERATIONS', Math.min(iterations, 10000));
 const runs = readPositiveInt('RUNS', 7);
 const warmupRuns = readPositiveInt('WARMUP_RUNS', 3);
 
@@ -51,6 +52,7 @@ markModelClassFieldsChecked(DirectModel);
 initializeModel(DirectModel);
 
 const realm = new Realm();
+const setupRealm = new Realm();
 const GeneratedModel = realm.define('GeneratedModel', createAttributes(), { timestamps: false });
 loadModel(GeneratedModel);
 
@@ -76,6 +78,15 @@ const models = [
 validateModels();
 
 const benchmarks = [
+  {
+    name: 'compile definition',
+    iterations: compilationIterations,
+    runners: [
+      { name: 'direct', run: createDirectDefinition },
+      { name: '@Model compiled', run: compileDecoratorDefinition },
+      { name: 'realm compiled', run: compileRealmDefinition },
+    ],
+  },
   {
     name: 'construct with values',
     runners: models.map(({ name, Model: ModelClass }) => ({
@@ -107,13 +118,14 @@ const benchmarks = [
 ];
 
 console.log('Leoric model-compilation benchmark');
-console.log(`Node ${process.version}, ${iterations.toLocaleString()} iterations, ${runs} measured runs, ${warmupRuns} warmup runs`);
+console.log(`Node ${process.version}, ${iterations.toLocaleString()} steady-state iterations, ${compilationIterations.toLocaleString()} compilation iterations`);
+console.log(`${runs} measured runs, ${warmupRuns} warmup runs`);
 console.log('');
 console.log(`${padRight('case', 24)} ${padRight('model', 18)} ${padLeft('ops/s', 14)} ${padLeft('ns/op', 14)} ${padLeft('vs direct', 12)}`);
 console.log('-'.repeat(88));
 
 for (const benchmark of benchmarks) {
-  const results = measureAll(benchmark.runners);
+  const results = measureAll(benchmark.runners, benchmark.iterations || iterations);
   const direct = results[0];
   for (let index = 0; index < results.length; index++) {
     const result = results[index];
@@ -125,6 +137,27 @@ for (const benchmark of benchmarks) {
       padLeft(`${(result.nsPerOp / direct.nsPerOp).toFixed(2)}x`, 12),
     ].join(' '));
   }
+}
+
+function createDirectDefinition() {
+  class SetupDirectModel extends Bone {}
+  markModelClassReady(SetupDirectModel);
+  markModelClassFieldsChecked(SetupDirectModel);
+  return SetupDirectModel;
+}
+
+function compileDecoratorDefinition() {
+  return Model()(class SetupDecoratorModel extends Bone {
+    name;
+    status = 0;
+  });
+}
+
+function compileRealmDefinition() {
+  return setupRealm.define(class SetupRealmModel extends Bone {
+    name;
+    status = 0;
+  });
 }
 
 function createAttributes() {
@@ -168,10 +201,10 @@ function validateModels() {
   }
 }
 
-function measureAll(runners) {
+function measureAll(runners, count) {
   let sink = 0;
   for (let i = 0; i < warmupRuns; i++) {
-    for (const { run: runBenchmark } of runners) sink ^= run(runBenchmark, iterations);
+    for (const { run: runBenchmark } of runners) sink ^= run(runBenchmark, count);
   }
 
   const samples = runners.map(() => []);
@@ -182,8 +215,8 @@ function measureAll(runners) {
     for (const index of order) {
       if (typeof global.gc === 'function') global.gc();
       const start = performance.now();
-      sink ^= run(runners[index].run, iterations);
-      samples[index].push(((performance.now() - start) * 1e6) / iterations);
+      sink ^= run(runners[index].run, count);
+      samples[index].push(((performance.now() - start) * 1e6) / count);
     }
   }
 

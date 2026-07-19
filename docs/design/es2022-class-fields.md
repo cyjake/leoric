@@ -293,6 +293,16 @@ The design is intended to preserve direct-model performance:
 The benchmark suite must cover generated, direct, and compiled models, including
 construction with values, row hydration, hot getters, and hot setters.
 
+On Node.js 22.21.1 on Apple Silicon, compiling a fresh definition measured about
+2.67 microseconds through `@Model()` and 2.78 microseconds through
+`realm.define(Class)`, compared with 0.61 microseconds to create and mark a
+direct class. This roughly 4.4-4.6x ratio is a one-time cost of about two
+microseconds per model, not an instance cost. A conservative steady-state run
+measured compiled construction within 3% of direct construction, hydration
+within 1%, and no getter or setter regression. These findings reinforce
+`declare` as the default TypeScript recommendation while keeping compilation as
+an inexpensive compatibility path.
+
 ## Implementation Order
 
 The design should be implemented and reviewed in the following slices:

@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
 import SqlString from 'sqlstring';
 
-import Realm, { SqliteDriver, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver, Model } from '../../src';
+import Realm, { SqliteDriver, Literal, SpellBookFormatResult, Column, Raw, Bone, AbstractDriver } from '../../src';
 import { formatConditions, collectLiteral } from '../../src/expr_formatter';
 import { findExpr } from '../../src/expr';
 import Spell from '../../src/spell';
@@ -268,21 +268,20 @@ describe('=> Realm (TypeScript)', function () {
         rank: INTEGER.UNSIGNED,
       });
 
-      @Model()
       class TestUser extends realm.Bone {
         static table = 'test_user';
 
         @Column()
-        id!: bigint;
+        declare id: bigint;
 
         @Column()
-        name!: string;
+        declare name: string;
 
         @Column(TEXT)
-        content!: string;
+        declare content: string;
 
         @Column(INTEGER.UNSIGNED)
-        rank!: number;
+        declare rank: number;
       }
 
       // TODO how to avoid calling load() manually
