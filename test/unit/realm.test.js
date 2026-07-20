@@ -77,9 +77,10 @@ describe('=> Realm', () => {
     });
 
     it('should be able to switch client with opts.dialectModule', async () => {
-      assert.throws(function() {
-        new Realm({ dialectModulePath: 'maria' });
-      }, /Cannot find module 'maria'/);
+      await assert.rejects(
+        async () => await new Realm({ dialectModulePath: 'maria' }).driver.getConnection(),
+        /Cannot find (module|package) 'maria'/,
+      );
 
       const realm = new Realm({
         dialectModulePath: 'mysql2',
@@ -89,6 +90,8 @@ describe('=> Realm', () => {
         database: 'leoric',
         models: path.resolve(__dirname, '../models')
       });
+      const connection = await realm.driver.getConnection();
+      connection.release();
       assert.equal(realm.driver.pool.constructor.name, 'Pool');
     });
 

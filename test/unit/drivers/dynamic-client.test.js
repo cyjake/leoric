@@ -24,6 +24,19 @@ describe('=> dynamically loaded database clients', function() {
     await pool.end();
   });
 
+  it('should apply SQLite connection limit while client is loading', async function() {
+    const pool = new SqlitePool({ client: clientPath, connectionLimit: 1, database: ':memory:' });
+    const firstPromise = pool.getConnection();
+    const secondPromise = pool.getConnection();
+    const first = await firstPromise;
+    first.release();
+    const second = await secondPromise;
+
+    assert.equal(pool.connections.length, 1);
+    assert.equal(second, first);
+    await pool.end();
+  });
+
   it('should lazily create a configured MySQL pool once', async function() {
     const driver = new MysqlDriver({ client: clientPath });
     assert.deepEqual(driver.pool, {});

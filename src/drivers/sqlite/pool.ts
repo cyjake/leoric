@@ -57,6 +57,7 @@ class Pool extends EventEmitter {
   }
 
   async getConnection(): Promise<PoolConnection> {
+    const client = await this.loadClient();
     const { connections, queue, connectionLimit } = this;
     for (const connection of connections) {
       if (connection.idle) {
@@ -66,7 +67,6 @@ class Pool extends EventEmitter {
       }
     }
     if (connections.length < connectionLimit) {
-      const client = await this.loadClient();
       const connection = new Connection({ ...this.options, client, pool: this } as any);
       connections.push(connection as PoolConnection);
       this.emit('connection', connection);
