@@ -1,7 +1,16 @@
 import { HookFunc, setupSingleHook } from '../setup_hooks';
 import { compose, isPlainObject, isRaw } from '../utils';
 import Raw from '../raw';
-import { AbstractBone, columnAttributesKey, synchronizedKey, tableKey, hasLoadedAttributesKey } from '../abstract_bone';
+import {
+  AbstractBone,
+  assertModelClassFields,
+  columnAttributesKey,
+  synchronizedKey,
+  tableKey,
+  hasLoadedAttributesKey,
+  markModelClassFieldsChecked,
+  markModelClassReady,
+} from '../abstract_bone';
 // Re-export so TypeScript declaration emitter can "name" the unique symbol type
 // inherited by SequelizeBone from AbstractBone (required to avoid TS4058)
 export { hasLoadedAttributesKey };
@@ -171,7 +180,7 @@ function filterOptions(options: Record<string, any>): Record<string, any> {
 // https://sequelize.org/master/manual/model-querying-finders.html
 export default function sequelize(Bone: typeof AbstractBone) {
 
-  return class SequelizeBone extends Bone {
+  const SequelizeBone = class SequelizeBone extends Bone {
 
     static [columnAttributesKey]: { [key: string]: Attribute } | null;
     static [synchronizedKey]: boolean;
@@ -367,6 +376,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
       } else {
         instance = new this(values as any, options as any);
       }
+
+      assertModelClassFields(instance);
 
       return instance as InstanceType<T>;
     }
@@ -822,6 +833,8 @@ export default function sequelize(Bone: typeof AbstractBone) {
       return this.constructor.name + ' ' + util.inspect(this.toJSON());
     }
   };
+  markModelClassReady(SequelizeBone);
+  return markModelClassFieldsChecked(SequelizeBone);
 }
 
 export const SequelizeBone = sequelize(AbstractBone);

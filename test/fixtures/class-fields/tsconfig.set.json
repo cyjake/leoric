@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "sourceMap": false,
+    "target": "ES2020",
+    "useDefineForClassFields": false
+  },
+  "include": ["models.ts"]
+}

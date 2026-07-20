@@ -11,26 +11,64 @@ title: TypeScript Support
 
 ## Decorations
 
+### Model and Class Fields
+
+Declare mapped fields with `declare` so TypeScript emits no runtime class field that could
+shadow Leoric's attribute accessors. This is the preferred path and does not require a class
+decorator.
+
+```ts
+import { Bone, Column } from 'leoric';
+
+class User extends Bone {
+  @Column()
+  declare name: string;
+}
+```
+
+Models supplied to `connect()` or a realm are registered directly and retain their original
+constructor, inheritance, and `instanceof` behavior. Leoric reports an ES class field that
+shadows a mapped accessor when it encounters the first ORM-created instance. A lint rule can
+report the same mistake before runtime.
+
+Use `@Model()` only when regular ES2022 fields must be supported:
+
+```ts
+import { Bone, Column, Model } from 'leoric';
+
+@Model()
+class User extends Bone {
+  @Column()
+  name!: string;
+}
+```
+
+`@Model()` compiles the definition into a fresh `Bone` subclass once. It copies supported
+methods, accessors, static configuration, and model metadata, but does not execute the
+definition's constructor or instance field initializers. Put mapped defaults in `@Column()`
+metadata. Custom constructors, private instance fields, and ordinary instance initializers
+are not supported on compiled definitions.
+
 ### Column
 
 ```ts
-import { Bone, DataTypes: { SMALLINT } } from 'leoric';
+import { Bone, Column, DataTypes: { SMALLINT } } from 'leoric';
 
 class User extends Bone {
   @Column({ primaryKey: true })
-  id: bigint;
+  declare id: bigint;
 
   @Column({ allowNull: false })
-  name: string;
+  declare name: string;
 
   @Column()
-  createdAt: Date;
+  declare createdAt: Date;
 
   @Column()
-  updatedAt: Date;
+  declare updatedAt: Date;
 
   @Column({ type: SMALLINT })
-  age: number;
+  declare age: number;
 }
 ```
 
@@ -59,10 +97,10 @@ Here is an example that is a little bit more comprehensive:
 ```ts
 class User extends Bone {
   @Column({ name: 'ssn', primaryKey: true, type: VARCHAR(16) })
-  ssn: string;
+  declare ssn: string;
 
   @Column({ name: 'gmt_create', allowNull: false })
-  createdAt: Date;
+  declare createdAt: Date;
 }
 ```
 
@@ -73,7 +111,7 @@ import User from './user';
 
 class Post extends Bone {
   @BelongsTo()
-  user: User;
+  declare user: User;
 }
 
 const post = await Post.include('user').first;
@@ -85,7 +123,7 @@ If the foreign key didn't follow the naming convention, please provide it with:
 ```ts
 class Post extends Bone {
   @BelongsTo({ foreignKey: 'authorId' })
-  user: User;
+  declare user: User;
 }
 ```
 
@@ -96,7 +134,7 @@ import Post from './post';
 
 class User extends Bone {
   @HasMany()
-  posts: Post[];
+  declare posts: Post[];
 }
 ```
 
@@ -105,7 +143,7 @@ If the foreign key didn't follow the naming convention, please provide it with:
 ```ts
 class User extends Bone {
   @HasMany({ foreignKey: 'authorId' })
-  posts: Post[];
+  declare posts: Post[];
 }
 ```
 
@@ -118,7 +156,7 @@ import Profile from './profile';
 
 class User extends Bone {
   @HasOne()
-  profile: Profile;
+  declare profile: Profile;
 }
 ```
 
@@ -129,7 +167,7 @@ import Profile from './profile';
 
 class User extends Bone {
   @HasOne({ foreignKey: 'ownerId' })
-  profile: Profile;
+  declare profile: Profile;
 }
 ```
 
@@ -147,10 +185,10 @@ import TagMap from './tag_map';
 
 class Post extends Bone {
   @HasMany({ through: 'tagMaps' })
-  tags: Tag[];
+  declare tags: Tag[];
 
   @HasMany()
-  tagMaps: TagMap[];
+  declare tagMaps: TagMap[];
 }
 ```
 
@@ -166,14 +204,14 @@ class User extends Bone {
       isEmail: true,
     },
   })
-  email: string;
+  declare email: string;
 
   @Column({
     validate: {
       isUrl: true,
     },
   })
-  website: string;
+  declare website: string;
 }
 ```
 
@@ -190,34 +228,34 @@ import Comment from './comment';
 
 export default class Post extends Bone {
   @Column({ primaryKey: true, autoIncrement: true })
-  id: bigint;
+  declare id: bigint;
 
   @Column({ allowNull: false })
-  title: string;
+  declare title: string;
 
   @Column(TEXT)
-  content: string;
+  declare content: string;
 
   @Column(JSONB)
-  extra: Record<string, unknown>;
+  declare extra: Record<string, unknown>;
 
   @Column()
-  userId: bigint;
+  declare userId: bigint;
 
   @Column()
-  createdAt: Date;
+  declare createdAt: Date;
 
   @Column()
-  updatedAt: Date;
+  declare updatedAt: Date;
 
   @Column()
-  deletedAt: Date;
+  declare deletedAt: Date;
 
   @BelongsTo()
-  user: User;
+  declare user: User;
 
   @HasMany()
-  comments: Comment[];
+  declare comments: Comment[];
 }
 ```
 

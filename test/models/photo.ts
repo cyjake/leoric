@@ -6,20 +6,20 @@ export default class Photo extends Bone {
   static shardingKey = 'userId';
 
   @Column()
-  id!: bigint;
+  declare id: bigint;
 
   @Column()
-  userId!: bigint;
+  declare userId: bigint;
 
   @Column()
-  url!: string;
+  declare url: string;
 
   @Column()
-  filename!: string;
+  declare filename: string;
 
   @Column({ allowNull: true })
-  caption?: string;
+  declare caption?: string;
 
-  @BelongsTo({ foreignKey: 'userId' })
-  user?: User;
+  @BelongsTo({ className: 'User', foreignKey: 'userId' })
+  declare user?: InstanceType<typeof User>;
 }

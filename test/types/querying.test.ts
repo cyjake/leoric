@@ -7,33 +7,33 @@ describe('=> Querying (TypeScript)', function() {
     static table = 'articles';
 
     @Column(BIGINT)
-    id!: number;
+    declare id: number;
 
     @Column(BIGINT)
-    authorId!: number;
+    declare authorId: number;
 
     @Column()
-    title!: string;
+    declare title: string;
   }
 
   class User extends Bone {
     @Column(BIGINT)
-    id!: number;
+    declare id: number;
 
     @Column(STRING)
-    email!: string;
+    declare email: string;
 
     @Column(STRING)
-    nickname!: string;
+    declare nickname: string;
 
     @Column({ type: INTEGER, allowNull: false })
-    status!: number;
+    declare status: number;
 
     @Column(INTEGER)
-    level!: number;
+    declare level: number;
 
     @HasMany({ foreignKey: 'authorId' })
-    posts?: Post[];
+    declare posts?: Post[];
   }
 
   before(async function() {

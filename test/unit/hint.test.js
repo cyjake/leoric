@@ -443,6 +443,3 @@ describe('MySQL', async () => {
     sandbox.restore();
   });
 });
-
-
-

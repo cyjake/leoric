@@ -3,12 +3,12 @@ import { Bone, Collection, connect } from '../../src';
 
 describe('=> Collection (TypeScript)', function() {
   class User extends Bone {
-    id!: number;
-    createdAt!: Date;
-    deletedAt!: Date;
-    email!: string;
-    nickname!: string;
-    status!: number;
+    declare id: number;
+    declare createdAt: Date;
+    declare deletedAt: Date;
+    declare email: string;
+    declare nickname: string;
+    declare status: number;
   }
 
   before(async function() {

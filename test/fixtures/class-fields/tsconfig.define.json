@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "sourceMap": false,
+    "target": "ES2022",
+    "useDefineForClassFields": true
+  },
+  "include": ["models.ts"]
+}

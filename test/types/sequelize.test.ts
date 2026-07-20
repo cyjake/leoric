@@ -10,47 +10,47 @@ describe('=> sequelize (TypeScript)', function() {
     static table = 'articles';
 
     @Column(DataTypes.BIGINT)
-    id!: number;
+    declare id: number;
 
     @Column({ name: 'gmt_create' })
-    createdAt!: Date;
+    declare createdAt: Date;
 
     @Column({ name: 'gmt_modified' })
-    updatedAt!: Date;
+    declare updatedAt: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt!: Date;
+    declare deletedAt: Date;
 
     @Column()
-    title!: string;
+    declare title: string;
 
     @Column(TEXT)
-    content!: string;
+    declare content: string;
 
     @Column(TEXT)
-    extra!: string;
+    declare extra: string;
 
     @Column()
-    thumb!: string;
+    declare thumb: string;
 
     @Column()
-    authorId!: bigint;
+    declare authorId: bigint;
 
     @Column({
       defaultValue: false,
     })
-    isPrivate!: boolean;
+    declare isPrivate: boolean;
 
     @Column(TEXT)
-    summary!: string;
+    declare summary: string;
 
     @Column(TEXT)
-    settings!: string;
+    declare settings: string;
 
     @Column({
       defaultValue: 0,
     })
-    wordCount!: number;
+    declare wordCount: number;
 
     @Column(VIRTUAL)
     get virtualField(): string {
@@ -66,27 +66,27 @@ describe('=> sequelize (TypeScript)', function() {
     @Column({
       primaryKey: true,
     })
-    isbn!: bigint;
+    declare isbn: bigint;
 
     @Column({ name: 'gmt_create' })
-    createdAt!: Date;
+    declare createdAt: Date;
 
     @Column({ name: 'gmt_modified' })
-    updatedAt!: Date;
+    declare updatedAt: Date;
 
     @Column({ name: 'gmt_deleted' })
-    deletedAt!: Date;
+    declare deletedAt: Date;
 
     @Column(STRING(1000))
-    name!: string;
+    declare name: string;
 
     @Column()
-    price!: number;
+    declare price: number;
   }
 
   class Like extends SequelizeBone {
     @Column()
-    userId!: number;
+    declare userId: number;
   }
 
   before(async function() {
@@ -1483,7 +1483,7 @@ describe('=> sequelize (TypeScript)', function() {
     it('bone.destroy()', async () => {
       const post = await Post.create({ title: 'By three they come' });
       class PostExtend extends Post {
-        subType?: string;
+        declare subType?: string;
       }
 
       const p1: PostExtend = await post.destroy() as Post;

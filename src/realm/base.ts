@@ -6,7 +6,13 @@ import Raw, { rawQuery, raw, RawQueryOptions } from '../raw';
 import { LEGACY_TIMESTAMP_MAP } from '../constants';
 import { AttributeMeta, ColumnMeta, Connection, Literal } from '../types/common';
 import { invokable as DataTypes, AbstractDataType, DataType } from '../data_types';
-import { AbstractBone, InitOptions } from '../abstract_bone';
+import {
+  AbstractBone,
+  InitOptions,
+  markModelClassFieldsChecked,
+  markModelClassReady,
+} from '../abstract_bone';
+import { compileModel } from '../model';
 
 const SequelizeBone: typeof AbstractBone = sequelize(Bone as any) as unknown as typeof AbstractBone;
 
@@ -53,7 +59,15 @@ function createSpine(opts: { Bone?: typeof AbstractBone; sequelize?: boolean; su
   } else if (opts.sequelize) {
     Model = SequelizeBone;
   }
-  return opts.subclass === true ? class Spine extends Model {} : Model;
+  if (opts.subclass === true) {
+    const Spine = class Spine extends Model {};
+    markModelClassReady(Spine);
+    markModelClassFieldsChecked(Spine);
+    return Spine;
+  }
+  markModelClassReady(Model);
+  markModelClassFieldsChecked(Model);
+  return Model;
 }
 
 export default class BaseRealm {
@@ -77,7 +91,10 @@ export default class BaseRealm {
     const models: Record<string, typeof AbstractBone> = {};
 
     if (Array.isArray(opts.models)) {
-      for (const model of opts.models) models[model.name] = model;
+      for (const model of opts.models) {
+        markModelClassReady(model);
+        models[model.name] = model;
+      }
     }
 
     const DriverClass = this.getDriverClass(CustomDriver, dialect);
@@ -111,21 +128,52 @@ export default class BaseRealm {
     throw new Error('DriverClass must be a subclass of AbstractDriver');
   }
 
+  define<T extends typeof AbstractBone>(
+    Model: T,
+    attributes?: Record<string, AbstractDataType<DataType> | AttributeMeta>,
+    options?: InitOptions,
+    descriptors?: Record<string, PropertyDescriptor>,
+  ): T;
   define(
     name: string,
     attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>,
     options?: InitOptions,
     descriptors?: Record<string, PropertyDescriptor>,
+  ): typeof AbstractBone;
+  define(
+    nameOrModel: string | typeof AbstractBone,
+    attributes?: Record<string, AbstractDataType<DataType> | AttributeMeta>,
+    options?: InitOptions,
+    descriptors?: Record<string, PropertyDescriptor>,
   ): typeof AbstractBone {
-    const Model = class extends this.Bone {};
-    Object.defineProperty(Model, 'name', {
-      value: name,
-      writable: false,
-      enumerable: false,
-      configurable: true,
-    });
-    Model.init(attributes, options, descriptors);
-    this.Bone.models[name] = Model;
+    let Model: typeof AbstractBone;
+    if (typeof nameOrModel === 'string') {
+      Model = class extends this.Bone {};
+      Object.defineProperty(Model, 'name', {
+        value: nameOrModel,
+        writable: false,
+        enumerable: false,
+        configurable: true,
+      });
+      markModelClassReady(Model);
+      markModelClassFieldsChecked(Model);
+    } else {
+      if (!(nameOrModel.prototype instanceof this.Bone)) {
+        throw new TypeError(`${nameOrModel.name} must extend this realm's Bone`);
+      }
+      Model = compileModel(nameOrModel);
+    }
+
+    if (attributes) Model.init(attributes, options, descriptors);
+    this.models[Model.name] = Model;
+    this.Bone.models[Model.name] = Model;
+    return Model;
+  }
+
+  registerModel<T extends typeof AbstractBone>(Model: T): T {
+    markModelClassReady(Model);
+    this.models[Model.name] = Model;
+    this.Bone.models[Model.name] = Model;
     return Model;
   }
 
@@ -158,9 +206,7 @@ export default class BaseRealm {
   }
 
   async connect() {
-    let models = await this.getModels();
-
-    for (const model of models) this.Bone.models[model.name] = model;
+    let models = (await this.getModels()).map(model => this.registerModel(model));
     // models could be connected already if cached
     models = models.filter(model => model.synchronized == null);
 
