@@ -113,6 +113,48 @@ describe('=> class field compiler and runtime configurations', function() {
     assert.equal(defined.name, 'Lin');
     assert.equal(Object.hasOwn(defined, 'name'), false);
   });
+
+  it('checks compiled children when their ready parent has not been field-checked', function() {
+    const UnsafeParent = evaluateNativeClass('UnsafeParent');
+    createRealm([ UnsafeParent ]);
+    load(UnsafeParent, { name: DataTypes.STRING });
+
+    const CompiledChild = Model()(class CompiledChild extends UnsafeParent {});
+
+    assert.throws(
+      () => CompiledChild.instantiate({ name: 'Ada' }),
+      error => error instanceof LeoricClassFieldError
+        && error.modelName === 'CompiledChild'
+        && error.attributeName === 'name',
+    );
+  });
+
+  it('checks native class fields at instance persistence boundaries', async function() {
+    const NativeUser = evaluateNativeClass('NativePersistenceUser');
+    createRealm([ NativeUser ]);
+    load(NativeUser, { name: DataTypes.STRING });
+
+    const matchesClassFieldError = error => error instanceof LeoricClassFieldError
+      && error.modelName === 'NativePersistenceUser'
+      && error.attributeName === 'name';
+
+    assert.throws(
+      () => new NativeUser({ name: 'Ada' }).create(),
+      matchesClassFieldError,
+    );
+    assert.throws(
+      () => new NativeUser({ name: 'Ada' }).upsert(),
+      matchesClassFieldError,
+    );
+    await assert.rejects(
+      new NativeUser({ name: 'Ada' }).save(),
+      matchesClassFieldError,
+    );
+    await assert.rejects(
+      new NativeUser({ name: 'Ada' }).update({ name: 'Grace' }),
+      matchesClassFieldError,
+    );
+  });
 });
 
 function evaluateNativeClass(name) {

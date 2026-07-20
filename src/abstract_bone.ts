@@ -1205,6 +1205,7 @@ export class AbstractBone {
    * Internal save dispatcher deciding between create/update/upsert
    */
   async _save(opts: QueryOptions = {}): Promise<this> {
+    assertModelClassFields(this);
     const { primaryKey } = (this.constructor as any);
     if ($rawUnset(this).has(primaryKey)) throw new Error(`unset primary key ${primaryKey}`);
     if (this[primaryKey] == null) {
@@ -1296,6 +1297,7 @@ export class AbstractBone {
    * Internal upsert implementation
    */
   _upsert(opts: QueryOptions): Promise<number> {
+    assertModelClassFields(this);
     const data: Record<string, Literal> = {};
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey } = Model;
@@ -1324,6 +1326,7 @@ export class AbstractBone {
    * @private
    */
   async _update(values: Partial<Record<string, Literal>>, options: QueryOptions): Promise<number> {
+    assertModelClassFields(this);
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey, shardingKey } = Model;
     const changes: Record<string, Literal> = {};
@@ -1465,6 +1468,7 @@ export class AbstractBone {
    * Internal create implementation
    */
   _create(opts: QueryOptions = {}): Spell<typeof AbstractBone, this> | this {
+    assertModelClassFields(this);
     const Model = this.constructor as typeof AbstractBone;
     const { primaryKey, attributes } = Model;
     const data: Record<string, Literal> = {};

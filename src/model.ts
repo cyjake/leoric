@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import {
   AbstractBone,
+  hasCheckedModelClassFields,
   isModelClassReady,
   markModelClassFieldsChecked,
   markModelClassReady,
@@ -54,7 +55,7 @@ export function compileModel<T extends typeof AbstractBone>(Definition: T): T {
   });
 
   markModelClassReady(CompiledModel);
-  markModelClassFieldsChecked(CompiledModel);
+  if (hasCheckedModelClassFields(Base)) markModelClassFieldsChecked(CompiledModel);
   return CompiledModel as T;
 }
 
