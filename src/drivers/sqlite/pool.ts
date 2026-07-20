@@ -1,9 +1,6 @@
 import { EventEmitter } from 'events';
-import { createRequire } from 'module';
 import Connection from './connection';
 import { ConnectOptions } from '../abstract';
-
-const runtimeRequire = createRequire(__filename);
 
 interface PoolOptions extends ConnectOptions {
   connectionLimit?: number;
@@ -18,7 +15,8 @@ export interface PoolConnection extends Connection {
 
 class Pool extends EventEmitter {
   options: PoolOptions;
-  client: any;
+  client?: any;
+  private clientPromise?: Promise<any>;
   connections: PoolConnection[];
   queue: Array<() => void>;
   connectionLimit: number;
@@ -32,23 +30,34 @@ class Pool extends EventEmitter {
       client: (opts as any).client || 'sqlite3',
     };
 
-    // SQLite clients are optional peer dependencies selected at runtime.
-    // Keep this load opaque to bundlers so applications only ship the client
-    // they explicitly install and configure.
-    const client = runtimeRequire(options.client ?? 'sqlite3');
-    // Turn on stack trace capturing otherwise the output is useless
-    // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
-    if (options.trace) client.verbose();
-
     this.options = options;
-    this.client = client;
     this.connections = [];
     this.queue = [];
     this.connectionLimit = options.connectionLimit || 10;
   }
 
+  private async loadClient(): Promise<any> {
+    if (!this.clientPromise) {
+      this.clientPromise = import(this.options.client ?? 'sqlite3').then((module) => {
+        const client = module.default ?? module;
+        // Turn on stack trace capturing otherwise the output is useless
+        // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
+        if (this.options.trace) client.verbose();
+        this.client = client;
+        return client;
+      });
+    }
+
+    try {
+      return await this.clientPromise;
+    } catch (error) {
+      this.clientPromise = undefined;
+      throw error;
+    }
+  }
+
   async getConnection(): Promise<PoolConnection> {
-    const { connections, queue, client, connectionLimit } = this;
+    const { connections, queue, connectionLimit } = this;
     for (const connection of connections) {
       if (connection.idle) {
         connection.idle = false;
@@ -57,6 +66,7 @@ class Pool extends EventEmitter {
       }
     }
     if (connections.length < connectionLimit) {
+      const client = await this.loadClient();
       const connection = new Connection({ ...this.options, client, pool: this } as any);
       connections.push(connection as PoolConnection);
       this.emit('connection', connection);
