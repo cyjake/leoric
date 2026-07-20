@@ -12,94 +12,94 @@ describe('=> Spell (TypeScript)', function() {
 
   class Attachment extends Bone {
     @Column()
-    id!: number;
+    declare id: number;
 
     @Column()
-    articleId!: number;
+    declare articleId: number;
 
     @Column()
-    url!: string;
+    declare url: string;
 
     @Column()
-    width!: number;
+    declare width: number;
 
     @Column()
-    height!: number;
+    declare height: number;
 
     @Column({
       name: 'gmt_deleted',
     })
-    deletedAt!: Date;
+    declare deletedAt: Date;
   }
 
   class Post extends Bone {
     static table = 'articles';
 
     @Column()
-    id!: bigint;
+    declare id: bigint;
 
     @Column()
-    authorId!: bigint;
+    declare authorId: bigint;
 
     @Column()
-    title!: string;
+    declare title: string;
 
     @Column({
       name: 'gmt_create',
     })
-    createdAt!: Date;
+    declare createdAt: Date;
 
     @Column({
       name: 'gmt_modified',
     })
-    updatedAt!: Date;
+    declare updatedAt: Date;
 
     @Column({
       name: 'gmt_deleted',
     })
-    deletedAt!: Date;
+    declare deletedAt: Date;
 
     @Column(TEXT)
-    content!: string;
+    declare content: string;
 
     @Column(TEXT)
-    extra!: string;
+    declare extra: string;
 
     @Column(STRING(1000))
-    thumb!: string;
+    declare thumb: string;
 
     @Column({
       type: TINYINT,
       defaultValue: 0,
     })
-    isPrivate!: number;
+    declare isPrivate: number;
 
     @Column(TEXT)
-    summary!: string;
+    declare summary: string;
 
     @Column({
       defaultValue: 0,
     })
-    word_count!: number;
+    declare word_count: number;
 
     @Column(TEXT)
-    settings!: string;
+    declare settings: string;
 
     @HasOne({
       foreignKey: 'articleId',
     })
-    attachment!: Attachment;
+    declare attachment: Attachment;
   }
 
   class Comment extends Bone {
     @Column()
-    id!: number;
+    declare id: number;
 
     @Column()
-    articleId!: number;
+    declare articleId: number;
 
     @Column()
-    content!: string;
+    declare content: string;
 
   }
 

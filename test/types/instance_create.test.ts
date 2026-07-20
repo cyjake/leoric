@@ -6,15 +6,15 @@ type SpellInstance<T> = T extends Spell<any, infer U> ? U : never;
 
 describe('=> Instance Create Type (TypeScript)', function() {
   class Post extends Bone {
-    id!: bigint;
-    title!: string;
+    declare id: bigint;
+    declare title: string;
   }
 
   class User extends Bone {
-    id!: bigint;
-    email!: string;
-    nickname!: string;
-    status!: number;
+    declare id: bigint;
+    declare email: string;
+    declare nickname: string;
+    declare status: number;
   }
 
   it('instance create should keep model-specific return type', function() {

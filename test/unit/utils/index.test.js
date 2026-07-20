@@ -45,7 +45,7 @@ describe('=> getPropertyNames', function() {
       enumerable: true,
     });
 
-    assert.deepEqual(getPropertyNames(new Bar()).sort(), [ 'a', 'b' ]);
+    assert.deepEqual(getPropertyNames(Object.create(Bar.prototype)).sort(), [ 'a', 'b' ]);
   });
 
   it('should exclude non-enumerable property names', async function() {
@@ -62,7 +62,7 @@ describe('=> getPropertyNames', function() {
       enumerable: true,
     });
 
-    assert.deepEqual(getPropertyNames(new Foo()).sort(), [ 'a' ]);
+    assert.deepEqual(getPropertyNames(Object.create(Foo.prototype)).sort(), [ 'a' ]);
   });
 });
 

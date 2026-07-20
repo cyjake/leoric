@@ -272,16 +272,16 @@ describe('=> Realm (TypeScript)', function () {
         static table = 'test_user';
 
         @Column()
-        id!: bigint;
+        declare id: bigint;
 
         @Column()
-        name!: string;
+        declare name: string;
 
         @Column(TEXT)
-        content!: string;
+        declare content: string;
 
         @Column(INTEGER.UNSIGNED)
-        rank!: number;
+        declare rank: number;
       }
 
       // TODO how to avoid calling load() manually

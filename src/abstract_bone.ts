@@ -53,17 +53,15 @@ export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
 
-// Module-private Symbol keys for internal instance state. Using Symbols instead of private
-// fields (#raw etc.) because private fields cannot be accessed through a Proxy (they use an
-// identity-based brand check and Proxy is not the original object), which is needed for
-// the ES2022 class fields fix. The properties are initialized with enumerable: false so they
-// are invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys),
-// matching the behavior of the original private fields.
-// See: https://github.com/cyjake/leoric/issues/377
+// Module-private Symbol keys for internal instance state. The properties are initialized
+// with enumerable: false so they are invisible to assert.deepStrictEqual (which only compares
+// own enumerable Symbol keys), matching the behavior of the original private fields.
 const RAW = Symbol('leoric#raw');
 const RAW_SAVED = Symbol('leoric#rawSaved');
 const RAW_UNSET = Symbol('leoric#rawUnset');
 const RAW_PREVIOUS = Symbol('leoric#rawPrevious');
+const MODEL_READY = Symbol('leoric#modelReady');
+const MODEL_CLASS_FIELDS_CHECKED = Symbol('leoric#modelClassFieldsChecked');
 
 // Short accessors for internal state
 function $raw(self: any): Record<string, any> { return self[RAW]; }
@@ -71,9 +69,27 @@ function $rawSaved(self: any): Record<string, any> { return self[RAW_SAVED]; }
 function $rawUnset(self: any): Set<string> { return self[RAW_UNSET]; }
 function $rawPrevious(self: any): Record<string, any> { return self[RAW_PREVIOUS]; }
 
-// Static marker set by loadAttribute() to indicate prototype getter/setters are defined.
-// Used by constructor to decide whether to wrap instances in a Proxy.
+// Kept as a compatibility export for adapters and consumers that reference the symbol.
 export const hasLoadedAttributesKey = Symbol('leoric#hasLoadedAttributes');
+
+export class LeoricModelDefinitionError extends Error {
+  constructor(modelName: string) {
+    super(`${modelName} is not a registered Leoric model. Add it to the realm models, decorate it with @Model(), or define it through realm.define().`);
+    this.name = 'LeoricModelDefinitionError';
+  }
+}
+
+export class LeoricClassFieldError extends Error {
+  modelName: string;
+  attributeName: string;
+
+  constructor(modelName: string, attributeName: string) {
+    super(`${modelName}.${attributeName} is emitted as an ES class field and shadows Leoric's attribute accessor. Add \`declare\`, decorate ${modelName} with @Model(), or define it through realm.define(${modelName}, attributes).`);
+    this.name = 'LeoricClassFieldError';
+    this.modelName = modelName;
+    this.attributeName = attributeName;
+  }
+}
 
 export class AbstractBone {
   static DataTypes: typeof DataTypes = DataTypes.invokable;
@@ -175,6 +191,11 @@ export class AbstractBone {
   static associations: { [key: string]: any };
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
+    const Model = new.target as typeof AbstractBone;
+    if (Model !== AbstractBone && !isModelClassReady(Model)) {
+      throw new LeoricModelDefinitionError(Model.name);
+    }
+
     // Initialize internal Symbol-keyed properties as non-enumerable so they are
     // invisible to assert.deepStrictEqual (which only compares own enumerable Symbol keys).
     Object.defineProperty(this, RAW, { value: {}, writable: true, configurable: true, enumerable: false });
@@ -194,29 +215,6 @@ export class AbstractBone {
       }
     }
 
-    // Wrap in Proxy to intercept ES2022 class field definitions ([[DefineOwnProperty]])
-    // that would otherwise shadow prototype getter/setters defined by loadAttribute().
-    // Only activate after loadAttribute() has run (hasLoadedAttributesKey === true).
-    if ((this.constructor as any)[hasLoadedAttributesKey]) {
-      const attributes = (this.constructor as typeof AbstractBone).attributes;
-      const proxy = new Proxy(this, {
-        defineProperty(target, prop, descriptor) {
-          if (typeof prop === 'string' && Object.prototype.hasOwnProperty.call(attributes, prop)) {
-            // Only intercept data descriptors (class field initializers).
-            // Forward accessor descriptors ({ get/set }) to allow legitimate overrides.
-            if ('value' in descriptor) {
-              if (descriptor.value !== undefined) {
-                target.attribute(prop, descriptor.value);
-                debug('intercepted defineProperty on attribute "%s"', prop);
-              }
-              return true;
-            }
-          }
-          return Reflect.defineProperty(target, prop, descriptor);
-        },
-      });
-      return proxy as any;
-    }
   }
 
   static get shardingColumn(): string | undefined {
@@ -420,6 +418,7 @@ export class AbstractBone {
     opts = opts ?? {};
     const data = Object.assign({}, values);
     const instance = new this(data);
+    assertModelClassFields(instance);
     return instance.create({ ...opts }) as Spell<T, InstanceType<T>> | InstanceType<T>;
   }
 
@@ -489,7 +488,11 @@ export class AbstractBone {
     const attribute = attributes[primaryKey];
     const autoIncrement = attribute.autoIncrement || (attribute.jsType == Number && attribute.primaryKey);
     if (options.validate !== false) records.map(entry => this._validateAttributes(entry));
-    const instances = records.map(entry => new this(entry) as InstanceType<T>);
+    const instances = records.map(entry => {
+      const instance = new this(entry) as InstanceType<T>;
+      assertModelClassFields(instance);
+      return instance;
+    });
     if (options.individualHooks) {
       await Promise.all(instances.map(instance => instance.save(options)));
       return instances;
@@ -685,6 +688,7 @@ export class AbstractBone {
     if (!options || options.validate !== false) {
       const validateData = copyValues(values);
       const instance = new this(validateData);
+      assertModelClassFields(instance);
       (instance as any)._validateAttributes(validateData);
     }
     let spell = new Spell<T, number>(this, options).$where(conditions).$update(data);
@@ -896,6 +900,7 @@ export class AbstractBone {
   static instantiate<T extends typeof AbstractBone>(this: T, row: any): InstanceType<T> {
     const { attributes, attributeMap } = this;
     const instance = new this();
+    assertModelClassFields(instance);
     const skipCloneValue = this.options?.skipCloneValue === true;
     for (const columnName in row) {
       const value = row[columnName];
@@ -1007,6 +1012,7 @@ export class AbstractBone {
       }
     }
     this[columnAttributesKey] = null;
+    markModelClassReady(this);
   }
 
   static from<T extends typeof AbstractBone>(this: T, table: string | Spell<T>) {
@@ -1199,6 +1205,7 @@ export class AbstractBone {
    * Internal save dispatcher deciding between create/update/upsert
    */
   async _save(opts: QueryOptions = {}): Promise<this> {
+    assertModelClassFields(this);
     const { primaryKey } = (this.constructor as any);
     if ($rawUnset(this).has(primaryKey)) throw new Error(`unset primary key ${primaryKey}`);
     if (this[primaryKey] == null) {
@@ -1290,6 +1297,7 @@ export class AbstractBone {
    * Internal upsert implementation
    */
   _upsert(opts: QueryOptions): Promise<number> {
+    assertModelClassFields(this);
     const data: Record<string, Literal> = {};
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey } = Model;
@@ -1318,6 +1326,7 @@ export class AbstractBone {
    * @private
    */
   async _update(values: Partial<Record<string, Literal>>, options: QueryOptions): Promise<number> {
+    assertModelClassFields(this);
     const Model = this.constructor as typeof AbstractBone;
     const { attributes, primaryKey, shardingKey } = Model;
     const changes: Record<string, Literal> = {};
@@ -1459,6 +1468,7 @@ export class AbstractBone {
    * Internal create implementation
    */
   _create(opts: QueryOptions = {}): Spell<typeof AbstractBone, this> | this {
+    assertModelClassFields(this);
     const Model = this.constructor as typeof AbstractBone;
     const { primaryKey, attributes } = Model;
     const data: Record<string, Literal> = {};
@@ -1608,6 +1618,49 @@ export class AbstractBone {
     }
     return obj;
   }
+}
+
+export function markModelClassReady<T extends typeof AbstractBone>(Model: T): T {
+  if (isModelClassReady(Model)) return Model;
+  Object.defineProperty(Model, MODEL_READY, {
+    value: true,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  return Model;
+}
+
+export function isModelClassReady(Model: typeof AbstractBone): boolean {
+  return Object.prototype.hasOwnProperty.call(Model, MODEL_READY);
+}
+
+export function markModelClassFieldsChecked<T extends typeof AbstractBone>(Model: T): T {
+  if (hasCheckedModelClassFields(Model)) return Model;
+  Object.defineProperty(Model, MODEL_CLASS_FIELDS_CHECKED, {
+    value: true,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  return Model;
+}
+
+export function hasCheckedModelClassFields(Model: typeof AbstractBone): boolean {
+  return Object.prototype.hasOwnProperty.call(Model, MODEL_CLASS_FIELDS_CHECKED);
+}
+
+export function assertModelClassFields(instance: AbstractBone): void {
+  const Model = instance.constructor as typeof AbstractBone;
+  if (hasCheckedModelClassFields(Model)) return;
+  const { attributes } = Model;
+  if (!attributes) return;
+  for (const name of Object.keys(attributes)) {
+    if (Object.prototype.hasOwnProperty.call(instance, name)) {
+      throw new LeoricClassFieldError(Model.name, name);
+    }
+  }
+  markModelClassFieldsChecked(Model);
 }
 
 function looseReadonly(props: Record<string, any>) {
