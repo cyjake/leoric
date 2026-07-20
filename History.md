@@ -7,6 +7,12 @@
 * fix(types): resolve v2.14.x compatibility gaps after TS migration by @cyjake in https://github.com/cyjake/leoric/pull/456
 * feat(types): add TypeScript 4.9 declaration support by @cyjake in https://github.com/cyjake/leoric/pull/460
 * fix: support ES2022 class fields by intercepting [[DefineOwnProperty]] via Proxy by @JimmyDaddy in https://github.com/cyjake/leoric/pull/461
+* docs: comprehensive documentation improvement and playground by @JimmyDaddy in https://github.com/cyjake/leoric/pull/462
+* fix: guard undefined columns in loadModels and remove unsafe database cast by @cyjake in https://github.com/cyjake/leoric/pull/463
+* fix(types): enhance TypeScript definitions and improve type safety in… by @JimmyDaddy in https://github.com/cyjake/leoric/pull/464
+* Benchmark Proxy class field handling by @cyjake in https://github.com/cyjake/leoric/pull/466
+* Replace instance Proxy with model compilation by @cyjake in https://github.com/cyjake/leoric/pull/467
+
 
 **Full Changelog**: https://github.com/cyjake/leoric/compare/v2.14.0...v2.15.0
 
