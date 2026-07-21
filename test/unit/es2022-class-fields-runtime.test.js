@@ -208,6 +208,16 @@ describe('=> runtime subclasses of compiled models (egg-orm / @midwayjs/leoric)'
     assert.ok(instantiated instanceof User);
   });
 
+  it('rejects subclasses whose chain has no ready ancestor', function() {
+    const { AbstractBone } = require('../../src/abstract_bone');
+    const Unregistered = class extends AbstractBone {};
+
+    assert.throws(
+      () => new Unregistered(),
+      /not a registered Leoric model/,
+    );
+  });
+
   it('still rejects subclasses that declare new columns', function() {
     const User = Model()(class User extends Bone {});
     createRealm([ User ]);
