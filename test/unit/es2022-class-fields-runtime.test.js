@@ -157,6 +157,82 @@ describe('=> class field compiler and runtime configurations', function() {
   });
 });
 
+describe('=> runtime subclasses of compiled models (egg-orm / @midwayjs/leoric)', function() {
+  it('allows @midwayjs/leoric request-scoped subclass with static ctx/app', function() {
+    const Post = Model()(class Post extends Bone {});
+    createRealm([ Post ]);
+    load(Post, { title: DataTypes.STRING });
+
+    const mockCtx = { userId: 42 };
+    const mockApp = { config: {} };
+    const RequestScopedPost = class extends Post {
+      static get ctx() { return mockCtx; }
+      static get app() { return mockApp; }
+    };
+
+    const post = new RequestScopedPost({ title: 'Hello' });
+    assert.equal(post.title, 'Hello');
+    assert.equal(RequestScopedPost.ctx, mockCtx);
+    assert.equal(RequestScopedPost.app, mockApp);
+
+    const instantiated = RequestScopedPost.instantiate({ title: 'World' });
+    assert.equal(instantiated.title, 'World');
+    assert.ok(instantiated instanceof Post);
+  });
+
+  it('allows egg-orm proxy-based subclass with defineProperty injection', function() {
+    const User = Model()(class User extends Bone {});
+    createRealm([ User ]);
+    load(User, { name: DataTypes.STRING });
+
+    const mockCtx = { session: {} };
+    const mockApp = { name: 'egg-app' };
+
+    class InjectModelClass extends User {
+      static get name() { return super.name; }
+    }
+    for (const key of ['ctx', 'app']) {
+      const value = key === 'ctx' ? mockCtx : mockApp;
+      for (const target of [ InjectModelClass, InjectModelClass.prototype ]) {
+        Object.defineProperty(target, key, { get() { return value; } });
+      }
+    }
+
+    const user = new InjectModelClass({ name: 'Ada' });
+    assert.equal(user.name, 'Ada');
+    assert.equal(InjectModelClass.ctx, mockCtx);
+    assert.equal(user.ctx, mockCtx);
+
+    const instantiated = InjectModelClass.instantiate({ name: 'Grace' });
+    assert.equal(instantiated.name, 'Grace');
+    assert.ok(instantiated instanceof User);
+  });
+
+  it('rejects subclasses whose chain has no ready ancestor', function() {
+    const { AbstractBone } = require('../../src/abstract_bone');
+    const Unregistered = class extends AbstractBone {};
+
+    assert.throws(
+      () => new Unregistered(),
+      /not a registered Leoric model/,
+    );
+  });
+
+  it('still rejects subclasses that declare new columns', function() {
+    const User = Model()(class User extends Bone {});
+    createRealm([ User ]);
+    load(User, { name: DataTypes.STRING });
+
+    class Admin extends User {}
+    Admin.init({ name: DataTypes.STRING, role: DataTypes.STRING }, { timestamps: false });
+
+    assert.throws(
+      () => new Admin({ name: 'Ada' }),
+      /Admin is not a registered Leoric model/,
+    );
+  });
+});
+
 function evaluateNativeClass(name) {
   return new Function('Bone', `return class ${name} extends Bone { name; }`)(Bone);
 }

@@ -310,6 +310,22 @@ describe('=> ES2022 class fields', () => {
     assert.throws(() => new Admin({ name: 'Ada' }), /Admin is not a registered Leoric model/);
   });
 
+  it('allows transparent runtime subclasses of compiled models', () => {
+    @Model()
+    class Post extends Bone {
+      @Column({ type: STRING })
+      title!: string;
+    }
+    load(Post, ['title']);
+
+    const RequestScopedPost = class extends Post {
+      static get ctx() { return {}; }
+    };
+
+    assert.equal(new RequestScopedPost({ title: 'Hello' }).title, 'Hello');
+    assert.equal(RequestScopedPost.instantiate({ title: 'World' }).title, 'World');
+  });
+
   it('compiles and registers the class overload of realm.define()', () => {
     class UserDefinition extends Bone {
       name!: string;
@@ -328,7 +344,6 @@ describe('=> ES2022 class fields', () => {
 
     assert.equal(realm.models.UserDefinition, User);
     assert.notEqual(User, UserDefinition);
-    assert.throws(() => new UserDefinition({ name: 'Ada' }), /not a registered Leoric model/);
 
     const user = new User({ name: 'Ada' });
     assert.equal(user.name, 'Ada');
