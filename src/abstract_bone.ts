@@ -192,7 +192,7 @@ export class AbstractBone {
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
     const Model = new.target as typeof AbstractBone;
-    if (Model !== AbstractBone && !isModelClassReady(Model)) {
+    if (Model !== AbstractBone && !isModelClassReadyOrInherited(Model)) {
       throw new LeoricModelDefinitionError(Model.name);
     }
 
@@ -1633,6 +1633,16 @@ export function markModelClassReady<T extends typeof AbstractBone>(Model: T): T 
 
 export function isModelClassReady(Model: typeof AbstractBone): boolean {
   return Object.prototype.hasOwnProperty.call(Model, MODEL_READY);
+}
+
+export function isModelClassReadyOrInherited(Model: typeof AbstractBone): boolean {
+  if (Object.prototype.hasOwnProperty.call(Model, MODEL_READY)) return true;
+  // Subclasses with own column declarations need their own registration
+  if (Object.prototype.hasOwnProperty.call(Model, 'attributes')) return false;
+  for (let cls = Object.getPrototypeOf(Model); typeof cls === 'function'; cls = Object.getPrototypeOf(cls)) {
+    if (Object.prototype.hasOwnProperty.call(cls, MODEL_READY)) return true;
+  }
+  return false;
 }
 
 export function markModelClassFieldsChecked<T extends typeof AbstractBone>(Model: T): T {
