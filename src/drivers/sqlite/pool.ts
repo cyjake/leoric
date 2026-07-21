@@ -15,7 +15,8 @@ export interface PoolConnection extends Connection {
 
 class Pool extends EventEmitter {
   options: PoolOptions;
-  client: any;
+  client?: any;
+  private clientPromise?: Promise<any>;
   connections: PoolConnection[];
   queue: Array<() => void>;
   connectionLimit: number;
@@ -29,21 +30,35 @@ class Pool extends EventEmitter {
       client: (opts as any).client || 'sqlite3',
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const client = require(options.client!);
-    // Turn on stack trace capturing otherwise the output is useless
-    // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
-    if (options.trace) client.verbose();
-
     this.options = options;
-    this.client = client;
     this.connections = [];
     this.queue = [];
     this.connectionLimit = options.connectionLimit || 10;
   }
 
+  private async loadClient(): Promise<any> {
+    if (!this.clientPromise) {
+      this.clientPromise = import(this.options.client ?? 'sqlite3').then((module) => {
+        const client = module.default ?? module;
+        // Turn on stack trace capturing otherwise the output is useless
+        // - https://github.com/mapbox/node-sqlite3/wiki/Debugging
+        if (this.options.trace) client.verbose();
+        this.client = client;
+        return client;
+      });
+    }
+
+    try {
+      return await this.clientPromise;
+    } catch (error) {
+      this.clientPromise = undefined;
+      throw error;
+    }
+  }
+
   async getConnection(): Promise<PoolConnection> {
-    const { connections, queue, client, connectionLimit } = this;
+    const client = await this.loadClient();
+    const { connections, queue, connectionLimit } = this;
     for (const connection of connections) {
       if (connection.idle) {
         connection.idle = false;

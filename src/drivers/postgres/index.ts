@@ -19,10 +19,11 @@ class PostgresDriver extends AbstractDriver {
   static Attribute = Attribute;
   static DataTypes = DataTypes;
 
+  private poolPromise?: Promise<any>;
+
   constructor(opts: ConnectOptions) {
     super(opts);
     this.type = 'postgres';
-    this.pool = this.createPool(opts);
     this.Attribute = (this.constructor as typeof PostgresDriver).Attribute;
     this.DataTypes = (this.constructor as typeof PostgresDriver).DataTypes;
     this.spellbook = new (this.constructor as typeof PostgresDriver).Spellbook();
@@ -31,16 +32,34 @@ class PostgresDriver extends AbstractDriver {
     this.escapeId = escapeId;
   }
 
-  createPool(opts: any) {
+  async createPool(opts: ConnectOptions) {
     const { host, port, user, password, database } = opts;
-    require('./type_parser');
-    const { Pool } = require('pg');
-    return new Pool({ host, port, user, password, database });
+    const client = opts.client || 'pg';
+    if (client === 'pg') await import('./type_parser');
+    const module = await import(client);
+    const pg = module.default ?? module;
+    return new pg.Pool({ host, port, user, password, database });
+  }
+
+  private async getPool() {
+    if (!this.poolPromise) {
+      this.poolPromise = this.createPool(this.options).then((pool) => {
+        this.pool = pool;
+        return pool;
+      });
+    }
+
+    try {
+      return await this.poolPromise;
+    } catch (error) {
+      this.poolPromise = undefined;
+      throw error;
+    }
   }
 
   async getConnection() {
     // pg Pool supports connect() with callback or promise; cast to any for TS
-    return await (this.pool as any).connect();
+    return await (await this.getPool()).connect();
   }
 
   async query(query: any, values?: any, spell: any = {}) {
@@ -118,7 +137,7 @@ class PostgresDriver extends AbstractDriver {
     ORDER BY columns.ordinal_position ASC
     `);
 
-    const { pool } = this as any;
+    const pool = await this.getPool();
     const { rows } = await pool.query(text, [database, tableList]);
     const schemaInfo: any = {};
 

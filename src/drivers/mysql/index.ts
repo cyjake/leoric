@@ -24,6 +24,17 @@ type SchemaInfo = Record<string, SchemaColumn[]>;
 
 type MysqlPool = any;
 type MysqlConnection = any;
+type MysqlOptions = ConnectOptions & {
+  client?: string;
+  appName?: string;
+  connectionLimit?: number;
+  connectTimeout?: number;
+  charset?: string;
+  stringifyObjects?: boolean;
+  decimalNumbers?: boolean;
+  supportBigNumbers?: boolean;
+  bigNumberStrings?: boolean;
+};
 
 class MysqlDriver extends AbstractDriver {
   static Spellbook = Spellbook;
@@ -31,32 +42,17 @@ class MysqlDriver extends AbstractDriver {
   static DataTypes = DataTypes;
 
   declare pool: MysqlPool;
+  private poolPromise?: Promise<MysqlPool>;
 
-  constructor(opts: ConnectOptions & { client?: string; appName?: string }) {
+  constructor(opts: MysqlOptions) {
     super(opts);
     this.type = 'mysql';
-    this.pool = this.createPool(opts);
     this.Attribute = (this.constructor as typeof MysqlDriver).Attribute;
     this.DataTypes = (this.constructor as typeof MysqlDriver).DataTypes;
     this.spellbook = new (this.constructor as typeof MysqlDriver).Spellbook();
-
-    this.escape = this.pool.escape.bind(this.pool);
-    this.escapeId = this.pool.escapeId;
   }
 
-  createPool(
-    opts: ConnectOptions & {
-      client?: string;
-      appName?: string;
-      connectionLimit?: number;
-      connectTimeout?: number;
-      charset?: string;
-      stringifyObjects?: boolean;
-      decimalNumbers?: boolean;
-      supportBigNumbers?: boolean;
-      bigNumberStrings?: boolean;
-    },
-  ): MysqlPool {
+  async createPool(opts: MysqlOptions): Promise<MysqlPool> {
     const database = opts.appName || opts.database;
     const client = opts.client || 'mysql';
     const {
@@ -77,7 +73,9 @@ class MysqlDriver extends AbstractDriver {
       console.warn(`[leoric] mysql client "${client}" not tested`);
     }
 
-    return require(client).createPool({
+    const module = await import(client);
+    const mysql = module.default ?? module;
+    return mysql.createPool({
       connectionLimit,
       connectTimeout,
       host,
@@ -93,9 +91,26 @@ class MysqlDriver extends AbstractDriver {
     });
   }
 
-  getConnection(): Promise<MysqlConnection> {
+  private async getPool(): Promise<MysqlPool> {
+    if (!this.poolPromise) {
+      this.poolPromise = this.createPool(this.options as MysqlOptions).then((pool) => {
+        this.pool = pool;
+        return pool;
+      });
+    }
+
+    try {
+      return await this.poolPromise;
+    } catch (error) {
+      this.poolPromise = undefined;
+      throw error;
+    }
+  }
+
+  async getConnection(): Promise<MysqlConnection> {
+    const pool = await this.getPool();
     return new Promise((resolve, reject) => {
-      this.pool.getConnection((err: Error | null, connection: MysqlConnection) => {
+      pool.getConnection((err: Error | null, connection: MysqlConnection) => {
         if (err) {
           reject(err);
         } else {

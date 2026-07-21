@@ -1,7 +1,9 @@
-import { escape, escapeId } from 'sqlstring';
+import SqlString from 'sqlstring';
 
 import Attribute from '../abstract/attribute';
 import DataTypes from './data_types';
+
+const { escape, escapeId } = SqlString;
 
 class MysqlAttribute extends Attribute {
   constructor(name: string, params?: any, opts?: any) {
