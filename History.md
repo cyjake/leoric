@@ -12,7 +12,12 @@
 * fix(types): enhance TypeScript definitions and improve type safety in… by @JimmyDaddy in https://github.com/cyjake/leoric/pull/464
 * Benchmark Proxy class field handling by @cyjake in https://github.com/cyjake/leoric/pull/466
 * Replace instance Proxy with model compilation by @cyjake in https://github.com/cyjake/leoric/pull/467
+* fix(deps): bump esbuild to ^0.28.1 for path traversal fix by @yicai-dev in https://github.com/cyjake/leoric/pull/469
+* fix: lazily load database clients via dynamic import() by @elrrrrrrr in https://github.com/cyjake/leoric/pull/465
+* fix: allow transparent runtime subclasses of compiled models by @yicai-dev in https://github.com/cyjake/leoric/pull/471
 
+## New Contributors
+* @elrrrrrrr made their first contribution in https://github.com/cyjake/leoric/pull/465
 
 **Full Changelog**: https://github.com/cyjake/leoric/compare/v2.14.0...v2.15.0
 
