@@ -48,6 +48,7 @@ export interface RawQueryOptions {
   model?: typeof AbstractBone;
   replacements?: { [key:string]: Literal | Literal[] };
   connection?: Connection;
+  ctx?: any;
 }
 
 export interface RawQueryResult {
@@ -90,6 +91,7 @@ export async function rawQuery(
   const { rows, ...restRes } = await driver.query(sql, values, {
     connection: opts.connection,
     Model: opts.model,
+    ctx: opts.ctx,
   } as any);
   const results = [];
 
