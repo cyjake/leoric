@@ -10,7 +10,7 @@ import Realm from './realm';
 import { default as Raw, raw } from './raw';
 import { isBone } from './utils';
 import { hookNames } from './setup_hooks';
-import { LeoricClassFieldError, LeoricModelDefinitionError } from './abstract_bone';
+import { LeoricClassFieldError, LeoricModelDefinitionError, markModelClassReady } from './abstract_bone';
 import { LeoricModelCompilationError } from './model';
 
 import * as decorators from './decorators';
@@ -79,6 +79,7 @@ Object.assign(Realm, {
   LeoricModelDefinitionError,
   LeoricClassFieldError,
   LeoricModelCompilationError,
+  markModelClassReady,
   default: Realm,
 });
 
@@ -97,6 +98,7 @@ export {
   Raw,
   raw,
   isBone,
+  markModelClassReady,
   LeoricModelDefinitionError,
   LeoricClassFieldError,
   LeoricModelCompilationError,
