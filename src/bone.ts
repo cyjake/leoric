@@ -58,17 +58,17 @@ export default class Bone extends AbstractBone {
     return this._find().unscoped;
   }
 
-  static restore<T extends typeof Bone>(this: T, conditions: WhereConditions<T>, opts: QueryOptions = {}) {
-    return super._restore(conditions, opts);
+  static restore<T extends typeof Bone>(this: T, conditions: WhereConditions<T>, opts: QueryOptions = {}): Spell<T, number, false> {
+    return this._restore(conditions, opts) as Spell<T, number, false>;
   }
 
   static update<T extends typeof Bone, Key extends BoneColumns<T>>(
     this: T,
     conditions: WhereConditions<T>,
-    values: Partial<Record<Key, Literal | Raw>>,
+    values?: Partial<Record<Key, Literal | Raw>>,
     options: QueryOptions = {},
-  ) {
-    return super._update(conditions, values, options);
+  ): Spell<T, number, false> {
+    return this._update(conditions, values ?? {}, options) as Spell<T, number, false>;
   }
 
   /**

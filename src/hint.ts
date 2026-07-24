@@ -33,6 +33,13 @@ export type HintScopeObject = {
   [key in INDEX_HINT_SCOPE_TYPE]?: string | string[];
 }
 
+export type CommonHintArgs = string | HintInterface | Hint | IndexHint | HintScopeObject;
+
+/**
+ * @deprecated use {@link CommonHintArgs} instead. Kept as an alias for backward compatibility with v2.14 typings.
+ */
+export type CommonHintsArgs = CommonHintArgs;
+
 export class Hint {
 
   #text = '';
@@ -96,7 +103,7 @@ export class IndexHint {
    * })
    */
   static build(
-    hint: string | IndexHint | HintInterface | HintScopeObject,
+    hint: string | string[] | IndexHint | HintInterface | HintScopeObject,
     type?: INDEX_HINT_TYPE,
     scope?: INDEX_HINT_SCOPE,
   ): IndexHint {
@@ -225,5 +232,3 @@ export class IndexHint {
     return result;
   }
 }
-
-export type CommonHintArgs = string | HintInterface | Hint | IndexHint | HintScopeObject;
