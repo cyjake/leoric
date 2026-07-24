@@ -83,6 +83,27 @@ describe('=> rawQuery()', () => {
     assert.equal(result.rows[0].result, 7);
   });
 
+  it('should pass through custom opts fields to driver.query()', async () => {
+    const originalQuery = realm.driver.query;
+    let receivedOpts;
+    realm.driver.query = function (sql, values, opts) {
+      receivedOpts = opts;
+      return originalQuery.call(this, sql, values, opts);
+    };
+    try {
+      const result = await realm.query('SELECT 8 AS result', [], {
+        logger: { label: 'custom-logger' },
+        traceId: 'trace-123',
+      });
+      assert.equal(result.rows[0].result, 8);
+      assert.ok(receivedOpts);
+      assert.deepEqual(receivedOpts.logger, { label: 'custom-logger' });
+      assert.equal(receivedOpts.traceId, 'trace-123');
+    } finally {
+      realm.driver.query = originalQuery;
+    }
+  });
+
   after(async () => {
     await realm.disconnect();
   });
