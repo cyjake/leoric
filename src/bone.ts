@@ -68,7 +68,7 @@ export default class Bone extends AbstractBone {
     values?: Partial<Record<Key, Literal | Raw>>,
     options: QueryOptions = {},
   ): Spell<T, number, false> {
-    return this._update(conditions, values ?? {}, options) as Spell<T, number, false>;
+    return this._update(conditions, values as Partial<Record<Key, Literal | Raw>>, options) as Spell<T, number, false>;
   }
 
   /**
