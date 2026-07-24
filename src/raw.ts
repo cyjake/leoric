@@ -88,6 +88,7 @@ export async function rawQuery(
   });
 
   const { rows, ...restRes } = await driver.query(sql, values, {
+    ...opts,
     connection: opts.connection,
     Model: opts.model,
   } as any);
