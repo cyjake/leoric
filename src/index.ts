@@ -83,7 +83,8 @@ Object.assign(Realm, {
   default: Realm,
 });
 
-module.exports = Realm;
+/* istanbul ignore next */
+if (typeof module !== 'undefined') module.exports = Realm;
 
 export default Realm;
 

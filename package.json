@@ -12,7 +12,12 @@
       ]
     }
   },
-  "exports": "./lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./lib/index.js"
+    }
+  },
   "files": [
     "dist",
     "lib",
@@ -28,7 +33,7 @@
     "benchmark": "npm run benchmark:model-compilation",
     "benchmark:proxy": "tsc && node --expose-gc benchmarks/proxy-class-fields.js",
     "benchmark:model-compilation": "tsc && node --expose-gc benchmarks/model-compilation.js",
-    "prepack:browser": "rm -rf dist && tsc -p tsconfig.browser.json",
+    "prepack:browser": "rm -rf dist && tsc -p tsconfig.esm.json && node scripts/fix-esm-imports.js",
     "prepublishOnly": "npm run prepack && npm run prepack:browser",
     "pretest": "tsc && ./test/prepare.sh",
     "test": "./test/start.sh",
