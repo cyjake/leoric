@@ -1,3 +1,20 @@
+# Changelog
+
+## 2.15.0-beta.3 (2026-07-27)
+
+## What's Changed
+* fix: forward consumer opts from Realm.query() to driver.query() by @yicai-dev in https://github.com/cyjake/leoric/pull/475
+* fix: export markModelClassReady from index by @yicai-dev in https://github.com/cyjake/leoric/pull/476
+* fix: restore v2.14 type compatibility for hints and Bone.restore/update by @yicai-dev in https://github.com/cyjake/leoric/pull/477
+* fix(types): restore Pool class & sequelize adapter types; ci: bump Actions to node24 by @yicai-dev in https://github.com/cyjake/leoric/pull/478
+* chore: add release-please workflow by @yicai-dev in https://github.com/cyjake/leoric/pull/479
+* fix: use prerelease versioning strategy for release-please by @yicai-dev in https://github.com/cyjake/leoric/pull/481
+* fix: use GitHub-native changelog format and History.md for release-please by @yicai-dev in https://github.com/cyjake/leoric/pull/482
+* ci: fix release-please tag format and upgrade action to v5 by @yicai-dev in https://github.com/cyjake/leoric/pull/483
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.15.0-beta.2...v2.15.0-beta.3
+
 2.15.? / 2026-xx-xx
 ====================
 
