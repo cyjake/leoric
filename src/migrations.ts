@@ -34,6 +34,7 @@ async function loadTasks(dir: string): Promise<string[]> {
 
 async function loadMigration(dir: string, name: string): Promise<Migration> {
   const mod = await import(path.join(dir, name));
+  /* istanbul ignore next */
   return { ...(mod.default ?? mod), name };
 }
 

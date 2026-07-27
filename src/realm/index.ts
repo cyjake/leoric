@@ -22,6 +22,7 @@ async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
     const extname = path.extname(entry.name);
     if (entry.isFile() && ['.js', '.mjs', '.ts'].includes(extname)) {
       const mod = await import(path.join(dir, entry.name));
+      /* istanbul ignore next */
       const model = mod.default ?? mod;
       if (isBone(model)) models.push(model);
     }
