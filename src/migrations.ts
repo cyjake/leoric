@@ -32,8 +32,9 @@ async function loadTasks(dir: string): Promise<string[]> {
   return result;
 }
 
-function loadMigration(dir: string, name: string): Migration {
-  return { ...require(path.join(dir, name)), name };
+async function loadMigration(dir: string, name: string): Promise<Migration> {
+  const mod = await import(path.join(dir, name));
+  return { ...(mod.default ?? mod), name };
 }
 
 async function migrate(this: RealmContext, steps = Infinity): Promise<void> {
@@ -49,10 +50,12 @@ async function migrate(this: RealmContext, steps = Infinity): Promise<void> {
   const tasks = await loadTasks(dir);
 
   if (steps > 0) {
-    const migrations = tasks
-      .filter(entry => !finishedTasks.includes(entry))
-      .slice(0, steps)
-      .map(entry => loadMigration(dir, entry));
+    const migrations = await Promise.all(
+      tasks
+        .filter(entry => !finishedTasks.includes(entry))
+        .slice(0, steps)
+        .map(entry => loadMigration(dir, entry))
+    );
 
     for (const migration of migrations) {
       logger.logMigration(migration.name, 'up');
@@ -60,9 +63,11 @@ async function migrate(this: RealmContext, steps = Infinity): Promise<void> {
       await driver.query('INSERT INTO leoric_meta (name) VALUES (?)', [ migration.name ]);
     }
   } else if (steps < 0) {
-    const migrations = finishedTasks
-      .slice(steps)
-      .map(entry => loadMigration(dir, entry as string));
+    const migrations = await Promise.all(
+      finishedTasks
+        .slice(steps)
+        .map(entry => loadMigration(dir, entry as string))
+    );
 
     for (const migration of migrations.reverse()) {
       logger.logMigration(migration.name, 'down');

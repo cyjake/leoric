@@ -21,9 +21,8 @@ async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
   for (const entry of entries) {
     const extname = path.extname(entry.name);
     if (entry.isFile() && ['.js', '.mjs', '.ts'].includes(extname)) {
-      const mod = require(path.join(dir, entry.name));
-      // Handle both CommonJS (module.exports = Bone) and ES module default exports
-      const model = (mod && mod.__esModule) ? mod.default : mod;
+      const mod = await import(path.join(dir, entry.name));
+      const model = mod.default ?? mod;
       if (isBone(model)) models.push(model);
     }
   }
