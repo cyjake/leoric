@@ -43,8 +43,8 @@ export interface Connection {
   release(): void;
 }
 
-export interface Pool {
-  getConnection(): Promise<Connection>;
+export abstract class Pool {
+  abstract getConnection(): Promise<Connection>;
 }
 
 export interface QueryOptions {
