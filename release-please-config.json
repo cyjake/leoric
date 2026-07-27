@@ -6,6 +6,7 @@
       "release-type": "node",
       "package-name": "leoric",
       "changelog-path": "CHANGELOG.md",
+      "versioning": "prerelease",
       "prerelease": true,
       "prerelease-type": "beta"
     }
