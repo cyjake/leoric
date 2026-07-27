@@ -1,6 +1,9 @@
 import { HookFunc } from '../setup_hooks';
 import Raw from '../raw';
-import { AbstractBone } from '../abstract_bone';
+import { AbstractBone, hasLoadedAttributesKey } from '../abstract_bone';
+// Re-export so consumers importing hasLoadedAttributesKey from the package root
+// (via `export * from './adapters/sequelize'` in index.ts) keep working.
+export { hasLoadedAttributesKey };
 import type Spell from '../spell';
 import type { Collection, Literal, QueryOptions } from '../types/common';
 

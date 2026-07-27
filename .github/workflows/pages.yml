@@ -24,7 +24,7 @@ jobs:
       run:
         working-directory: docs
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -32,14 +32,14 @@ jobs:
           bundler-cache: true
           working-directory: docs
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - run: bundle exec jekyll build --baseurl ""
         env:
           JEKYLL_ENV: production
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/_site
 
@@ -51,4 +51,4 @@ jobs:
     needs: build
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -23,7 +23,7 @@
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "clean": "tsc -b --clean",
     "lint-staged": "lint-staged",
-    "prepack": "tsc && npm run build:types:ts4.9",
+    "prepack": "tsc && node scripts/apply-dts-overrides.js && npm run build:types:ts4.9",
     "build:playground": "node docs/build-playground.mjs",
     "benchmark": "npm run benchmark:model-compilation",
     "benchmark:proxy": "tsc && node --expose-gc benchmarks/proxy-class-fields.js",
