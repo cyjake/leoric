@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.15.0-beta.4 (2026-08-04)
+
+## What's Changed
+* feat: add Node ESM entry via conditional exports by @yicai-dev in https://github.com/cyjake/leoric/pull/485
+* ci: chain npm publish into release-please and remove npmpublish.yml by @yicai-dev in https://github.com/cyjake/leoric/pull/484
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.15.0-beta.3...v2.15.0-beta.4
+
 ## 2.15.0-beta.3 (2026-07-27)
 
 ## What's Changed
