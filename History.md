@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.15.0-beta.5 (2026-08-06)
+
+## What's Changed
+* fix(types): stop applying ts4.9 override to lib/ declarations by @JimmyDaddy in https://github.com/cyjake/leoric/pull/490
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.15.0-beta.4...v2.15.0-beta.5
+
 ## 2.15.0-beta.4 (2026-08-04)
 
 ## What's Changed
