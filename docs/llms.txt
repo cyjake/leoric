@@ -1,4 +1,4 @@
-# Leoric
+﻿# Leoric
 
 > An object-relational mapping library for Node.js, heavily influenced by Active Record of Ruby on Rails.
 > Declare models as classes extending Bone, connect to MySQL/PostgreSQL/SQLite through Realm,

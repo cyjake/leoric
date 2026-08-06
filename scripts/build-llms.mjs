@@ -224,9 +224,11 @@ function buildFull(guides, language) {
 const guides = collectGuides(DOCS, GUIDE_TITLES);
 const zhGuides = collectGuides(join(DOCS, 'zh'), ZH_GUIDE_TITLES);
 
-writeFileSync(join(DOCS, 'llms.txt'), buildIndex(guides, zhGuides));
+// BOM makes browsers treat the files as UTF-8 even when the server serves
+// text/plain without a charset; only needed for files containing Chinese text
+writeFileSync(join(DOCS, 'llms.txt'), `\ufeff${buildIndex(guides, zhGuides)}`);
 writeFileSync(join(DOCS, 'llms-full.txt'), buildFull(guides, 'en'));
-writeFileSync(join(DOCS, 'llms-full-zh.txt'), buildFull(zhGuides, 'zh'));
+writeFileSync(join(DOCS, 'llms-full-zh.txt'), `\ufeff${buildFull(zhGuides, 'zh')}`);
 
 console.log(`Generated llms.txt with ${guides.length} English and ${zhGuides.length} Chinese guides`);
 console.log(`- ${join(DOCS, 'llms.txt')}`);
