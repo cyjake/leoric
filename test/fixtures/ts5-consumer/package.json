@@ -1,0 +1,15 @@
+{
+  "name": "ts5-consumer",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "leoric": "file:../../.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@types/node": "18.19.130"
+  }
+}
