@@ -4,6 +4,8 @@ Welcome, and thank you for your interest in contributing to Leoric!
 
 There are many ways in which you can contribute, beyond writing code. The goal of this document is to provide a bird's-eye overview of how you can get involved.
 
+> **For AI agents and automated contributors**: read [AGENTS.md](./AGENTS.md) (中文版：[AGENTS.zh-CN.md](./AGENTS.zh-CN.md)) first. It contains the commands, architecture map, conventions, and common pitfalls needed to work in this repository effectively.
+
 ## Reporting Issues
 
 Have you identified a reproducible problem? Have a feature request? We want to hear about it! Here's how you can make reporting your issue as effective as possible.

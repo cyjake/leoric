@@ -22,7 +22,12 @@
   "files": [
     "dist",
     "lib",
-    "types"
+    "types",
+    "docs/llms.txt",
+    "docs/llms-full.txt",
+    "docs/llms-full-zh.txt",
+    "docs/ai-cookbook.md",
+    "docs/zh/ai-cookbook.md"
   ],
   "scripts": {
     "build:types:ts4.9": "node scripts/build-ts49-types.js",
@@ -31,6 +36,7 @@
     "lint-staged": "lint-staged",
     "prepack": "tsc && npm run build:types:ts4.9",
     "build:playground": "node docs/build-playground.mjs",
+    "docs:llms": "node scripts/build-llms.mjs",
     "benchmark": "npm run benchmark:model-compilation",
     "benchmark:proxy": "tsc && node --expose-gc benchmarks/proxy-class-fields.js",
     "benchmark:model-compilation": "tsc && node --expose-gc benchmarks/model-compilation.js",

@@ -1,0 +1,75 @@
+﻿# Leoric
+
+> An object-relational mapping library for Node.js, heavily influenced by Active Record of Ruby on Rails.
+> Declare models as classes extending Bone, connect to MySQL/PostgreSQL/SQLite through Realm,
+> and query with a chainable API.
+
+## Guides (English)
+
+- [Starter](https://leoric.js.org/starter): Starter
+- [Basics](https://leoric.js.org/basics): Basics
+- [Migrations](https://leoric.js.org/migrations): Migrations
+- [Validations](https://leoric.js.org/validations): Validations
+- [Associations](https://leoric.js.org/associations): Associations
+- [Query Interface](https://leoric.js.org/querying): Query Interface
+- [JSON Fields](https://leoric.js.org/json): JSON Fields
+- [Hooks](https://leoric.js.org/hooks): Hooks
+- [Logging](https://leoric.js.org/logging): Logging
+- [TypeScript Support](https://leoric.js.org/types): TypeScript Support
+- [Sequelize Adapter](https://leoric.js.org/sequelize): Sequelize Adapter
+- [Setup](https://leoric.js.org/setup/index): Setup
+- [Setup with Egg](https://leoric.js.org/setup/egg): Setup with Egg
+- [Setup with Express](https://leoric.js.org/setup/express): Setup with Express
+- [Setup with Midway](https://leoric.js.org/setup/midway): Setup with Midway
+- [Setup with MySQL](https://leoric.js.org/setup/mysql): Setup with MySQL
+- [Setup with SQLite](https://leoric.js.org/setup/sqlite): Setup with SQLite
+- [Setup with PostgreSQL](https://leoric.js.org/setup/postgres): Setup with PostgreSQL
+- [Data Types](https://leoric.js.org/data-types): Data Types
+- [Transactions](https://leoric.js.org/transactions): Transactions
+- [Raw Queries](https://leoric.js.org/raw-query): Raw Queries
+- [Soft Delete](https://leoric.js.org/soft-delete): Soft Delete
+- [Index Hints](https://leoric.js.org/index-hints): Index Hints
+- [Realm](https://leoric.js.org/realm): Realm
+- [Best Practices](https://leoric.js.org/best-practices): Best Practices
+- [Troubleshooting](https://leoric.js.org/troubleshooting): Troubleshooting
+- [How to Contribute](https://leoric.js.org/contributing/guides): How to Contribute
+- [AI Cookbook](https://leoric.js.org/ai-cookbook): AI Cookbook
+- [Design: ES2022 Class Fields and Model Compilation](https://leoric.js.org/design/es2022-class-fields): Design: ES2022 Class Fields and Model Compilation
+- [Design: TypeScript Migration](https://leoric.js.org/design/typescript-migration): Design: TypeScript Migration
+
+## 指南（中文）
+
+- [快速上手](https://leoric.js.orgzh/starter): 快速上手
+- [基础](https://leoric.js.orgzh/basics): 基础
+- [数据迁移](https://leoric.js.orgzh/migrations): 数据迁移
+- [数据校验](https://leoric.js.orgzh/validations): 数据校验
+- [关联关系](https://leoric.js.orgzh/associations): 关联关系
+- [查询接口](https://leoric.js.orgzh/querying): 查询接口
+- [JSON 字段](https://leoric.js.orgzh/json): JSON 字段
+- [钩子](https://leoric.js.orgzh/hooks): 钩子
+- [日志](https://leoric.js.orgzh/logging): 日志
+- [TypeScript 支持](https://leoric.js.orgzh/types): TypeScript 支持
+- [Sequelize 适配器](https://leoric.js.orgzh/sequelize): Sequelize 适配器
+- [快速配置](https://leoric.js.orgzh/setup/index): 快速配置
+- [在 Egg 应用中使用](https://leoric.js.orgzh/setup/egg): 在 Egg 应用中使用
+- [在 Express 应用中使用](https://leoric.js.orgzh/setup/express): 在 Express 应用中使用
+- [在 Midway 应用中使用](https://leoric.js.orgzh/setup/midway): 在 Midway 应用中使用
+- [MySQL 配置说明](https://leoric.js.orgzh/setup/mysql): MySQL 配置说明
+- [SQLite 配置说明](https://leoric.js.orgzh/setup/sqlite): SQLite 配置说明
+- [PostgreSQL 配置说明](https://leoric.js.orgzh/setup/postgres): PostgreSQL 配置说明
+- [数据类型](https://leoric.js.orgzh/data-types): 数据类型
+- [事务](https://leoric.js.orgzh/transactions): 事务
+- [原始查询](https://leoric.js.orgzh/raw-query): 原始查询
+- [软删除](https://leoric.js.orgzh/soft-delete): 软删除
+- [索引提示](https://leoric.js.orgzh/index-hints): 索引提示
+- [Realm](https://leoric.js.orgzh/realm): Realm
+- [最佳实践](https://leoric.js.orgzh/best-practices): 最佳实践
+- [错误排查](https://leoric.js.orgzh/troubleshooting): 错误排查
+- [如何参与](https://leoric.js.orgzh/contributing/guides): 如何参与
+- [AI 代码手册](https://leoric.js.orgzh/ai-cookbook): AI 代码手册
+
+## References
+
+- [API Documentation](https://leoric.js.org/api/)
+- [llms-full.txt](https://leoric.js.org/llms-full.txt): all English guides concatenated, suitable for single-shot context injection
+- [llms-full-zh.txt](https://leoric.js.org/llms-full-zh.txt): all Chinese guides concatenated

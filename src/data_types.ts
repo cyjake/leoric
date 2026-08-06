@@ -21,7 +21,7 @@ export interface AbstractDataType<T> {
 /**
  * @example
  * const { STRING, INTEGER, BIGINT, DATE, BOOLEAN } = app.model;
- * class User = app.model.define('User', {
+ * const User = app.model.define('User', {
  *   login: STRING,
  * });
  */
@@ -59,7 +59,6 @@ function hasDataLength(dataLength: string | number | undefined) {
  * @example
  * STRING
  * STRING(127)
- * STRING.BINARY
  * @param dataLength
  */
 class STRING extends DataType {
@@ -93,6 +92,13 @@ class STRING extends DataType {
   }
 }
 
+/**
+ * fixed-length character string
+ * @example
+ * CHAR
+ * CHAR(127)
+ * @param dataLength
+ */
 class CHAR extends STRING {
   constructor(dataLength = 255) {
     super(dataLength);
@@ -100,6 +106,13 @@ class CHAR extends STRING {
   }
 }
 
+/**
+ * fixed-length binary string
+ * @example
+ * BINARY
+ * BINARY(255)
+ * @param dataLength
+ */
 class BINARY extends DataType {
   constructor(dataLength = 255) {
     super();
@@ -122,6 +135,13 @@ class BINARY extends DataType {
   }
 }
 
+/**
+ * variable-length binary string
+ * @example
+ * VARBINARY
+ * VARBINARY(255)
+ * @param dataLength
+ */
 class VARBINARY extends BINARY {
   constructor(dataLength?: number) {
     super(dataLength);
@@ -290,6 +310,14 @@ class DECIMAL extends INTEGER {
 }
 
 const rDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[,.]\d{3,6}){0,1}$/;
+/**
+ * date and time, such as `datetime` or `timestamp`
+ * @example
+ * DATE
+ * DATE(6)
+ * @param precision - fractional seconds precision
+ * @param timezone - whether the timezone is enabled, such as postgres `timestamptz`
+ */
 class DATE extends DataType {
   precision?: number | null;
   timezone?: boolean = true;
@@ -352,6 +380,11 @@ class DATE extends DataType {
   }
 }
 
+/**
+ * date only, without the time part
+ * @example
+ * DATEONLY
+ */
 class DATEONLY extends DATE {
   constructor() {
     super();
@@ -372,6 +405,11 @@ class DATEONLY extends DATE {
   }
 }
 
+/**
+ * boolean
+ * @example
+ * BOOLEAN
+ */
 class BOOLEAN extends DataType {
   constructor() {
     super();
@@ -388,6 +426,13 @@ class BOOLEAN extends DataType {
   }
 }
 
+/**
+ * text type with length variants, such as tinytext, mediumtext, and longtext
+ * @example
+ * TEXT
+ * TEXT(LENGTH_VARIANTS.long)
+ * @param length - one of `LENGTH_VARIANTS`: `tiny`, empty, `medium`, or `long`
+ */
 class TEXT extends STRING {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
@@ -403,6 +448,13 @@ class TEXT extends STRING {
   }
 }
 
+/**
+ * binary large object with length variants, such as tinyblob and longblob
+ * @example
+ * BLOB
+ * BLOB(LENGTH_VARIANTS.medium)
+ * @param length - one of `LENGTH_VARIANTS`: `tiny`, empty, `medium`, or `long`
+ */
 class BLOB extends DataType {
   constructor(length: LENGTH_VARIANTS = LENGTH_VARIANTS.empty) {
     if (!Object.values(LENGTH_VARIANTS).includes(length)) {
@@ -424,6 +476,13 @@ class BLOB extends DataType {
   }
 }
 
+/**
+ * JSON text type, stored as text and cast to and from JSON
+ * @example
+ * JSON
+ * @param opts
+ * @param opts.ignoreError - keep the raw value and log an error when the value cannot be parsed
+ */
 // JSON text type
 class MYJSON extends DataType {
   ignoreError: boolean;
@@ -460,6 +519,11 @@ class MYJSON extends DataType {
   }
 }
 
+/**
+ * JSON binary type, available in PostgreSQL or MySQL 5.7+
+ * @example
+ * JSONB
+ */
 // JSON binary type, available in postgreSQL or mySQL 5.7 +
 // - https://dev.mysql.com/doc/refman/8.0/en/json.html
 // - https://www.postgresql.org/docs/9.4/datatype-json.html
@@ -478,6 +542,11 @@ class JSONB extends MYJSON {
   }
 }
 
+/**
+ * virtual attribute that is computed at runtime and not stored in the database
+ * @example
+ * VIRTUAL
+ */
 class VIRTUAL extends DataType {
   virtual = true;
 
@@ -520,6 +589,12 @@ const AllDataTypes = {
 
 export type DATA_TYPE<T> = AbstractDataType<T> & T;
 
+/**
+ * The collection of built-in data types, such as `STRING`, `INTEGER`, and
+ * `DATE`. Available on the realm as `realm.DataTypes` and exported as
+ * `DataTypes` from 'leoric'. The `invokable` proxy makes every type callable,
+ * so `STRING(255)` and `INTEGER.UNSIGNED` work as well.
+ */
 class DataTypes {
   static CHAR: DATA_TYPE<CHAR> = CHAR as any;
   static STRING: DATA_TYPE<STRING> = STRING as any;

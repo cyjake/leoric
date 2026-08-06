@@ -72,10 +72,16 @@ interface SpellOptions {
   laters?: Array<(result: any) => any>;
 }
 
+/**
+ * Meta information of a {@link Spell}: the target Model plus query options such as columns, whereConditions, joins and scopes.
+ */
 export interface SpellMeta extends SpellOptions {
   Model: typeof AbstractBone;
 }
 
+/**
+ * Result of formatting a spell into SQL, either the standard `{ sql, values }` object or the model-specific result type `T`.
+ */
 export type SpellBookFormatResult<T> = SpellBookFormatStandardResult | T;
 
 
@@ -510,12 +516,22 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     });
   }
 
+  /**
+   * Return a duplicated spell with all scopes removed, including the default soft delete scope, so the query includes soft deleted rows as well.
+   * @example
+   * Post.find({ title: 'x' }).unscoped.all
+   */
   get unscoped() {
     const spell = this.dup;
     spell.scopes = [];
     return spell as typeof this;
   }
 
+  /**
+   * Return a duplicated spell with the soft delete scope (e.g. `deleted_at IS NULL`) removed only, keeping other scopes intact, so the query includes soft deleted rows.
+   * @example
+   * Post.find({ title: 'x' }).unparanoid.all
+   */
   // remove `deleted is NULL`
   get unparanoid() {
     const spell = this.dup;
@@ -523,20 +539,35 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     return spell as typeof this;
   }
 
+  /**
+   * Mark the spell as resolving to a collection of model instances.
+   * @example
+   * Post.all
+   */
   get all() {
     return this as Spell<T, Collection<InstanceType<T>>>;
   }
 
+  /**
+   * Return a duplicated spell ordered by the primary key ascending and limited to the first record. Resolves to a single model instance or null.
+   * @example
+   * Post.find({ title: 'x' }).first
+   */
   get first() {
     return this.order(this.Model.primaryKey).$get(0) as Spell<T, InstanceType<T> | null>;
   }
 
+  /**
+   * Return a duplicated spell ordered by the primary key descending and limited to the last record. Resolves to a single model instance or null.
+   * @example
+   * Post.find({ title: 'x' }).last
+   */
   get last(): Spell<T, InstanceType<T> | null> {
     return this.order(this.Model.primaryKey, 'desc').$get(0) as Spell<T, InstanceType<T> | null>;
   }
 
   /**
-   * Get a duplicate of current spell.
+   * Get a duplicate of current spell. The duplicate is independent, so further chained calls on the duplicate do not mutate the original spell. Note that `joins` and `sets` are shared by reference with the original.
    */
   get dup(): Spell<T> {
     return new Spell<T>(this.Model, {
@@ -577,11 +608,23 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   }
   get!: (index: number) => Spell<T, InstanceType<T> | null>;
 
+  /**
+   * Register a callback to transform the query result when the spell is ignited. Callbacks run in registration order and may return a Promise; the resolved value is passed to the next callback.
+   * @param resolve - transform applied to the query result
+   * @example
+   * Post.first.later(post => post ? post.toJSON() : null)
+   */
   later(resolve: (result: any) => any): this {
     this.laters.push(resolve);
     return this;
   }
 
+  /**
+   * Execute the query and resolve the result, applying all registered `later` callbacks in order. Awaiting a spell directly behaves the same as awaiting `spell.ignite()`.
+   * @returns the query result after all `later` callbacks
+   * @example
+   * const post = await Post.first.ignite();
+   */
   async ignite() {
     const { Model, laters } = this;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -598,22 +641,28 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @example
    * const post = await Post.first
    * Post.last.then(post => handle(post));
-   * @param resolve
-   * @param reject
+   * @param resolve - called with the query result when the spell resolves
+   * @param reject - called with the reason when the query rejects
    */
   then<V, W>(resolve?: ((value: U) => V | Promise<V>) | null, reject?: ((reason: any) => W | Promise<W>) | null): Promise<V | W> {
     return Promise.resolve(this.ignite()).then(resolve, reject);
   }
 
   /**
-   * @param reject
+   * Attach a rejection handler to the spell, just like `Promise#catch`.
+   * @param reject - called with the reason when the query rejects
+   * @example
+   * Post.find({ title: 'x' }).catch(err => handle(err));
    */
   catch<V>(reject?: ((reason: any) => V | Promise<V>) | null): Promise<any | V> {
     return this.then(null, reject);
   }
 
   /**
-   * @param onFinally
+   * Attach a callback invoked when the spell settles, whether it resolved or rejected, and return a new Promise, just like `Promise#finally`.
+   * @param onFinally - callback invoked after the query settles
+   * @example
+   * await Post.find({ title: 'x' }).finally(cleanup);
    */
   finally(onFinally?: (() => void) | null): Promise<any> {
     return this.then().finally(onFinally);
@@ -1093,6 +1142,8 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   /**
    * Format current spell to SQL string.
+   * @example
+   * Post.find({ title: 'x' }).order('id', 'desc').limit(10).toSqlString();
    */
   toSqlString(): string {
     const { Model } = this;
@@ -1102,7 +1153,9 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   }
 
   /**
-   * Alias of {@link Spell#toSqlString}
+   * Alias of {@link Spell#toSqlString}.
+   * @example
+   * `${Post.find({ title: 'x' })}`
    */
   toString() {
     return this.toSqlString();
