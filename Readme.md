@@ -108,6 +108,7 @@ Leoric is designed to work well with AI coding assistants, both for end users an
 - [AI Cookbook](https://leoric.js.org/ai-cookbook) (中文：[AI 代码手册](https://leoric.js.org/zh/ai-cookbook)) — copy-pasteable, verified patterns for models, queries, transactions, and troubleshooting
 - [llms.txt](https://leoric.js.org/llms.txt) — machine-readable index of the documentation
 - [llms-full.txt](https://leoric.js.org/llms-full.txt) / [llms-full-zh.txt](https://leoric.js.org/llms-full-zh.txt) — all guides concatenated for single-shot context injection
+- These files are also shipped inside the npm package (`node_modules/leoric/llms-full.txt` etc.), so AI assistants in offline or private-registry environments can still read the full documentation
 - [AGENTS.md](./AGENTS.md) (中文版：[AGENTS.zh-CN.md](./AGENTS.zh-CN.md)) — repository guide for AI agents and contributors
 - Public API types ship with JSDoc, so IDE autocompletion and AI code generation see documented signatures out of the box
 

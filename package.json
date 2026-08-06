@@ -22,7 +22,12 @@
   "files": [
     "dist",
     "lib",
-    "types"
+    "types",
+    "docs/llms.txt",
+    "docs/llms-full.txt",
+    "docs/llms-full-zh.txt",
+    "docs/ai-cookbook.md",
+    "docs/zh/ai-cookbook.md"
   ],
   "scripts": {
     "build:types:ts4.9": "node scripts/build-ts49-types.js",

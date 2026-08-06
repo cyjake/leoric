@@ -52,6 +52,7 @@ Leoric 是一个受 Ruby on Rails Active Record 启发的 Node.js ORM 库。模�
 - 类型兼容性由 `test/fixtures/ts5-consumer` 与 `test/fixtures/ts49-consumer` 验证（见 `package.json` 的 `typesVersions` 映射）；改动公共类型后运行 `npm run test:dts`。
 - 提交遵循 Conventional Commits；版本发布由 release-please 管理（`release-please-config.json`）——不要手动改版本号。
 - `docs/` 是部署到 leoric.js.org 的 Jekyll 站点；新增或修改面向用户的文档时，同步更新 `docs/zh/`。
+- `docs/llms.txt` / `llms-full*.txt` 由 `scripts/build-llms.mjs` 生成并随 npm 包发布——修改指南后运行 `npm run docs:llms`，新指南需加入该脚本的 `GUIDE_ORDER`。
 
 ## 常见坑
 
