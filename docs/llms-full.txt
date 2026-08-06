@@ -5681,6 +5681,67 @@ await Post.bulkCreate([{ title: 'a' }, { title: 'b' }, { title: 'c' }]);
 await Post.upsert({ title: 'a' }); // upsert on unique key conflict
 ```
 
+### Sequelize Compatibility Mode
+
+Set `sequelize: true` to activate the Sequelize adapter and get a
+Sequelize-like API, easing migration from Sequelize:
+
+```js
+const realm = new Realm({
+  dialect: 'sqlite',
+  storage: '/tmp/leoric.sqlite3',
+  sequelize: true, // turn on the sequelize adapter
+});
+await realm.connect();
+
+// in sequelize mode, define models by name + attributes (or extend realm.Bone)
+const Shop = realm.define('Shop', {
+  id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+  name: { type: STRING, allowNull: false },
+  credit: { type: INTEGER, defaultValue: 0 },
+});
+await realm.sync();
+```
+
+#### CRUD
+
+```js
+// create
+await Shop.create({ name: 'MILL' });
+await Shop.bulkCreate([{ name: 'wagas' }, { name: 'family mart' }]);
+await new Shop({ name: "McDonald's" }).save();
+
+// read
+const shop = await Shop.findOne({ where: { name: 'MILL' } });
+const shops = await Shop.findAll({
+  attributes: [ 'id', 'name' ],
+  where: { name: { $like: '%M%' } },
+  order: [[ 'id', 'desc' ]],
+  limit: 10,
+});
+const byPk = await Shop.findByPk(1);
+
+// find or create — returns [instance, created]
+const [brewhouse, created] = await Shop.findOrCreate({
+  where: { name: 'Shanghai Brewhouse' },
+});
+
+// update — sequelize semantics: Model.update(values, { where }), returns affected count
+const affected = await Shop.update({ credit: 10 }, { where: { name: 'MILL' } });
+
+// delete / aggregate
+await Shop.destroy({ where: { name: 'wagas' } });
+await Shop.increment('credit', { by: 5, where: { name: 'MILL' } });
+const { count, rows } = await Shop.findAndCountAll({ where: { name: { $like: '%M%' } } });
+const total = await Shop.count();
+```
+
+Notes:
+
+- In sequelize mode, `update` uses Sequelize semantics (`values`, `{ where }`), not the Leoric order.
+- Prefer a file-based database when combining `sequelize: true` with SQLite — `:memory:` databases are per-connection, and queries that run concurrently (e.g. `findAndCountAll`) can hit a fresh connection with no tables.
+- See [Sequelize Adapter](https://leoric.js.org/sequelize.html) for the full compatibility matrix.
+
 ### Common Errors and Fixes
 
 | Symptom | Cause | Fix |

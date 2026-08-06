@@ -6132,6 +6132,68 @@ await Post.bulkCreate([{ title: 'a' }, { title: 'b' }, { title: 'c' }]);
 await Post.upsert({ title: 'a' }); // 唯一键冲突时执行 upsert
 ```
 
+### Sequelize 兼容模式
+
+开启 `sequelize: true` 激活 Sequelize 适配层，获得类 Sequelize 的 API，便于从
+Sequelize 迁移：
+
+```js
+const realm = new Realm({
+  dialect: 'sqlite',
+  storage: '/tmp/leoric.sqlite3',
+  sequelize: true, // 开启 sequelize 适配
+});
+await realm.connect();
+
+// sequelize 模式下，模型用 名字 + attributes 定义（或继承 realm.Bone）
+const Shop = realm.define('Shop', {
+  id: { type: BIGINT, primaryKey: true, autoIncrement: true },
+  name: { type: STRING, allowNull: false },
+  credit: { type: INTEGER, defaultValue: 0 },
+});
+await realm.sync();
+```
+
+#### CRUD
+
+```js
+// 创建
+await Shop.create({ name: 'MILL' });
+await Shop.bulkCreate([{ name: 'wagas' }, { name: 'family mart' }]);
+await new Shop({ name: "McDonald's" }).save();
+
+// 查询
+const shop = await Shop.findOne({ where: { name: 'MILL' } });
+const shops = await Shop.findAll({
+  attributes: [ 'id', 'name' ],
+  where: { name: { $like: '%M%' } },
+  order: [[ 'id', 'desc' ]],
+  limit: 10,
+});
+const byPk = await Shop.findByPk(1);
+
+// 先查后建——返回 [instance, created]
+const [brewhouse, created] = await Shop.findOrCreate({
+  where: { name: 'Shanghai Brewhouse' },
+});
+
+// 更新——sequelize 语义：Model.update(values, { where })，返回受影响行数
+const affected = await Shop.update({ credit: 10 }, { where: { name: 'MILL' } });
+
+// 删除 / 聚合
+await Shop.destroy({ where: { name: 'wagas' } });
+await Shop.increment('credit', { by: 5, where: { name: 'MILL' } });
+const { count, rows } = await Shop.findAndCountAll({ where: { name: { $like: '%M%' } } });
+const total = await Shop.count();
+```
+
+注意：
+
+- sequelize 模式下 `update` 是 sequelize 语义（`values`, `{ where }`），与 leoric 原生参数顺序不同。
+- sequelize 模式 + SQLite 时建议用文件库而非 `:memory:`——内存库按连接隔离，并发查询
+  （如 `findAndCountAll`）可能命中无表的新连接。
+- 完整兼容对照见 [Sequelize 适配](https://leoric.js.org/sequelize.html)。
+
 ### 常见错误与修复
 
 | 现象 | 原因 | 修复 |
