@@ -567,7 +567,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
   }
 
   /**
-   * Get a duplicate of current spell. The duplicate is independent, so further chained calls on the duplicate do not mutate the original spell.
+   * Get a duplicate of current spell. The duplicate is independent, so further chained calls on the duplicate do not mutate the original spell. Note that `joins` and `sets` are shared by reference with the original.
    */
   get dup(): Spell<T> {
     return new Spell<T>(this.Model, {

@@ -19,7 +19,7 @@ Leoric 是一个受 Ruby on Rails Active Record 启发的 Node.js ORM 库。模�
 | `npm run test:sqlite` | 最快的测试方式（单方言，经 `test/start.sh` 运行） |
 | `npm run test:unit` | 仅单元测试 |
 | `npm run test` | 全量测试：先单元，后各方言集成 |
-| `npm run test:dts` | 类型消费方测试（`test/fixtures/ts5-consumer`、`ts49-consumer`） |
+| `npm run test:dts` | 类型级测试（`test/types/*.test.ts`；消费方 fixture 由 `test:dts:ts5`、`test:dts:ts4.9` 驱动） |
 | `npm run lint` | 全仓库 ESLint |
 | `npm run jsdoc` | 由 JSDoc 重新生成 `docs/api` |
 

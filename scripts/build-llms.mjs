@@ -17,30 +17,6 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = join(ROOT, 'docs');
 const BASE_URL = 'https://leoric.js.org';
 
-const EXCLUDED = new Set([
-  'index.md',
-  'playground.html',
-  'search.html',
-  'CNAME',
-  'favicon.ico',
-  'Gemfile',
-  'Gemfile.lock',
-  '_config.yml',
-  'build-playground.mjs',
-  'playground-entry.mjs',
-]);
-
-const DIRECTORIES_TO_SKIP = new Set([
-  '_layouts',
-  '_sass',
-  'api',
-  'assets',
-  'updates',
-  'vendor',
-  '.bundle',
-  '_site',
-]);
-
 // Guide order mirrors the site navigation in docs/_layouts/en.html
 const GUIDE_ORDER = [
   'starter.md',
@@ -71,6 +47,8 @@ const GUIDE_ORDER = [
   'troubleshooting.md',
   'contributing/guides.md',
   'ai-cookbook.md',
+  'design/es2022-class-fields.md',
+  'design/typescript-migration.md',
 ];
 
 const GUIDE_TITLES = {
@@ -102,6 +80,8 @@ const GUIDE_TITLES = {
   'troubleshooting.md': 'Troubleshooting',
   'contributing/guides.md': 'Contributing Guides',
   'ai-cookbook.md': 'AI Cookbook',
+  'design/es2022-class-fields.md': 'Design: ES2022 Class Fields and Model Compilation',
+  'design/typescript-migration.md': 'Design: TypeScript Migration',
 };
 
 const ZH_GUIDE_TITLES = {
@@ -133,6 +113,8 @@ const ZH_GUIDE_TITLES = {
   'troubleshooting.md': '常见问题',
   'contributing/guides.md': '贡献指南',
   'ai-cookbook.md': 'AI 代码手册',
+  'design/es2022-class-fields.md': '设计：ES2022 类字段与模型编译',
+  'design/typescript-migration.md': '设计：TypeScript 迁移',
 };
 
 function parseFrontMatter(content) {
@@ -171,17 +153,30 @@ function collectGuides(dir, titles) {
   for (const relativePath of GUIDE_ORDER) {
     const guide = readGuide(relativePath, dir);
     if (!guide) continue;
-    // lift headings one level so the document title can sit at ##
-    const body = guide.body
-      .split('\n')
-      .map(line => {
-        const match = line.match(/^(#{1,5})\s/);
-        return match ? `#${match[1]}${line.slice(match[1].length)}` : line;
-      })
-      .join('\n');
+    // lift headings one level so the document title can sit at ##,
+    // skipping lines inside fenced code blocks (`#` in code is not a heading)
+    const body = liftHeadings(guide.body);
     guides.push({ relativePath, title: guide.title || titles[relativePath] || relativePath, body });
   }
   return guides;
+}
+
+function liftHeadings(body) {
+  let inFence = false;
+  return body
+    .split('\n')
+    .map(line => {
+      if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
+      if (inFence) return line;
+      const match = line.match(/^(#{1,5})\s/);
+      return match ? `#${match[1]}${line.slice(match[1].length)}` : line;
+    })
+    .join('\n');
+}
+
+function guideUrl(relativePath, prefix = '') {
+  // the site uses permalink: pretty, so markdown pages live at /xxx/ not /xxx.html
+  return `https://leoric.js.org${prefix}/${relativePath.replace(/\.md$/, '')}`;
 }
 
 function buildIndex(guides, zhGuides) {
@@ -196,11 +191,11 @@ function buildIndex(guides, zhGuides) {
     '',
   ];
   for (const guide of guides) {
-    lines.push(`- [${guide.title}](https://leoric.js.org/${guide.relativePath.replace(/\.md$/, '.html')}): ${guide.title}`);
+    lines.push(`- [${guide.title}](${guideUrl(guide.relativePath)}): ${guide.title}`);
   }
   lines.push('', '## 指南（中文）', '');
   for (const guide of zhGuides) {
-    lines.push(`- [${guide.title}](https://leoric.js.org/zh/${guide.relativePath.replace(/\.md$/, '.html')}): ${guide.title}`);
+    lines.push(`- [${guide.title}](${guideUrl(guide.relativePath, 'zh')}): ${guide.title}`);
   }
   lines.push('', '## References', '');
   lines.push('- [API Documentation](https://leoric.js.org/api/)');

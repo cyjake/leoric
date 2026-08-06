@@ -22,7 +22,7 @@ JavaScript (`lib/` for CJS, `dist/` for ESM) plus declaration files
 | `npm run test:sqlite` | Fastest test run (single dialect, runs through `test/start.sh`) |
 | `npm run test:unit` | Unit tests only |
 | `npm run test` | Full suite: unit first, then integration per dialect |
-| `npm run test:dts` | Type-level consumer tests (`test/fixtures/ts5-consumer`, `ts49-consumer`) |
+| `npm run test:dts` | Type-level tests in `test/types/*.test.ts` (consumer fixtures: `test:dts:ts5`, `test:dts:ts4.9`) |
 | `npm run lint` | ESLint over the whole repo |
 | `npm run jsdoc` | Regenerate `docs/api` from JSDoc comments |
 

@@ -3243,7 +3243,7 @@ Leoric 支持通过 `options.dialect` 切换数据库，还可以通过 `options
 $ npm i --save egg-orm
 $ npm install --save mysql2   # MySQL 或者其他兼容 MySQL 的数据库
 
-## 其他数据库类型
+# 其他数据库类型
 $ npm install --save pg       # PostgreSQL
 $ npm install --save sqlite3  # SQLite
 ```
@@ -3418,7 +3418,7 @@ export default function(app: Application) {
 $ npm i --save leoric
 $ npm i --save mysql2    # MySQL 或兼容数据库
 
-## 其他数据库
+# 其他数据库
 $ npm i --save pg        # PostgreSQL
 $ npm i --save better-sqlite3  # SQLite
 ```
@@ -5620,7 +5620,7 @@ await Post.find({ title: raw(userInput) }); // SQL 注入！
 **解决方案**：更新 MySQL 配置，同时绑定 IPv6：
 
 ```diff
-## /usr/local/etc/my.cnf (Homebrew MySQL)
+# /usr/local/etc/my.cnf (Homebrew MySQL)
 [mysqld]
 -bind-address = 127.0.0.1
 +bind-address = 127.0.0.1,::1
@@ -5668,13 +5668,13 @@ await realm2.connect();
 **解决方案**：确保从 `leoric` 导入 `Realm`（而非 `BaseRealm`），并安装了正确的数据库客户端：
 
 ```bash
-## MySQL
+# MySQL
 npm install mysql2
 
-## PostgreSQL
+# PostgreSQL
 npm install pg
 
-## SQLite
+# SQLite
 npm install sqlite3
 ```
 
@@ -5851,13 +5851,13 @@ $ brew service start postgres
 
 ```bash
 $ npm install
-## 初始化表结构，运行所有测试
+# 初始化表结构，运行所有测试
 $ npm run test
-## 仅运行单元测试
+# 仅运行单元测试
 $ npm run test:unit
-## 仅运行集成测试
+# 仅运行集成测试
 $ npm run test:integration
-## TypeScript 定义
+# TypeScript 定义
 $ npm run test:dts
 ```
 
@@ -5953,12 +5953,13 @@ SQL 驱动层主要包含如下模块：
 ### 最小可运行骨架
 
 ```js
-import Realm, { Bone } from 'leoric';
+import Realm, { Bone, DataTypes } from 'leoric';
+const { BIGINT, STRING, TEXT } = DataTypes;
 
 class Post extends Bone {
   static attributes = {
-    id: { type: 'BIGINT', primaryKey: true },
-    title: { type: 'STRING', allowNull: false },
+    id: { type: BIGINT, primaryKey: true },
+    title: { type: STRING, allowNull: false },
     content: { type: TEXT },
   };
 }
@@ -6096,7 +6097,7 @@ const first = await Post.find().order('id').first;
 
 ```js
 const { rows } = await realm.query('SELECT * FROM posts WHERE id = ?', [42]);
-const posts = await Post.find(raw`title = ${'x'}`); // 或 new Raw(...)
+const posts = await Post.find(raw('title = "x"')); // 或 new Raw(...)
 ```
 
 #### 字符串条件
@@ -6182,7 +6183,7 @@ const affected = await Shop.update({ credit: 10 }, { where: { name: 'MILL' } });
 
 // 删除 / 聚合
 await Shop.destroy({ where: { name: 'wagas' } });
-await Shop.increment('credit', { by: 5, where: { name: 'MILL' } });
+await Shop.increment({ credit: 5 }, { where: { name: 'MILL' } }); // 或 increment('credit', { where }) 每次 +1
 const { count, rows } = await Shop.findAndCountAll({ where: { name: { $like: '%M%' } } });
 const total = await Shop.count();
 ```
@@ -6198,7 +6199,7 @@ const total = await Shop.count();
 
 | 现象 | 原因 | 修复 |
 |---|---|---|
-| 查询报 `Cannot read properties of undefined` | `realm.connect()` 之前就查询 | 先 `await realm.connect()` |
+| `model X is not connected yet` | `realm.connect()` 之前就查询 | 先 `await realm.connect()` |
 | `ER_NO_SUCH_TABLE` | 表尚未创建 | `await realm.sync()`（`{ force: true }` 可重建） |
 | 事务内查询实际在事务外执行 | 缺少 `{ connection }` 选项 | 回调内每个查询都传 `{ connection }`，或改用 generator 函数 |
 | N+1 查询 | 循环里惰性访问关联 | 用 `.with('assoc')` 预加载 |

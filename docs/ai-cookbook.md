@@ -18,12 +18,13 @@ over inventing new API shapes. A Chinese version is available at
 ## Minimal Runnable Skeleton
 
 ```js
-import Realm, { Bone } from 'leoric';
+import Realm, { Bone, DataTypes } from 'leoric';
+const { BIGINT, STRING, TEXT } = DataTypes;
 
 class Post extends Bone {
   static attributes = {
-    id: { type: 'BIGINT', primaryKey: true },
-    title: { type: 'STRING', allowNull: false },
+    id: { type: BIGINT, primaryKey: true },
+    title: { type: STRING, allowNull: false },
     content: { type: TEXT },
   };
 }
@@ -163,7 +164,7 @@ const first = await Post.find().order('id').first;
 
 ```js
 const { rows } = await realm.query('SELECT * FROM posts WHERE id = ?', [42]);
-const posts = await Post.find(raw`title = ${'x'}`); // or new Raw(...)
+const posts = await Post.find(raw('title = "x"')); // or new Raw(...)
 ```
 
 ### String Conditions
@@ -249,7 +250,7 @@ const affected = await Shop.update({ credit: 10 }, { where: { name: 'MILL' } });
 
 // delete / aggregate
 await Shop.destroy({ where: { name: 'wagas' } });
-await Shop.increment('credit', { by: 5, where: { name: 'MILL' } });
+await Shop.increment({ credit: 5 }, { where: { name: 'MILL' } }); // or increment('credit', { where }) for +1
 const { count, rows } = await Shop.findAndCountAll({ where: { name: { $like: '%M%' } } });
 const total = await Shop.count();
 ```
@@ -264,7 +265,7 @@ Notes:
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Cannot read properties of undefined` on query | Query before `realm.connect()` | `await realm.connect()` first |
+| `model X is not connected yet` | Query before `realm.connect()` | `await realm.connect()` first |
 | `ER_NO_SUCH_TABLE` | Tables not created yet | `await realm.sync()` (or `{ force: true }` to recreate) |
 | Queries in transaction run outside it | Missing `{ connection }` option | Pass `{ connection }` to every query in the callback, or use a generator function |
 | N+1 queries | Lazy association access in a loop | Use `.with('assoc')` eager loading |

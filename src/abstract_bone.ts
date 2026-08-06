@@ -593,14 +593,14 @@ export class AbstractBone {
   }
 
   /**
-   * SELECT rows ORDER BY id ASC LIMIT 1
+   * SELECT rows ORDER BY primary key ASC LIMIT 1
    */
   static get first(): Spell<typeof AbstractBone, InstanceType<typeof AbstractBone> | null> {
     return this._find().first;
   }
 
   /**
-   * SELECT rows ORDER BY id DESC LIMIT 1
+   * SELECT rows ORDER BY primary key DESC LIMIT 1
    */
   static get last(): Spell<typeof AbstractBone, InstanceType<typeof AbstractBone> | null> {
     return this._find().last;
@@ -783,7 +783,7 @@ export class AbstractBone {
    * Remove any record that matches `conditions`.
    * - If `forceDelete` is true, `DELETE` records from database permanently.
    * - If not, update `deletedAt` attribute with current date.
-   * - If `forceDelete` isn't true and `deleteAt` isn't around, throw an Error.
+   * - If `forceDelete` isn't true and there is no `deletedAt` attribute, records are hard-deleted.
    * @example
    * Post.remove({ title: 'Leah' })         // mark Post { title: 'Leah' } as deleted
    * Post.remove({ title: 'Leah' }, true)   // delete Post { title: 'Leah' }
@@ -1154,7 +1154,7 @@ export class AbstractBone {
   attribute(name: string, value: Literal): this;
 
   /**
-   * Get or set an attribute value. As a getter, returns the current value (or `null` when unset); as a setter, casts and stores the value and returns the instance for chaining.
+   * Get or set an attribute value. As a getter, returns the current value (`undefined` when not loaded); as a setter, casts and stores the value and returns the instance for chaining.
    * @param name attribute name
    * @param value value to set
    * @returns the current attribute value, or the instance itself when called as a setter
@@ -1297,7 +1297,7 @@ export class AbstractBone {
    * @example
    * new Bone({ foo: 1 }).save()                   // => INSERT
    * new Bone({ foo: 1, id: 1 }).save()            // => INSERT ... UPDATE
-   * (await Bone.fist).attribute('foo', 2).save()  // => UPDATE
+   * (await Bone.first).attribute('foo', 2).save()  // => UPDATE
    * new Bone({ foo: 1, id: 1 }).save({ hooks: false })            // => INSERT ... UPDATE
    */
   save(opts?: QueryOptions): Promise<this> {
@@ -1388,7 +1388,7 @@ export class AbstractBone {
   /**
    * update or insert record.
    * @example
-   * bone.upsert() // INERT ... VALUES ON DUPLICATE KEY UPDATE ...
+   * bone.upsert() // INSERT ... VALUES ON DUPLICATE KEY UPDATE ...
    * bone.upsert({ hooks: false })
    * @param opts queryOptions
    */
@@ -1712,7 +1712,7 @@ export class AbstractBone {
   }
 
   /**
-   * This is the loyal twin of {@link Bone#toJSON} because when generating the result object, the raw values of attributes are used, instead of the values returned by custom getters (if any).
+   * Generate a plain object of the instance, similar to {@link Bone#toJSON}, except that nested records are converted through their own `toObject()`.
    * {@link Bone#toObject} might be called on descents of Bone that does not have attributes defined on them directly, hence for..in is preferred.
    * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
    * @example

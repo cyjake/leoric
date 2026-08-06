@@ -21,7 +21,7 @@ export interface AbstractDataType<T> {
 /**
  * @example
  * const { STRING, INTEGER, BIGINT, DATE, BOOLEAN } = app.model;
- * class User = app.model.define('User', {
+ * const User = app.model.define('User', {
  *   login: STRING,
  * });
  */
@@ -59,7 +59,6 @@ function hasDataLength(dataLength: string | number | undefined) {
  * @example
  * STRING
  * STRING(127)
- * STRING.BINARY
  * @param dataLength
  */
 class STRING extends DataType {

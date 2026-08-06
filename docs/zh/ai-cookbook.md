@@ -16,12 +16,13 @@ title: AI 代码手册
 ## 最小可运行骨架
 
 ```js
-import Realm, { Bone } from 'leoric';
+import Realm, { Bone, DataTypes } from 'leoric';
+const { BIGINT, STRING, TEXT } = DataTypes;
 
 class Post extends Bone {
   static attributes = {
-    id: { type: 'BIGINT', primaryKey: true },
-    title: { type: 'STRING', allowNull: false },
+    id: { type: BIGINT, primaryKey: true },
+    title: { type: STRING, allowNull: false },
     content: { type: TEXT },
   };
 }
@@ -159,7 +160,7 @@ const first = await Post.find().order('id').first;
 
 ```js
 const { rows } = await realm.query('SELECT * FROM posts WHERE id = ?', [42]);
-const posts = await Post.find(raw`title = ${'x'}`); // 或 new Raw(...)
+const posts = await Post.find(raw('title = "x"')); // 或 new Raw(...)
 ```
 
 ### 字符串条件
@@ -245,7 +246,7 @@ const affected = await Shop.update({ credit: 10 }, { where: { name: 'MILL' } });
 
 // 删除 / 聚合
 await Shop.destroy({ where: { name: 'wagas' } });
-await Shop.increment('credit', { by: 5, where: { name: 'MILL' } });
+await Shop.increment({ credit: 5 }, { where: { name: 'MILL' } }); // 或 increment('credit', { where }) 每次 +1
 const { count, rows } = await Shop.findAndCountAll({ where: { name: { $like: '%M%' } } });
 const total = await Shop.count();
 ```
@@ -261,7 +262,7 @@ const total = await Shop.count();
 
 | 现象 | 原因 | 修复 |
 |---|---|---|
-| 查询报 `Cannot read properties of undefined` | `realm.connect()` 之前就查询 | 先 `await realm.connect()` |
+| `model X is not connected yet` | `realm.connect()` 之前就查询 | 先 `await realm.connect()` |
 | `ER_NO_SUCH_TABLE` | 表尚未创建 | `await realm.sync()`（`{ force: true }` 可重建） |
 | 事务内查询实际在事务外执行 | 缺少 `{ connection }` 选项 | 回调内每个查询都传 `{ connection }`，或改用 generator 函数 |
 | N+1 查询 | 循环里惰性访问关联 | 用 `.with('assoc')` 预加载 |

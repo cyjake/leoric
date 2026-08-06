@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - "docs/**"
+      - "scripts/build-llms.mjs"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
