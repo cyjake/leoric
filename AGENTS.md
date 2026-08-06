@@ -1,7 +1,65 @@
 # Agent Guidelines
 
-## Git workflow
+This file guides AI coding agents working in the leoric repository. Read it
+before making changes: it captures conventions that are not obvious from the
+code alone. A Chinese mirror is available in [AGENTS.zh-CN.md](./AGENTS.zh-CN.md).
 
-- **Never commit or push directly to `master`** unless the user explicitly asks you to.
-- Always create a feature branch (e.g. `fix/...`, `refactor/...`, `chore/...`) and push that instead.
-- When in doubt, stage the changes and describe what would be committed, then wait for the user to confirm the branch name and commit message.
+## Project Overview
+
+Leoric is an object-relational mapping (ORM) library for Node.js, heavily
+influenced by Active Record of Ruby on Rails. Models are declared as classes
+extending `Bone`, connected to MySQL/PostgreSQL/SQLite through `Realm`, and
+queried with a chainable API. Source is TypeScript (`src/`); `tsc` emits
+JavaScript (`lib/` for CJS, `dist/` for ESM) plus declaration files
+(`lib/*.d.ts`), which ship to npm.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run prepack` | Build `lib/` (CJS) and declaration files; also builds ts4.9-compatible types via `scripts/build-ts49-types.js` |
+| `npm run prepack:browser` | Build the ESM bundle in `dist/` |
+| `npm run test:sqlite` | Fastest test run (single dialect, runs through `test/start.sh`) |
+| `npm run test:unit` | Unit tests only |
+| `npm run test` | Full suite: unit first, then integration per dialect |
+| `npm run test:dts` | Type-level consumer tests (`test/fixtures/ts5-consumer`, `ts49-consumer`) |
+| `npm run lint` | ESLint over the whole repo |
+| `npm run jsdoc` | Regenerate `docs/api` from JSDoc comments |
+
+Notes:
+
+- Tests run via mocha + ts-node through `test/start.sh`; no build step is needed before testing.
+- Integration tests need databases on localhost; check `test/prepare.sh` and `test/start.sh` for how they are provisioned.
+- `lib/` and `dist/` are build artifacts — never edit them directly; regenerate with `npm run prepack`.
+
+## Architecture
+
+- `src/bone.ts` — the `Bone` base class users extend; typed query entry points (`find`, `findOne`, `sum`, `restore`, `update`...)
+- `src/abstract_bone.ts` — core model implementation: attributes, associations, lifecycle, `init()`/`sync()`, instance methods (`save`, `remove`, `reload`, `toObject`...)
+- `src/model.ts` — model class compilation (`compileModel`) and `LeoricModelCompilationError`
+- `src/realm/base.ts` — `Realm`: connection management, `define()`, model registration, `connect()`/`sync()`/`query()`/`transaction()`
+- `src/drivers/` — SQL dialects (`mysql`, `postgres`, `sqlite`, `sqljs`) built on `drivers/abstract`
+- `src/spell.ts` — the chainable query builder (`where`, `order`, `limit`, `with`, ...); turns into SQL via `src/expr.ts` / `src/expr_formatter.ts`
+- `src/query_object.ts` — condition parsing (operators such as `$gt`, `$in`) consumed by spell
+- `src/data_types.ts` — `DataTypes` definitions
+- `src/adapters/sequelize.ts` — Sequelize compatibility layer
+- `src/index.ts` — public entry; re-exports everything users import from `leoric`
+
+Dependency direction: `bone → abstract_bone → drivers`, `spell → expr`, `realm → drivers`.
+
+## Conventions
+
+- Model attributes are declared via `static attributes = {...}` or `realm.define(Model, attributes)`; associations are declared inside `static initialize()` (`belongsTo` / `hasMany` / `hasOne`).
+- A model cannot be queried before `realm.connect()`; call `realm.sync()` to create or migrate tables from model definitions.
+- Public API additions must include JSDoc (`@param` / `@returns` / `@example`) and be exported from `src/index.ts` so the generated `.d.ts` stays self-documenting.
+- Type compatibility is verified in `test/fixtures/ts5-consumer` and `test/fixtures/ts49-consumer` (see the `typesVersions` mapping in `package.json`); run `npm run test:dts` after touching public types.
+- Commits follow Conventional Commits; releases are driven by release-please (`release-please-config.json`) — do not bump versions manually.
+- `docs/` is a Jekyll site deployed to leoric.js.org; keep `docs/zh/` in sync when adding or changing user-facing docs.
+
+## Common Pitfalls
+
+- Query changes must be verified against at least two dialects (e.g. `test:sqlite` + `test:postgres`): MySQL/PostgreSQL/SQLite differ in quoting, LIMIT syntax, and upsert support.
+- The browser build has its own entry (`src/browser.ts`); keep browser-specific code out of shared modules.
+- `src/index.ts` wires migration helpers onto Realm via `Object.assign(Realm.prototype, migrations)` — keep that wiring in sync when adding realm methods.
+- Soft delete and paranoid scopes affect `find`/`count`; check `unscoped` semantics before changing query behavior.
+- `Realm` and `Bone` are compiled into `.d.ts` by `tsc` — hand-written `types/` stubs only exist for TypeScript < 4.9 consumers (`scripts/build-ts49-types.js` regenerates them).

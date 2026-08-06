@@ -51,6 +51,14 @@ export async function connect(opts: ConnectOptions & { Bone?: typeof Bone }): Pr
   return realm;
 }
 
+/**
+ * Disconnect the realm from the database. Does nothing if the realm is not
+ * connected.
+ * @param realm - the realm to disconnect
+ * @param callback - called once the connection is closed
+ * @example
+ * await disconnect(realm);
+ */
 export async function disconnect(realm: Realm, callback?: () => Promise<void>) {
   if (realm instanceof Realm && realm.connected) {
     return await realm.disconnect(callback);

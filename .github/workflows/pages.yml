@@ -34,6 +34,10 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
+      # Regenerate AI-friendly doc files (llms.txt, llms-full*.txt) from guides
+      - run: node ../scripts/build-llms.mjs
+        working-directory: docs
+
       - run: bundle exec jekyll build --baseurl ""
         env:
           JEKYLL_ENV: production

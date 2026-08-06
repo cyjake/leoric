@@ -31,11 +31,17 @@ import {
 import { executeValidator, LeoricValidateError } from './validator';
 import Attribute, { AttributeParams } from './drivers/abstract/attribute';
 
+/**
+ * Options controlling how `sync` synchronizes the model's table.
+ */
 export interface SyncOptions {
   force?: boolean;
   alter?: boolean;
 }
 
+/**
+ * Options for initializing a model, typically passed to `init` or `realm.define()`.
+ */
 export interface InitOptions {
   underscored?: boolean;
   tableName?: string;
@@ -47,8 +53,11 @@ export interface InitOptions {
   timestamps?: boolean;
 }
 
+/** Symbol key that caches the model's non-virtual attribute definitions. */
 export const columnAttributesKey = Symbol('leoric#columnAttributes');
+/** Symbol key that marks whether the model's table schema has been synchronized. */
 export const synchronizedKey = Symbol('leoric#synchronized');
+/** Symbol key that stores the table name of the model. */
 export const tableKey = Symbol('leoric#table');
 
 const debug = Debug('leoric');
@@ -72,6 +81,9 @@ function $rawPrevious(self: any): Record<string, any> { return self[RAW_PREVIOUS
 // Kept as a compatibility export for adapters and consumers that reference the symbol.
 export const hasLoadedAttributesKey = Symbol('leoric#hasLoadedAttributes');
 
+/**
+ * Thrown when constructing a model class that has not been registered or loaded.
+ */
 export class LeoricModelDefinitionError extends Error {
   constructor(modelName: string) {
     super(`${modelName} is not a registered Leoric model. Add it to the realm models, decorate it with @Model(), or define it through realm.define().`);
@@ -79,6 +91,9 @@ export class LeoricModelDefinitionError extends Error {
   }
 }
 
+/**
+ * Thrown when an ES class field on an instance shadows a Leoric attribute accessor.
+ */
 export class LeoricClassFieldError extends Error {
   modelName: string;
   attributeName: string;
@@ -329,6 +344,12 @@ export class AbstractBone {
     return result;
   }
 
+  /**
+   * Convert an attribute name to its underlying column name. Names that are not attributes are returned unchanged.
+   * @param name attribute name
+   * @example
+   * Post.unalias('createdAt');   // => 'created_at'
+   */
   static unalias(name: string): string {
     if (name in this.attributes) {
       return this.attributes[name].columnName;
@@ -359,6 +380,13 @@ export class AbstractBone {
     this[hasLoadedAttributesKey] = true;
   }
 
+  /**
+   * Define a hasOne association. The foreign key defaults to `<thisModelName>Id` on the associated model.
+   * @param name association name, e.g. `'profile'`
+   * @param options association options, e.g. `{ className, foreignKey, through }`
+   * @example
+   * User.hasOne('profile');
+   */
   static hasOne(name: string, options?: AssociateOptions): void {
     options = ({
       className: capitalize(name),
@@ -370,6 +398,13 @@ export class AbstractBone {
     this.associate(name, options);
   }
 
+  /**
+   * Define a hasMany association. The foreign key defaults to `<thisModelName>Id` on the associated model.
+   * @param name association name, e.g. `'posts'`
+   * @param options association options, e.g. `{ className, foreignKey, through }`
+   * @example
+   * User.hasMany('posts');
+   */
   static hasMany(name: string, options?: AssociateOptions): void {
     options = ({
       className: capitalize(pluralize(name, 1)),
@@ -381,6 +416,13 @@ export class AbstractBone {
     this.associate(name, options);
   }
 
+  /**
+   * Define a belongsTo association. The foreign key defaults to `<associatedModelName>Id` on this model.
+   * @param name association name, e.g. `'user'`
+   * @param options association options, e.g. `{ className, foreignKey }`
+   * @example
+   * Post.belongsTo('user');
+   */
   static belongsTo(name: string, options: AssociateOptions = {} as any): void {
     const { className = capitalize(name) } = options;
     options = ({
@@ -838,6 +880,11 @@ export class AbstractBone {
     return result;
   }
 
+  /**
+   * Fetch the schema information of the model's table, keyed by column name.
+   * @example
+   * await Post.describe();
+   */
   static async describe() {
     return await this.driver?.describeTable(this.physicTable);
   }
@@ -856,6 +903,12 @@ export class AbstractBone {
     await this.driver?.truncateTable(this.table);
   }
 
+  /**
+   * Synchronize the model's table with its attribute definitions. The table is created when it does not exist; with `force: true` it is dropped and recreated (existing data is destroyed), with `alter: true` it is altered in place, otherwise a warning is printed when out of sync.
+   * @param options `{ force, alter }`
+   * @example
+   * await Post.sync({ force: true });
+   */
   static async sync({ force = false, alter = false }: SyncOptions = {}): Promise<void> {
     const { physicTable: table } = this;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -888,6 +941,9 @@ export class AbstractBone {
     this.load(schemaInfo[table]);
   }
 
+  /**
+   * Apply association metadata registered via decorators (`@HasOne`, `@HasMany`, `@BelongsTo`) onto the model. Called by the realm after the model is loaded.
+   */
   static initialize(): void {
     for (const [key, metadataKey] of Object.entries(ASSOCIATE_METADATA_MAP)) {
       const result = (Reflect as any).getMetadata(metadataKey, this);
@@ -926,6 +982,14 @@ export class AbstractBone {
     return instance as InstanceType<T>;
   }
 
+  /**
+   * Initialize the model with attribute definitions, table name, timestamps, hooks, and custom property descriptors. Usually invoked through `realm.define()` or the `@Model()` decorator.
+   * @param attributes attribute definitions keyed by attribute name
+   * @param opts options, e.g. `{ tableName, timestamps, underscored, hooks }`
+   * @param overrides custom property descriptors installed on the prototype
+   * @example
+   * Post.init({ title: DataTypes.STRING }, { tableName: 'posts' });
+   */
   static init(attributes: Record<string, AbstractDataType<DataType> | AttributeMeta>, opts: InitOptions = {}, overrides: Record<string, PropertyDescriptor> = {}): void {
     const { hooks, paranoid, tableName: table, timestamps } = {
       underscored: true,
@@ -1035,16 +1099,31 @@ export class AbstractBone {
   }
 
   // raw accessors
+  /**
+   * Get the raw attribute values as stored internally, bypassing custom getters. With a name, only the raw value of that attribute is returned.
+   * @param key attribute name
+   * @example
+   * post.getRaw();          // => { id: 1, title: 'Leoric' }
+   * post.getRaw('title');   // => 'Leoric'
+   */
   getRaw(key?: string) {
     if (key) return $raw(this)[key];
     return $raw(this);
   }
 
+  /**
+   * Get the raw attribute values as persisted by the last save, bypassing custom getters. With a name, only the raw value of that attribute is returned.
+   * @param key attribute name
+   */
   getRawSaved(key?: string) {
     if (key) return $rawSaved(this)[key];
     return $rawSaved(this);
   }
 
+  /**
+   * Get the raw attribute values as persisted by the save before last, bypassing custom getters. With a name, only the raw value of that attribute is returned.
+   * @param key attribute name
+   */
   getRawPrevious(key?: string) {
     if (key) return $rawPrevious(this)[key];
     return $rawPrevious(this);
@@ -1075,6 +1154,10 @@ export class AbstractBone {
   attribute(name: string, value: Literal): this;
 
   /**
+   * Get or set an attribute value. As a getter, returns the current value (or `null` when unset); as a setter, casts and stores the value and returns the instance for chaining.
+   * @param name attribute name
+   * @param value value to set
+   * @returns the current attribute value, or the instance itself when called as a setter
    * @example
    * bone.attribute('foo');     // => 1
    * bone.attribute('foo', 2);  // => bone
@@ -1094,8 +1177,9 @@ export class AbstractBone {
   }
 
   /**
-   * instance.hasAttribute(name)
-   * @param name
+   * Check whether the model has an attribute with the given name.
+   * @param name attribute name
+   * @returns `true` when the attribute exists
    */
   hasAttribute(name: string): boolean {
     if (!name) return false;
@@ -1127,7 +1211,13 @@ export class AbstractBone {
   }
 
   /**
-   * Get changed attributes or check if given attribute is changed or not
+   * Get the names of attributes changed since the record was loaded or last saved, or check whether the given attribute has changed.
+   * @param name attribute name; when provided, only that attribute is checked
+   * @returns changed attribute names, or `false` when nothing changed; a boolean when `name` is provided
+   * @example
+   * post.title = 'New';
+   * post.changed();          // => ['title']
+   * post.changed('title');   // => true
    */
   changed(): string[] | false;
   changed(name: string): boolean;
@@ -1138,7 +1228,11 @@ export class AbstractBone {
   }
 
   /**
-   * Get attribute changes
+   * Get attribute changes as `{ [name]: [valueWas, value] }` pairs since the record was loaded or last saved.
+   * @param name attribute name; when provided, only the change of that attribute is returned
+   * @example
+   * post.title = 'New';
+   * post.changes();   // => { title: ['Old', 'New'] }
    */
   changes(name?: string): Record<string, [ any, any ]> {
     if (name != null) {
@@ -1159,7 +1253,10 @@ export class AbstractBone {
   }
 
   /**
-   * See if attribute was changed previously or not.
+   * See if attribute was changed previously or not, compared against the state before the most recent save.
+   * @param name attribute name; when provided, only that attribute is checked
+   * @example
+   * post.previousChanged('title')
    */
   previousChanged(name?: string): any {
     const result = Object.keys(this.previousChanges(name as any));
@@ -1167,6 +1264,12 @@ export class AbstractBone {
     return result.length > 0 ? result : false;
   }
 
+  /**
+   * Get attribute changes as `{ [name]: [valueWas, value] }` pairs compared against the state before the most recent save, one save further back than `changes()`.
+   * @param name attribute name; when provided, only the change of that attribute is returned
+   * @example
+   * post.previousChanges();   // => { title: ['Old', 'New'] }
+   */
   previousChanges(name?: string): Record<string, [ any, any ]> {
     if (name != null) {
       if ($rawUnset(this).has(name) || $rawPrevious(this)[name] === undefined || !this.hasAttribute(name)) {
@@ -1457,8 +1560,11 @@ export class AbstractBone {
   }
 
   /**
-   * create instance
-   * @param opts query options
+   * INSERT the current record into the database, syncing generated timestamps and primary key. Resolves to the instance itself.
+   * @param opts query options, e.g. `{ hooks: false }`
+   * @example
+   * const post = new Post({ title: 'Leoric' });
+   * await post.create();
    */
   create(opts?: QueryOptions): Spell<typeof AbstractBone, this> | this {
     return this._create(opts);
@@ -1503,7 +1609,9 @@ export class AbstractBone {
   }
 
   /**
-   * reload instance
+   * Reload the record from the database, discarding any unpersisted changes. Resolves to the freshly fetched instance when found.
+   * @example
+   * await post.reload();
    */
   async reload(): Promise<this> {
     const { primaryKey, shardingKey } = (this.constructor as any);
@@ -1529,7 +1637,9 @@ export class AbstractBone {
   }
 
   /**
-   * Validate current changes
+   * Validate current attribute changes. Throws `LeoricValidateError` when any value fails validation.
+   * @example
+   * post.validate();
    */
   validate(): void {
     this._validateAttributes();
@@ -1558,8 +1668,11 @@ export class AbstractBone {
   }
 
   /**
-   * restore data
+   * Restore a soft-deleted record by clearing its `deletedAt` attribute. Only works for paranoid models with a `deletedAt` attribute, otherwise an Error is thrown.
    * @param opts query options
+   * @example
+   * await post.remove();
+   * await post.restore();
    */
   async restore(opts: QueryOptions = {}): Promise<this> {
     const Model: any = this.constructor;
@@ -1620,6 +1733,9 @@ export class AbstractBone {
   }
 }
 
+/**
+ * Mark the model class as loaded and ready to be instantiated. Constructing a model class that is not ready throws `LeoricModelDefinitionError`.
+ */
 export function markModelClassReady<T extends typeof AbstractBone>(Model: T): T {
   if (isModelClassReady(Model)) return Model;
   Object.defineProperty(Model, MODEL_READY, {
@@ -1631,10 +1747,16 @@ export function markModelClassReady<T extends typeof AbstractBone>(Model: T): T 
   return Model;
 }
 
+/**
+ * Check whether the model class has been marked as ready.
+ */
 export function isModelClassReady(Model: typeof AbstractBone): boolean {
   return Object.prototype.hasOwnProperty.call(Model, MODEL_READY);
 }
 
+/**
+ * Check whether the model class is ready or inherits readiness from one of its ancestors. A class declaring its own `attributes` must be marked ready itself.
+ */
 export function isModelClassReadyOrInherited(Model: typeof AbstractBone): boolean {
   if (Object.prototype.hasOwnProperty.call(Model, MODEL_READY)) return true;
   // Subclasses with own column declarations need their own registration
@@ -1645,6 +1767,9 @@ export function isModelClassReadyOrInherited(Model: typeof AbstractBone): boolea
   return false;
 }
 
+/**
+ * Mark the model class as checked for ES class fields shadowing attribute accessors, so `assertModelClassFields` skips re-scanning its instances.
+ */
 export function markModelClassFieldsChecked<T extends typeof AbstractBone>(Model: T): T {
   if (hasCheckedModelClassFields(Model)) return Model;
   Object.defineProperty(Model, MODEL_CLASS_FIELDS_CHECKED, {
@@ -1656,10 +1781,16 @@ export function markModelClassFieldsChecked<T extends typeof AbstractBone>(Model
   return Model;
 }
 
+/**
+ * Check whether the model class has been marked as checked for shadowing ES class fields.
+ */
 export function hasCheckedModelClassFields(Model: typeof AbstractBone): boolean {
   return Object.prototype.hasOwnProperty.call(Model, MODEL_CLASS_FIELDS_CHECKED);
 }
 
+/**
+ * Assert that the instance has no own property shadowing a model attribute (emitted ES class fields). Throws `LeoricClassFieldError` when one is found, and marks the class as checked when the instance is clean.
+ */
 export function assertModelClassFields(instance: AbstractBone): void {
   const Model = instance.constructor as typeof AbstractBone;
   if (hasCheckedModelClassFields(Model)) return;

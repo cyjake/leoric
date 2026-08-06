@@ -70,6 +70,11 @@ function createSpine(opts: { Bone?: typeof AbstractBone; sequelize?: boolean; su
   return Model;
 }
 
+/**
+ * The central entry point of Leoric. Manages the database connection, model
+ * registration and schema synchronization, and provides methods for raw
+ * queries and transactions. Usually created via `new Realm()` or `connect()`.
+ */
 export default class BaseRealm {
   Bone: typeof AbstractBone;
   DataTypes = DataTypes;
@@ -78,6 +83,24 @@ export default class BaseRealm {
   connected?: boolean;
   options: ConnectOptions & { database: string };
 
+  /**
+   * Create a realm. Sets up the database driver with the given connection
+   * options, and pre-registers the model classes passed in `opts.models`.
+   * @param opts
+   * @param opts.dialect - database dialect, such as `mysql`, `postgres`, or `sqlite`
+   * @param opts.client - client module name, such as `mysql`, `mysql2`, `pg`, or `sqlite3`
+   * @param opts.database - database name, aliases: `db`, `storage`
+   * @param opts.driver - custom driver class, must be a subclass of AbstractDriver
+   * @param opts.models - model classes to pre-register, or a directory path to load models from
+   * @example
+   * const realm = new Realm({
+   *   dialect: 'mysql',
+   *   host: 'localhost',
+   *   user: 'root',
+   *   database: 'my_app',
+   *   models: [Post, User],
+   * });
+   */
   constructor(opts: ConnectOptions = {}) {
     const {
       dialect = 'mysql',
@@ -120,6 +143,14 @@ export default class BaseRealm {
     this.options = Spine.options = options;
   }
 
+  /**
+   * Get the driver class. Returns the custom driver class when it is a
+   * subclass of AbstractDriver, otherwise throws an error. Overridden by
+   * `Realm` to resolve the built-in driver by dialect.
+   * @param CustomDriver - custom driver class
+   * @param dialect - database dialect
+   * @returns the driver class
+   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDriverClass(CustomDriver: typeof AbstractDriver | undefined, dialect: string) {
     if (CustomDriver && CustomDriver.prototype instanceof AbstractDriver) {
@@ -128,6 +159,32 @@ export default class BaseRealm {
     throw new Error('DriverClass must be a subclass of AbstractDriver');
   }
 
+  /**
+   * Define and register a model at runtime. The class overload compiles the
+   * given model class, which must extend the realm's Bone; the string
+   * overload generates a Bone subclass with the given name instead.
+   * `attributes` define the columns of the model, such as
+   * `{ id: { type: BIGINT, primaryKey: true }, title: STRING }`.
+   * @param Model - the model class to compile, must extend the realm's Bone
+   * @param attributes - column definitions
+   * @param options - model init options
+   * @param descriptors - property descriptors
+   * @returns the model class
+   * @example
+   * const Post = realm.define(class Post extends Bone {
+   *   static initialize() {
+   *     this.belongsTo('author', { Model: 'User' });
+   *   }
+   * }, {
+   *   id: { type: BIGINT, primaryKey: true },
+   *   title: STRING,
+   * });
+   *
+   * const User = realm.define('User', {
+   *   login: STRING,
+   *   nickname: STRING,
+   * });
+   */
   define<T extends typeof AbstractBone>(
     Model: T,
     attributes?: Record<string, AbstractDataType<DataType> | AttributeMeta>,
@@ -170,6 +227,14 @@ export default class BaseRealm {
     return Model;
   }
 
+  /**
+   * Register an already defined model class to the realm without compiling it
+   * again. The model will be loaded and initialized when the realm connects.
+   * @param Model - the model class to register
+   * @returns the registered model class
+   * @example
+   * realm.registerModel(Post);
+   */
   registerModel<T extends typeof AbstractBone>(Model: T): T {
     markModelClassReady(Model);
     this.models[Model.name] = Model;
@@ -177,10 +242,25 @@ export default class BaseRealm {
     return Model;
   }
 
+  /**
+   * Get all model classes registered in the realm.
+   * @returns an array of the model classes
+   * @example
+   * const models = await realm.getModels();
+   */
   async getModels() {
     return Object.values(this.models);
   }
 
+  /**
+   * Load schema information of the given models from the database, map table
+   * columns to model attributes, and initialize their associations. Usually
+   * called by `connect()` rather than directly.
+   * @param models - the model classes to load
+   * @param opts - connection options
+   * @example
+   * await realm.loadModels([Post, User], realm.options);
+   */
   async loadModels(models: Array<typeof AbstractBone>, opts: ConnectOptions) {
     if (this.driver == null) {
       throw new Error('Driver is not initialized');
@@ -205,6 +285,15 @@ export default class BaseRealm {
     }
   }
 
+  /**
+   * Connect to the database. Loads schema information of the registered
+   * models, maps table columns to model attributes, and initializes their
+   * associations. Queries must not be executed before the realm is connected.
+   * @returns the realm's Bone class
+   * @example
+   * await realm.connect();
+   * const post = await Post.find(1);
+   */
   async connect() {
     let models = (await this.getModels()).map(model => this.registerModel(model));
     // models could be connected already if cached
@@ -217,12 +306,31 @@ export default class BaseRealm {
     return this.Bone;
   }
 
+  /**
+   * Disconnect the realm from the database. Does nothing if the realm is not
+   * connected.
+   * @param callback - called once the connection is closed
+   * @example
+   * await realm.disconnect();
+   */
   async disconnect(callback?: (() => Promise<void>)) {
     if (this.connected && this.driver) {
       return await this.driver.disconnect(callback);
     }
   }
 
+  /**
+   * Synchronize the model definitions to the database. Creates tables that do
+   * not exist, and optionally alters existing tables to match the model
+   * definitions. Connects the realm first if it is not connected yet.
+   * @param options
+   * @param options.force - drop existing tables before creating, which will lose data
+   * @param options.alter - alter existing tables to match the model definitions
+   * @example
+   * await realm.sync();
+   * await realm.sync({ force: true });
+   * await realm.sync({ alter: true });
+   */
   async sync(options: SyncOptions = {}) {
     if (!this.connected) await this.connect();
     const { models } = this;
@@ -232,24 +340,57 @@ export default class BaseRealm {
     }
   }
 
+  /**
+   * Execute a raw SQL query against the database. Values are bound to the
+   * `?` placeholders in the SQL statement.
+   * @param sql - the SQL statement, with `?` placeholders for values
+   * @param values - values to be bound to the placeholders
+   * @param opts - query options, such as `{ type: 'select' }`
+   * @returns the query result
+   * @example
+   * const result = await realm.query('SELECT * FROM posts WHERE id = ?', [1]);
+   */
   async query(sql: string, values?: Literal[], opts: RawQueryOptions = {}): Promise<any> {
     return await rawQuery(this.driver, sql, values, opts);
   }
 
+  /**
+   * Run the callback inside a database transaction. The callback receives
+   * `{ connection }`; queries executed with this connection belong to the
+   * transaction and are rolled back when the callback throws. Both async
+   * functions and generator functions are supported.
+   * @param callback - the transaction callback, receives `{ connection }`
+   * @returns the return value of the callback
+   * @example
+   * await realm.transaction(async ({ connection }) => {
+   *   await Post.create({ title: 'Hello' }, { connection });
+   *   await Comment.create({ postId: 1, content: 'World' }, { connection });
+   * });
+   */
   async transaction<T extends (options: { connection: Connection }) => Promise<any> | Generator>(callback: T): Promise<ReturnType<T>> {
     return await this.Bone.transaction(callback);
   }
 
-  // instance.raw
+  /**
+   * Create a `Raw` SQL expression that will not be escaped when used in
+   * queries or updates.
+   * @param sql - the SQL expression
+   * @returns the raw SQL expression
+   * @example
+   * await Post.update({ title: 'New Title' }, { updatedAt: realm.raw('NOW()') });
+   */
   raw(sql: string): Raw {
     return raw(sql);
   }
 
   /**
-   * escape value
-   * @param value
-   * @returns escaped value
+   * Escape a value for safe use in SQL queries.
+   * @param value - the value to escape
+   * @returns the escaped value
    * @memberof Realm
+   * @example
+   * const safe = realm.escape("O'Reilly");
+   * // => "'O\\'Reilly'"
    */
   escape(value: string): string {
     return this.driver.escape(value);

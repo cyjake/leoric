@@ -101,6 +101,16 @@ export default class Post extends Bone {
 
 More about TypeScript integration examples can be found at [the TypeScript support documentation](https://leoric.js.org/types)
 
+## AI-Friendly Resources
+
+Leoric is designed to work well with AI coding assistants, both for end users and for contributors:
+
+- [AI Cookbook](https://leoric.js.org/ai-cookbook) (中文：[AI 代码手册](https://leoric.js.org/zh/ai-cookbook)) — copy-pasteable, verified patterns for models, queries, transactions, and troubleshooting
+- [llms.txt](https://leoric.js.org/llms.txt) — machine-readable index of the documentation
+- [llms-full.txt](https://leoric.js.org/llms-full.txt) / [llms-full-zh.txt](https://leoric.js.org/llms-full-zh.txt) — all guides concatenated for single-shot context injection
+- [AGENTS.md](./AGENTS.md) (中文版：[AGENTS.zh-CN.md](./AGENTS.zh-CN.md)) — repository guide for AI agents and contributors
+- Public API types ship with JSDoc, so IDE autocompletion and AI code generation see documented signatures out of the box
+
 ## Contributing
 
 There are many ways in which you can participate in the project, for example:
