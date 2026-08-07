@@ -8,9 +8,7 @@
       "package-name": "leoric",
       "changelog-path": "History.md",
       "changelog-type": "github",
-      "versioning": "prerelease",
-      "prerelease": true,
-      "prerelease-type": "beta"
+      "versioning": "default"
     }
   }
 }
