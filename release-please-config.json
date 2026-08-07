@@ -8,7 +8,8 @@
       "package-name": "leoric",
       "changelog-path": "History.md",
       "changelog-type": "github",
-      "versioning": "default"
+      "versioning": "default",
+      "release-as": "2.15.0"
     }
   }
 }
