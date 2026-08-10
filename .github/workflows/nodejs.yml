@@ -63,20 +63,9 @@ jobs:
         MYSQL_ROOT_PASSWORD: password
 
     - name: Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    - name: Dry-run npm publish with appropriate tag
-      run: |
-        VERSION=$(node -p "require('./package.json').version")
-        if [[ $VERSION == *"alpha"* ]]; then
-          TAG="alpha"
-        elif [[ $VERSION == *"beta"* ]]; then
-          TAG="beta"
-        else
-          TAG="latest"
-        fi
-        echo "Package version: $VERSION"
-        echo "Would publish with tag: $TAG"
-        npm publish --dry-run --access public --tag $TAG
+    - name: Verify package builds correctly
+      run: npm pack --dry-run
