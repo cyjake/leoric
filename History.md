@@ -1,5 +1,51 @@
 # Changelog
 
+## 2.15.0 (2026-08-07)
+
+## What's Changed
+* refactor: more types by @cyjake in https://github.com/cyjake/leoric/pull/447
+* refactor: even more types by @cyjake in https://github.com/cyjake/leoric/pull/448
+* refactor: even more types by @cyjake in https://github.com/cyjake/leoric/pull/449
+* refactor: typed AbstractBone, Bone, and Spell by @cyjake in https://github.com/cyjake/leoric/pull/453
+* fix(types): resolve v2.14.x compatibility gaps after TS migration by @cyjake in https://github.com/cyjake/leoric/pull/456
+* refactor: typescript-native migration, jsdoc and docs fixes by @cyjake in https://github.com/cyjake/leoric/pull/458
+* feat(types): add TypeScript 4.9 declaration support by @cyjake in https://github.com/cyjake/leoric/pull/460
+* fix: support ES2022 class fields by intercepting [[DefineOwnProperty]] via Proxy by @JimmyDaddy in https://github.com/cyjake/leoric/pull/461
+* docs: comprehensive documentation improvement and playground by @JimmyDaddy in https://github.com/cyjake/leoric/pull/462
+* fix: guard undefined columns in loadModels and remove unsafe database cast by @cyjake in https://github.com/cyjake/leoric/pull/463
+* fix(types): enhance TypeScript definitions and improve type safety in… by @JimmyDaddy in https://github.com/cyjake/leoric/pull/464
+* Benchmark Proxy class field handling by @cyjake in https://github.com/cyjake/leoric/pull/466
+* Replace instance Proxy with model compilation by @cyjake in https://github.com/cyjake/leoric/pull/467
+* release: v2.15.0-beta.1 by @yicai-dev in https://github.com/cyjake/leoric/pull/468
+* fix(deps): bump esbuild to ^0.28.1 for path traversal fix by @yicai-dev in https://github.com/cyjake/leoric/pull/469
+* fix: lazily load database clients via dynamic import() by @elrrrrrrr in https://github.com/cyjake/leoric/pull/465
+* fix: allow transparent runtime subclasses of compiled models by @yicai-dev in https://github.com/cyjake/leoric/pull/471
+* release: v2.15.0-beta.2 by @yicai-dev in https://github.com/cyjake/leoric/pull/472
+* fix: forward consumer opts from Realm.query() to driver.query() by @yicai-dev in https://github.com/cyjake/leoric/pull/475
+* fix: export markModelClassReady from index by @yicai-dev in https://github.com/cyjake/leoric/pull/476
+* fix: restore v2.14 type compatibility for hints and Bone.restore/update by @yicai-dev in https://github.com/cyjake/leoric/pull/477
+* fix(types): restore Pool class & sequelize adapter types; ci: bump Actions to node24 by @yicai-dev in https://github.com/cyjake/leoric/pull/478
+* chore: add release-please workflow by @yicai-dev in https://github.com/cyjake/leoric/pull/479
+* fix: use prerelease versioning strategy for release-please by @yicai-dev in https://github.com/cyjake/leoric/pull/481
+* fix: use GitHub-native changelog format and History.md for release-please by @yicai-dev in https://github.com/cyjake/leoric/pull/482
+* ci: fix release-please tag format and upgrade action to v5 by @yicai-dev in https://github.com/cyjake/leoric/pull/483
+* chore(master): release 2.15.0-beta.3 by @github-actions[bot] in https://github.com/cyjake/leoric/pull/480
+* feat: add Node ESM entry via conditional exports by @yicai-dev in https://github.com/cyjake/leoric/pull/485
+* ci: chain npm publish into release-please and remove npmpublish.yml by @yicai-dev in https://github.com/cyjake/leoric/pull/484
+* chore(master): release 2.15.0-beta.4 by @github-actions[bot] in https://github.com/cyjake/leoric/pull/486
+* fix(types): stop applying ts4.9 override to lib/ declarations by @JimmyDaddy in https://github.com/cyjake/leoric/pull/490
+* chore(master): release 2.15.0-beta.5 by @github-actions[bot] in https://github.com/cyjake/leoric/pull/489
+* feat: make leoric more AI-friendly by @JimmyDaddy in https://github.com/cyjake/leoric/pull/491
+* chore: switch release-please from prerelease to stable channel by @yicai-dev in https://github.com/cyjake/leoric/pull/493
+* chore: reset release-please manifest to last stable for 2.15.0 graduation by @yicai-dev in https://github.com/cyjake/leoric/pull/494
+
+## New Contributors
+* @yicai-dev made their first contribution in https://github.com/cyjake/leoric/pull/468
+* @elrrrrrrr made their first contribution in https://github.com/cyjake/leoric/pull/465
+* @github-actions[bot] made their first contribution in https://github.com/cyjake/leoric/pull/480
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.14.0...v2.15.0
+
 ## 2.15.0-beta.5 (2026-08-06)
 
 ## What's Changed
