@@ -57,25 +57,32 @@ This is especially important for tables with large `TEXT` or `BLOB` columns.
 
 ## Batch Processing for Large Tables
 
-When processing large tables, avoid loading all records into memory at once. Use pagination:
+When processing large tables, avoid loading all records into memory at once. Use an indexed, unique cursor instead of an ever-growing offset:
 
 ```js
 // BAD: loads everything into memory
 const allPosts = await Post.find();
 
-// GOOD: process in batches
+// GOOD: process in stable, primary-key-ordered batches
 const pageSize = 100;
-let offset = 0;
+let lastId;
 while (true) {
-  const posts = await Post.find().limit(pageSize).offset(offset);
+  let query = Post.order('id').limit(pageSize);
+  if (lastId != null) {
+    query = query.where({ id: { $gt: lastId } });
+  }
+
+  const posts = await query;
   if (posts.length === 0) break;
 
   for (const post of posts) {
     // process each post
   }
-  offset += pageSize;
+  lastId = posts.at(-1).id;
 }
 ```
+
+Use an immutable cursor column where possible. See the [pagination guide]({% link querying.md %}) for limit/offset, composite cursors, and window-function pagination.
 
 ## Connection Pool Management
 
