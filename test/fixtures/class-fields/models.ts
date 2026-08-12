@@ -27,7 +27,13 @@ export class DecoratedUser extends Bone {
 }
 
 export class RealmDefinedUser extends Bone {
+  id!: bigint;
+
   name!: string;
 
   role = 'field initializer';
+
+  createdAt!: Date;
+
+  updatedAt!: Date;
 }
