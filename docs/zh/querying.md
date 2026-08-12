@@ -317,6 +317,8 @@ SELECT id, title, created_at FROM posts;
 
 分页查询必须使用确定性的排序规则。如果主要排序字段不唯一，应追加主键等唯一字段作为排序条件。例如使用 `updatedAt DESC, id DESC`，而不是只用 `updatedAt DESC`，否则 `updatedAt` 相同的记录可能在不同页面之间移动。
 
+排序规则还应该与可用索引相匹配。对于不带过滤条件的全表遍历，只按主键排序是高效的；但对于带过滤条件的查询，这可能迫使优化器在高效过滤数据和按要求的顺序返回数据之间进行取舍。过滤分页所使用的复合索引，应该让前面的字段满足等值过滤条件，后面的字段与游标排序规则一致。例如，`WHERE tenant_id = ? ORDER BY updated_at DESC, id DESC` 通常可使用 `(tenant_id, updated_at, id)` 索引，并由 `id` 保证顺序唯一。不同数据库的索引能力和查询计划有所差异，重要查询应通过数据库的 `EXPLAIN` 功能进行确认。
+
 ### Limit 与 Offset 分页
 
 Limit/offset 分页简单直观，并且支持直接跳转到指定页码，适合结果集较小或需要展示页码的场景。
@@ -345,7 +347,7 @@ LIMIT 20 OFFSET 20;
 
 游标分页也叫 keyset pagination 或 seek method。它使用上一页最后一条记录的排序值继续查询，不需要扫描不断增大的 offset，适合 feed 流、无限滚动、API 和大表批处理。
 
-如果使用带索引且唯一的主键排序，游标中只需要保存这个主键：
+如果不带过滤条件地遍历整张表，并使用带索引且唯一的主键排序，游标中只需要保存这个主键：
 
 ```js
 const pageSize = 20;

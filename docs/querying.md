@@ -322,6 +322,8 @@ SELECT id, title, created_at FROM posts;
 
 Every paginated query should use a deterministic order. If the primary sort column is not unique, add a unique column such as the primary key as a tie-breaker. For example, use `updatedAt DESC, id DESC` rather than `updatedAt DESC` alone. Otherwise rows with the same `updatedAt` value may move between pages.
 
+The order should also match a usable index. Ordering by the primary key alone is efficient for an unfiltered table scan, but it can make a filtered query choose between an index that filters well and one that returns rows in the requested order. For filtered pagination, use a composite index whose leading columns satisfy equality filters and whose remaining columns match the cursor order. For example, `WHERE tenant_id = ? ORDER BY updated_at DESC, id DESC` is commonly supported by an index on `(tenant_id, updated_at, id)`, with `id` providing uniqueness. Index capabilities and query plans vary, so verify important queries with your database's `EXPLAIN` facility.
+
 ### Limit and Offset
 
 Limit/offset pagination is straightforward and supports jumping directly to a page number. It is a good fit for small result sets and interfaces where users need numbered pages.
@@ -350,7 +352,7 @@ As the offset grows, the database still has to find and skip the preceding rows.
 
 Cursor-based pagination, also called keyset pagination or the seek method, continues after the last ordered value from the previous page. It avoids scanning an ever-growing offset and works well for feeds, infinite scrolling, APIs, and batch processing.
 
-When ordering by a unique, indexed primary key, the cursor can contain just that key:
+When traversing an unfiltered table by a unique, indexed primary key, the cursor can contain just that key:
 
 ```js
 const pageSize = 20;
