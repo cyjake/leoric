@@ -16,6 +16,10 @@ import {
   QueryResult,
   BoneCreateValues,
   BulkCreateOptions,
+  JsonPath,
+  JsonSetMutation,
+  JsonSetOptions,
+  JsonValue,
   Values,
 } from './types/common';
 import { AbstractDriver, ConnectOptions } from './drivers';
@@ -769,6 +773,57 @@ export class AbstractBone {
     options: QueryOptions,
   ): Promise<number> {
     return this.jsonMerge(conditions, values, { ...options, preserve: true });
+  }
+
+  /**
+   * Set one or more JSON paths without replacing the whole document.
+   * Paths use portable string/number segments, e.g. `[ 'profile', 'name' ]`.
+   * @param conditions rows to update
+   * @param name JSON attribute name
+   * @param path path segments or an ordered list of JSON mutations
+   * @param value JSON value or raw SQL expression
+   * @param options query options, plus PostgreSQL `nullTreatment`
+   * @returns number of affected rows
+   * @example
+   * await Post.jsonSet({ id: 1 }, 'extra', [ 'profile', 'name' ], 'Leoric');
+   * await Post.jsonSet({ id: 1 }, 'extra', [
+   *   { path: [ 'active' ], value: true },
+   *   { path: [ 'items', 0 ], value: { featured: true } },
+   * ]);
+   */
+  static jsonSet<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
+    this: T,
+    conditions: WhereConditions<T>,
+    name: Key,
+    path: JsonPath,
+    value: JsonValue | Raw,
+    options?: JsonSetOptions,
+  ): Promise<number>;
+
+  static jsonSet<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
+    this: T,
+    conditions: WhereConditions<T>,
+    name: Key,
+    mutations: readonly JsonSetMutation[],
+    options?: JsonSetOptions,
+  ): Promise<number>;
+
+  static jsonSet<T extends typeof AbstractBone, Key extends BoneColumns<T>>(
+    this: T,
+    conditions: WhereConditions<T>,
+    name: Key,
+    pathOrMutations: JsonPath | readonly JsonSetMutation[],
+    valueOrOptions?: JsonValue | Raw | JsonSetOptions,
+    options: JsonSetOptions = {},
+  ): Promise<number> {
+    const { mutations, options: jsonSetOptions } = normalizeJsonSetArguments(pathOrMutations, valueOrOptions, options);
+    const attribute = this.attributes[name as string];
+    if (!attribute) throw new Error(`${this.name} has no attribute called ${String(name)}`);
+    if (attribute.jsType !== JSON) throw new TypeError(`${this.name}.${String(name)} is not a JSON attribute`);
+    const expression = this.driver.formatJsonSet(attribute.columnName, mutations, jsonSetOptions);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { nullTreatment: _, ...queryOptions } = jsonSetOptions;
+    return this._update(conditions, { [name]: expression } as Partial<Record<Key, Raw>>, queryOptions);
   }
 
   /**
@@ -1560,6 +1615,53 @@ export class AbstractBone {
   }
 
   /**
+   * Set one or more JSON paths on this persisted instance and refresh the attribute.
+   * @param name JSON attribute name
+   * @param path path segments or an ordered list of JSON mutations
+   * @param value JSON value or raw SQL expression
+   * @param options query options, plus PostgreSQL `nullTreatment`
+   * @returns number of affected rows
+   * @example
+   * await post.jsonSet('extra', [ 'profile', 'name' ], 'Leoric');
+   */
+  jsonSet<Key extends keyof this>(
+    name: Key,
+    path: JsonPath,
+    value: JsonValue | Raw,
+    options?: JsonSetOptions,
+  ): Promise<number>;
+
+  jsonSet<Key extends keyof this>(
+    name: Key,
+    mutations: readonly JsonSetMutation[],
+    options?: JsonSetOptions,
+  ): Promise<number>;
+
+  async jsonSet<Key extends keyof this>(
+    name: Key,
+    pathOrMutations: JsonPath | readonly JsonSetMutation[],
+    valueOrOptions?: JsonValue | Raw | JsonSetOptions,
+    options: JsonSetOptions = {},
+  ): Promise<number> {
+    const Model = this.constructor as typeof AbstractBone;
+    const { primaryKey, shardingKey } = Model;
+    if (this[primaryKey] == null) throw new Error(`unset primary key ${primaryKey}`);
+    const { mutations, options: jsonSetOptions } = normalizeJsonSetArguments(pathOrMutations, valueOrOptions, options);
+    const where: Record<string, Literal> = { [primaryKey]: this[primaryKey] };
+    if (shardingKey) where[shardingKey] = this[shardingKey];
+    const affectedRows = await Model.jsonSet(where, name as string, mutations, jsonSetOptions);
+    if (affectedRows > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { nullTreatment: _, ...queryOptions } = jsonSetOptions;
+      const spell = Model._find(where, queryOptions).$select(name as string).$get(0);
+      spell.scopes = [];
+      const instance = await spell as InstanceType<typeof Model>;
+      if (instance) this.attribute(name as string, instance.attribute(name as string));
+    }
+    return affectedRows;
+  }
+
+  /**
    * INSERT the current record into the database, syncing generated timestamps and primary key. Resolves to the instance itself.
    * @param opts query options, e.g. `{ hooks: false }`
    * @example
@@ -1850,6 +1952,39 @@ function copyValues(values: any) {
     }
   }
   return copyValue;
+}
+
+function normalizeJsonSetArguments(
+  pathOrMutations: JsonPath | readonly JsonSetMutation[],
+  valueOrOptions: JsonValue | Raw | JsonSetOptions | undefined,
+  options: JsonSetOptions,
+): { mutations: readonly JsonSetMutation[]; options: JsonSetOptions } {
+  let mutations: readonly JsonSetMutation[];
+  let jsonSetOptions: JsonSetOptions;
+  if (isJsonSetMutationList(pathOrMutations)) {
+    mutations = pathOrMutations;
+    jsonSetOptions = valueOrOptions as JsonSetOptions;
+  } else {
+    mutations = [{ path: pathOrMutations as JsonPath, value: valueOrOptions as JsonValue | Raw }];
+    jsonSetOptions = options;
+  }
+  if (mutations.length === 0) throw new TypeError('jsonSet() requires at least one mutation');
+  for (const mutation of mutations) {
+    if (!mutation || !isJsonPath(mutation.path)) {
+      throw new TypeError('jsonSet() paths must be non-empty arrays of string or integer segments');
+    }
+  }
+  return { mutations, options: jsonSetOptions || {} };
+}
+
+function isJsonSetMutationList(value: JsonPath | readonly JsonSetMutation[]): value is readonly JsonSetMutation[] {
+  return value.length === 0 || typeof value[0] === 'object';
+}
+
+function isJsonPath(value: unknown): value is JsonPath {
+  return Array.isArray(value) && value.length > 0 && value.every(segment => {
+    return typeof segment === 'string' || typeof segment === 'number' && Number.isInteger(segment) && segment >= 0;
+  });
 }
 
 function valuesValidate(values: any, attributes: any, ctx: any) {

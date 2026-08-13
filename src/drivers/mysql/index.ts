@@ -1,12 +1,13 @@
 import { performance } from 'perf_hooks';
 
-import AbstractDriver, { ConnectOptions } from '../abstract';
+import AbstractDriver, { ConnectOptions, stringifyJsonValue } from '../abstract';
 import Attribute from './attribute';
 import DataTypes from './data_types';
 import Spellbook from './spellbook';
 import { calculateDuration } from '../../utils';
 import { heresql } from '../../utils/string';
-import { Literal, QueryOptions, QueryResult } from '../../types/common';
+import { JsonPath, JsonSetMutation, JsonSetOptions, Literal, QueryOptions, QueryResult } from '../../types/common';
+import Raw from '../../raw';
 
 interface SchemaColumn {
   columnName: string;
@@ -50,6 +51,18 @@ class MysqlDriver extends AbstractDriver {
     this.Attribute = (this.constructor as typeof MysqlDriver).Attribute;
     this.DataTypes = (this.constructor as typeof MysqlDriver).DataTypes;
     this.spellbook = new (this.constructor as typeof MysqlDriver).Spellbook();
+  }
+
+  formatJsonSet(columnName: string, mutations: readonly JsonSetMutation[], options: JsonSetOptions = {}): Raw {
+    if (options.nullTreatment) {
+      throw new Error('jsonSet() nullTreatment is only supported by the postgres dialect');
+    }
+    const target = `COALESCE(${this.escapeId(columnName)}, JSON_OBJECT())`;
+    const args = mutations.flatMap(({ path, value }) => [
+      this.escape(formatJsonPath(path)),
+      value instanceof Raw ? value.value : `CAST(${this.escape(stringifyJsonValue(value))} AS JSON)`,
+    ]);
+    return new Raw(`JSON_SET(${target}, ${args.join(', ')})`);
   }
 
   async createPool(opts: MysqlOptions): Promise<MysqlPool> {
@@ -231,6 +244,14 @@ class MysqlDriver extends AbstractDriver {
     }
     return result;
   }
+}
+
+function formatJsonPath(path: JsonPath): string {
+  return path.reduce<string>((result, segment) => {
+    return typeof segment === 'number'
+      ? `${result}[${segment}]`
+      : `${result}.${JSON.stringify(segment)}`;
+  }, '$');
 }
 
 export default MysqlDriver;
