@@ -36,6 +36,20 @@ type MysqlOptions = ConnectOptions & {
   bigNumberStrings?: boolean;
 };
 
+type Timer = ReturnType<typeof setTimeout>;
+
+function includesConnection(connections: any, connection: MysqlConnection): boolean {
+  if (!connections) return true;
+  if (typeof connections.includes === 'function') return connections.includes(connection);
+  if (typeof connections.toArray === 'function') return connections.toArray().includes(connection);
+  if (typeof connections.get === 'function') {
+    for (let index = 0; index < connections.length; index++) {
+      if (connections.get(index) === connection) return true;
+    }
+  }
+  return false;
+}
+
 class MysqlDriver extends AbstractDriver {
   static Spellbook = Spellbook;
   static Attribute = Attribute;
@@ -62,6 +76,7 @@ class MysqlDriver extends AbstractDriver {
       password,
       connectTimeout,
       connectionLimit,
+      idleTimeout,
       charset,
       stringifyObjects = true,
       decimalNumbers = true,
@@ -77,6 +92,7 @@ class MysqlDriver extends AbstractDriver {
     const mysql = module.default ?? module;
     return mysql.createPool({
       connectionLimit,
+      idleTimeout,
       connectTimeout,
       host,
       port,
@@ -95,6 +111,7 @@ class MysqlDriver extends AbstractDriver {
     if (!this.poolPromise) {
       this.poolPromise = this.createPool(this.options as MysqlOptions).then((pool) => {
         this.pool = pool;
+        this.recycleIdleConnections(pool, (this.options as MysqlOptions).idleTimeout);
         return pool;
       });
     }
@@ -105,6 +122,32 @@ class MysqlDriver extends AbstractDriver {
       this.poolPromise = undefined;
       throw error;
     }
+  }
+
+  private recycleIdleConnections(pool: MysqlPool, idleTimeout?: number): void {
+    if (!Number.isFinite(idleTimeout) || Number(idleTimeout) <= 0 || typeof pool.on !== 'function') return;
+    const timeout = Number(idleTimeout);
+
+    const timers = new WeakMap<MysqlConnection, Timer>();
+    const clearTimer = (connection: MysqlConnection) => {
+      const timer = timers.get(connection);
+      if (timer) clearTimeout(timer);
+      timers.delete(connection);
+    };
+
+    pool.on('connection', (connection: MysqlConnection) => {
+      connection.once?.('end', () => clearTimer(connection));
+    });
+    pool.on('acquire', clearTimer);
+    pool.on('release', (connection: MysqlConnection) => {
+      clearTimer(connection);
+      const timer = setTimeout(() => {
+        timers.delete(connection);
+        if (includesConnection(pool._freeConnections, connection)) connection.destroy();
+      }, timeout);
+      timer.unref?.();
+      timers.set(connection, timer);
+    });
   }
 
   async getConnection(): Promise<MysqlConnection> {
