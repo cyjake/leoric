@@ -295,10 +295,12 @@ describe('=> Bone.sync()', () => {
       static indexes = [
         { fields: ['authorId', 'title'] },
         { fields: ['slug'], name: 'uk_notes_slug', unique: true },
+        { fields: ['code'], name: 'uk_notes_code', type: 'UNIQUE' },
       ];
     }
-    Note.init({ authorId: INTEGER, title: STRING, slug: STRING });
+    Note.init({ authorId: INTEGER, title: STRING, slug: STRING, code: STRING });
 
+    await Note.sync();
     await Note.sync();
 
     const composite = await Bone.driver.showIndexes('notes', 'idx_notes_authorid_title');
@@ -307,6 +309,7 @@ describe('=> Bone.sync()', () => {
     const unique = await Bone.driver.showIndexes('notes', 'uk_notes_slug');
     assert.equal(unique.length, 1);
     assert.equal(unique[0].unique, true);
+    assert.equal((await Bone.driver.showIndexes('notes', 'uk_notes_code'))[0].unique, true);
   });
 
   it('should use custom column names in generated index names and SQL', async () => {
@@ -343,8 +346,8 @@ describe('=> Bone.sync()', () => {
       title: STRING,
       slug: STRING,
     });
-    await Bone.driver.addIndex('notes', ['title'], { name: 'notes_lookup' });
-    await Bone.driver.addIndex('notes', ['slug'], { name: 'external_notes_slug' });
+    await Bone.driver.addIndex('notes', ['slug'], { name: 'notes_lookup', unique: true });
+    await Bone.driver.addIndex('notes', ['title'], { name: 'external_notes_title' });
     class Note extends Bone {
       static indexes = [{ fields: ['title'], name: 'notes_lookup', unique: true }];
     }
@@ -360,16 +363,60 @@ describe('=> Bone.sync()', () => {
     const lookup = await Bone.driver.showIndexes('notes', 'notes_lookup');
     assert.equal(lookup.length, 1);
     assert.equal(lookup[0].unique, true);
-    assert.equal((await Bone.driver.showIndexes('notes', 'external_notes_slug')).length, 1);
+    assert.deepEqual(lookup[0].columns, ['title']);
+    assert.equal((await Bone.driver.showIndexes('notes', 'external_notes_title')).length, 1);
+  });
+
+  it('should reject indexes for custom physical tables', async () => {
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'] }];
+    }
+    Note.init({ title: STRING });
+    Note.physicTables = ['notes'];
+
+    await assert.rejects(Note.sync(), /custom physic tables/);
   });
 
   it('should reject invalid declared indexes', async () => {
-    class Note extends Bone {
+    class InvalidCollection extends Bone {
+      static indexes = {};
+    }
+    InvalidCollection.init({ title: STRING });
+    await assert.rejects(InvalidCollection.sync(), /indexes must be an array/);
+
+    class MissingFields extends Bone {
+      static indexes = [{}];
+    }
+    MissingFields.init({ title: STRING });
+    await assert.rejects(MissingFields.sync(), /fields must be a non-empty array/);
+
+    class EmptyFields extends Bone {
+      static indexes = [{ fields: [] }];
+    }
+    EmptyFields.init({ title: STRING });
+    await assert.rejects(EmptyFields.sync(), /fields must be a non-empty array/);
+
+    class UnknownAttribute extends Bone {
       static indexes = [{ fields: ['missing'] }];
     }
-    Note.init({ title: STRING });
+    UnknownAttribute.init({ title: STRING });
+    await assert.rejects(UnknownAttribute.sync(), /unknown attribute missing/);
 
-    await assert.rejects(Note.sync(), /unknown attribute missing/);
+    class InvalidAttribute extends Bone {
+      static indexes = [{ fields: [42] }];
+    }
+    InvalidAttribute.init({ title: STRING });
+    await assert.rejects(InvalidAttribute.sync(), /unknown attribute 42/);
+
+    class DuplicateName extends Bone {
+      static indexes = [
+        { fields: ['title'], name: 'notes_lookup' },
+        { fields: ['slug'], name: 'notes_lookup' },
+      ];
+    }
+    DuplicateName.init({ title: STRING, slug: STRING });
+
+    await assert.rejects(DuplicateName.sync(), /duplicate index name notes_lookup/);
   });
 });
 

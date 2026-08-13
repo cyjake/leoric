@@ -60,6 +60,7 @@ describe('=> AbstractDriver index names', function() {
     const driver = new AbstractDriver();
     assert.equal(driver.getIndexName('users', ['organizationId'], { columnNames: ['organization_id'] }), 'idx_users_organizationid');
     assert.equal(driver.getIndexName('users', ['email'], { unique: true }), 'uk_users_email');
+    assert.equal(driver.getIndexName('users', ['email'], { type: 'UNIQUE' }), 'uk_users_email');
   });
 });
 

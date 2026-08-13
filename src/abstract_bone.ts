@@ -933,9 +933,7 @@ export class AbstractBone {
     }
     const indexes = normalizeIndexes(this, table);
     if (this.synchronized && indexes.length === 0) return;
-    if (this.physicTables && (!this.synchronized || indexes.length > 0)) {
-      throw new Error('unable to sync model with custom physic tables');
-    }
+    if (this.physicTables) throw new Error('unable to sync model with custom physic tables');
     const { columnAttributes: attributes, columns } = this;
     const columnMap = columns.reduce((result: any, entry: any) => {
       result[entry.columnName] = entry;
