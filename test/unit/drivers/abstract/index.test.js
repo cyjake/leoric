@@ -53,6 +53,7 @@ describe('=> AbstractDriver#getConnection', function() {
 describe('=> AbstractDriver index names', function() {
   it('should honor explicit names', function() {
     const driver = new AbstractDriver();
+    assert.equal(driver.getIndexName('users', 'users_email_lookup'), 'users_email_lookup');
     assert.equal(driver.getIndexName('users', ['email'], { name: 'users_email_lookup' }), 'users_email_lookup');
   });
 

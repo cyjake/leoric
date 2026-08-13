@@ -367,6 +367,29 @@ describe('=> Bone.sync()', () => {
     assert.equal((await Bone.driver.showIndexes('notes', 'external_notes_title')).length, 1);
   });
 
+  it('should repair a declared index when its type changes', async function() {
+    if (Bone.driver.type !== 'mysql') this.skip();
+    await Bone.driver.createTable('notes', {
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+    });
+    await Bone.driver.addIndex('notes', ['title'], { name: 'notes_lookup' });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'], name: 'notes_lookup', type: 'FULLTEXT' }];
+    }
+    Note.init({
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+    }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync({ alter: true });
+
+    const lookup = await Bone.driver.showIndexes('notes', 'notes_lookup');
+    assert.equal(lookup.length, 1);
+    assert.equal(lookup[0].type, 'FULLTEXT');
+  });
+
   it('should reject indexes for custom physical tables', async () => {
     class Note extends Bone {
       static indexes = [{ fields: ['title'] }];
