@@ -16,6 +16,8 @@ import {
   QueryResult,
   BoneCreateValues,
   BulkCreateOptions,
+  IndexDefinition,
+  IndexMeta,
   Values,
 } from './types/common';
 import { AbstractDriver, ConnectOptions } from './drivers';
@@ -204,6 +206,17 @@ export class AbstractBone {
   static _scope: any;
 
   static associations: { [key: string]: any };
+
+  /**
+   * Database indexes managed by {@link AbstractBone.sync}. Fields use model attribute names.
+   * Existing tables are changed only when `sync({ alter: true })` is used.
+   * @example
+   * static indexes = [
+   *   { fields: ['organizationId', 'type'] },
+   *   { fields: ['email'], unique: true },
+   * ];
+   */
+  static indexes?: readonly IndexDefinition[];
 
   constructor(values?: { [key: string]: Literal }, opts: { isNewRecord?: boolean } = {}) {
     const Model = new.target as typeof AbstractBone;
@@ -918,27 +931,47 @@ export class AbstractBone {
       const schemaInfo = await driver.querySchemaInfo(database, [ table ]);
       this.load(schemaInfo[table]);
     }
-    if (this.synchronized) return;
-    if (this.physicTables) throw new Error('unable to sync model with custom physic tables');
+    const indexes = normalizeIndexes(this, table);
+    if (this.synchronized && indexes.length === 0) return;
+    if (this.physicTables && (!this.synchronized || indexes.length > 0)) {
+      throw new Error('unable to sync model with custom physic tables');
+    }
     const { columnAttributes: attributes, columns } = this;
     const columnMap = columns.reduce((result: any, entry: any) => {
       result[entry.columnName] = entry;
       return result;
     }, {});
+    let tableCreated = false;
+    let columnsChecked = false;
     if (columns.length === 0) {
       await driver.createTable(table, attributes);
-    } else {
-      if (force) {
-        await driver.dropTable(table);
-        await driver.createTable(table, attributes);
-      } else if (alter) {
+      tableCreated = true;
+      columnsChecked = true;
+    } else if (force) {
+      await driver.dropTable(table);
+      await driver.createTable(table, attributes);
+      tableCreated = true;
+      columnsChecked = true;
+    } else if (!this.synchronized) {
+      if (alter) {
         await driver.alterTable(table, compare(attributes, columnMap));
+        columnsChecked = true;
       } else {
         console.warn(`[synchronize_fail] ${this.name} couldn't be synchronized, please use force or alter to specify execution`);
       }
     }
-    const schemaInfo = await driver.querySchemaInfo(database, table);
-    this.load(schemaInfo[table]);
+
+    if (indexes.length > 0) {
+      const indexesSynchronized = await syncIndexes(driver, table, indexes, tableCreated || alter);
+      if (!indexesSynchronized) {
+        console.warn(`[synchronize_fail] ${this.name} indexes couldn't be synchronized, please use alter to specify execution`);
+      }
+    }
+
+    if (columnsChecked || !this.synchronized) {
+      const schemaInfo = await driver.querySchemaInfo(database, table);
+      this.load(schemaInfo[table]);
+    }
   }
 
   /**
@@ -1826,6 +1859,69 @@ function compare(attributes: any, columnMap: any) {
     if (!columnNames.has(columnName)) diff[columnName] = { remove: true };
   }
   return diff;
+}
+
+interface NormalizedIndexDefinition extends IndexDefinition {
+  name: string;
+  unique: boolean;
+  fields: string[];
+  columns: string[];
+}
+
+function normalizeIndexes(Model: typeof AbstractBone, table: string): NormalizedIndexDefinition[] {
+  const { driver, indexes = [], columnAttributes } = Model;
+  if (!Array.isArray(indexes)) {
+    throw new TypeError(`${Model.name}.indexes must be an array`);
+  }
+  const names = new Set<string>();
+  return indexes.map((index, position) => {
+    if (!index || !Array.isArray(index.fields) || index.fields.length === 0) {
+      throw new TypeError(`${Model.name}.indexes[${position}].fields must be a non-empty array`);
+    }
+    const fields = index.fields.map((field: string) => {
+      if (typeof field !== 'string' || !columnAttributes[field]) {
+        throw new Error(`${Model.name}.indexes[${position}] references unknown attribute ${String(field)}`);
+      }
+      return field;
+    });
+    const unique = index.unique === true || index.type === 'UNIQUE';
+    const columns = fields.map((field: string) => columnAttributes[field].columnName);
+    const name = driver.getIndexName(table, fields, { ...index, unique, columnNames: columns });
+    if (names.has(name)) throw new Error(`${Model.name}.indexes contains duplicate index name ${name}`);
+    names.add(name);
+    return {
+      ...index,
+      name,
+      unique,
+      fields,
+      columns,
+    };
+  });
+}
+
+async function syncIndexes(
+  driver: AbstractDriver,
+  table: string,
+  indexes: NormalizedIndexDefinition[],
+  alter: boolean,
+): Promise<boolean> {
+  const currentIndexes = await driver.showIndexes(table);
+  let synchronized = true;
+  for (const index of indexes) {
+    const current = currentIndexes.find(entry => entry.name === index.name);
+    if (current && indexMatches(current, index)) continue;
+    synchronized = false;
+    if (!alter) continue;
+    if (current) await driver.removeIndex(table, current.name);
+    await driver.addIndex(table, index.fields, { ...index, columnNames: index.columns });
+  }
+  return synchronized || alter;
+}
+
+function indexMatches(current: IndexMeta, expected: NormalizedIndexDefinition): boolean {
+  return current.unique === expected.unique
+    && isDeepStrictEqual(current.columns, expected.columns)
+    && (!expected.type || expected.type === 'UNIQUE' || current.type === expected.type);
 }
 
 function setDefaultValue(record: any, attributes: any) {

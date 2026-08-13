@@ -170,6 +170,7 @@ describe('=> ES2022 class fields', () => {
     @Model()
     class User extends Bone {
       static table = 'people';
+      static indexes = [{ fields: ['name'], unique: true }] as const;
 
       @Column({ type: STRING })
       get name(): string {
@@ -188,6 +189,7 @@ describe('=> ES2022 class fields', () => {
 
     const user = new User({ name: '  Ada  ' });
     assert.equal(User.table, 'people');
+    assert.deepEqual(User.indexes, [{ fields: ['name'], unique: true }]);
     assert.equal(user.name, 'ADA');
     assert.equal(user.attribute('name'), 'Ada');
     assert.equal(user.greet(), 'Hello ADA');

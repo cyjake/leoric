@@ -289,6 +289,88 @@ describe('=> Bone.sync()', () => {
       summary: null,
     });
   });
+
+  it('should create declared indexes with a new table', async () => {
+    class Note extends Bone {
+      static indexes = [
+        { fields: ['authorId', 'title'] },
+        { fields: ['slug'], name: 'uk_notes_slug', unique: true },
+      ];
+    }
+    Note.init({ authorId: INTEGER, title: STRING, slug: STRING });
+
+    await Note.sync();
+
+    const composite = await Bone.driver.showIndexes('notes', 'idx_notes_authorid_title');
+    assert.equal(composite.length, 1);
+    assert.deepEqual(composite[0].columns, ['author_id', 'title']);
+    const unique = await Bone.driver.showIndexes('notes', 'uk_notes_slug');
+    assert.equal(unique.length, 1);
+    assert.equal(unique[0].unique, true);
+  });
+
+  it('should use custom column names in generated index names and SQL', async () => {
+    class Note extends Bone {
+      static indexes = [{ fields: ['ownerId'] }];
+    }
+    Note.init({ ownerId: { type: INTEGER, columnName: 'creator_id' } });
+
+    await Note.sync();
+
+    const indexes = await Bone.driver.showIndexes('notes', 'idx_notes_creatorid');
+    assert.equal(indexes.length, 1);
+    assert.deepEqual(indexes[0].columns, ['creator_id']);
+  });
+
+  it('should require alter before adding a declared index to an existing table', async () => {
+    await Bone.driver.createTable('notes', { id: { type: INTEGER, primaryKey: true }, title: STRING });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'] }];
+    }
+    Note.init({ id: { type: INTEGER, primaryKey: true }, title: STRING }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync();
+    assert.equal((await Bone.driver.showIndexes('notes', 'idx_notes_title')).length, 0);
+
+    await Note.sync({ alter: true });
+    assert.equal((await Bone.driver.showIndexes('notes', 'idx_notes_title')).length, 1);
+  });
+
+  it('should repair changed declared indexes and preserve unrelated indexes', async () => {
+    await Bone.driver.createTable('notes', {
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+      slug: STRING,
+    });
+    await Bone.driver.addIndex('notes', ['title'], { name: 'notes_lookup' });
+    await Bone.driver.addIndex('notes', ['slug'], { name: 'external_notes_slug' });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'], name: 'notes_lookup', unique: true }];
+    }
+    Note.init({
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+      slug: STRING,
+    }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync({ alter: true });
+
+    const lookup = await Bone.driver.showIndexes('notes', 'notes_lookup');
+    assert.equal(lookup.length, 1);
+    assert.equal(lookup[0].unique, true);
+    assert.equal((await Bone.driver.showIndexes('notes', 'external_notes_slug')).length, 1);
+  });
+
+  it('should reject invalid declared indexes', async () => {
+    class Note extends Bone {
+      static indexes = [{ fields: ['missing'] }];
+    }
+    Note.init({ title: STRING });
+
+    await assert.rejects(Note.sync(), /unknown attribute missing/);
+  });
 });
 
 describe('=> Bone.drop()', () => {
@@ -411,4 +493,3 @@ describe('=> Table indexes', function() {
     assert.equal(results.length, 0);
   });
 });
-
