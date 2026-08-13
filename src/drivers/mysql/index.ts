@@ -39,9 +39,8 @@ type MysqlOptions = ConnectOptions & {
 type Timer = ReturnType<typeof setTimeout>;
 
 function includesConnection(connections: any, connection: MysqlConnection): boolean {
-  if (!connections) return true;
-  if (typeof connections.includes === 'function') return connections.includes(connection);
-  if (typeof connections.toArray === 'function') return connections.toArray().includes(connection);
+  if (!connections) return false;
+  if (Array.isArray(connections)) return connections.includes(connection);
   if (typeof connections.get === 'function') {
     for (let index = 0; index < connections.length; index++) {
       if (connections.get(index) === connection) return true;
@@ -135,9 +134,6 @@ class MysqlDriver extends AbstractDriver {
       timers.delete(connection);
     };
 
-    pool.on('connection', (connection: MysqlConnection) => {
-      connection.once?.('end', () => clearTimer(connection));
-    });
     pool.on('acquire', clearTimer);
     pool.on('release', (connection: MysqlConnection) => {
       clearTimer(connection);
@@ -145,7 +141,7 @@ class MysqlDriver extends AbstractDriver {
         timers.delete(connection);
         if (includesConnection(pool._freeConnections, connection)) connection.destroy();
       }, timeout);
-      timer.unref?.();
+      timer.unref();
       timers.set(connection, timer);
     });
   }

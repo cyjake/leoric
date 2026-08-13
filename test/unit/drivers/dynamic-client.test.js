@@ -101,6 +101,105 @@ describe('=> dynamically loaded database clients', function() {
     }
   });
 
+  it('should support mysql2 free-connection queues', async function() {
+    const clock = sinon.useFakeTimers();
+    const pool = new EventEmitter();
+    const entries = [];
+    pool._freeConnections = {
+      get length() {
+        return entries.length;
+      },
+      get(index) {
+        return entries[index];
+      },
+    };
+    const connection = new EventEmitter();
+    connection.destroy = sinon.spy();
+    connection.release = function() {
+      entries.push({}, connection);
+      pool.emit('release', connection);
+    };
+    pool.getConnection = function(callback) {
+      pool.emit('acquire', connection);
+      callback(null, connection);
+    };
+
+    const driver = new MysqlDriver({ idleTimeout: 1000 });
+    driver.createPool = async () => pool;
+
+    try {
+      await driver.getConnection();
+      connection.release();
+      entries.pop();
+      await clock.tickAsync(1000);
+      assert.equal(connection.destroy.callCount, 0);
+
+      connection.release();
+      await clock.tickAsync(1000);
+      assert.equal(connection.destroy.callCount, 1);
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('should not recycle connections when the client pool shape is unknown', async function() {
+    const clock = sinon.useFakeTimers();
+    const pool = new EventEmitter();
+    pool._freeConnections = {};
+    const connection = { destroy: sinon.spy() };
+    pool.getConnection = function(callback) {
+      callback(null, connection);
+    };
+
+    const driver = new MysqlDriver({ idleTimeout: 1000 });
+    driver.createPool = async () => pool;
+
+    try {
+      await driver.getConnection();
+      pool.emit('release', connection);
+      await clock.tickAsync(1000);
+      delete pool._freeConnections;
+      pool.emit('release', connection);
+      await clock.tickAsync(1000);
+      assert.equal(connection.destroy.callCount, 0);
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('should not install idle timers when idleTimeout is disabled', async function() {
+    const pool = new EventEmitter();
+    pool.getConnection = function(callback) {
+      callback(null, { release() {} });
+    };
+    const driver = new MysqlDriver({ idleTimeout: 0 });
+    driver.createPool = async () => pool;
+
+    await driver.getConnection();
+
+    assert.equal(pool.listenerCount('release'), 0);
+  });
+
+  it('should ignore invalid idle timeouts and clients without pool events', async function() {
+    const pool = new EventEmitter();
+    pool.getConnection = function(callback) {
+      callback(null, { release() {} });
+    };
+    const invalidTimeoutDriver = new MysqlDriver({ idleTimeout: NaN });
+    invalidTimeoutDriver.createPool = async () => pool;
+    await invalidTimeoutDriver.getConnection();
+    assert.equal(pool.listenerCount('release'), 0);
+
+    const eventlessPool = {
+      getConnection(callback) {
+        callback(null, { release() {} });
+      },
+    };
+    const eventlessDriver = new MysqlDriver({ idleTimeout: 1000 });
+    eventlessDriver.createPool = async () => eventlessPool;
+    await eventlessDriver.getConnection();
+  });
+
   it('should lazily create a configured PostgreSQL pool once', async function() {
     const driver = new PostgresDriver({ client: clientPath });
     assert.deepEqual(driver.pool, {});
