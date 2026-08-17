@@ -20,7 +20,8 @@
   },
   "ts-node": {
     "compilerOptions": {
-      "allowJs": true
+      "allowJs": true,
+      "types": ["node", "mocha"]
     }
   },
   "include": [
