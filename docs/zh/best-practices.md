@@ -57,25 +57,34 @@ const posts = await Post.find().select('id', 'title', 'createdAt');
 
 ## 大表的批量处理
 
-处理大表时，避免一次性加载所有记录到内存。使用分页：
+处理大表时，避免一次性加载所有记录到内存。应使用带索引且唯一的游标，而不是不断增大的 offset：
 
 ```js
 // 差：全部加载到内存
 const allPosts = await Post.find();
 
-// 好：分批处理
+// 好：不带额外过滤条件时，按主键稳定排序并分批处理
 const pageSize = 100;
-let offset = 0;
+let lastId;
 while (true) {
-  const posts = await Post.find().limit(pageSize).offset(offset);
+  let query = Post.order('id').limit(pageSize);
+  if (lastId != null) {
+    query = query.where({ id: { $gt: lastId } });
+  }
+
+  const posts = await query;
   if (posts.length === 0) break;
 
   for (const post of posts) {
     // 处理每条记录
   }
-  offset += pageSize;
+  lastId = posts.at(-1).id;
 }
 ```
+
+这个例子会遍历整张表且没有额外的过滤条件，因此按主键进行范围扫描是高效的。如果批处理查询带有过滤条件，游标及排序字段应该与查询使用的复合索引相匹配：先放使用等值过滤的字段，再放有序的游标字段，最后追加主键作为唯一的排序条件。例如，按 `tenantId`、`status` 过滤并按 `id` 分页的查询通常应使用 `(tenant_id, status, id)` 索引。请通过数据库的 `EXPLAIN` 功能确认实际执行计划。
+
+建议尽量使用不会变化的字段作为游标。Limit/offset、复合游标和窗口函数分页的细节请参考《[分页]({% link zh/querying.md %})》。
 
 ## 连接池管理
 
