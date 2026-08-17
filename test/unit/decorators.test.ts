@@ -1,5 +1,3 @@
-/// <reference types="mocha" />
-
 import 'reflect-metadata';
 import assert from 'assert';
 import { Column, HasOne, HasMany, BelongsTo, Bone, DataTypes } from '../../src';
