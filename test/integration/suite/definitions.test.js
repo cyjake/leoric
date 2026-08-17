@@ -289,6 +289,158 @@ describe('=> Bone.sync()', () => {
       summary: null,
     });
   });
+
+  it('should create declared indexes with a new table', async () => {
+    class Note extends Bone {
+      static indexes = [
+        { fields: ['authorId', 'title'] },
+        { fields: ['slug'], name: 'uk_notes_slug', unique: true },
+        { fields: ['code'], name: 'uk_notes_code', type: 'UNIQUE' },
+      ];
+    }
+    Note.init({ authorId: INTEGER, title: STRING, slug: STRING, code: STRING });
+
+    await Note.sync();
+    await Note.sync();
+
+    const composite = await Bone.driver.showIndexes('notes', 'idx_notes_authorid_title');
+    assert.equal(composite.length, 1);
+    assert.deepEqual(composite[0].columns, ['author_id', 'title']);
+    const unique = await Bone.driver.showIndexes('notes', 'uk_notes_slug');
+    assert.equal(unique.length, 1);
+    assert.equal(unique[0].unique, true);
+    assert.equal((await Bone.driver.showIndexes('notes', 'uk_notes_code'))[0].unique, true);
+  });
+
+  it('should use custom column names in generated index names and SQL', async () => {
+    class Note extends Bone {
+      static indexes = [{ fields: ['ownerId'] }];
+    }
+    Note.init({ ownerId: { type: INTEGER, columnName: 'creator_id' } });
+
+    await Note.sync();
+
+    const indexes = await Bone.driver.showIndexes('notes', 'idx_notes_creatorid');
+    assert.equal(indexes.length, 1);
+    assert.deepEqual(indexes[0].columns, ['creator_id']);
+  });
+
+  it('should require alter before adding a declared index to an existing table', async () => {
+    await Bone.driver.createTable('notes', { id: { type: INTEGER, primaryKey: true }, title: STRING });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'] }];
+    }
+    Note.init({ id: { type: INTEGER, primaryKey: true }, title: STRING }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync();
+    assert.equal((await Bone.driver.showIndexes('notes', 'idx_notes_title')).length, 0);
+
+    await Note.sync({ alter: true });
+    assert.equal((await Bone.driver.showIndexes('notes', 'idx_notes_title')).length, 1);
+  });
+
+  it('should repair changed declared indexes and preserve unrelated indexes', async () => {
+    await Bone.driver.createTable('notes', {
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+      slug: STRING,
+    });
+    await Bone.driver.addIndex('notes', ['slug'], { name: 'notes_lookup', unique: true });
+    await Bone.driver.addIndex('notes', ['title'], { name: 'external_notes_title' });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'], name: 'notes_lookup', unique: true }];
+    }
+    Note.init({
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+      slug: STRING,
+    }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync({ alter: true });
+
+    const lookup = await Bone.driver.showIndexes('notes', 'notes_lookup');
+    assert.equal(lookup.length, 1);
+    assert.equal(lookup[0].unique, true);
+    assert.deepEqual(lookup[0].columns, ['title']);
+    assert.equal((await Bone.driver.showIndexes('notes', 'external_notes_title')).length, 1);
+  });
+
+  it('should repair a declared index when its type changes', async function() {
+    if (Bone.driver.type !== 'mysql') this.skip();
+    await Bone.driver.createTable('notes', {
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+    });
+    await Bone.driver.addIndex('notes', ['title'], { name: 'notes_lookup' });
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'], name: 'notes_lookup', type: 'FULLTEXT' }];
+    }
+    Note.init({
+      id: { type: INTEGER, primaryKey: true },
+      title: STRING,
+    }, { timestamps: false });
+    Note.load((await Bone.driver.querySchemaInfo(Bone.options.database, 'notes')).notes);
+
+    await Note.sync({ alter: true });
+
+    const lookup = await Bone.driver.showIndexes('notes', 'notes_lookup');
+    assert.equal(lookup.length, 1);
+    assert.equal(lookup[0].type, 'FULLTEXT');
+  });
+
+  it('should reject indexes for custom physical tables', async () => {
+    class Note extends Bone {
+      static indexes = [{ fields: ['title'] }];
+    }
+    Note.init({ title: STRING });
+    Note.physicTables = ['notes'];
+
+    await assert.rejects(Note.sync(), /custom physic tables/);
+  });
+
+  it('should reject invalid declared indexes', async () => {
+    class InvalidCollection extends Bone {
+      static indexes = {};
+    }
+    InvalidCollection.init({ title: STRING });
+    await assert.rejects(InvalidCollection.sync(), /indexes must be an array/);
+
+    class MissingFields extends Bone {
+      static indexes = [{}];
+    }
+    MissingFields.init({ title: STRING });
+    await assert.rejects(MissingFields.sync(), /fields must be a non-empty array/);
+
+    class EmptyFields extends Bone {
+      static indexes = [{ fields: [] }];
+    }
+    EmptyFields.init({ title: STRING });
+    await assert.rejects(EmptyFields.sync(), /fields must be a non-empty array/);
+
+    class UnknownAttribute extends Bone {
+      static indexes = [{ fields: ['missing'] }];
+    }
+    UnknownAttribute.init({ title: STRING });
+    await assert.rejects(UnknownAttribute.sync(), /unknown attribute missing/);
+
+    class InvalidAttribute extends Bone {
+      static indexes = [{ fields: [42] }];
+    }
+    InvalidAttribute.init({ title: STRING });
+    await assert.rejects(InvalidAttribute.sync(), /unknown attribute 42/);
+
+    class DuplicateName extends Bone {
+      static indexes = [
+        { fields: ['title'], name: 'notes_lookup' },
+        { fields: ['slug'], name: 'notes_lookup' },
+      ];
+    }
+    DuplicateName.init({ title: STRING, slug: STRING });
+
+    await assert.rejects(DuplicateName.sync(), /duplicate index name notes_lookup/);
+  });
 });
 
 describe('=> Bone.drop()', () => {
@@ -411,4 +563,3 @@ describe('=> Table indexes', function() {
     assert.equal(results.length, 0);
   });
 });
-

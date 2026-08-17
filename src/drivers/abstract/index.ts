@@ -7,7 +7,7 @@ import DataTypes from '../../data_types';
 import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
 import { AbstractBone } from '../../abstract_bone';
-import { ColumnMeta, Connection, Literal, Pool, QueryOptions, QueryResult } from '../../types/common';
+import { ColumnMeta, Connection, IndexMeta, Literal, Pool, QueryOptions, QueryResult } from '../../types/common';
 import Spell from '../../spell';
 
 const debug = Debug('leoric');
@@ -15,10 +15,11 @@ const debug = Debug('leoric');
 export function getIndexName(
   table: string,
   attributes: string | string[],
-  opts: { unique?: boolean; name?: string; type?: string, Attribute: typeof Attribute },
+  opts: { unique?: boolean; name?: string; type?: string; columnNames?: string[]; Attribute: typeof Attribute },
 ) {
+  if (opts.name) return opts.name;
   if (Array.isArray(attributes)) {
-    const columns = attributes.map(entry => new opts.Attribute(entry).columnName);
+    const columns = opts.columnNames || attributes.map(entry => new opts.Attribute(entry).columnName);
     const type = opts.unique ? 'UNIQUE' : opts.type;
     const prefix = type === 'UNIQUE' ? 'uk' : 'idx';
     return [ prefix, table ].concat(columns.map(columnName => columnName.replace(/_/g, ''))).join('_');
@@ -318,7 +319,7 @@ export default class AbstractDriver {
     table: string,
     attributes?: string | string[],
     opts: { unique?: boolean; name?: string; type?: string } = {},
-  ) {
+  ): Promise<IndexMeta[]> {
     const { escape, escapeId } = this;
     const chunks = [`SHOW INDEX FROM ${escapeId(table)}`];
     if (attributes) {
@@ -327,7 +328,7 @@ export default class AbstractDriver {
     }
     const { rows } = await this.query(chunks.join(' '));
     if (!rows) return [];
-    const indexes: { name: string; columns: string[]; unique: boolean; }[] = [];
+    const indexes: IndexMeta[] = [];
     for (const row of rows) {
       const idx = indexes.find(entry => entry.name === row.Key_name);
       if (idx) {
@@ -337,10 +338,24 @@ export default class AbstractDriver {
           name: row.Key_name as string,
           columns: [ row.Column_name as string ],
           unique: row.Non_unique === 0,
+          type: row.Index_type as string | undefined,
         });
       }
     }
     return indexes;
+  }
+
+  /**
+   * Resolve the database name for an index definition.
+   * @param table table name
+   * @param attributes model attribute names, or an existing index name
+   * @param opts index options and resolved database column names
+   * @returns the explicit or generated database index name
+   * @example
+   * driver.getIndexName('posts', ['authorId']); // => 'idx_posts_authorid'
+   */
+  getIndexName(table: string, attributes: string | string[], opts: { unique?: boolean; name?: string; type?: string; columnNames?: string[] } = {}) {
+    return getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
   }
 
   /**
@@ -349,9 +364,9 @@ export default class AbstractDriver {
    * @param attributes attributes name
    * @param opts
    */
-  async addIndex(table: string, attributes: string[], opts: { unique?: boolean; name?: string; type?: string } = {}) {
+  async addIndex(table: string, attributes: string[], opts: { unique?: boolean; name?: string; type?: string; columnNames?: string[] } = {}) {
     const { escapeId } = this;
-    const columns = attributes.map(name => new this.Attribute(name).columnName);
+    const columns = opts.columnNames || attributes.map(name => new this.Attribute(name).columnName);
     const type = opts.unique ? 'UNIQUE' : opts.type;
     const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
 
@@ -372,7 +387,7 @@ export default class AbstractDriver {
    * @param attributes attributes name
    * @param opts
    */
-  async removeIndex(table: string, attributes: string | string[], opts: { unique?: boolean; name?: string; type?: string } = {}) {
+  async removeIndex(table: string, attributes: string | string[], opts: { unique?: boolean; name?: string; type?: string; columnNames?: string[] } = {}) {
     const { escapeId } = this;
     const name = getIndexName(table, attributes, { Attribute: this.Attribute, ...opts });
     const sql = this.type === 'mysql'

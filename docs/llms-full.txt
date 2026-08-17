@@ -4960,6 +4960,35 @@ await realm.sync({ force: true });
 await realm.sync({ alter: true });
 ```
 
+#### Declaring indexes
+
+Models can declare indexes with `static indexes`. Each `fields` entry is a model attribute name; Leoric resolves custom column names automatically.
+
+```js
+class User extends Bone {
+  static indexes = [
+    { fields: ['organizationId', 'type'] },
+    { fields: ['email'], unique: true },
+    { fields: ['nickname'], name: 'idx_users_nickname' },
+  ];
+
+  static attributes = {
+    organizationId: DataTypes.BIGINT,
+    type: DataTypes.STRING,
+    email: DataTypes.STRING,
+    nickname: DataTypes.STRING,
+  };
+}
+```
+
+Declared indexes are created when Leoric creates or force-recreates a table. For an existing table, use `sync({ alter: true })` to add missing indexes or repair declared indexes whose columns or uniqueness changed:
+
+```js
+await realm.sync({ alter: true });
+```
+
+Leoric only manages indexes listed in `static indexes`; unrelated indexes already present in the database are preserved. Generated names use `idx_<table>_<columns>` or `uk_<table>_<columns>` for unique indexes. `FULLTEXT` and `SPATIAL` index types are available only where the database driver supports them.
+
 > **Warning**: `realm.sync({ force: true })` will drop all existing tables. Use with extreme caution, and never in production!
 
 ### Raw Queries

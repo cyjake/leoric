@@ -8,6 +8,10 @@ describe('=> Basics (TypeScript)', function() {
 
   class Post extends Bone {
     static table = 'articles';
+    static indexes = [
+      { fields: ['authorId', 'createdAt'] },
+      { fields: ['title'], name: 'idx_articles_title', unique: true },
+    ] as const;
 
     @Column()
     declare id: bigint;

@@ -10,7 +10,7 @@ import Pool from './pool';
 import { calculateDuration } from '../../utils';
 import { heresql } from '../../utils/string';
 import { getIndexName } from '../abstract';
-import { Literal, QueryOptions, QueryResult } from '../../types/common';
+import { IndexMeta, Literal, QueryOptions, QueryResult } from '../../types/common';
 import Connection from './connection';
 import { AbstractBone } from '../../abstract_bone';
 import Spell from '../../spell';
@@ -31,12 +31,6 @@ interface SchemaInfo {
 
 interface ColumnDefinition {
   [columnName: string]: any;
-}
-
-interface IndexResult {
-  name: string;
-  unique: boolean;
-  columns: string[];
 }
 
 class SqliteDriver extends AbstractDriver {
@@ -219,17 +213,19 @@ class SqliteDriver extends AbstractDriver {
     await this.query(`DELETE FROM ${escapeId(table)}`);
   }
 
-  async showIndexes(table: string, attributes: string[], opts: any = {}): Promise<IndexResult[]> {
+  async showIndexes(table: string, attributes?: string[] | string, opts: any = {}): Promise<IndexMeta[]> {
     const { rows } = await this.query(`PRAGMA index_list(${this.escapeId(table)})`) as any;
     if (!rows || rows.length === 0) return [];
-    const name = getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
-    const indexes: IndexResult[] = [];
+    const name = attributes == null
+      ? undefined
+      : getIndexName(table, attributes, { ...opts, Attribute: this.Attribute });
+    const indexes: IndexMeta[] = [];
     for (const row of rows) {
-      if (row.name !== name) continue;
-      const indexInfo = (await this.query(`PRAGMA index_info(${this.escapeId(name)})`)) as any;
+      if (name && row.name !== name) continue;
+      const indexInfo = (await this.query(`PRAGMA index_info(${this.escapeId(row.name)})`)) as any;
       const columns = indexInfo.rows.map((entry: any) => entry.name);
       indexes.push({
-        name,
+        name: row.name,
         unique: row.unique === 1,
         columns,
       });
