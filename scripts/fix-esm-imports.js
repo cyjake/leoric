@@ -41,6 +41,7 @@ function resolveSpecifier(filePath, specifier) {
 
 const importExportRe = /(?<=(from\s+|import\s*)\s*)(['"])(\.\.?\/[^'"]*)\2/g;
 const dynamicImportRe = /(?<=import\s*\(\s*)(['"])(\.\.?\/[^'"]*)\1/g;
+const commonJSInteropRe = /\/\* istanbul ignore next \*\/\s*if \(typeof module !== 'undefined'\)\s*module\.exports = Realm;\s*/;
 
 function fixFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
@@ -74,7 +75,16 @@ for (const file of files) {
   fixFile(file);
 }
 
+// The source assignment preserves `require('leoric') === Realm` in the CommonJS build,
+// but must not be present in the ESM entry where module runners may expose a read-only `module`.
+const esmEntry = path.join(distDir, 'index.js');
+const esmEntryContent = fs.readFileSync(esmEntry, 'utf8');
+if (!commonJSInteropRe.test(esmEntryContent)) {
+  throw new Error(`CommonJS interop block not found in ${esmEntry}`);
+}
+fs.writeFileSync(esmEntry, esmEntryContent.replace(commonJSInteropRe, ''));
+
 // Write dist/package.json to mark the directory as ESM
 fs.writeFileSync(path.join(distDir, 'package.json'), JSON.stringify({ type: 'module' }, null, 2) + '\n');
 
-console.log(`Fixed imports in ${files.length} files, wrote dist/package.json`);
+console.log(`Fixed imports in ${files.length} files, removed CommonJS interop from ESM entry, wrote dist/package.json`);
