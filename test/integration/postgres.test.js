@@ -20,6 +20,7 @@ before(async function() {
 
 require('./suite/index.test');
 require('./suite/dates.test');
+require('./suite/json_set.test');
 
 describe('=> Realm(dialect: postgres)', function() {
   it('should accept pg as well', async function() {

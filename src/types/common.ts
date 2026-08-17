@@ -4,6 +4,7 @@ import { AbstractDataType, DataType } from '../data_types';
 import { AbstractBone } from '../abstract_bone';
 import type Spell from '../spell';
 import type Attribute from '../drivers/abstract/attribute';
+import type Raw from '../raw';
 
 export type Literal = null | undefined | boolean | number | bigint | string | Date | Record<string, any> | ArrayBuffer;
 
@@ -79,6 +80,20 @@ export interface QueryOptions {
   transaction?: Connection | {
     connection: Connection
   } | null;
+}
+
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+
+export type JsonPath = readonly [string | number, ...(string | number)[]];
+
+export interface JsonSetMutation {
+  path: JsonPath;
+  value: JsonValue | Raw;
+}
+
+export interface JsonSetOptions extends QueryOptions {
+  /** PostgreSQL-only handling for JavaScript null values through jsonb_set_lax(). */
+  nullTreatment?: 'raise_exception' | 'use_json_null' | 'delete_key' | 'return_target';
 }
 
 export type BulkCreateOptions = QueryOptions & {

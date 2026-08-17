@@ -2490,6 +2490,36 @@ const post = await Post.first;
 await post.update('extra', { ...post.extra, foo: 1 });
 ```
 
+#### JSON_SET() / jsonb_set()
+
+当需要插入或替换某个 JSON 路径，而不希望先读取并重写整个文档时，可以使用 `jsonSet()`。路径由对象键和非负数组下标组成，因此同一套调用可以映射到 MySQL `JSON_SET()` 和 PostgreSQL `jsonb_set()`：
+
+```typescript
+await post.jsonSet('extra', [ 'profile', 'name' ], 'Leoric');
+await Post.jsonSet({ id: post.id }, 'extra', [ 'items', 0 ], { active: true });
+```
+
+也可以按顺序在一次更新中完成多处修改：
+
+```typescript
+await post.jsonSet('extra', [
+  { path: [ 'profile', 'name' ], value: 'Leoric' },
+  { path: [ 'items', 0 ], value: { active: true } },
+]);
+```
+
+MySQL 会生成一个包含多组路径和值的 `JSON_SET()` 调用；PostgreSQL 会按照传入顺序嵌套 `jsonb_set()` 调用。当字段为 SQL `NULL` 时，Leoric 会从空 JSON 对象开始更新。
+
+PostgreSQL 还可以通过 `jsonb_set_lax()` 决定如何处理作为新值传入的 SQL `NULL`。传入 `nullTreatment` 即可启用：
+
+```typescript
+await post.jsonSet('extra', [ 'obsolete' ], null, {
+  nullTreatment: 'delete_key',
+});
+```
+
+`nullTreatment` 仅支持 PostgreSQL，可选值为 `raise_exception`、`use_json_null`、`delete_key` 或 `return_target`。不传该选项时，JavaScript `null` 在两个数据库中都会保存为 JSON `null`。
+
 MySQL 里面有两个函数可以用来解决这一情况：
 
 - [JSON_MERGE_PATCH()](https://dev.mysql.com/doc/refman/8.4/en/json-modification-functions.html#function_json-merge-patch) // 覆盖更新

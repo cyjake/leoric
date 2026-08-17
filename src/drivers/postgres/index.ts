@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks';
 
-import AbstractDriver, { getIndexName, ConnectOptions } from '../abstract';
+import AbstractDriver, { getIndexName, ConnectOptions, stringifyJsonValue } from '../abstract';
 import Attribute from './attribute';
 import DataTypes from './data_types';
 import {
@@ -12,7 +12,8 @@ import {
 import Spellbook from './spellbook';
 import { calculateDuration } from '../../utils';
 import { heresql } from '../../utils/string';
-import { IndexMeta } from '../../types/common';
+import Raw from '../../raw';
+import { IndexMeta, JsonSetMutation, JsonSetOptions } from '../../types/common';
 // import type Spell from '../../spell';
 
 class PostgresDriver extends AbstractDriver {
@@ -31,6 +32,23 @@ class PostgresDriver extends AbstractDriver {
 
     this.escape = escape;
     this.escapeId = escapeId;
+  }
+
+  formatJsonSet(columnName: string, mutations: readonly JsonSetMutation[], options: JsonSetOptions = {}): Raw {
+    const { nullTreatment } = options;
+    let expression = `COALESCE(${this.escapeId(columnName)}, '{}'::jsonb)`;
+    for (const { path, value } of mutations) {
+      const pathExpression = `ARRAY[${path.map(segment => escapeLiteral(String(segment))).join(', ')}]::text[]`;
+      const valueExpression = value instanceof Raw
+        ? value.value
+        : value === null && nullTreatment
+          ? 'NULL'
+          : `${escapeLiteral(stringifyJsonValue(value))}::jsonb`;
+      expression = nullTreatment
+        ? `jsonb_set_lax(${expression}, ${pathExpression}, ${valueExpression}, true, ${escapeLiteral(nullTreatment)})`
+        : `jsonb_set(${expression}, ${pathExpression}, ${valueExpression}, true)`;
+    }
+    return new Raw(expression);
   }
 
   async createPool(opts: ConnectOptions) {
@@ -224,6 +242,10 @@ class PostgresDriver extends AbstractDriver {
     }
     return indexes;
   }
+}
+
+function escapeLiteral(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
 }
 
 export default PostgresDriver;

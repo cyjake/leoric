@@ -7,10 +7,33 @@ import DataTypes from '../../data_types';
 import Spellbook from './spellbook';
 import { heresql, camelCase } from '../../utils/string';
 import { AbstractBone } from '../../abstract_bone';
-import { ColumnMeta, Connection, IndexMeta, Literal, Pool, QueryOptions, QueryResult } from '../../types/common';
+import {
+  ColumnMeta,
+  Connection,
+  IndexMeta,
+  JsonSetMutation,
+  JsonSetOptions,
+  JsonValue,
+  Literal,
+  Pool,
+  QueryOptions,
+  QueryResult,
+} from '../../types/common';
 import Spell from '../../spell';
+import Raw from '../../raw';
 
 const debug = Debug('leoric');
+
+export function stringifyJsonValue(value: JsonValue): string {
+  let result: string | undefined;
+  try {
+    result = JSON.stringify(value);
+  } catch (error) {
+    throw new TypeError(`jsonSet() value must be valid JSON: ${(error as Error).message}`);
+  }
+  if (result === undefined) throw new TypeError('jsonSet() value must be valid JSON');
+  return result;
+}
 
 export function getIndexName(
   table: string,
@@ -121,6 +144,12 @@ export default class AbstractDriver {
     const { sql, values } = this.format(spell);
     const query = { sql, nestTables: spell.command === 'select' };
     return await this.query(query, values, spell);
+  }
+
+  /** Format a dialect-specific JSON path update expression. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  formatJsonSet(columnName: string, mutations: readonly JsonSetMutation[], options?: JsonSetOptions): Raw {
+    throw new Error(`jsonSet() is not supported by the ${this.dialect} dialect`);
   }
 
   /**
