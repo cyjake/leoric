@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>INTEGER - Documentation</title>
+    <title>DATE - Documentation</title>
     <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -23,7 +23,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">INTEGER</h1>
+    <h1 class="page-title">DATE</h1>
     
 
     
@@ -36,13 +36,10 @@
 <header>
     
         <h2>
-        INTEGER
+        DATE
         </h2>
         
-            <div class="class-description"><p>ZEROFILL is deprecated</p>
-<ul>
-<li>https://dev.mysql.com/doc/refman/8.0/en/integer-types.html</li>
-</ul></div>
+            <div class="class-description"><p>date and time, such as <code>datetime</code> or <code>timestamp</code></p></div>
         
     
 </header>
@@ -57,7 +54,7 @@
     <h3>Constructor</h3>
     
 
-    <h4 class="name" id="INTEGER"><span class="type-signature"></span>new INTEGER<span class="signature">(dataLength)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="DATE"><span class="type-signature"></span>new DATE<span class="signature">(precision, timezone)</span><span class="type-signature"></span></h4>
 
     
 
@@ -135,7 +132,7 @@
 
         <tr>
             
-                <td class="name"><code>dataLength</code></td>
+                <td class="name"><code>precision</code></td>
             
 
             <td class="type">
@@ -147,7 +144,28 @@
             
 
             <td class="description last">
+                <p>fractional seconds precision</p>
                 
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timezone</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>whether the timezone is enabled, such as postgres <code>timestamptz</code></p>
                 
             </td>
         </tr>
@@ -174,10 +192,8 @@
 <div class="section-examples">
 <h5>Example:</h5>
 
-    <pre class="prettyprint"><code>INTEGER
-INTEGER.UNSIGNED
-INTEGER.UNSIGNED.ZEROFILL
-INTEGER(10)</code></pre>
+    <pre class="prettyprint"><code>DATE
+DATE(6)</code></pre>
 
 </div>
 
