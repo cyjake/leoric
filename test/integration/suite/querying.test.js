@@ -557,6 +557,19 @@ describe('=> Group / Join / Subqueries', function() {
     ]);
   });
 
+  it('Bone.joinMany()', async function() {
+    const post = await Post.findOne({ id: 2 })
+      .joinMany(Comment, 'comments.articleId = posts.id');
+    expect(post).to.be.a(Post);
+    expect(post.comments.every(comment => comment instanceof Comment)).to.be(true);
+    expect(Array.from(post.comments, comment => comment.content).sort()).to.eql([ 'bar', 'foo' ]);
+
+    const postWithoutComments = await Post.findOne({ id: 1 })
+      .joinMany(Comment, 'comments.articleId = posts.id');
+    expect(postWithoutComments).to.be.a(Post);
+    expect(Array.from(postWithoutComments.comments)).to.eql([]);
+  });
+
   it('Bone.join().count()', async function() {
     const query = Post.find({ title: ['Archangel Tyrael', 'New Post'] });
     const count = await query.count();

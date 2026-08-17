@@ -516,6 +516,15 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     });
   }
 
+  #prepareJoin() {
+    if (Number(this.rowCount) > 0 || this.skip > 0) {
+      const spell = this.dup;
+      spell.columns = [];
+      this.#emptySpell();
+      this.table = { type: 'subquery', value: spell };
+    }
+  }
+
   /**
    * Return a duplicated spell with all scopes removed, including the default soft delete scope, so the query includes soft deleted rows as well.
    * @example
@@ -971,12 +980,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @param qualifiers
    */
   $with(...qualifiers: (string | WithOptions)[]): this {
-    if (Number(this.rowCount) > 0 || this.skip > 0) {
-      const spell = this.dup;
-      spell.columns = [];
-      this.#emptySpell();
-      this.table = { type: 'subquery', value: spell };
-    }
+    this.#prepareJoin();
 
     for (const qualifier of qualifiers) {
       if (isPlainObject(qualifier)) {
@@ -1018,6 +1022,23 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
     return this;
   }
   join!: <V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]) => Spell<T, U>;
+
+  /**
+   * LEFT JOIN an arbitrary model and mount all matching rows as a collection.
+   * @example
+   * .joinMany(Comment, 'comments.postId = posts.id');
+   *
+   * @param Model
+   * @param onConditions
+   * @param values
+   */
+  $joinMany<V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]): this {
+    this.#prepareJoin();
+    this.$join(Model, onConditions, ...values);
+    this.joins[Model.tableAlias].hasMany = true;
+    return this;
+  }
+  joinMany!: <V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]) => Spell<T, U>;
 
   /**
    * add optimizer hints to query

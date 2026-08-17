@@ -662,6 +662,12 @@ describe('=> Spell', function() {
       Post.join(Comment, 'comments.articleId = posts.id').limit(1).toString(),
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
     );
+
+    assert.equal(
+      Post.joinMany(Comment, 'comments.articleId = posts.id').toString(),
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
+    );
+    assert.equal(Post.joinMany(Comment, 'comments.articleId = posts.id').joins.comments.hasMany, true);
   });
 
   it('abitrary join with predefined association', function() {

@@ -83,6 +83,30 @@ describe('=> Querying (TypeScript)', function() {
       assert.equal(user!.posts.length, 1);
       assert.equal(user!.posts[0].title, 'Stranger');
     });
+
+    it('Bone.joinMany()', async function() {
+      const author = await User.create({
+        email: 'join@many.com',
+        nickname: 'Join Many',
+        status: 1,
+        level: 5,
+      });
+      await Post.bulkCreate([
+        { title: 'First', authorId: author.id },
+        { title: 'Second', authorId: author.id },
+      ]);
+
+      const user = await User.findOne({ id: author.id })
+        .joinMany(Post, 'posts.authorId = users.id');
+      assert.ok(user?.posts);
+      assert.equal(user.posts.length, 2);
+
+      const users = await User.joinMany(Post, 'posts.authorId = users.id')
+        .where({ 'users.id': author.id });
+      const [joinedUser] = users;
+      assert.ok(joinedUser.posts);
+      assert.equal(joinedUser.posts.length, 2);
+    });
   });
 
   describe('=> Aggregations', function() {

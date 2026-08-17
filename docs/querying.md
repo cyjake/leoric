@@ -525,7 +525,7 @@ In this way we make sure all the related SQLs are queried through the same conne
 Leoric provides two ways of constructing JOIN querys:
 
 - Join predefined associations using `.with(relationName)`,
-- Join arbitrary models using `.join(Model, onConditions)`.
+- Join arbitrary models using `.join(Model, onConditions)` or `.joinMany(Model, onConditions)`.
 
 ### Predefined Joins
 
@@ -612,6 +612,19 @@ SELECT * FROM posts LEFT JOIN comments ON posts.id = comments.post_id LEFT JOIN 
 
 Like predefined joins, LEFT JOIN is preferred to preserve left table in the final results.
 
+An arbitrary `.join()` mounts one matching model on each result. If the joined model can match more than once, use `.joinMany()` to mount all matching models as a collection:
+
+```js
+const post = await Post.findOne({ id: 1 })
+  .joinMany(Comment, 'posts.id = comments.postId')
+
+post.comments // Collection<Comment>
+```
+
+If there are no matching comments, `post.comments` is an empty collection. Leoric cannot infer this cardinality safely from an arbitrary `ON` expression, so `.join()` remains the explicit singleton form and `.joinMany()` is the collection form.
+
+As with `.with()`, call order affects limits. A limit applied before `.joinMany()` limits the parent query and then retrieves its matching rows. A limit applied after `.joinMany()` limits the joined row set and can truncate the mounted collection.
+
 The table aliases were transformed by `pluralize(camelCase(Model.name))`. In the example above, here are the transformed table aliases:
 
 | Model Name | Table Alias |
@@ -620,7 +633,7 @@ The table aliases were transformed by `pluralize(camelCase(Model.name))`. In the
 | Comment    | comments    |
 | User       | users       |
 
-We can reference these table aliases futher after the join, such as `.where()` or `.order()`:
+We can reference these table aliases further after the join, such as `.where()` or `.order()`:
 
 ```js
 Post.join(Comment, 'posts.id = comments.postId').where('comments.id = 1')
