@@ -27,6 +27,26 @@ export interface ColumnBase {
   autoIncrement?: boolean;
 }
 
+/** A database index declared on a model through `static indexes`. */
+export interface IndexDefinition {
+  /** Model attribute names included in the index, in index order. */
+  fields: readonly string[];
+  /** Explicit database index name. A deterministic name is generated when omitted. */
+  name?: string;
+  /** Create a unique index. */
+  unique?: boolean;
+  /** Optional database-specific index type. `FULLTEXT` and `SPATIAL` are MySQL-only. */
+  type?: string;
+}
+
+/** Normalized index metadata returned by database drivers. */
+export interface IndexMeta {
+  name: string;
+  columns: string[];
+  unique: boolean;
+  type?: string;
+}
+
 export interface QueryResult {
   insertId?: number;
   affectedRows?: number;

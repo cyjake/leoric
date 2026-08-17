@@ -50,6 +50,21 @@ describe('=> AbstractDriver#getConnection', function() {
   });
 });
 
+describe('=> AbstractDriver index names', function() {
+  it('should honor explicit names', function() {
+    const driver = new AbstractDriver();
+    assert.equal(driver.getIndexName('users', 'users_email_lookup'), 'users_email_lookup');
+    assert.equal(driver.getIndexName('users', ['email'], { name: 'users_email_lookup' }), 'users_email_lookup');
+  });
+
+  it('should generate normal and unique names from resolved columns', function() {
+    const driver = new AbstractDriver();
+    assert.equal(driver.getIndexName('users', ['organizationId'], { columnNames: ['organization_id'] }), 'idx_users_organizationid');
+    assert.equal(driver.getIndexName('users', ['email'], { unique: true }), 'uk_users_email');
+    assert.equal(driver.getIndexName('users', ['email'], { type: 'UNIQUE' }), 'uk_users_email');
+  });
+});
+
 describe('=> AbstractDriver#querySchemaInfo', function() {
   it('should throw error when calling querySchemaInfo method', async function() {
     const driver = new AbstractDriver();

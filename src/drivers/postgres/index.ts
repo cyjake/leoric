@@ -13,7 +13,7 @@ import Spellbook from './spellbook';
 import { calculateDuration } from '../../utils';
 import { heresql } from '../../utils/string';
 import Raw from '../../raw';
-import { JsonSetMutation, JsonSetOptions } from '../../types/common';
+import { IndexMeta, JsonSetMutation, JsonSetOptions } from '../../types/common';
 // import type Spell from '../../spell';
 
 class PostgresDriver extends AbstractDriver {
@@ -220,7 +220,7 @@ class PostgresDriver extends AbstractDriver {
     await this.query(chunks.join(' '));
   }
 
-  async showIndexes(table: string, attributes?: string[] | string, opts: any = {}) {
+  async showIndexes(table: string, attributes?: string[] | string, opts: any = {}): Promise<IndexMeta[]> {
     const chunks = [`SELECT * FROM pg_indexes WHERE tablename = ${escape(table)}`];
     if (attributes) {
       const name = getIndexName(table, attributes as any, { ...opts, Attribute: (this as any).Attribute });
@@ -237,6 +237,7 @@ class PostgresDriver extends AbstractDriver {
         name: row.indexname,
         columns,
         unique,
+        type: row.indexdef.match(/ USING (\w+)/i)?.[1]?.toUpperCase(),
       });
     }
     return indexes;

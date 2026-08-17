@@ -5436,6 +5436,35 @@ await realm.sync({ force: true });
 await realm.sync({ alter: true });
 ```
 
+#### 声明索引
+
+模型可以通过 `static indexes` 声明索引。`fields` 中填写模型属性名，Leoric 会自动解析自定义列名。
+
+```js
+class User extends Bone {
+  static indexes = [
+    { fields: ['organizationId', 'type'] },
+    { fields: ['email'], unique: true },
+    { fields: ['nickname'], name: 'idx_users_nickname' },
+  ];
+
+  static attributes = {
+    organizationId: DataTypes.BIGINT,
+    type: DataTypes.STRING,
+    email: DataTypes.STRING,
+    nickname: DataTypes.STRING,
+  };
+}
+```
+
+Leoric 创建表或通过 `force` 重建表时会创建声明的索引。对于已有表，使用 `sync({ alter: true })` 添加缺失索引，或者修复列定义、唯一性发生变化的声明索引：
+
+```js
+await realm.sync({ alter: true });
+```
+
+Leoric 只管理 `static indexes` 中列出的索引，数据库中其他索引会被保留。普通索引的默认名称为 `idx_<表名>_<列名>`，唯一索引为 `uk_<表名>_<列名>`。`FULLTEXT` 和 `SPATIAL` 仅能用于对应数据库驱动支持的场景。
+
 > **警告**：`realm.sync({ force: true })` 会删除所有已有表，请谨慎使用，切勿在生产环境中使用！
 
 ### 原始查询
