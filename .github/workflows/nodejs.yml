@@ -68,4 +68,6 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Verify package builds correctly
-      run: npm pack --dry-run
+      run: |
+        npm run test:esm
+        npm pack --dry-run
