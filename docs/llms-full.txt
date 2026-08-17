@@ -1648,25 +1648,112 @@ The SQL equivalent of the above is:
 SELECT id, title, created_at FROM posts;
 ```
 
-### Limit and Offset
+### Pagination
 
-It is always recommended to limit the query, unless the query result is unlikely to be bloated. One of the scenarios where limit and offset are used most often, is pagination. For example, to get the top 20 posts updated most recently:
+Every paginated query should use a deterministic order. If the primary sort column is not unique, add a unique column such as the primary key as a tie-breaker. For example, use `updatedAt DESC, id DESC` rather than `updatedAt DESC` alone. Otherwise rows with the same `updatedAt` value may move between pages.
+
+The order should also match a usable index. Ordering by the primary key alone is efficient for an unfiltered table scan, but it can make a filtered query choose between an index that filters well and one that returns rows in the requested order. For filtered pagination, use a composite index whose leading columns satisfy equality filters and whose remaining columns match the cursor order. For example, `WHERE tenant_id = ? ORDER BY updated_at DESC, id DESC` is commonly supported by an index on `(tenant_id, updated_at, id)`, with `id` providing uniqueness. Index capabilities and query plans vary, so verify important queries with your database's `EXPLAIN` facility.
+
+#### Limit and Offset
+
+Limit/offset pagination is straightforward and supports jumping directly to a page number. It is a good fit for small result sets and interfaces where users need numbered pages.
 
 ```js
-const posts = await Post.order('updatedAt desc').limit(20)
-```
-
-To get the second 20 posts updated most recent, e.g. user turned to page 2 and the page size is 20:
-
-```js
-const posts = await Post.order('updatedAt desc').limit(20).offset(20)
+const page = 2;
+const pageSize = 20;
+const posts = await Post
+  .order('updatedAt desc')
+  .order('id desc')
+  .limit(pageSize)
+  .offset((page - 1) * pageSize);
 ```
 
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM posts ORDER BY updated_at DESC LIMIT 20 OFFSET 20;
+SELECT * FROM posts
+ORDER BY updated_at DESC, id DESC
+LIMIT 20 OFFSET 20;
 ```
+
+As the offset grows, the database still has to find and skip the preceding rows. Deep pages can therefore become progressively slower. Inserts and deletes between requests can also cause rows to be repeated or skipped. Prefer cursor-based pagination for large or frequently changing result sets.
+
+#### Cursor-Based Pagination
+
+Cursor-based pagination, also called keyset pagination or the seek method, continues after the last ordered value from the previous page. It avoids scanning an ever-growing offset and works well for feeds, infinite scrolling, APIs, and batch processing.
+
+When traversing an unfiltered table by a unique, indexed primary key, the cursor can contain just that key:
+
+```js
+const pageSize = 20;
+let query = Post.order('id').limit(pageSize + 1);
+
+if (afterId != null) {
+  query = query.where({ id: { $gt: afterId } });
+}
+
+const rows = await query;
+const hasMore = rows.length > pageSize;
+const posts = hasMore ? rows.slice(0, pageSize) : rows;
+const nextCursor = hasMore
+  ? posts.at(-1).id
+  : null;
+```
+
+For a non-unique sort column, the cursor must include every value needed to reproduce the order. The primary key acts as a tie-breaker in this example:
+
+```js
+const pageSize = 20;
+let query = Post
+  .order('updatedAt desc')
+  .order('id desc')
+  .limit(pageSize + 1);
+
+if (cursor) {
+  query = query.where({
+    $or: [
+      { updatedAt: { $lt: cursor.updatedAt } },
+      { updatedAt: cursor.updatedAt, id: { $lt: cursor.id } },
+    ],
+  });
+}
+
+const rows = await query;
+const hasMore = rows.length > pageSize;
+const posts = hasMore ? rows.slice(0, pageSize) : rows;
+const lastPost = posts.at(-1);
+const nextCursor = hasMore && lastPost
+  ? { updatedAt: lastPost.updatedAt, id: lastPost.id }
+  : null;
+```
+
+Encode cursor values before returning them from a public API, and validate decoded values before using them. To paginate backwards, reverse both the comparison operators and the sort directions, then reverse the returned page. Cursor pagination does not support jumping directly to an arbitrary page number.
+
+Pagination does not create a database snapshot. If an ordered value changes between requests, a row can still move across the cursor. Prefer immutable ordering columns when exact traversal matters, or use the database's transaction and snapshot facilities.
+
+#### Window-Function Pagination
+
+Window functions can assign a row number to a deterministically ordered result and are useful for reports or complex ordering where an exact row range is required. Leoric does not currently provide a database-independent window-function builder, so use a parameterized raw query and adapt the SQL to the selected database:
+
+```js
+const page = 2;
+const pageSize = 20;
+const firstRow = (page - 1) * pageSize + 1;
+const lastRow = page * pageSize;
+
+const { rows: posts } = await realm.query(`
+  SELECT *
+    FROM (
+      SELECT posts.*,
+             ROW_NUMBER() OVER (ORDER BY updated_at DESC, id DESC) AS row_number
+        FROM posts
+    ) AS ranked_posts
+   WHERE row_number BETWEEN ? AND ?
+ORDER BY row_number
+`, [firstRow, lastRow]);
+```
+
+Window-function support and optimization vary by database version. This approach may still rank a large part of the result set, so benchmark it against realistic data before using it for deep pagination.
 
 ### Group
 
@@ -5038,25 +5125,34 @@ This is especially important for tables with large `TEXT` or `BLOB` columns.
 
 ### Batch Processing for Large Tables
 
-When processing large tables, avoid loading all records into memory at once. Use pagination:
+When processing large tables, avoid loading all records into memory at once. Use an indexed, unique cursor instead of an ever-growing offset:
 
 ```js
 // BAD: loads everything into memory
 const allPosts = await Post.find();
 
-// GOOD: process in batches
+// GOOD: process an unfiltered table in stable primary-key order
 const pageSize = 100;
-let offset = 0;
+let lastId;
 while (true) {
-  const posts = await Post.find().limit(pageSize).offset(offset);
+  let query = Post.order('id').limit(pageSize);
+  if (lastId != null) {
+    query = query.where({ id: { $gt: lastId } });
+  }
+
+  const posts = await query;
   if (posts.length === 0) break;
 
   for (const post of posts) {
     // process each post
   }
-  offset += pageSize;
+  lastId = posts.at(-1).id;
 }
 ```
+
+This example traverses the whole table without additional filters, so a primary-key range scan is efficient. For a filtered batch, make the cursor and ordering match the query's composite index. Put equality-filtered columns first, followed by the ordered cursor columns, and append the primary key as the final unique tie-breaker. For example, a query filtered by `tenantId` and `status` and paginated by `id` should normally have an index on `(tenant_id, status, id)`. Check the resulting plan with your database's `EXPLAIN` facility.
+
+Use immutable cursor columns where possible. See the [pagination guide]({% link querying.md %}) for limit/offset, composite cursors, and window-function pagination.
 
 ### Connection Pool Management
 

@@ -313,25 +313,112 @@ Post.select('id, title, createdAt')
 SELECT id, title, created_at FROM posts;
 ```
 
-## Limit 与 Offset
+## 分页
 
-我们推荐保持给查询条件加 LIMIT 的习惯，除非能确保查询结果不会很膨胀。LIMIT 与 OFFSET 最为常用的场景之一，就是分页。例如，获取 20 篇最近更新的文章：
+分页查询必须使用确定性的排序规则。如果主要排序字段不唯一，应追加主键等唯一字段作为排序条件。例如使用 `updatedAt DESC, id DESC`，而不是只用 `updatedAt DESC`，否则 `updatedAt` 相同的记录可能在不同页面之间移动。
+
+排序规则还应该与可用索引相匹配。对于不带过滤条件的全表遍历，只按主键排序是高效的；但对于带过滤条件的查询，这可能迫使优化器在高效过滤数据和按要求的顺序返回数据之间进行取舍。过滤分页所使用的复合索引，应该让前面的字段满足等值过滤条件，后面的字段与游标排序规则一致。例如，`WHERE tenant_id = ? ORDER BY updated_at DESC, id DESC` 通常可使用 `(tenant_id, updated_at, id)` 索引，并由 `id` 保证顺序唯一。不同数据库的索引能力和查询计划有所差异，重要查询应通过数据库的 `EXPLAIN` 功能进行确认。
+
+### Limit 与 Offset 分页
+
+Limit/offset 分页简单直观，并且支持直接跳转到指定页码，适合结果集较小或需要展示页码的场景。
 
 ```js
-const posts = await Post.order('updatedAt desc').limit(20)
-```
-
-要获取第二批 20 篇最近更新的文章，也就是说用户翻到了第二页，每页文章篇数为 20:
-
-```js
-const posts = await Post.order('updatedAt desc').limit(20).offset(20)
+const page = 2;
+const pageSize = 20;
+const posts = await Post
+  .order('updatedAt desc')
+  .order('id desc')
+  .limit(pageSize)
+  .offset((page - 1) * pageSize);
 ```
 
 上例对应的 SQL 如下：
 
 ```sql
-SELECT * FROM posts ORDER BY updated_at DESC LIMIT 20 OFFSET 20;
+SELECT * FROM posts
+ORDER BY updated_at DESC, id DESC
+LIMIT 20 OFFSET 20;
 ```
+
+随着 offset 增大，数据库仍然需要找到并跳过前面的记录，因此越往后翻页通常越慢。如果两次请求之间发生了插入或删除，还可能出现记录重复或者遗漏。对于数据量大或频繁变动的结果集，建议使用游标分页。
+
+### 游标分页
+
+游标分页也叫 keyset pagination 或 seek method。它使用上一页最后一条记录的排序值继续查询，不需要扫描不断增大的 offset，适合 feed 流、无限滚动、API 和大表批处理。
+
+如果不带过滤条件地遍历整张表，并使用带索引且唯一的主键排序，游标中只需要保存这个主键：
+
+```js
+const pageSize = 20;
+let query = Post.order('id').limit(pageSize + 1);
+
+if (afterId != null) {
+  query = query.where({ id: { $gt: afterId } });
+}
+
+const rows = await query;
+const hasMore = rows.length > pageSize;
+const posts = hasMore ? rows.slice(0, pageSize) : rows;
+const nextCursor = hasMore
+  ? posts.at(-1).id
+  : null;
+```
+
+如果排序字段不唯一，游标必须包含重现排序规则所需的全部字段。下面的例子使用主键处理 `updatedAt` 相同的情况：
+
+```js
+const pageSize = 20;
+let query = Post
+  .order('updatedAt desc')
+  .order('id desc')
+  .limit(pageSize + 1);
+
+if (cursor) {
+  query = query.where({
+    $or: [
+      { updatedAt: { $lt: cursor.updatedAt } },
+      { updatedAt: cursor.updatedAt, id: { $lt: cursor.id } },
+    ],
+  });
+}
+
+const rows = await query;
+const hasMore = rows.length > pageSize;
+const posts = hasMore ? rows.slice(0, pageSize) : rows;
+const lastPost = posts.at(-1);
+const nextCursor = hasMore && lastPost
+  ? { updatedAt: lastPost.updatedAt, id: lastPost.id }
+  : null;
+```
+
+通过公开 API 返回游标前，应先对游标值进行编码；使用解码后的值前也要进行校验。反向翻页时，需要同时反转比较操作符和排序方向，再将查询结果倒序。游标分页不支持直接跳转到任意页码。
+
+分页不会创建数据库快照。如果两次请求之间某条记录的排序值发生变化，这条记录仍可能跨过游标。需要精确遍历时，应尽量使用不会变化的排序字段，或者使用数据库提供的事务和快照能力。
+
+### 窗口函数分页
+
+窗口函数可以为具有确定排序规则的查询结果分配行号，适合报表或需要精确行范围的复杂排序。Leoric 目前没有提供跨数据库的窗口函数构造接口，因此需要使用参数化的原始查询，并根据所使用的数据库调整 SQL：
+
+```js
+const page = 2;
+const pageSize = 20;
+const firstRow = (page - 1) * pageSize + 1;
+const lastRow = page * pageSize;
+
+const { rows: posts } = await realm.query(`
+  SELECT *
+    FROM (
+      SELECT posts.*,
+             ROW_NUMBER() OVER (ORDER BY updated_at DESC, id DESC) AS row_number
+        FROM posts
+    ) AS ranked_posts
+   WHERE row_number BETWEEN ? AND ?
+ORDER BY row_number
+`, [firstRow, lastRow]);
+```
+
+不同数据库版本对窗口函数的支持和优化程度不同。这种方式仍可能需要为结果集中的大量记录计算行号，因此在用于深度分页前，应使用接近生产环境的数据进行性能测试。
 
 ## 分组
 

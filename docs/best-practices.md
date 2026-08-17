@@ -57,25 +57,34 @@ This is especially important for tables with large `TEXT` or `BLOB` columns.
 
 ## Batch Processing for Large Tables
 
-When processing large tables, avoid loading all records into memory at once. Use pagination:
+When processing large tables, avoid loading all records into memory at once. Use an indexed, unique cursor instead of an ever-growing offset:
 
 ```js
 // BAD: loads everything into memory
 const allPosts = await Post.find();
 
-// GOOD: process in batches
+// GOOD: process an unfiltered table in stable primary-key order
 const pageSize = 100;
-let offset = 0;
+let lastId;
 while (true) {
-  const posts = await Post.find().limit(pageSize).offset(offset);
+  let query = Post.order('id').limit(pageSize);
+  if (lastId != null) {
+    query = query.where({ id: { $gt: lastId } });
+  }
+
+  const posts = await query;
   if (posts.length === 0) break;
 
   for (const post of posts) {
     // process each post
   }
-  offset += pageSize;
+  lastId = posts.at(-1).id;
 }
 ```
+
+This example traverses the whole table without additional filters, so a primary-key range scan is efficient. For a filtered batch, make the cursor and ordering match the query's composite index. Put equality-filtered columns first, followed by the ordered cursor columns, and append the primary key as the final unique tie-breaker. For example, a query filtered by `tenantId` and `status` and paginated by `id` should normally have an index on `(tenant_id, status, id)`. Check the resulting plan with your database's `EXPLAIN` facility.
+
+Use immutable cursor columns where possible. See the [pagination guide]({% link querying.md %}) for limit/offset, composite cursors, and window-function pagination.
 
 ## Connection Pool Management
 
