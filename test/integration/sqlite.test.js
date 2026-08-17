@@ -68,6 +68,24 @@ describe('=> Table definitions (sqlite)', () => {
     });
   });
 
+  it('should detect DROP COLUMN support from the SQLite version', async () => {
+    const query = sinon.stub(Bone.driver, 'query');
+    query.onCall(0).resolves({ rows: [{ version: '3.34.0' }] });
+    query.onCall(1).resolves({ rows: [{ version: '3.35.0' }] });
+    query.onCall(2).resolves({ rows: [{ version: '4.0.0' }] });
+    query.onCall(3).resolves({});
+
+    try {
+      assert.equal(await Bone.driver.supportsDropColumn(), false);
+      assert.equal(await Bone.driver.supportsDropColumn(), true);
+      assert.equal(await Bone.driver.supportsDropColumn(), true);
+      assert.equal(await Bone.driver.supportsDropColumn(), false);
+      sinon.assert.alwaysCalledWithExactly(query, 'SELECT sqlite_version() AS version');
+    } finally {
+      query.restore();
+    }
+  });
+
   it('should rebuild the table when DROP COLUMN is unavailable', async () => {
     const { STRING } = Bone.DataTypes;
     class Before extends Bone {}
