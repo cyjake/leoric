@@ -4104,7 +4104,16 @@ Leoric 使用客户端提供的连接池功能，更多连接池配置项可以�
 
 #### `idleTimeout`
 
-理论上这项功能应该由客户端模块提供，在客户端已经实现的连接池中加上即可，但目前并没有，可以通过 [#148](https://github.com/cyjake/leoric/issues/148) 了解相关进展。
+MySQL 连接释放回连接池后，如果空闲时间超过指定的毫秒数就会被销毁。连接被再次获取时会取消计时，因此使用中的连接不会被回收。
+
+```js
+const realm = new Realm({
+  client: 'mysql',
+  idleTimeout: 30000,
+});
+```
+
+该配置同时支持 `mysql` 和 `mysql2` 客户端。
 
 #### `stringifyObjects`
 

@@ -3626,9 +3626,18 @@ The option name explains itself, the pool size can be customized with this optio
 
 #### `idleTimeout`
 
-IMHO, this option should be available through the pool options we mentioned above but it actually doesn't, which is a pity.
+Idle MySQL connections are destroyed after this many milliseconds. The timeout
+starts when a connection is released back to the pool and is cancelled if the
+connection is acquired again, so checked-out connections are never recycled.
 
-Please subscribe [#148](https://github.com/cyjake/leoric/issues/148) for future updates.
+```js
+const realm = new Realm({
+  client: 'mysql',
+  idleTimeout: 30000,
+});
+```
+
+This option works with both `mysql` and `mysql2` clients.
 
 #### `stringifyObjects`
 
