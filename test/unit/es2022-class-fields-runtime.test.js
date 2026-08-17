@@ -64,6 +64,38 @@ describe('=> class field compiler and runtime configurations', function() {
     assert.equal(Object.hasOwn(defined, 'role'), false);
   });
 
+  it('preserves defaults and timestamps when persisting an ES2022 realm definition', function() {
+    const fixture = compileFixture('tsconfig.define.json');
+    const { RealmDefinedUser } = fixture.exports;
+    const realm = createRealm();
+    const User = realm.define(RealmDefinedUser, {
+      id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
+      name: DataTypes.STRING,
+      role: { type: DataTypes.STRING, defaultValue: 'member' },
+      createdAt: { type: DataTypes.DATE, columnName: 'gmt_create' },
+      updatedAt: { type: DataTypes.DATE, columnName: 'gmt_modified' },
+    }, { timestamps: false });
+    load(User, undefined, [
+      column('id', 'bigint'),
+      column('name'),
+      column('role'),
+      column('gmt_create', 'datetime'),
+      column('gmt_modified', 'datetime'),
+    ]);
+
+    const user = new User({ name: 'Grace' });
+    const insert = user.create().toString();
+    assert.equal(user.role, 'member');
+    assert.ok(user.createdAt instanceof Date);
+    assert.ok(user.updatedAt instanceof Date);
+    assert.equal(Object.hasOwn(user, 'role'), false);
+    assert.equal(Object.hasOwn(user, 'createdAt'), false);
+    assert.equal(Object.hasOwn(user, 'updatedAt'), false);
+    assert.match(insert, /\"role\"/);
+    assert.match(insert, /\"gmt_create\"/);
+    assert.match(insert, /\"gmt_modified\"/);
+  });
+
   it('handles TypeScript assignment semantics from tsconfig', function() {
     const fixture = compileFixture('tsconfig.set.json');
     const { RegularUser, DeclaredUser } = fixture.exports;
@@ -276,14 +308,18 @@ function createRealm(models = []) {
   });
 }
 
-function load(ModelClass, attributes) {
+function load(ModelClass, attributes, columns) {
   if (attributes) ModelClass.init(attributes, { timestamps: false });
-  ModelClass.load(Object.keys(ModelClass.attributes).map(name => ({
-    columnName: name,
-    columnType: 'varchar(255)',
-    dataType: 'varchar',
+  ModelClass.load(columns || Object.keys(ModelClass.attributes).map(name => column(name)));
+}
+
+function column(columnName, dataType = 'varchar') {
+  return {
+    columnName,
+    columnType: dataType === 'varchar' ? 'varchar(255)' : dataType,
+    dataType,
     isNullable: 'YES',
-  })));
+  };
 }
 
 function formatDiagnostics(diagnostics) {
