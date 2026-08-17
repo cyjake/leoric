@@ -67,6 +67,29 @@ describe('=> Table definitions (sqlite)', () => {
       public: { dataType: 'integer', primaryKey: false },
     });
   });
+
+  it('should rebuild the table when DROP COLUMN is unavailable', async () => {
+    const { STRING } = Bone.DataTypes;
+    class Before extends Bone {}
+    Before.init({ title: STRING, obsolete: STRING }, { tableName: 'notes', timestamps: false });
+    await Before.sync();
+    await Before.create({ title: 'kept', obsolete: 'removed' });
+
+    class After extends Bone {}
+    After.init({ title: STRING }, { tableName: 'notes', timestamps: false });
+    const supportsDropColumn = sinon.stub(Bone.driver, 'supportsDropColumn').resolves(false);
+    try {
+      await After.sync({ alter: true });
+    } finally {
+      supportsDropColumn.restore();
+    }
+
+    await checkDefinitions('notes', {
+      title: { dataType: 'varchar' },
+      obsolete: null,
+    });
+    assert.equal((await After.first).title, 'kept');
+  });
 });
 
 describe('=> upsert (sqlite)', function () {

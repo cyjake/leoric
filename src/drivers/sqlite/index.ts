@@ -33,6 +33,16 @@ interface ColumnDefinition {
   [columnName: string]: any;
 }
 
+function versionAtLeast(version: string, minimum: string): boolean {
+  const actual = version.split('.').map(Number);
+  const required = minimum.split('.').map(Number);
+  for (let index = 0; index < required.length; index++) {
+    const difference = (actual[index] || 0) - required[index];
+    if (difference !== 0) return difference > 0;
+  }
+  return true;
+}
+
 class SqliteDriver extends AbstractDriver {
   static Spellbook = Spellbook;
   static Attribute = Attribute;
@@ -149,6 +159,12 @@ class SqliteDriver extends AbstractDriver {
     await this.query(chunks.join(' '), [], opts);
   }
 
+  private async supportsDropColumn(): Promise<boolean> {
+    const { rows = [] } = await this.query('SELECT sqlite_version() AS version');
+    const version = String((rows[0] as any)?.version || '0');
+    return versionAtLeast(version, '3.35.0');
+  }
+
   async alterTable(table: string, changes: ColumnDefinition): Promise<void> {
     const chunks = [`ALTER TABLE ${escapeId(table)}`];
     const attributes = Object.keys(changes).map((name) => {
@@ -157,8 +173,14 @@ class SqliteDriver extends AbstractDriver {
       return new (this.constructor as typeof SqliteDriver).Attribute(name, changes[name]);
     });
 
-    // SQLite doesn't support altering column attributes with MODIFY COLUMN and adding a PRIMARY KEY column
-    if (attributes.some((entry: any) => entry.modify || entry.primaryKey)) {
+    // SQLite doesn't support altering column attributes with MODIFY COLUMN and adding a PRIMARY KEY column.
+    // DROP COLUMN was only added in SQLite 3.35.0; sqlite3@5.0.2, our minimum supported peer,
+    // bundles SQLite 3.34.0.
+    const removesColumn = attributes.some((entry: any) => entry.remove);
+    if (
+      attributes.some((entry: any) => entry.modify || entry.primaryKey)
+      || (removesColumn && !(await this.supportsDropColumn()))
+    ) {
       await alterTableWithChangeColumn(this, table, attributes);
       return;
     }
