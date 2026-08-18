@@ -12,6 +12,16 @@ import {
 import Raw from './raw';
 import { isPlainObject } from './utils';
 
+/**
+ * Public base class for Leoric models.
+ *
+ * Extend this class to define a model, then use its static query and persistence
+ * methods or instantiate it to work with a single record.
+ * @example
+ * class Post extends Bone {}
+ * Post.init({ title: DataTypes.STRING });
+ * const post = await Post.create({ title: 'Leoric' });
+ */
 export default class Bone extends AbstractBone {
   /**
    * SELECT rows

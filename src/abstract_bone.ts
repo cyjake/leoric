@@ -112,6 +112,12 @@ export class LeoricClassFieldError extends Error {
   }
 }
 
+/**
+ * Shared model implementation for Leoric records.
+ *
+ * Applications normally extend {@link Bone}; this class documents the model
+ * metadata, persistence, association, and schema APIs inherited by `Bone`.
+ */
 export class AbstractBone {
   static DataTypes: typeof DataTypes = DataTypes.invokable;
 
@@ -400,7 +406,7 @@ export class AbstractBone {
   /**
    * Define a hasOne association. The foreign key defaults to `<thisModelName>Id` on the associated model.
    * @param name association name, e.g. `'profile'`
-   * @param options association options, e.g. `{ className, foreignKey, through }`
+   * @param options - association options including `className`, `foreignKey`, and `through`
    * @example
    * User.hasOne('profile');
    */
@@ -418,7 +424,7 @@ export class AbstractBone {
   /**
    * Define a hasMany association. The foreign key defaults to `<thisModelName>Id` on the associated model.
    * @param name association name, e.g. `'posts'`
-   * @param options association options, e.g. `{ className, foreignKey, through }`
+   * @param options - association options including `className`, `foreignKey`, and `through`
    * @example
    * User.hasMany('posts');
    */
@@ -436,7 +442,7 @@ export class AbstractBone {
   /**
    * Define a belongsTo association. The foreign key defaults to `<associatedModelName>Id` on this model.
    * @param name association name, e.g. `'user'`
-   * @param options association options, e.g. `{ className, foreignKey }`
+   * @param options - association options including `className` and `foreignKey`
    * @example
    * Post.belongsTo('user');
    */
@@ -973,7 +979,7 @@ export class AbstractBone {
 
   /**
    * Synchronize the model's table with its attribute definitions. The table is created when it does not exist; with `force: true` it is dropped and recreated (existing data is destroyed), with `alter: true` it is altered in place, otherwise a warning is printed when out of sync.
-   * @param options `{ force, alter }`
+   * @param options - synchronization options `force` and `alter`
    * @example
    * await Post.sync({ force: true });
    */
@@ -1071,7 +1077,7 @@ export class AbstractBone {
   /**
    * Initialize the model with attribute definitions, table name, timestamps, hooks, and custom property descriptors. Usually invoked through `realm.define()` or the `@Model()` decorator.
    * @param attributes attribute definitions keyed by attribute name
-   * @param opts options, e.g. `{ tableName, timestamps, underscored, hooks }`
+   * @param opts - model options including `tableName`, `timestamps`, `underscored`, and `hooks`
    * @param overrides custom property descriptors installed on the prototype
    * @example
    * Post.init({ title: DataTypes.STRING }, { tableName: 'posts' });
@@ -1694,7 +1700,7 @@ export class AbstractBone {
 
   /**
    * INSERT the current record into the database, syncing generated timestamps and primary key. Resolves to the instance itself.
-   * @param opts query options, e.g. `{ hooks: false }`
+   * @param opts - query options; set `hooks` to false to skip hooks
    * @example
    * const post = new Post({ title: 'Leoric' });
    * await post.create();
