@@ -208,11 +208,17 @@ describe('=> Collection', function() {
           // duplicate post id as string, should be deduplicated
           posts: { id: '1', author_id: 1, title: 'Post A' },
         },
+        {
+          users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
+          // zero is a valid primary key and must not be treated as a missing join
+          posts: { id: 0, author_id: 1, title: 'Post Zero' },
+        },
       ],
       fields: [],
     });
     assert.equal(result.length, 1);
     const user = result[0];
-    assert.equal(user.posts.length, 2);
+    assert.equal(user.posts.length, 3);
+    assert.ok(user.posts.some(post => post.id === 0));
   });
 });

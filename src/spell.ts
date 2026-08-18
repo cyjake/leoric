@@ -518,9 +518,12 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
 
   #prepareJoin() {
     if (Number(this.rowCount) > 0 || this.skip > 0) {
+      const joins = this.joins;
       const spell = this.dup;
       spell.columns = [];
+      spell.joins = {};
       this.#emptySpell();
+      this.joins = joins;
       this.table = { type: 'subquery', value: spell };
     }
   }
@@ -1031,6 +1034,7 @@ class Spell<T extends typeof AbstractBone, U = InstanceType<T> | Collection<Inst
    * @param Model
    * @param onConditions
    * @param values
+   * @returns The current query with matching rows mounted as a collection.
    */
   $joinMany<V extends typeof AbstractBone>(Model: V, onConditions: string | OnConditions<T>, ...values: Literal[]): this {
     this.#prepareJoin();

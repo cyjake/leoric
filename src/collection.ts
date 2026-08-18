@@ -171,7 +171,7 @@ function dispatchJoins<T extends typeof AbstractBone, U extends typeof AbstractB
         }
       }
       // bigint primary key in cartesian product will be string if mysql supportBigNumbers is true
-      if (!id || current[qualifier].some((item: InstanceType<U>) => item[Model.primaryKey as keyof typeof item] == id)) {
+      if (id == null || current[qualifier].some((item: InstanceType<U>) => item[Model.primaryKey as keyof typeof item] == id)) {
         continue;
       }
       current[qualifier].push(Model.instantiate(values) as InstanceType<T>);
