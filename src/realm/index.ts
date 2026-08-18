@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { pathToFileURL } from 'url';
 
 import { findDriver, AbstractDriver } from '../drivers';
 import { isBone } from '../utils';
@@ -21,7 +22,12 @@ async function findModels(dir: string): Promise<Array<typeof AbstractBone>> {
   for (const entry of entries) {
     const extname = path.extname(entry.name);
     if (entry.isFile() && ['.js', '.mjs', '.ts'].includes(extname)) {
-      const mod = await import(path.join(dir, entry.name));
+      const filePath = path.join(dir, entry.name);
+      // TypeScript lowers import() to require() in the CommonJS build, which
+      // expects a filesystem path. Native ESM needs a file URL on Windows.
+      /* istanbul ignore next */
+      const specifier = typeof require === 'undefined' ? pathToFileURL(filePath).href : filePath;
+      const mod = await import(specifier);
       /* istanbul ignore next */
       const model = mod.default ?? mod;
       if (isBone(model)) models.push(model);
