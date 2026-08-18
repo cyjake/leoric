@@ -674,7 +674,7 @@ describe('=> Spell', function() {
         .join(Attachment, 'attachments.articleId = posts.id')
         .joinMany(Comment, 'comments.articleId = posts.id')
         .toString(),
-      'SELECT `posts`.*, `attachments`.*, `comments`.* FROM (SELECT * FROM `articles` AS `posts` WHERE `posts`.`id` = 1 AND `posts`.`gmt_deleted` IS NULL LIMIT 1) AS `posts` LEFT JOIN `attachments` AS `attachments` ON `attachments`.`article_id` = `posts`.`id` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id`'
+      'SELECT `posts`.*, `attachments`.*, `comments`.* FROM (SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1) AS `posts` LEFT JOIN `attachments` AS `attachments` ON `attachments`.`article_id` = `posts`.`id` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id`'
     );
   });
 
