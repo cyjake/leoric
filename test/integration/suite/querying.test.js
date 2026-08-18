@@ -557,6 +557,29 @@ describe('=> Group / Join / Subqueries', function() {
     ]);
   });
 
+  it('Bone.joinMany()', async function() {
+    const post = await Post.findOne({ id: 2 })
+      .joinMany(Comment, 'comments.articleId = posts.id');
+    expect(post).to.be.a(Post);
+    expect(post.comments.every(comment => comment instanceof Comment)).to.be(true);
+    expect(Array.from(post.comments, comment => comment.content).sort()).to.eql([ 'bar', 'foo' ]);
+
+    const postWithoutComments = await Post.findOne({ id: 1 })
+      .joinMany(Comment, 'comments.articleId = posts.id');
+    expect(postWithoutComments).to.be.a(Post);
+    expect(Array.from(postWithoutComments.comments)).to.eql([]);
+  });
+
+  it('Bone.join().joinMany() after a parent limit', async function() {
+    const post = await Post.findOne({ id: 2 })
+      .join(Attachment, 'attachments.postId = posts.id')
+      .joinMany(Comment, 'comments.articleId = posts.id');
+    expect(post).to.be.a(Post);
+    expect(post.attachments).to.be.an(Attachment);
+    expect(post.attachments.postId).to.equal(post.id);
+    expect(Array.from(post.comments, comment => comment.content).sort()).to.eql([ 'bar', 'foo' ]);
+  });
+
   it('Bone.join().count()', async function() {
     const query = Post.find({ title: ['Archangel Tyrael', 'New Post'] });
     const count = await query.count();

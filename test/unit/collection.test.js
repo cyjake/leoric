@@ -189,11 +189,11 @@ describe('=> Collection', function() {
     assert.deepEqual(result.toObject(), [ null, undefined ]);
   });
 
-  // covers the loose equality check (`==`) in dispatchJoins for bigint primary keys,
-  // where mysql can return id as string instead of number (e.g. with supportBigNumbers/bigNumberStrings).
-  it('should deduplicate joined rows with bigint primary key as string', async function() {
+  // covers joinMany collection dispatch and the loose equality check (`==`) used when
+  // mysql returns bigint primary keys as strings (e.g. with supportBigNumbers/bigNumberStrings).
+  it('should collect and deduplicate rows from an arbitrary joinMany', async function() {
     const result = Collection.init({
-      spell: User.include('posts').where({ id: 1 }),
+      spell: User.joinMany(Post, 'posts.authorId = users.id').where({ id: 1 }),
       rows: [
         {
           users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
@@ -208,12 +208,17 @@ describe('=> Collection', function() {
           // duplicate post id as string, should be deduplicated
           posts: { id: '1', author_id: 1, title: 'Post A' },
         },
+        {
+          users: { id: 1, email: 'a@b.com', nickname: 'test', status: 1 },
+          // zero is a valid primary key and must not be treated as a missing join
+          posts: { id: 0, author_id: 1, title: 'Post Zero' },
+        },
       ],
       fields: [],
     });
     assert.equal(result.length, 1);
     const user = result[0];
-    // 2 unique posts, not 3
-    assert.equal(user.posts.length, 2);
+    assert.equal(user.posts.length, 3);
+    assert.ok(user.posts.some(post => post.id === 0));
   });
 });

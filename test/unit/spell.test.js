@@ -662,6 +662,20 @@ describe('=> Spell', function() {
       Post.join(Comment, 'comments.articleId = posts.id').limit(1).toString(),
       'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL LIMIT 1'
     );
+
+    assert.equal(
+      Post.joinMany(Comment, 'comments.articleId = posts.id').toString(),
+      'SELECT `posts`.*, `comments`.* FROM `articles` AS `posts` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id` WHERE `posts`.`gmt_deleted` IS NULL'
+    );
+    assert.equal(Post.joinMany(Comment, 'comments.articleId = posts.id').joins.comments.hasMany, true);
+
+    assert.equal(
+      Post.findOne({ id: 1 })
+        .join(Attachment, 'attachments.articleId = posts.id')
+        .joinMany(Comment, 'comments.articleId = posts.id')
+        .toString(),
+      'SELECT `posts`.*, `attachments`.*, `comments`.* FROM (SELECT * FROM `articles` WHERE `id` = 1 AND `gmt_deleted` IS NULL LIMIT 1) AS `posts` LEFT JOIN `attachments` AS `attachments` ON `attachments`.`article_id` = `posts`.`id` LEFT JOIN `comments` AS `comments` ON `comments`.`article_id` = `posts`.`id`'
+    );
   });
 
   it('abitrary join with predefined association', function() {

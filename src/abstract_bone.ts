@@ -689,6 +689,17 @@ export class AbstractBone {
   }
 
   /**
+   * JOIN arbitrary models with given ON conditions and mount all matching rows as a collection.
+   * @example
+   * Bone.joinMany(Muscle, 'bones.id == muscles.boneId')
+   * @param args - The model, ON conditions, and optional bound values.
+   * @returns A chainable query that mounts all matching rows.
+   */
+  static joinMany<T extends typeof AbstractBone>(this: T, ...args: Parameters<typeof Spell.prototype.$joinMany>) {
+    return this._find().$joinMany(...args) as Spell<T, Collection<InstanceType<T>>>;
+  }
+
+  /**
    * Set WHERE conditions
    * @example
    * Bone.where('foo = ?', 1)

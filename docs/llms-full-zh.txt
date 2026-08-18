@@ -2175,7 +2175,7 @@ COMMIT
 Leoric 提供两种构建 JOIN 查询的方式：
 
 - 使用 `.with(relationName)` 或者 `.include(relationName)` JOIN 预定义的关联关系，
-- 使用 `.join(Model, onConditions)` JOIN 其他任意数据模型。
+- 使用 `.join(Model, onConditions)` 或 `.joinMany(Model, onConditions)` JOIN 其他任意数据模型。
 
 #### 预定义的关联关系
 
@@ -2261,6 +2261,19 @@ SELECT * FROM posts LEFT JOIN comments ON posts.id = comments.post_id LEFT JOIN 
 ```
 
 和预定义的 JOIN 类似，为保留主表结果，默认采用 LEFT JOIN。
+
+任意 `.join()` 会在每条主表结果上挂载一条匹配的数据。如果被 JOIN 的模型可能匹配多条数据，应使用 `.joinMany()` 将全部结果挂载为集合：
+
+```js
+const post = await Post.findOne({ id: 1 })
+  .joinMany(Comment, 'posts.id = comments.postId')
+
+post.comments // Collection<Comment>
+```
+
+如果没有匹配的评论，`post.comments` 是空集合。Leoric 无法根据任意 `ON` 表达式可靠推断关联基数，因此 `.join()` 明确表示挂载单条数据，`.joinMany()` 明确表示挂载集合。
+
+与 `.with()` 相同，调用顺序会影响 `LIMIT`。在 `.joinMany()` 前设置限制时，Leoric 会先限制主表查询，再取得对应的全部匹配数据；在 `.joinMany()` 后设置限制时，限制会作用于 JOIN 后的行，因而可能截断挂载的集合。
 
 查询中所有表的别名都是按 `pluralize(camelCase(Model.name))` 规则计算。在上例中涉及转换的数据模型名称、别名如下：
 
