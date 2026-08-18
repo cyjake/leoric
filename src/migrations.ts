@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import AbstractDriver from './drivers/abstract';
 import DataTypesModule from './data_types';
 
@@ -33,7 +34,12 @@ async function loadTasks(dir: string): Promise<string[]> {
 }
 
 async function loadMigration(dir: string, name: string): Promise<Migration> {
-  const mod = await import(path.join(dir, name));
+  const filePath = path.join(dir, name);
+  // TypeScript lowers import() to require() in the CommonJS build, which
+  // expects a filesystem path. Native ESM needs a file URL on Windows.
+  /* istanbul ignore next */
+  const specifier = typeof require === 'undefined' ? pathToFileURL(filePath).href : filePath;
+  const mod = await import(specifier);
   /* istanbul ignore next */
   return { ...(mod.default ?? mod), name };
 }

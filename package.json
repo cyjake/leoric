@@ -15,6 +15,7 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "browser": "./dist/browser.js",
       "import": "./dist/index.js",
       "require": "./lib/index.js"
     }
@@ -47,7 +48,7 @@
     "test": "./test/start.sh",
     "test:local": "./test/start.sh",
     "test:unit": "./test/start.sh unit",
-    "test:esm": "npm run prepack:browser && node test/esm-entry.test.mjs",
+    "test:esm": "npm run prepack && npm run prepack:browser && node test/esm-entry.test.mjs",
     "test:integration": "./test/start.sh integration",
     "test:mysql": "./test/start.sh test/integration/mysql.test.js",
     "test:mysql2": "./test/start.sh test/integration/mysql2.test.js",
