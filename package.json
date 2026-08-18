@@ -31,6 +31,7 @@
   ],
   "scripts": {
     "build:types:ts4.9": "node scripts/build-ts49-types.js",
+    "prejsdoc": "npm run prepack",
     "jsdoc": "rm -rf docs/api && jsdoc -c .jsdoc.json -d docs/api -t node_modules/@cara/minami",
     "clean": "tsc -b --clean",
     "lint-staged": "lint-staged",
