@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.16.0 (2026-08-18)
+
+## What's Changed
+* fix(ci): fix Node CI dry-run publish failure and deprecation warning by @yicai-dev in https://github.com/cyjake/leoric/pull/495
+* fix: remove CommonJS interop from ESM build by @elrrrrrrr in https://github.com/cyjake/leoric/pull/499
+* fix: recycle idle mysql connections by @yicai-dev in https://github.com/cyjake/leoric/pull/502
+* fix(ci): load Mocha types for TypeScript tests by @yicai-dev in https://github.com/cyjake/leoric/pull/503
+* docs: add pagination guide by @cyjake in https://github.com/cyjake/leoric/pull/497
+* test: cover ES2022 defaults on create by @cyjake in https://github.com/cyjake/leoric/pull/498
+* feat: support model index declarations by @yicai-dev in https://github.com/cyjake/leoric/pull/501
+* feat: support partial JSON updates by @cyjake in https://github.com/cyjake/leoric/pull/500
+* fix(sqlite): support dropping columns on legacy runtimes by @yicai-dev in https://github.com/cyjake/leoric/pull/504
+* docs: restore model API reference by @yicai-dev in https://github.com/cyjake/leoric/pull/505
+* feat: add joinMany for arbitrary joins by @yicai-dev in https://github.com/cyjake/leoric/pull/506
+
+
+**Full Changelog**: https://github.com/cyjake/leoric/compare/v2.15.0...v2.16.0
+
 ## 2.15.0 (2026-08-07)
 
 ## What's Changed
