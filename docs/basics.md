@@ -45,7 +45,7 @@ Here's a few transform examples.
 | Model/Class | Table/Schema |
 |-------------|--------------|
 | Shop        | shops        |
-| TagMap      | tagMaps      |
+| TagMap      | tag_maps     |
 | Mouse       | mice         |
 | Person      | people       |
 
@@ -85,7 +85,7 @@ CREATE TABLE shops (
 Simply extend from the `Bone` class exported by Leoric, have it connected to database, and you're all set:
 
 ```js
-const { Bone } = require('leoric');
+const { Bone, connect } = require('leoric');
 class Shop extends Bone {}
 await connect({ host: 'localhost', models: [ Shop ]});
 ```
@@ -162,7 +162,7 @@ A lot of schema settings can be done within the `static initialize()` method. We
 ```ts
 class Shop extends Bone {
   @Column({ name: 'removed_at' })
-  deltedAt: Date;
+  declare deletedAt: Date;
 }
 ```
 
@@ -221,7 +221,7 @@ With the models defined and connected, developers can,
 - persisting instance changes with `model.save()` of course.
 
 ```js
-async function() {
+async function main() {
   // create shop
   await Shop.create({ name: 'Barracks' })
 
@@ -232,7 +232,7 @@ async function() {
 
   // remove the shop
   await Shop.remove({ name: 'Horadric Cube' })
-})
+}
 ```
 
 ### Create
@@ -254,7 +254,7 @@ await shop.save()
 The SQL equivalent of both is:
 
 ```sql
-INSERT INTO shops (name, credit, type) VALUES ('Barracks', 10000);
+INSERT INTO shops (name, credit) VALUES ('Barracks', 10000);
 ```
 
 ### Read
@@ -315,7 +315,7 @@ UPDATE shops SET credit = 10000 WHERE name = 'Barracks';
 Likewise, both `model.remove()` and `Model.remove()` are available to delete records from database. For example:
 
 ```js
-const shop = await Shop.find({ name: 'Barracks' })
+const shop = await Shop.findOne({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
 await shop.remove(true)
 // DELETE FROM shops WHERE id = 1
@@ -329,7 +329,7 @@ What's with the parameter `true` you might ask. That is because by default Leori
 Therefore, if `deletedAt` were present in `Shop` model:
 
 ```js
-const shop = await Shop.find({ name: 'Barracks' })
+const shop = await Shop.findOne({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
 await shop.remove()
 // UPDATE shops SET deleted_at = NOW() WHERE id = 1
@@ -338,4 +338,4 @@ await Shop.remove({ name: 'Barracks' })
 // UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks'
 ```
 
-If `deletedAt` were absent in `Shop` model, calling either `model.remove()` or `Model.remove()` without passing `true` throws an Error.
+If `deletedAt` is absent in the `Shop` model, both `model.remove()` and `Model.remove()` perform a hard delete, even without passing `true`.

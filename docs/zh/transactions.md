@@ -75,39 +75,34 @@ try {
 }
 ```
 
-## 手动提交和回滚
+## 中止事务
 
-事务回调还接收 `commit` 和 `rollback` 函数，用于高级控制：
+在回调中抛出异常来中止事务。正常返回总会触发自动提交，即使回调已手动调用提供的 `commit` 或 `rollback` 辅助函数。建议使用自动结束事务的方式，不要将两种方式混用。
 
 ```js
-await Bone.transaction(async ({ connection, commit, rollback }) => {
+await Bone.transaction(async ({ connection }) => {
   await Post.create({ title: '新文章' }, { connection });
 
   const result = await someExternalService();
   if (!result.ok) {
-    await rollback();
-    return;
+    throw new Error('外部操作失败');
   }
-
-  // 如果没有手动提交或回滚，函数结束时仍会自动提交
 });
 ```
 
 ## 事务与钩子
 
-模型钩子（如 `beforeCreate`、`afterUpdate`）在事务内触发时，会在同一个连接上下文中执行。这确保了钩子中的数据库操作也是同一事务的一部分。
+钩子不会自动将事务连接传给额外的查询。钩子发起的查询也必须显式传入 `{ connection }`。尤其是 `afterCreate(post, result)` 不会收到原查询选项。需要使用该连接的关联写入可以放在事务回调内：
 
 ```js
-class Post extends Bone {
-  static afterCreate(post, result) {
-    // 如果 Post.create 是在事务内调用的，这里也在事务内执行
-    return AuditLog.create({
-      action: 'create',
-      modelName: 'Post',
-      modelId: post.id,
-    });
-  }
-}
+await Bone.transaction(async ({ connection }) => {
+  const post = await Post.create({ title: '新文章' }, { connection });
+  await AuditLog.create({
+    action: 'create',
+    modelName: 'Post',
+    modelId: post.id,
+  }, { connection });
+});
 ```
 
 ## 最佳实践

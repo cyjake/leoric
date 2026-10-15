@@ -38,8 +38,9 @@ module.exports = {
 ```js
 module.exports = {
   async up(driver, DataTypes) {
-    await driver.addColumn('users', {
-      wants_marketing_email: { type: BOOLEAN, default: false },
+    await driver.addColumn('users', 'wants_marketing_email', {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     });
     await driver.query('UPDATE users SET wants_marketing_email = 1');
   },
@@ -122,7 +123,7 @@ module.exports = {
   async up(driver, DataTypes) {
     const { STRING, BIGINT, INTEGER } = DataTypes;
     await driver.createTable('products', {
-      id: { type: BIGINT, primary: true },
+      id: { type: BIGINT, primaryKey: true },
       category_id: { type: BIGINT },
       name: STRING,
       price: INTEGER,
@@ -138,7 +139,7 @@ CREATE TABLE `products` (
   `id` BIGINT PRIMARY KEY,
   `category_id` BIGINT,
   `name` VARCHAR(255),
-  `price` INT,
+  `price` INT
 );
 ```
 
@@ -158,7 +159,7 @@ module.exports = {
 上述代码等价于如下 SQL：
 
 ```sql
-ALTER TABLE `products` ADD COLUMN `volume` INTEGER;
+ALTER TABLE `products` ADD COLUMN `volume` INTEGER DEFAULT 0;
 ```
 
 ### 修改字段
@@ -177,7 +178,7 @@ module.exports = {
 上述代码等价于如下 SQL：
 
 ```sql
-ALTER TABLE `products` ADD COLUMN `volume` INTEGER UNSIGNED;
+ALTER TABLE `products` MODIFY COLUMN `volume` INTEGER UNSIGNED DEFAULT 0;
 ```
 
 ### 重命名字段
@@ -462,7 +463,7 @@ module.exports = {
 |---|-----------------|
 | ⚠️ | 相关功能仍在实现中 |
 
-迁移任务执行成功后（不管是 `realm.migrate()` 还是 `realm.rollback()`），都会在 `opts.migrations` 所指定的目录的同级目录生成一份 `schema.js` 文件。例如，如果指定的 `opts.migrations` 路径是 `database/migrations`，Leoric 就会在迁移任务执行结束后转存一份完整的当前数据库结构信息到 `database/schema.js`，内容大致如下：
+`realm.migrate()` 和 `realm.rollback()` 目前不会生成数据库结构转存文件。如果自行维护单独的数据库结构文件，可以包含如下语句；Leoric 不会自动创建或更新该文件：
 
 ```js
 module.exports = async function createSchema(driver, DataTypes) {

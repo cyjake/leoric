@@ -75,39 +75,34 @@ try {
 }
 ```
 
-## Manual Commit and Rollback
+## Aborting a Transaction
 
-The transaction callback also receives `commit` and `rollback` functions for advanced control:
+Throw from the callback to abort a transaction. Returning normally always triggers an automatic commit, even if a callback manually calls the supplied `commit` or `rollback` helper. Prefer automatic finalization rather than mixing the two.
 
 ```js
-await Bone.transaction(async ({ connection, commit, rollback }) => {
+await Bone.transaction(async ({ connection }) => {
   await Post.create({ title: 'New Post' }, { connection });
 
   const result = await someExternalService();
   if (!result.ok) {
-    await rollback();
-    return;
+    throw new Error('External operation failed');
   }
-
-  // Transaction will still be auto-committed at the end if not manually committed/rolled back
 });
 ```
 
 ## Transactions with Hooks
 
-Model hooks (such as `beforeCreate`, `afterUpdate`) are executed within the same connection context when triggered inside a transaction. This ensures that any additional database operations performed in hooks are part of the same transaction.
+Hooks do not automatically propagate the transaction connection to additional queries. Queries started by a hook must also receive `{ connection }` explicitly. In particular, `afterCreate(post, result)` does not receive the original query options. Put related writes in the transaction callback when they need that connection:
 
 ```js
-class Post extends Bone {
-  static afterCreate(post, result) {
-    // This runs within the transaction if Post.create was called inside one
-    return AuditLog.create({
-      action: 'create',
-      modelName: 'Post',
-      modelId: post.id,
-    });
-  }
-}
+await Bone.transaction(async ({ connection }) => {
+  const post = await Post.create({ title: 'New Post' }, { connection });
+  await AuditLog.create({
+    action: 'create',
+    modelName: 'Post',
+    modelId: post.id,
+  }, { connection });
+});
 ```
 
 ## Best Practices

@@ -47,7 +47,7 @@ const post = await Post.findOne({
 上例对应的 SQL 如下：
 
 ```sql
-SELECT * FROM posts WHERE title IN ('New Post', 'Untitled') AND created_at = '2012-04-15 00:00:00' LIMIT 1;
+SELECT * FROM posts WHERE title IN ('New Post', 'Untitled') AND created_at = '2012-05-15 00:00:00' LIMIT 1;
 ```
 
 如果查无记录，`.findOne()` 会返回 `null` 而不是像 `.find()` 一样返回空集合。
@@ -219,10 +219,10 @@ Post.find({ createdAt: { $notBetween: [new Date(2017, 10, 11), new Date(2017, 11
 
 ```js
 Post.find({ id: { $gt: 0, $lt: 999999 }})
-// => SELECT * FROM posts WHERE id >= 0 AND id <= 999999
+// => SELECT * FROM posts WHERE id > 0 AND id < 999999
 ```
 
-目前对象查询条件所支持的操作符还不包含逻辑操作符（比如 `AND`、`OR`、或者 `!`），可以改用纯字符串的查询条件实现。
+对象查询条件也支持逻辑操作符 `$and`、`$or` 和 `$not`，例如 `{ $or: [{ title: 'New Post' }, { title: 'Untitled' }] }`。
 
 ### 字符串查询条件
 
@@ -523,7 +523,7 @@ Leoric 提供两种构建 JOIN 查询的方式：
 
 ### 预定义的关联关系
 
-可以通过 `Model.relations` 查看当前数据模型预定义的关联关系，这些关系都是在 Leoric 内部调用 `Model.describe()` 方法时生成的。我们可以在这个方法里调用 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()` 来定义关联关系，例如：
+可以通过 `Model.associations` 查看当前数据模型预定义的关联关系，这些关系都是在 Leoric 内部调用 `Model.initialize()` 方法时生成的。我们可以在这个方法里调用 `.hasMany()`、`.hasOne()`、以及 `.belongsTo()` 来定义关联关系，例如：
 
 ```js
 class Post extends Bone {
@@ -590,7 +590,7 @@ SELECT * FROM (SELECT * FROM posts LIMIT 1) AS posts LEFT JOIN comments ON comme
 
 ### 任意 JOIN
 
-如果需要 JOIN 未在 `Model.describe()` 预先定义的关联关系，可以使用 `.join()` 方法：
+如果需要 JOIN 未在 `Model.initialize()` 预先定义的关联关系，可以使用 `.join()` 方法：
 
 ```js
 Post
@@ -689,7 +689,7 @@ co(function* () {
 })
 
 // ES2016 使用 async await
-async function() {
+async function main() {
   const posts = await Post.find()
 }
 ```
@@ -701,7 +701,7 @@ async function() {
 ```js
 const query = Post.where('title LIKE ?', '%King%')
 const posts = await query.order('updatedAt desc').limit(10)
-const [{ count }] = await query.count() // 没有排序、LIMIT
+const count = await query.count() // 没有排序、LIMIT
 this.body = { posts, count }
 ```
 
