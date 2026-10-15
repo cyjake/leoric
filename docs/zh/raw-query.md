@@ -74,7 +74,8 @@ const result = await realm.query(
 ```js
 const result = await realm.query(
   'SELECT * FROM posts WHERE id = ?',
-  { model: Post, replacements: {} }
+  [1],
+  { model: Post }
 );
 
 // result.rows 现在是 Post 实例

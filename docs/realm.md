@@ -154,7 +154,7 @@ const { BIGINT, STRING, TEXT } = realm.DataTypes;
 const Post = realm.define(
   class Post extends Bone {
     static initialize() {
-      this.belongsTo('author', { Model: 'User' });
+      this.belongsTo('author', { className: 'User', foreignKey: 'authorId' });
     }
   },
   {

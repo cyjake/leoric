@@ -35,7 +35,7 @@ Leoric 支持四种关联关系：
 - `hasMany({ through })`
 - `hasOne()`
 
-这些方法需要在 `Model.describe()` 方法中调用。例如，声明店铺属于 `belongsTo()` 它的 `owner` 之后，Leoric 将在执行 `Shop.find().with('owner')` 时自动 JOIN 店铺和用户表，找到所查找的店铺对应的 `owner`，在结果中实例化对应的数据模型并挂载到店铺的 `owner` 属性。
+这些方法需要在 `Model.initialize()` 方法中调用。例如，声明店铺属于 `belongsTo()` 它的 `owner` 之后，Leoric 将在执行 `Shop.find().with('owner')` 时自动 JOIN 店铺和用户表，找到所查找的店铺对应的 `owner`，在结果中实例化对应的数据模型并挂载到店铺的 `owner` 属性。
 
 使用 TypeScript 的项目也可以用更直观的装饰器配置方式，上述四种关联关系都有对应的装饰器：
 
@@ -97,7 +97,7 @@ class Item extends Bone {
 }
 ```
 
-> 注意传给 `className` 的值是字符串而非实际数据模型的类。在 `Model.describe()` 定义阶段互相传递数据模型的类很容易导致循环依赖，以至于 `require` 到不一致的 `exports`。
+> 注意传给 `className` 的值是字符串而非实际数据模型的类。在 `Model.initialize()` 定义阶段互相传递数据模型的类很容易导致循环依赖，以至于 `require` 到不一致的 `exports`。
 
 如你在实例关系图中所见，用于关联 `belongsTo()` 关系的外键是存在于发起关联关系的数据模型中的。外键的名称默认根据目标数据模型的名称转换，首字母转为小写，再跟上 `Id` 后缀。在这个例子里，外键会自动根据 `Shop` 转换成 `shopId`。
 

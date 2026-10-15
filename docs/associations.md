@@ -35,7 +35,7 @@ Leoric supports four types of associations:
 - `hasMany({ through })`
 - `hasOne()`
 
-Associations can be declared within the `Model.describe()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Leoric that when `Shop.find().with('owner')`, Leoric should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
+Associations can be declared within the `Model.initialize()` method. For example, by declaring a shop `belongsTo()` its owner, you're telling Leoric that when `Shop.find().with('owner')`, Leoric should join the table of owners, load the data, and instantiate `shop.owner` on the found objects.
 
 There are four equivalent decorators for projects written in TypeScript
 
@@ -97,7 +97,7 @@ class Item extends Bone {
 }
 ```
 
-> Please be noted that the value passed to `className` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association at `Model.describe()` phase can be error prone because it causes cyclic dependencies.
+> Please be noted that the value passed to `className` is a string rather than the actual model class. Tossing the actual classes back and forth between the two parties of an association at `Model.initialize()` phase can be error prone because it causes cyclic dependencies.
 
 As you can tell from the ER diagram, the foreign key used to associate a `belongsTo()` relationship is located on the model that initiates it. The name of the foreign key is found by uncapitalizing the target model's name and then appending an `Id`. In this case, the foerign key is converted from `Shop` to `shopId`.
 

@@ -74,7 +74,8 @@ Pass a `model` option to have the results returned as model instances instead of
 ```js
 const result = await realm.query(
   'SELECT * FROM posts WHERE id = ?',
-  { model: Post, replacements: {} }
+  [1],
+  { model: Post }
 );
 
 // result.rows are now Post instances

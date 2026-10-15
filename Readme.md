@@ -16,9 +16,11 @@ Assume the tables of posts, users, and comments were setup already. We may decla
 import Realm, { Bone } from 'leoric'
 
 const realm = new Realm({ host: 'example.com' })
+realm.define(class User extends Bone {})
+realm.define(class Comment extends Bone {})
 const Post = realm.define(class Post extends Bone {
   static initialize() {
-    this.belongsTo('author', { Model: 'User' })
+    this.belongsTo('author', { className: 'User', foreignKey: 'authorId' })
     this.hasMany('comments')
   }
 })
@@ -34,11 +36,11 @@ async function main() {
   await post.save()
 
   // or UPDATE directly
-  await Post.update({ title: 'Untitled' }, { title: 'New Post' })
+  await Post.update({ title: 'New Post' }, { title: 'Untitled' })
 
   // find with associations
-  const post = await Post.findOne({ title: 'New Post' }).with('comments')
-  console.log(post.comments) // => [ Comment { id, content }, ... ]
+  const postWithComments = await Post.findOne({ title: 'Untitled' }).with('comments')
+  console.log(postWithComments.comments) // => [ Comment { id, content }, ... ]
 }
 ```
 

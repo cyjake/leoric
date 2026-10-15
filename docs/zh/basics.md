@@ -119,11 +119,11 @@ const { BIGINT, STRING } = Bone.DataTypes;
 class Shop extends Bone {
   // 主键声明也可以省略，默认按照如下方式声明
   @Column({ primaryKey: true })
-  id: bigint;
+  declare id: bigint;
 
   // 字符串默认按照 VARCHAR(255) 类型定义
   @Column()
-  name: string;
+  declare name: string;
 }
 ```
 
@@ -179,7 +179,7 @@ class Shop extends Bone {
 ```ts
 class Shop extends Bone {
   @Column({ name: 'removed_at' })
-  deltedAt: Date;
+  declare deletedAt: Date;
 }
 ```
 
@@ -333,7 +333,7 @@ UPDATE shops SET credit = 10000 WHERE name = 'Barracks';
 同样的，实例方法 `model.remove()` 和静态方法 `Model.remove()` 均可用来从数据库删除数据。例如：
 
 ```js
-const shop = await Shop.find({ name: 'Barracks' })
+const shop = await Shop.findOne({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
 await shop.remove(true)
 // DELETE FROM shops WHERE id = 1
@@ -342,12 +342,12 @@ await Shop.remove({ name: 'Barracks' }, true)
 // DELETE FROM shops WHERE name = 'Barracks'
 ```
 
-你可能会奇怪这里额外传递的 `true` 参数是做什么用的。这是因为默认情况下 Leoric 会执行伪删除，仅更新 `deleteAt` 属性，而不是真的把数据从数据库删除。数据模型必须包含 `deleteAt` 属性，用来记录删除时间。
+你可能会奇怪这里额外传递的 `true` 参数是做什么用的。这是因为默认情况下 Leoric 会执行伪删除，仅更新 `deletedAt` 属性，而不是真的把数据从数据库删除。数据模型必须包含 `deletedAt` 属性，用来记录删除时间。
 
 所以如果 `Shop` 数据模型有 `deletedAt` 属性：
 
 ```js
-const shop = await Shop.find({ name: 'Barracks' })
+const shop = await Shop.findOne({ name: 'Barracks' })
 // => Shop { id: 1, name: 'Barracks' }
 await shop.remove()
 // UPDATE shops SET deleted_at = NOW() WHERE id = 1
@@ -356,7 +356,7 @@ await Shop.remove({ name: 'Barracks' })
 // UPDATE shops SET deleted_at = NOW() WHERE name = 'Barracks'
 ```
 
-如果 `Shop` 数据模型没有 `deletedAt` 属性，而 `model.remove()`、`Model.remove()` 方法并没有传递 `true`，Leoric 将抛出异常。
+如果 `Shop` 数据模型没有 `deletedAt` 属性，`model.remove()`、`Model.remove()` 即使没有传递 `true`，也会直接从数据库删除记录。
 
 ## 属性方法
 

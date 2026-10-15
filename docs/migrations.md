@@ -39,8 +39,9 @@ Migrations can not only be used to change schema, but also can be used to migrat
 ```js
 module.exports = {
   async up(driver, DataTypes) {
-    await driver.addColumn('users', {
-      wants_marketing_email: { type: BOOLEAN, default: false },
+    await driver.addColumn('users', 'wants_marketing_email', {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     });
     await driver.query('UPDATE users SET wants_marketing_email = 1');
   },
@@ -124,7 +125,7 @@ module.exports = {
   async up(driver, DataTypes) {
     const { STRING, BIGINT, INTEGER } = DataTypes;
     await driver.createTable('products', {
-      id: { type: BIGINT, primary: true },
+      id: { type: BIGINT, primaryKey: true },
       category_id: { type: BIGINT },
       name: STRING,
       price: INTEGER,
@@ -140,7 +141,7 @@ CREATE TABLE `products` (
   `id` BIGINT PRIMARY KEY,
   `category_id` BIGINT,
   `name` VARCHAR(255),
-  `price` INT,
+  `price` INT
 );
 ```
 
@@ -160,7 +161,7 @@ module.exports = {
 The code above is equivalent to the SQL below:
 
 ```sql
-ALTER TABLE `products` ADD COLUMN `volume` INTEGER;
+ALTER TABLE `products` ADD COLUMN `volume` INTEGER DEFAULT 0;
 ```
 
 ### Changing Columns
@@ -179,7 +180,7 @@ module.exports = {
 The code above is equivalent to the SQL below:
 
 ```sql
-ALTER TABLE `products` ADD COLUMN `volume` INTEGER UNSIGNED;
+ALTER TABLE `products` MODIFY COLUMN `volume` INTEGER UNSIGNED DEFAULT 0;
 ```
 
 ### Renaming Column
@@ -464,7 +465,7 @@ module.exports = {
 |---|---------------------------|
 | ⚠️ | NOT FULLY IMPLEMENTED YET |
 
-When migration finishes executing, not matter `realm.migrate()` or `realm.rollback()`, Leoric will create a schema dump in the parent directory of `opts.migrations`. For example, if the path specified with `opts.migrations` is `database/migrations`, the file will be created at `database/schema.js`, which contains statements like below:
+`realm.migrate()` and `realm.rollback()` do not currently generate a schema dump. If you maintain a separate schema file yourself, it can contain statements like the following; Leoric does not create or update this file automatically:
 
 ```js
 module.exports = async function createSchema(driver, DataTypes) {
